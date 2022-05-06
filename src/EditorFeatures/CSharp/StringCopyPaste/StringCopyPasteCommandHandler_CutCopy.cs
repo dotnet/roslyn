@@ -52,8 +52,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // Ensure that the copy always goes through all other handlers.
             nextCommandHandler();
 
-            if (dataToStore != null)
-                copyPasteService.TrySetClipboardData(KeyAndVersion, dataToStore);
+            // Always try to store our data to the clipboard (if we have access to the clipboard service).  Even if we
+            // didn't capture any useful data, we want to store that to blow away any prior stored data we have.
+            if (copyPasteService != null)
+                copyPasteService.TrySetClipboardData(KeyAndVersion, dataToStore ?? "");
         }
 
         private static (string? dataToStore, IStringCopyPasteService service) CaptureCutCopyInformation(
