@@ -1277,8 +1277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             SyntaxKind nextTokenKind = GetNextRelevantToken(node.EndQuoteToken).Kind();
             return nextTokenKind != SyntaxKind.GreaterThanToken && nextTokenKind != SyntaxKind.SlashGreaterThanToken
-                       ? attribute.WithTrailingTrivia(GetSpace())
-                       : attribute;
+                ? attribute.WithTrailingTrivia(GetSpace())
+                : attribute;
         }
     }
 }
