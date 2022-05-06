@@ -113,12 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 if (argument.RefOrOutKeyword.Kind() != SyntaxKind.None)
                     return true;
             }
-            else if (identifierNode.Parent.IsKind(
-                SyntaxKind.PreDecrementExpression,
-                SyntaxKind.PreIncrementExpression,
-                SyntaxKind.PostDecrementExpression,
-                SyntaxKind.PostIncrementExpression,
-                SyntaxKind.AddressOfExpression))
+            else if (identifierNode.Parent.Kind(
+) is SyntaxKind.PreDecrementExpression or SyntaxKind.PreIncrementExpression or SyntaxKind.PostDecrementExpression or SyntaxKind.PostIncrementExpression or SyntaxKind.AddressOfExpression)
             {
                 return true;
             }
@@ -243,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
             // After refactoring:
             //     M().P = 0;
             //     var x = M();
-            if (descendantNodesAndSelf.Any(n => n.IsKind(SyntaxKind.ObjectCreationExpression, SyntaxKind.InvocationExpression)))
+            if (descendantNodesAndSelf.Any(n => n.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.InvocationExpression))
             {
                 return true;
             }
@@ -425,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
         private static bool IsInDeconstructionAssignmentLeft(ExpressionSyntax node)
         {
             var parent = node.Parent;
-            while (parent.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+            while (parent.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression)
                 parent = parent.Parent;
 
             while (parent.IsKind(SyntaxKind.Argument))

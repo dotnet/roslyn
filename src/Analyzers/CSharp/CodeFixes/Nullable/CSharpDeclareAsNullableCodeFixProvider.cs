@@ -146,10 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
             if (node.IsParentKind(SyntaxKind.ReturnStatement, SyntaxKind.YieldReturnStatement))
             {
-                var containingMember = node.GetAncestors().FirstOrDefault(a => a.IsKind(
-                    SyntaxKind.MethodDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression,
-                    SyntaxKind.LocalFunctionStatement, SyntaxKind.AnonymousMethodExpression, SyntaxKind.ConstructorDeclaration, SyntaxKind.DestructorDeclaration,
-                    SyntaxKind.OperatorDeclaration, SyntaxKind.IndexerDeclaration, SyntaxKind.EventDeclaration));
+                var containingMember = node.GetAncestors().FirstOrDefault(a => a.Kind(
+) is SyntaxKind.MethodDeclaration or SyntaxKind.PropertyDeclaration or SyntaxKind.ParenthesizedLambdaExpression or SyntaxKind.SimpleLambdaExpression or SyntaxKind.LocalFunctionStatement or SyntaxKind.AnonymousMethodExpression or SyntaxKind.ConstructorDeclaration or SyntaxKind.DestructorDeclaration or SyntaxKind.OperatorDeclaration or SyntaxKind.IndexerDeclaration or SyntaxKind.EventDeclaration);
 
                 if (containingMember == null)
                 {
@@ -367,15 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.DeclareAsNullable
 
         private static bool IsExpressionSupported(SyntaxNode node)
         {
-            return node.IsKind(
-                SyntaxKind.NullLiteralExpression,
-                SyntaxKind.AsExpression,
-                SyntaxKind.DefaultExpression,
-                SyntaxKind.DefaultLiteralExpression,
-                SyntaxKind.ConditionalExpression,
-                SyntaxKind.ConditionalAccessExpression,
-                SyntaxKind.PropertyDeclaration,
-                SyntaxKind.VariableDeclarator);
+            return node.Kind(
+) is SyntaxKind.NullLiteralExpression or SyntaxKind.AsExpression or SyntaxKind.DefaultExpression or SyntaxKind.DefaultLiteralExpression or SyntaxKind.ConditionalExpression or SyntaxKind.ConditionalAccessExpression or SyntaxKind.PropertyDeclaration or SyntaxKind.VariableDeclarator;
         }
     }
 }

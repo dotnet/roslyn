@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Don't remove parentheses around `<` and `>` if there's a reasonable chance that it might
             // pair with the opposite form, causing them to be reinterpreted as generic syntax. See
             // https://github.com/dotnet/roslyn/issues/43934 for examples.
-            if (expression.IsKind(SyntaxKind.GreaterThanExpression, SyntaxKind.LessThanExpression) &&
+            if (expression.Kind() is SyntaxKind.GreaterThanExpression or SyntaxKind.LessThanExpression&&
                 nodeParent is ArgumentSyntax)
             {
                 var opposite = expression.IsKind(SyntaxKind.GreaterThanExpression) ? SyntaxKind.LessThanExpression : SyntaxKind.GreaterThanExpression;
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 (nodeParent.IsKind(SyntaxKind.WhileStatement, out WhileStatementSyntax? whileStatement) && whileStatement.Condition == node) ||
                 (nodeParent.IsKind(SyntaxKind.DoStatement, out DoStatementSyntax? doStatement) && doStatement.Condition == node) ||
                 (nodeParent.IsKind(SyntaxKind.ForStatement, out ForStatementSyntax? forStatement) && forStatement.Condition == node) ||
-                (nodeParent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement) && ((CommonForEachStatementSyntax)node.GetRequiredParent()).Expression == node) ||
+                (nodeParent.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement&& ((CommonForEachStatementSyntax)node.GetRequiredParent()).Expression == node) ||
                 (nodeParent.IsKind(SyntaxKind.LockStatement, out LockStatementSyntax? lockStatement) && lockStatement.Expression == node) ||
                 (nodeParent.IsKind(SyntaxKind.UsingStatement, out UsingStatementSyntax? usingStatement) && usingStatement.Expression == node) ||
                 (nodeParent.IsKind(SyntaxKind.CatchFilterClause, out CatchFilterClauseSyntax? catchFilter) && catchFilter.FilterExpression == node))
@@ -495,11 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (node.IsParentKind(SyntaxKind.CastExpression, out CastExpressionSyntax? castExpression))
             {
-                if (castExpression.Type.IsKind(
-                        SyntaxKind.PredefinedType,
-                        SyntaxKind.ArrayType,
-                        SyntaxKind.PointerType,
-                        SyntaxKind.NullableType))
+                if (castExpression.Type.Kind(
+) is SyntaxKind.PredefinedType or SyntaxKind.ArrayType or SyntaxKind.PointerType or SyntaxKind.NullableType)
                 {
                     return false;
                 }
@@ -552,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 //   {x < x, (x) > (1 + 2)}
 
                 if (node.Parent is BinaryExpressionSyntax binaryExpression &&
-                    binaryExpression.IsKind(SyntaxKind.LessThanExpression, SyntaxKind.GreaterThanExpression) &&
+                    binaryExpression.Kind() is SyntaxKind.LessThanExpression or SyntaxKind.GreaterThanExpression&&
                     (binaryExpression.IsParentKind(SyntaxKind.Argument) || binaryExpression.Parent is InitializerExpressionSyntax))
                 {
                     if (binaryExpression.IsKind(SyntaxKind.LessThanExpression))
@@ -571,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     else if (binaryExpression.IsKind(SyntaxKind.GreaterThanExpression))
                     {
                         if (binaryExpression.Left == node &&
-                            binaryExpression.Right.IsKind(SyntaxKind.ParenthesizedExpression, SyntaxKind.CastExpression))
+                            binaryExpression.Right.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.CastExpression)
                         {
                             if (IsPreviousExpressionPotentiallyAmbiguous(binaryExpression))
                             {

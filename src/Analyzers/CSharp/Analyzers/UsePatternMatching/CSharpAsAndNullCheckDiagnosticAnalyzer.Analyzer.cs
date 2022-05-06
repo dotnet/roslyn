@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Contract.ThrowIfNull(comparison);
                 Contract.ThrowIfNull(operand);
                 Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
-                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection));
+                Debug.Assert(enclosingBlock.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection);
 
                 _semanticModel = semanticModel;
                 _comparison = comparison;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 // Keep track of whether the pattern variable is definitely assigned when false/true.
                 // We start by the null-check itself, if it's compared with '==', the pattern variable
                 // will be definitely assigned when false, because we wrap the is-operator in a !-operator.
-                var defAssignedWhenTrue = _comparison.IsKind(SyntaxKind.NotEqualsExpression, SyntaxKind.IsExpression);
+                var defAssignedWhenTrue = _comparison.Kind() is SyntaxKind.NotEqualsExpression or SyntaxKind.IsExpression;
 
                 foreach (var current in _comparison.Ancestors())
                 {

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.IsKind(SyntaxKind.Block);
 
         public override bool IsExecutableBlock([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection, SyntaxKind.CompilationUnit);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection or SyntaxKind.CompilationUnit;
 
         public override IReadOnlyList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode? node)
         {

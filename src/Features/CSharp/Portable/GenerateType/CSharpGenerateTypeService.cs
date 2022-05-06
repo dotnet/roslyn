@@ -163,12 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 // If we're on the right side of a dot, then the left side better be a name (and
                 // not an arbitrary expression).
                 var leftSideExpression = simpleName.GetLeftSideOfDot();
-                if (!leftSideExpression.IsKind(
-                    SyntaxKind.QualifiedName,
-                    SyntaxKind.IdentifierName,
-                    SyntaxKind.AliasQualifiedName,
-                    SyntaxKind.GenericName,
-                    SyntaxKind.SimpleMemberAccessExpression))
+                if (leftSideExpression.Kind(
+) is not (SyntaxKind.QualifiedName or SyntaxKind.IdentifierName or SyntaxKind.AliasQualifiedName or SyntaxKind.GenericName or SyntaxKind.SimpleMemberAccessExpression))
                 {
                     return false;
                 }
@@ -667,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             {
                 if (node is BaseListSyntax)
                 {
-                    if (node.Parent.IsKind(SyntaxKind.InterfaceDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
+                    if (node.Parent.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration)
                     {
                         typeKindValue = TypeKindOptions.Interface;
                         return true;

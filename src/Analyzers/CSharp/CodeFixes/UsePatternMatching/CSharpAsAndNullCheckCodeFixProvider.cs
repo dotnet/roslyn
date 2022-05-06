@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isPatternExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
 
             // We should negate the is-expression if we have something like "x == null" or "x is null"
-            if (!comparison.IsKind(SyntaxKind.EqualsExpression, SyntaxKind.IsPatternExpression))
+            if (comparison.Kind() is not (SyntaxKind.EqualsExpression or SyntaxKind.IsPatternExpression))
                 return isPatternExpression;
 
             if (languageVersion >= LanguageVersion.CSharp9)

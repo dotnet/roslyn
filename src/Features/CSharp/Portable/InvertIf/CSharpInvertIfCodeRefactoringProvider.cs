@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertIf
             => new(ifNode.Statement, ifNode.Statement);
 
         protected override bool IsStatementContainer(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection;
 
         protected override bool IsNoOpSyntaxNode(SyntaxNode node)
-            => node.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement);
+            => node.Kind() is SyntaxKind.Block or SyntaxKind.EmptyStatement;
 
         protected override bool IsExecutableStatement(SyntaxNode node)
             => node is StatementSyntax;

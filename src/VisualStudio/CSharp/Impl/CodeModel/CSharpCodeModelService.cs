@@ -3731,7 +3731,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode AddBase(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel, int? position)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration))
+            if (node.Kind() is not (SyntaxKind.ClassDeclaration or SyntaxKind.InterfaceDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3764,7 +3764,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode RemoveBase(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.InterfaceDeclaration))
+            if (node.Kind() is not (SyntaxKind.ClassDeclaration or SyntaxKind.InterfaceDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3814,7 +3814,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override bool IsValidInterfaceType(SyntaxNode node, ITypeSymbol typeSymbol)
         {
-            if (node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+            if (node.Kind() is SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration)
             {
                 return typeSymbol.TypeKind == TypeKind.Interface;
             }
@@ -3824,7 +3824,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode AddImplementedInterface(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel, int? position)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+            if (node.Kind() is not (SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }
@@ -3859,7 +3859,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 
         public override SyntaxNode RemoveImplementedInterface(SyntaxNode node, ITypeSymbol typeSymbol, SemanticModel semanticModel)
         {
-            if (!node.IsKind(SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration))
+            if (node.Kind() is not (SyntaxKind.ClassDeclaration or SyntaxKind.StructDeclaration))
             {
                 throw Exceptions.ThrowEFail();
             }

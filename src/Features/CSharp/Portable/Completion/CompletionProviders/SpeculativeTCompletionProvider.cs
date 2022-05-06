@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var prevToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
                                       .GetPreviousTokenIfTouchingWord(position);
 
-            if (prevToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) && prevToken.Parent.IsKind(SyntaxKind.RefType))
+            if (prevToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword&& prevToken.Parent.IsKind(SyntaxKind.RefType))
             {
                 return prevToken.SpanStart;
             }

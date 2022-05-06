@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (currentOriginalNode.IsKind(SyntaxKind.CaseSwitchLabel, SyntaxKind.ConstantPattern))
+            if (currentOriginalNode.Kind() is SyntaxKind.CaseSwitchLabel or SyntaxKind.ConstantPattern)
             {
                 var expression = (ExpressionSyntax)currentReplacedNode.ChildNodes().First();
                 if (expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression))
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var previousReplacedExpression = (ExpressionSyntax)previousReplacedNode;
 
                 // it is never legal to use `default/null` in a switch statement's expression.
-                if (previousReplacedExpression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression, SyntaxKind.DefaultLiteralExpression))
+                if (previousReplacedExpression.WalkDownParentheses().Kind() is SyntaxKind.NullLiteralExpression or SyntaxKind.DefaultLiteralExpression)
                     return true;
 
                 var originalSwitchLabels = originalSwitchStatement.Sections.SelectMany(section => section.Labels).ToArray();
@@ -558,12 +558,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override bool ExpressionMightReferenceMember(SyntaxNode node)
         {
-            return node.IsKind(
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.ElementAccessExpression,
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxKind.ImplicitElementAccess,
-                SyntaxKind.ObjectCreationExpression);
+            return node.Kind(
+) is SyntaxKind.InvocationExpression or SyntaxKind.ElementAccessExpression or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.ImplicitElementAccess or SyntaxKind.ObjectCreationExpression;
         }
 
         protected override ImmutableArray<ArgumentSyntax> GetArguments(ExpressionSyntax expression)

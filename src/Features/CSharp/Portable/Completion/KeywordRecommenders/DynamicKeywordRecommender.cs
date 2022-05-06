@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         private static bool IsAfterRefTypeContext(CSharpSyntaxContext context)
-            => context.TargetToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
+            => context.TargetToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword&&
                context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
     }
 }

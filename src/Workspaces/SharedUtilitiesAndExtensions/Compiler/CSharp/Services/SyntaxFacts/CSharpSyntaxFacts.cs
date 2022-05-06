@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node.GetParameterList();
 
         public bool IsParameterList([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsKind(SyntaxKind.ParameterList, SyntaxKind.BracketedParameterList);
+            => node.Kind() is SyntaxKind.ParameterList or SyntaxKind.BracketedParameterList;
 
         public bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node)
             => node.IsParentKind(SyntaxKind.UsingDirective, out UsingDirectiveSyntax? usingDirective) &&
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.DescendingKeyword:
                     return token.Parent is OrderingSyntax;
                 case SyntaxKind.IntoKeyword:
-                    return token.Parent.IsKind(SyntaxKind.JoinIntoClause, SyntaxKind.QueryContinuation);
+                    return token.Parent.Kind() is SyntaxKind.JoinIntoClause or SyntaxKind.QueryContinuation;
                 default:
                     return false;
             }
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         }
 
         public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
-            => token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
+            => token.Kind() is SyntaxKind.StringLiteralToken or SyntaxKind.InterpolatedStringTextToken;
 
         public bool IsBindableToken(SyntaxToken token)
         {

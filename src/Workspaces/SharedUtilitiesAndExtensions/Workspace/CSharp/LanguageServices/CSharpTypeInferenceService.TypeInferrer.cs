@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The new is part of the assignment to o but the user is really trying to 
                 // add a parameter to the method call.
                 if (previousToken.Kind() == SyntaxKind.NewKeyword &&
-                    previousToken.GetPreviousToken().IsKind(SyntaxKind.EqualsToken, SyntaxKind.OpenParenToken, SyntaxKind.CommaToken))
+                    previousToken.GetPreviousToken().Kind() is SyntaxKind.EqualsToken or SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
                 {
                     return InferTypes(previousToken.SpanStart);
                 }

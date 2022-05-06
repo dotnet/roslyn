@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BraceMatching
                 {
                     return GetSimpleStringBraceMatchingResult(token, endTokenLength: 3);
                 }
-                else if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedVerbatimStringStartToken))
+                else if (token.Kind() is SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedVerbatimStringStartToken)
                 {
                     if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
                     {

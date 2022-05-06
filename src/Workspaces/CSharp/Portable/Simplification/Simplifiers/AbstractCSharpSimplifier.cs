@@ -184,10 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     continue;
                 }
 
-                return current.IsKind(SyntaxKind.AliasQualifiedName,
-                                      SyntaxKind.IdentifierName,
-                                      SyntaxKind.GenericName,
-                                      SyntaxKind.QualifiedName);
+                return current.Kind() is SyntaxKind.AliasQualifiedName or SyntaxKind.IdentifierName or SyntaxKind.GenericName or SyntaxKind.QualifiedName;
             }
         }
 
