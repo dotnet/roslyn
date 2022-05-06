@@ -123,12 +123,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var symbol = def.GetInternalSymbol();
 
-            if (symbol is ISynthesizedDeletedMethod)
-            {
-                // Deleting a method is always an update
-                return SymbolChange.Updated;
-            }
-            else if (symbol is ISynthesizedMethodBodyImplementationSymbol synthesizedSymbol)
+            if (symbol is ISynthesizedMethodBodyImplementationSymbol synthesizedSymbol)
             {
                 RoslynDebug.Assert(synthesizedSymbol.Method != null);
 
