@@ -83,87 +83,51 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
-            if (StringExpressionBeforePaste is LiteralExpressionSyntax literal)
+            var isLiteral = StringExpressionBeforePaste is LiteralExpressionSyntax;
+            foreach (var content in _copyPasteData.Contents)
             {
-                AppendContentForLiteral(builder);
-            }
-            else if (StringExpressionBeforePaste is InterpolatedStringExpressionSyntax interpolatedString)
-            {
-                AppendContentForInterpolatedString(builder);
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
+                if (content.IsText)
+                {
+                    builder.Append(EscapeForNonRawStringLiteral(content.TextValue));
+                }
+                else if (content.IsInterpolation)
+                {
+                    builder.Append('{');
+
+                    if (isLiteral)
+                    {
+                        // we're copying an interpolation from an interpolated string to a string literal. For example,
+                        // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in
+                        // the future is split the literal into `"goo" + $"{x + y}" + "bar"`, or just making the
+                        // containing literal into an interpolation itself.  However, for now, we do the simple thing
+                        // and just treat the interpolation as raw text that should just be escaped as appropriate into
+                        // the destination.
+                        builder.Append(EscapeForNonRawStringLiteral(content.InterpolationExpression));
+                    }
+                    else
+                    {
+                        // we're moving an interpolation from one interpolation to another.  This can just be copied
+                        // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be
+                        // updated for the destination type.
+                        builder.Append(content.InterpolationExpression);
+                    }
+
+                    builder.Append(content.InterpolationAlignmentClause);
+                    if (content.InterpolationFormatClause != null)
+                    {
+                        builder.Append(':');
+                        builder.Append(EscapeForNonRawStringLiteral(content.InterpolationFormatClause));
+                    }
+
+                    builder.Append('}');
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(content.Kind);
+                }
             }
 
             return ImmutableArray.Create(new TextChange(_selectionBeforePaste.Span.ToTextSpan(), builder.ToString()));
-        }
-
-        private void AppendContentForLiteral(StringBuilder builder)
-        {
-            foreach (var content in _copyPasteData.Contents)
-            {
-                if (content.IsText)
-                {
-                    builder.Append(EscapeForNonRawStringLiteral(content.TextValue));
-                }
-                else if (content.IsInterpolation)
-                {
-                    // we're copying an interpolation from an interpolated string to a string literal. For example,
-                    // we're pasting `{x + y}` into the middle of `"goobar"`.  One thing we could potentially do in
-                    // the future is split the literal into `"goo" + $"{x + y}" + "bar"`, or just making the
-                    // containing literal into an interpolation itself.  However, for now, we do the simple thing
-                    // and just treat the interpolation as raw text that should just be escaped as appropriate into
-                    // the destination.
-                    builder.Append('{');
-                    builder.Append(EscapeForNonRawStringLiteral(content.InterpolationExpression));
-
-                    builder.Append(content.InterpolationAlignmentClause);
-                    if (content.InterpolationFormatClause != null)
-                    {
-                        builder.Append(':');
-                        builder.Append(EscapeForNonRawStringLiteral(content.InterpolationFormatClause));
-                    }
-
-                    builder.Append('}');
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(content.Kind);
-                }
-            }
-        }
-
-        private void AppendContentForInterpolatedString(StringBuilder builder)
-        {
-            foreach (var content in _copyPasteData.Contents)
-            {
-                if (content.IsText)
-                {
-                    builder.Append(EscapeForNonRawStringLiteral(content.TextValue));
-                }
-                else if (content.IsInterpolation)
-                {
-                    // we're moving an interpolation from one interpolation to another.  This can just be copied
-                    // wholesale *except* for the format literal portion (e.g. `{...:XXXX}` which may have to be updated
-                    // for the destination type.
-                    builder.Append('{');
-                    builder.Append(content.InterpolationExpression);
-
-                    builder.Append(content.InterpolationAlignmentClause);
-                    if (content.InterpolationFormatClause != null)
-                    {
-                        builder.Append(':');
-                        builder.Append(EscapeForNonRawStringLiteral(content.InterpolationFormatClause));
-                    }
-
-                    builder.Append('}');
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(content.Kind);
-                }
-            }
         }
     }
 }
