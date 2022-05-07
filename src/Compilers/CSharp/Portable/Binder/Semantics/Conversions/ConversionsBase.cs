@@ -1920,21 +1920,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private static ConversionKind? GetNumericConversion(TypeSymbol source, TypeSymbol destination)
+        private static ConversionKind GetNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
             if (!IsNumericType(source) || !IsNumericType(destination))
             {
-                return null;
+                return ConversionKind.UnsetConversionKind;
             }
 
             if (source.SpecialType == destination.SpecialType)
             {
                 // Notice that there is no implicit numeric conversion from a type to itself. That's an
                 // identity conversion.
-                return null;
+                return ConversionKind.UnsetConversionKind;
             }
 
             var conversionKind = ConversionEasyOut.ClassifyConversion(source, destination);
