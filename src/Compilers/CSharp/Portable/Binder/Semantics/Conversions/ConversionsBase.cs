@@ -1919,48 +1919,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+
+        private static ConversionKind? GetNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
             if (!IsNumericType(source) || !IsNumericType(destination))
             {
-                return false;
+                return null;
             }
 
             if (source.SpecialType == destination.SpecialType)
             {
                 // Notice that there is no implicit numeric conversion from a type to itself. That's an
                 // identity conversion.
-                return false;
+                return null;
             }
 
             var conversionKind = ConversionEasyOut.ClassifyConversion(source, destination);
             Debug.Assert(conversionKind is ConversionKind.ImplicitNumeric or ConversionKind.ExplicitNumeric);
-            return conversionKind == ConversionKind.ImplicitNumeric;
+            return conversionKind;
+        }
+
+        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+        {
+            return GetNumericConversion(source, destination) == ConversionKind.ImplicitNumeric;
         }
 
         private static bool HasExplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             // SPEC: The explicit numeric conversions are the conversions from a numeric-type to another 
             // SPEC: numeric-type for which an implicit numeric conversion does not already exist.
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)destination != null);
-
-            if (!IsNumericType(source) || !IsNumericType(destination))
-            {
-                return false;
-            }
-
-            if (source.SpecialType == destination.SpecialType)
-            {
-                return false;
-            }
-
-            var conversionKind = ConversionEasyOut.ClassifyConversion(source, destination);
-            Debug.Assert(conversionKind is ConversionKind.ImplicitNumeric or ConversionKind.ExplicitNumeric);
-            return conversionKind == ConversionKind.ExplicitNumeric;
+            return GetNumericConversion(source, destination) == ConversionKind.ExplicitNumeric;
         }
 
         private static bool IsConstantNumericZero(ConstantValue value)
