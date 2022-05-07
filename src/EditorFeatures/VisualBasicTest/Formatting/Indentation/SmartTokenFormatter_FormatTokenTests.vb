@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
@@ -189,7 +190,7 @@ End Class
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
-                Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 Dim formattingRules = ImmutableArray.Create(Of AbstractFormattingRule)(New SpecialFormattingRule(indentStyle)).AddRange(Formatter.GetDefaultFormattingRules(document))
 
@@ -202,7 +203,7 @@ End Class
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                             formattingRules, root, line.AsTextLine, options, Nothing, ignoreMissingToken))
 
-                Dim formatOptions = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
+                Dim formatOptions = VisualBasicSyntaxFormattingOptions.Default
                 Dim smartFormatter = New VisualBasicSmartTokenFormatter(formatOptions, formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(token, Nothing)
 

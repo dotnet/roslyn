@@ -62,11 +62,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         protected void UpdateLastAccessTime()
             => _timeSinceLastAccess = SharedStopwatch.StartNew();
 
+        /// <summary>
+        /// Whether or not we are paused due to a global operation being in effect.
+        /// </summary>
         protected bool GetIsPaused()
         {
             lock (_gate)
                 return _isPaused_doNotAccessDirectly;
         }
+
+        /// <summary>
+        /// Whether or not enough time has passed since the last time we were asked to back off.
+        /// </summary>
+        protected bool ShouldContinueToBackOff()
+            => _timeSinceLastAccess.Elapsed < BackOffTimeSpan;
 
         protected void SetIsPaused(bool isPaused)
         {
@@ -87,7 +96,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 OnPaused();
         }
 
-        protected async Task WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
+        /// <returns><see langword="true"/> if the delay compeleted normally; otherwise, <see langword="false"/> if the
+        /// delay completed due to a request to expedite the delay.</returns>
+        protected async Task<bool> WaitForIdleAsync(IExpeditableDelaySource expeditableDelaySource)
         {
             while (true)
             {
@@ -95,11 +106,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // If we're not paused, and enough time has elapsed, then we're done.  Otherwise, ensure we wait at
                 // least s_minimumDelay and check again in the future.
-                var diff = _timeSinceLastAccess.Elapsed;
-                if (!ShouldWaitForIdle())
-                    return;
+                if (!GetIsPaused() && !ShouldContinueToBackOff())
+                    return true;
 
-                var timeLeft = BackOffTimeSpan - diff;
+                var timeLeft = BackOffTimeSpan - _timeSinceLastAccess.Elapsed;
                 var delayTimeSpan = TimeSpan.FromMilliseconds(Math.Max(s_minimumDelay.TotalMilliseconds, timeLeft.TotalMilliseconds));
                 if (!await expeditableDelaySource.Delay(delayTimeSpan, CancellationToken).ConfigureAwait(false))
                 {
@@ -109,18 +119,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // 📝 At the time this was discovered, it was not clear exactly why the yield (previously delay)
                     // was needed in order to avoid live-lock scenarios.
                     await Task.Yield().ConfigureAwait(false);
-                    return;
+                    return false;
                 }
             }
-        }
-
-        /// <summary>
-        /// Whether or not the system is in a state such that we should wait till the next idle period to process work.
-        /// </summary>
-        protected bool ShouldWaitForIdle()
-        {
-            var diff = _timeSinceLastAccess.Elapsed;
-            return GetIsPaused() || diff < BackOffTimeSpan;
         }
 
         private async Task ProcessAsync()

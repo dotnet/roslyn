@@ -612,8 +612,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 Name: nameof(Equals),
                 IsStatic: false,
-                ContainingType: { SpecialType: SpecialType.System_Object },
-                Parameters: { Length: 1 },
+                ContainingType.SpecialType: SpecialType.System_Object,
+                Parameters.Length: 1,
             };
         }
 

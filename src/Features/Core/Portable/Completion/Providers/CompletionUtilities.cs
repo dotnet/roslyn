@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return false;
         }
 
-        public static ImmutableArray<Project> GetDistinctProjectsFromLatestSolutionSnapshot(ImmutableArray<Project> projects)
+        public static ImmutableArray<Project> GetDistinctProjectsFromLatestSolutionSnapshot(ImmutableSegmentedList<Project> projects)
         {
             if (projects.IsEmpty)
                 return ImmutableArray<Project>.Empty;

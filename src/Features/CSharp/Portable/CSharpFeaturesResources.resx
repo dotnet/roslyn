@@ -559,8 +559,12 @@
   <data name="Convert_to_raw_string" xml:space="preserve">
     <value>Convert to raw string</value>
   </data>
-  <data name="Convert_to_raw_string_no_indent" xml:space="preserve">
-    <value>Convert to raw string (no indent)</value>
+  <data name="without_leading_whitespace_may_change_semantics" xml:space="preserve">
+    <value>... without leading whitespace (may change semantics)</value>
+    <comment>This clause is a follow up to the "Convert to raw string" loc string.
+    The intent is that the user sees "Convert to raw string" as an option to select,
+    and that is then followed with this clause.  This is so we don't have a huge string
+    saying "Convert to raw string without leading whitespace (may change semantics)"</comment>
   </data>
   <data name="Apply_blank_lines_between_consecutive_braces_preferences_experimental" xml:space="preserve">
     <value>Apply blank lines between consecutive braces preferences (experimental)</value>
@@ -616,5 +620,11 @@
   <data name="Add_await" xml:space="preserve">
     <value>Add 'await'</value>
     <comment>{Locked="await"} "await" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Global_using_directives" xml:space="preserve">
+    <value>Global 'using' directives</value>
+  </data>
+  <data name="Apply_utf8_string_literal_preferences" xml:space="preserve">
+    <value>Apply UTF-8 string literal preferences</value>
   </data>
 </root>

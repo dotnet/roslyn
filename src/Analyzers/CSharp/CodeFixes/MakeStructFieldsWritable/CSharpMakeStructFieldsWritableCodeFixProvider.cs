@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructFieldsWritable
             Document document,
             ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor,
-            CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             foreach (var diagnostic in diagnostics)
             {

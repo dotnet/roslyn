@@ -6649,7 +6649,7 @@ tryAgain:
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
                     {
-                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     }
 
                     // If the left hand side is not an identifier name then the user has done
@@ -9090,7 +9090,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
                 var skippedForToken = this.EatToken();
-                skippedForToken = this.AddError(skippedForToken, ErrorCode.ERR_SyntaxError, SyntaxFacts.GetText(SyntaxKind.ForEachKeyword), SyntaxFacts.GetText(SyntaxKind.ForKeyword));
+                skippedForToken = this.AddError(skippedForToken, ErrorCode.ERR_SyntaxError, SyntaxFacts.GetText(SyntaxKind.ForEachKeyword));
                 @foreach = ConvertToMissingWithTrailingTrivia(skippedForToken, SyntaxKind.ForEachKeyword);
             }
             else
@@ -9962,7 +9962,7 @@ tryAgain:
                 else if (list.Any(mod.RawKind))
                 {
                     // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
                 }
 
                 list.Add(mod);
@@ -13076,7 +13076,9 @@ tryAgain:
                     // Unparenthesized lambda case
                     // x => ...
                     // x!! => ...
-                    var identifier = this.ParseIdentifierToken();
+                    var identifier = (this.CurrentToken.Kind != SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken) ?
+                        this.EatTokenAsKind(SyntaxKind.IdentifierToken) :
+                        this.ParseIdentifierToken();
 
                     ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 

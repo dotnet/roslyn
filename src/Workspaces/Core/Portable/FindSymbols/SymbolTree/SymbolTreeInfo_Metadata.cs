@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             private MetadataReader _metadataReader;
 
             // The set of type definitions we've read out of the current metadata reader.
-            private readonly List<MetadataDefinition> _allTypeDefinitions;
+            private readonly List<MetadataDefinition> _allTypeDefinitions = new();
 
             // Map from node represents extension method to list of possible parameter type info.
             // We can have more than one if there's multiple methods with same name but different receiver type.
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             //      public static bool AnotherExtensionMethod1(this int x);
             //      public static bool AnotherExtensionMethod1(this bool x);
             //
-            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo;
+            private readonly MultiDictionary<MetadataNode, ParameterTypeInfo> _extensionMethodToParameterTypeInfo = new();
             private bool _containsExtensionsMethod;
 
             public MetadataInfoCreator(
@@ -242,12 +242,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 _checksum = checksum;
                 _reference = reference;
                 _metadataReader = null;
-                _allTypeDefinitions = new List<MetadataDefinition>();
                 _containsExtensionsMethod = false;
 
                 _inheritanceMap = OrderPreservingMultiDictionary<string, string>.GetInstance();
                 _parentToChildren = OrderPreservingMultiDictionary<MetadataNode, MetadataNode>.GetInstance();
-                _extensionMethodToParameterTypeInfo = new MultiDictionary<MetadataNode, ParameterTypeInfo>();
                 _rootNode = MetadataNode.Allocate(name: "");
             }
 

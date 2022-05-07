@@ -3230,7 +3230,7 @@ sealed class C : I
                     // /0/Test0.cs(10,16): error CS0548: 'C.this[(int y, ?), int]': property or indexer must have at least one accessor
                     DiagnosticResult.CompilerError("CS0548").WithSpan(10, 16, 10, 20).WithArguments("C.this[(int y, ?), int]"),
                     // /0/Test0.cs(10,20): error CS1003: Syntax error, '[' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 20, 10, 21).WithArguments("[", "("),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 20, 10, 21).WithArguments("["),
                     // /0/Test0.cs(10,27): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type '(int y, ?)'
                     DiagnosticResult.CompilerError("CS1750").WithSpan(10, 27, 10, 27).WithArguments("int", "(int y, ?)"),
                     // /0/Test0.cs(10,27): error CS1001: Identifier expected
@@ -3240,7 +3240,7 @@ sealed class C : I
                     // /0/Test0.cs(10,27): error CS8124: Tuple must contain at least two elements.
                     DiagnosticResult.CompilerError("CS8124").WithSpan(10, 27, 10, 28),
                     // /0/Test0.cs(10,41): error CS1003: Syntax error, ']' expected
-                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 41, 10, 42).WithArguments("]", ")"),
+                    DiagnosticResult.CompilerError("CS1003").WithSpan(10, 41, 10, 42).WithArguments("]"),
                     // /0/Test0.cs(10,41): error CS1014: A get or set accessor expected
                     DiagnosticResult.CompilerError("CS1014").WithSpan(10, 41, 10, 42),
                     // /0/Test0.cs(10,41): error CS1514: { expected

@@ -64,18 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var diagnostic = diagnostics.First();
 
             var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
-#if CODE_STYLE
-            var configOptions = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(namespaceDecl.SyntaxTree, cancellationToken);
-            var formattingOptions = CSharpSyntaxFormattingOptions.Create(configOptions);
-#else
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-#endif
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(CSharpSyntaxFormatting.Instance, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var converted = await ConvertAsync(document, namespaceDecl, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(

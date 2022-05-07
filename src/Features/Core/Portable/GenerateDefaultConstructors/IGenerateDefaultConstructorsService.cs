@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,6 +15,6 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
     internal interface IGenerateDefaultConstructorsService : ILanguageService
     {
         Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
-            Document document, TextSpan textSpan, bool forRefactoring, CancellationToken cancellationToken);
+            Document document, TextSpan textSpan, CodeAndImportGenerationOptionsProvider fallbackOptions, bool forRefactoring, CancellationToken cancellationToken);
     }
 }

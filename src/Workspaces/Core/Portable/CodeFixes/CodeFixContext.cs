@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -55,9 +56,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </remarks>
         internal readonly CodeActionOptionsProvider Options;
 
+        /// <summary>
+        /// TypeScript specific. https://github.com/dotnet/roslyn/issues/61122
+        /// </summary>
+        private readonly bool _isBlocking;
+
         [Obsolete]
         bool ITypeScriptCodeFixContext.IsBlocking
-            => Options(Document.Project.LanguageServices).IsBlocking;
+            => _isBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -86,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    span,
                    VerifyDiagnosticsArgument(diagnostics, span),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   _ => CodeActionOptions.Default,
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
                    cancellationToken)
         {
         }
@@ -111,7 +118,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
                    ImmutableArray.Create(diagnostic),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   _ => CodeActionOptions.Default,
+                   CodeActionOptions.DefaultProvider,
+                   isBlocking: false,
                    cancellationToken)
         {
         }
@@ -122,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CodeActionOptionsProvider options,
+            bool isBlocking,
             CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Any(d => d.Location.SourceSpan == span));
@@ -131,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
             Options = options;
+            _isBlocking = isBlocking;
             _cancellationToken = cancellationToken;
         }
 

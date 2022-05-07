@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // is some form of member binding expression and they cannot be replaced with an LValue.
             if (expression.IsKind(SyntaxKind.ConditionalAccessExpression))
             {
-                return expression is { Parent: { RawKind: not (int)SyntaxKind.ConditionalAccessExpression } };
+                return expression is { Parent.RawKind: not (int)SyntaxKind.ConditionalAccessExpression };
             }
 
             if (expression.Parent == null)

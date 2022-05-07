@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -1054,7 +1055,8 @@ class A
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
             var project = workspace.CurrentSolution.Projects.Single();
             var document = documentAnalysis ? project.Documents.Single() : null;
-            var diagnosticComputer = new DiagnosticComputer(document, project, IdeAnalyzerOptions.Default, span: null, AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache());
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
+            var diagnosticComputer = new DiagnosticComputer(document, project, ideAnalyzerOptions, span: null, AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache());
             var diagnosticsMapResults = await diagnosticComputer.GetDiagnosticsAsync(analyzerIdsToRequestDiagnostics, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             Assert.False(analyzer2.ReceivedSymbolCallback);
@@ -1099,8 +1101,9 @@ class A
             var document = project.Documents.Single();
             var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
+            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.LanguageServices);
             var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
-            var diagnosticComputer = new DiagnosticComputer(document, project, IdeAnalyzerOptions.Default, span: null, kind, diagnosticAnalyzerInfoCache);
+            var diagnosticComputer = new DiagnosticComputer(document, project, ideAnalyzerOptions, span: null, kind, diagnosticAnalyzerInfoCache);
             var analyzerIds = new[] { analyzer.GetAnalyzerId() };
 
             // First invoke analysis with cancellation token, and verify canceled compilation and no reported diagnostics.
@@ -1191,12 +1194,11 @@ class A
                 new DiagnosticDescriptor(NonCanceledDiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             private readonly AnalyzerRegisterActionKind _actionKind;
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
             {
                 _actionKind = actionKind;
-                _cancellationTokenSource = new CancellationTokenSource();
                 CanceledCompilations = new ConcurrentSet<Compilation>();
             }
 
@@ -1354,7 +1356,7 @@ class A
 
             public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
 
-            public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options)
+            public bool OpenFileOnly(SimplifierOptions options)
                 => true;
         }
 

@@ -1836,7 +1836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First());
                             }
                             else
                             {

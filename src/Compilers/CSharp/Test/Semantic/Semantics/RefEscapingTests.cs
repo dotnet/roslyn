@@ -2377,7 +2377,7 @@ class Program
             CreateCompilationWithMscorlibAndSpan(text).VerifyDiagnostics(
                 // (31,28): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //                 return ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(31, 28)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithLocation(31, 28)
                 );
         }
 
@@ -3625,10 +3625,10 @@ class Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
                 // (6,20): error CS1510: A ref or out value must be an assignable variable
                 //         this = ref this;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(6, 20),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithLocation(6, 20),
                 // (7,19): error CS1510: A ref or out value must be an assignable variable
                 //         obj = ref this;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithLocation(7, 19),
                 // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         this = ref obj;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
@@ -3676,7 +3676,7 @@ readonly struct Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
                 // (7,19): error CS1510: A ref or out value must be an assignable variable
                 //         obj = ref this;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithLocation(7, 19),
                 // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         this = ref obj;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
@@ -3724,7 +3724,7 @@ readonly ref struct Test
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(6, 9),
                 // (7,19): error CS1510: A ref or out value must be an assignable variable
                 //         obj = ref this;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithArguments("this").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "this").WithLocation(7, 19),
                 // (8,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         this = ref obj;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "this").WithLocation(8, 9));
