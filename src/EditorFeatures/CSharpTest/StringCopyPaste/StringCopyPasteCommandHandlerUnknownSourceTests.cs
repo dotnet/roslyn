@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             using var state = StringCopyPasteTestState.CreateTestState(copyFileMarkup: null, pasteFileMarkup: markup);
 
-            state.TestCopyPaste(expectedMarkup, pasteText, afterUndo);
+            state.TestCopyPaste(expectedMarkup, pasteText, pasteTextIsKnown: false, afterUndo);
         }
     }
 }
