@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         [WpfFact]
         public void TestPasteSimpleNormalLiteralContent()
         {
+            #region Normal Copy/Paste tests
+
+            // Tests where we actually set up a document to copy code from.
+
             TestCopyPaste(
 @"var v = ""{|Copy:goo|}"";",
 @"
@@ -990,6 +994,8 @@ var dest =
 var dest =
     """""" """"X{@""goo""}Y""""[||]"""""";");
         }
+
+        #endregion
 
         #region Known Source tests
 
