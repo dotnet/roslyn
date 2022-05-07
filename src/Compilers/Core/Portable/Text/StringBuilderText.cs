@@ -112,22 +112,24 @@ namespace Microsoft.CodeAnalysis.Text
                 return;
             }
 
-            // Index of the start of the current chunk in the text.
+            // Index of the current chunk within the text.
             int chunkOffset = 0;
 
             foreach (var chunk in this.Builder.GetChunks())
             {
-                var startIndexFromChunk = span.Start - chunkOffset;
-                if (startIndexFromChunk < chunk.Length)
+                // Start index of the span with respect to the current chunk.
+                var startFromChunk = span.Start - chunkOffset;
+                if (startFromChunk < chunk.Length)
                 {
-                    var endIndexFromChunk = span.End - chunkOffset;
+                    // End infex of the span with respect to the current chunk.
+                    var endFromChunk = span.End - chunkOffset;
 
-                    var startIndex = Math.Max(startIndexFromChunk, 0);
-                    var endIndex = Math.Min(endIndexFromChunk, chunk.Length);
+                    var start = Math.Max(startFromChunk, 0);
+                    var end = Math.Min(endFromChunk, chunk.Length);
 
-                    textWriter.Write(chunk.Span[startIndex..endIndex]);
+                    textWriter.Write(chunk.Span[start..end]);
 
-                    if (endIndexFromChunk <= chunk.Length)
+                    if (endFromChunk <= chunk.Length)
                         break;
                 }
 
