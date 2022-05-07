@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public UnknownSourcePasteProcessor(
             string newLine,
             IndentationOptions indentationOptions,
-            ITextSnapshot snapshotBeforePaste,
-            ITextSnapshot snapshotAfterPaste,
+            ITextSnapshot2 snapshotBeforePaste,
+            ITextSnapshot2 snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (dollarSignsToAdd != null)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePaste.Span.Start, 0), dollarSignsToAdd));
 
-            // Then any quotes to your starting delimiter
+            // Then any quotes to the start delimiter.
             if (quotesToAdd != null)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.ContentSpans.First().Start, 0), quotesToAdd));
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             else
                 AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(edits, cancellationToken);
 
-            // Then add any extra end quotes needed.
+            // Then  any extra quotes to the end delimiter.
             if (quotesToAdd != null)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 

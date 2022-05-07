@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly ITextBufferFactoryService2 _textBufferFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -63,12 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            ITextBufferFactoryService2 textBufferFactoryService)
         {
             _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
+            _textBufferFactoryService = textBufferFactoryService;
         }
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
@@ -84,11 +87,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var subjectBuffer = args.SubjectBuffer;
 
             var selectionsBeforePaste = textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer);
-            var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
+            var snapshotBeforePaste = subjectBuffer.CurrentSnapshot as ITextSnapshot2;
 
             // Always let the real paste go through.  That way we always have a version of the document that doesn't
             // include our changes that we can undo back to.
             nextCommandHandler();
+
+            if (snapshotBeforePaste is null)
+                return;
 
             // If we don't even see any changes from the paste, there's nothing we can do.
             if (snapshotBeforePaste.Version.Changes is null)
@@ -102,7 +108,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (selectionsBeforePaste.Count == 0)
                 return;
 
-            var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
+            var snapshotAfterPaste = subjectBuffer.CurrentSnapshot as ITextSnapshot2;
+            if (snapshotAfterPaste is null)
+                return;
 
             // If there were multiple changes that already happened, then don't make any changes.  Some other component
             // already did something advanced.
@@ -217,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste,
                     selectionsBeforePaste[0],
-                    copyPasteData);
+                    copyPasteData, _textBufferFactoryService);
                 return knownProcessor.GetEdits(cancellationToken);
             }
         }
