@@ -39,19 +39,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// </summary>
         private readonly StringCopyPasteData _copyPasteData;
 
-        private readonly ITextBufferFactoryService3 _textBufferFactoryService;
+        private readonly ITextBufferFactoryService2 _textBufferFactoryService;
 
         public KnownSourcePasteProcessor(
             string newLine,
             IndentationOptions indentationOptions,
-            ITextSnapshot2 snapshotBeforePaste,
-            ITextSnapshot2 snapshotAfterPaste,
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             TextSpan selectionSpanBeforePaste,
             StringCopyPasteData copyPasteData,
-            ITextBufferFactoryService3 textBufferFactoryService)
+            ITextBufferFactoryService2 textBufferFactoryService)
             : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _selectionSpanBeforePaste = selectionSpanBeforePaste;
@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var dummyContentEdit = GetContentEditForRawString(insertInterpolations: false, dollarSignCount: -1, indentationWhitespace: "");
 
-            var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(SnapshotBeforePaste.TextImage, SnapshotBeforePaste.ContentType);
+            var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(
+                new SnapshotSpan(SnapshotBeforePaste, 0, SnapshotBeforePaste.Length), SnapshotBeforePaste.ContentType);
             var snapshotBeforeDummyPaste = clonedBuffer.CurrentSnapshot;
 
             var edit = clonedBuffer.CreateEdit();

@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         public UnknownSourcePasteProcessor(
             string newLine,
             IndentationOptions indentationOptions,
-            ITextSnapshot2 snapshotBeforePaste,
-            ITextSnapshot2 snapshotAfterPaste,
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,

@@ -28,13 +28,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// <summary>
         /// The buffer's snapshot prior to the paste application.
         /// </summary>
-        protected readonly ITextSnapshot2 SnapshotBeforePaste;
+        protected readonly ITextSnapshot SnapshotBeforePaste;
 
         /// <summary>
         /// The buffer's snapshot right after the paste application.  Guaranteed to be exactly one version ahead of <see
         /// cref="SnapshotBeforePaste"/>.
         /// </summary>
-        protected readonly ITextSnapshot2 SnapshotAfterPaste;
+        protected readonly ITextSnapshot SnapshotAfterPaste;
 
         /// <summary>
         /// Roslyn SourceText corresponding to <see cref="SnapshotBeforePaste"/>.
@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected AbstractPasteProcessor(
             string newLine,
             IndentationOptions indentationOptions,
-            ITextSnapshot2 snapshotBeforePaste,
-            ITextSnapshot2 snapshotAfterPaste,
+            ITextSnapshot snapshotBeforePaste,
+            ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste)
