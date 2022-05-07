@@ -164,9 +164,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 @"var x = """""" [||]""""""",
 @"var x = """"""""
      """"""
-    ""[||]""""""",
+    [||]""""""""",
                 afterUndo:
 @"var x = """""" """"""[||]""""""");
+        }
+
+        [WpfFact]
+        public void TestTwoQuotesIntoSingleLineRawString3()
+        {
+            TestPasteUnknownSource(
+                pasteText: "\"\"",
+@"var x = """""" ""[||] """"""",
+@"var x = """""""" """"""[||] """"""""",
+                afterUndo:
+@"var x = """""" """"""[||] """"""");
         }
 
         [WpfFact]
@@ -606,7 +617,7 @@ def[||]""""""");
 @"var x = """"""[||]{|Selection:    |}""""""",
 @"var x = """"""""
     """"""
-    ""[||]""""""",
+    [||]""""""""",
                 afterUndo:
 @"var x = """"""""""""[||]""""""");
         }
