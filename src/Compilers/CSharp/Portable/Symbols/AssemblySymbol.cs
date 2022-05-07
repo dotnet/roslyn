@@ -990,8 +990,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.NonSourceAssemblySymbol(this);
         }
-
-#nullable enable
-        public virtual string? GetUnsupportedCompilerFeature() => null;
     }
 }

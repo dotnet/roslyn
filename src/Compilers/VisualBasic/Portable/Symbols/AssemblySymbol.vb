@@ -714,10 +714,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitAssembly(Me)
         End Function
 
-        Public Overridable Function GetUnsupportedCompilerFeature() As String Implements IAssemblySymbolInternal.GetUnsupportedCompilerFeature
-            Return Nothing
-        End Function
-
 #End Region
 
     End Class

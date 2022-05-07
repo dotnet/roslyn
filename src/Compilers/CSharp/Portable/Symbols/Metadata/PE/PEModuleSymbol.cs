@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
-        private UnsupportedCompilerFeature _lazyUnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel;
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
@@ -758,15 +758,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return false;
         }
 
-        public override string GetUnsupportedCompilerFeature()
+#nullable enable
+        internal bool GetCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
         {
-            if (_lazyUnsupportedCompilerFeature == UnsupportedCompilerFeature.Sentinel)
+            bool highestPriorityUseSiteFound = false;
+            if (_lazyCachedUseSiteInfo.IsInitialized)
             {
-                var unsupportedCompilerFeature = Module.GetFirstUnsupportedCompilerFeatureFromToken(Token, new MetadataDecoder(this), CompilerFeatureRequiredFeatures.None);
-                Interlocked.CompareExchange(ref _lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedCompilerFeature), UnsupportedCompilerFeature.Sentinel);
+                return MergeUseSiteInfo(ref result, _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency));
             }
 
-            return _lazyUnsupportedCompilerFeature.FeatureName;
+            var decoder = new MetadataDecoder(this);
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, this, Token, CompilerFeatureRequiredFeatures.None, decoder);
+            highestPriorityUseSiteFound = result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
+
+            if (!highestPriorityUseSiteFound && ContainingAssembly is PEAssemblySymbol containingPEAssembly)
+            {
+                highestPriorityUseSiteFound = containingPEAssembly.GetCompilerFeatureRequiredUseSiteInfo(ref result, decoder);
+            }
+
+            _lazyCachedUseSiteInfo.Initialize(PrimaryDependency, result);
+            return highestPriorityUseSiteFound;
         }
     }
 }

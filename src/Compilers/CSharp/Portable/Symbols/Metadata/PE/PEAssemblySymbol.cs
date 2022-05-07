@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private UnsupportedCompilerFeature _lazyUnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel;
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
@@ -284,15 +284,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
 
-        public override string GetUnsupportedCompilerFeature()
+        internal bool GetCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, MetadataDecoder decoder)
         {
-            if (_lazyUnsupportedCompilerFeature == UnsupportedCompilerFeature.Sentinel)
+            if (_lazyCachedUseSiteInfo.IsInitialized)
             {
-                var unsupportedCompilerFeature = PrimaryModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(_assembly.Handle, new MetadataDecoder(PrimaryModule), CompilerFeatureRequiredFeatures.None);
-                Interlocked.CompareExchange(ref _lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedCompilerFeature), UnsupportedCompilerFeature.Sentinel);
+                return MergeUseSiteInfo(ref result, _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency));
             }
 
-            return _lazyUnsupportedCompilerFeature.FeatureName;
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, PrimaryModule, this.Assembly.Handle, CompilerFeatureRequiredFeatures.None, decoder);
+            _lazyCachedUseSiteInfo.Initialize(result.PrimaryDependency, result);
+            return result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
         }
     }
 }

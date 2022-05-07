@@ -672,9 +672,11 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         }
         else
         {
-            AssertModuleAndAssemblyErrors(comp);
+            AssertAssemblyErrors(comp);
         }
     }
+
+    protected abstract void AssertAssemblyErrors(TCompilation compilation);
 
     [Theory]
     [InlineData(true)]
@@ -699,9 +701,9 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         }
         else
         {
-            AssertModuleAndAssemblyErrors(comp);
+            AssertModuleErrors(comp);
         }
     }
 
-    protected abstract void AssertModuleAndAssemblyErrors(TCompilation compilation);
+    protected abstract void AssertModuleErrors(TCompilation compilation);
 }

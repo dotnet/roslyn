@@ -1357,24 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                var decoder = new MetadataDecoder((PEModuleSymbol)ContainingModule);
-                PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
-
-                foreach (var param in Parameters)
-                {
-                    if (((PEParameterSymbol)param).DeriveUseSiteInfo(ref result, decoder))
-                    {
-                        break;
-                    }
-                }
-
-                foreach (var typeParam in TypeParameters)
-                {
-                    if (((PETypeParameterSymbol)typeParam).DeriveUseSiteInfo(ref result, decoder))
-                    {
-                        break;
-                    }
-                }
+                DeriveCompilerFeatureRequiredUseSiteInfo(ref result);
 
                 var diagnosticInfo = result.DiagnosticInfo;
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
@@ -1397,6 +1380,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return GetCachedUseSiteInfo();
+        }
+
+        private void DeriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        {
+            var containingModule = _containingType.ContainingPEModule;
+            var decoder = new MetadataDecoder(containingModule, this);
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, containingModule, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
+
+            if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
+            {
+                return;
+            }
+
+            foreach (var param in Parameters)
+            {
+                if (((PEParameterSymbol)param).DeriveCompilerFeatureRequiredUseSiteInfo(ref result, decoder))
+                {
+                    return;
+                }
+            }
+
+            foreach (var typeParam in TypeParameters)
+            {
+                if (((PETypeParameterSymbol)typeParam).DeriveCompilerFeatureRequiredUseSiteInfo(ref result, decoder))
+                {
+                    return;
+                }
+            }
+
+            ((PENamedTypeSymbol)ContainingType).GetCompilerFeatureRequiredUseSiteInfo(ref result);
         }
 
         private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()

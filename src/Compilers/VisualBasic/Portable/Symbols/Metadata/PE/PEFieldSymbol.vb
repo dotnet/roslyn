@@ -382,8 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim fieldUseSiteInfo = CalculateUseSiteInfo()
-
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(fieldUseSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None)
+                DeriveCompilerFeatureRequiredUseSiteInfo(fieldUseSiteInfo)
 
                 ' if there was no previous use site error for this symbol, check the constant value
                 If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
@@ -404,6 +403,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
+
+        Private Sub DeriveCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol))
+            Dim containingModule = _containingType.ContainingPEModule
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(
+                result,
+                Me,
+                containingModule,
+                Handle,
+                CompilerFeatureRequiredFeatures.None,
+                New MetadataDecoder(containingModule, _containingType))
+
+            If result.DiagnosticInfo IsNot Nothing Then
+                Return
+            End If
+
+            _containingType.GetCompilerFeatureRequiredUseSiteInfo(result)
+        End Sub
 
         Friend ReadOnly Property Handle As FieldDefinitionHandle
             Get

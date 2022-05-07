@@ -2027,7 +2027,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected virtual void GetUseSiteDiagnosticImpl(ref UseSiteInfo<AssemblySymbol> result)
         {
-            if (MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(CalculateUseSiteDiagnostic())))
+            if (DeriveCompilerFeatureRequiredUseSiteInfo(ref result)
+                || MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(CalculateUseSiteDiagnostic())))
             {
                 return;
             }
@@ -2064,8 +2065,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None);
         }
+
+        // Note: The implementation of GetCompilerFeatureRequiredUseSiteInfo depends on this, as it uses _lazyCachedUseSiteInfo to determine
+        // if there is an unsupported compiler feature.
+        protected override int HighestPriorityUseSiteError => (int)ErrorCode.ERR_UnsupportedCompilerFeature;
+
+#nullable enable
+        internal bool GetCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        {
+            UseSiteInfo<AssemblySymbol> typeUseSiteInfo = GetUseSiteInfo();
+            if (typeUseSiteInfo.DiagnosticInfo?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature)
+            {
+                result = typeUseSiteInfo;
+                return true;
+            }
+
+#if DEBUG
+            typeUseSiteInfo = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
+            DeriveCompilerFeatureRequiredUseSiteInfo(ref typeUseSiteInfo);
+            Debug.Assert(typeUseSiteInfo.DiagnosticInfo is null);
+#endif
+            return false;
+        }
+
+        protected bool DeriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        {
+            var decoder = new MetadataDecoder(ContainingPEModule, this);
+            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, ContainingPEModule, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None, decoder);
+
+            if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
+            {
+                return true;
+            }
+
+            foreach (var typeParameter in this.TypeParameters)
+            {
+                if (((PETypeParameterSymbol)typeParameter).DeriveCompilerFeatureRequiredUseSiteInfo(ref result, decoder))
+                {
+                    return true;
+                }
+            }
+
+            return ContainingType is PENamedTypeSymbol containingType
+                ? containingType.GetCompilerFeatureRequiredUseSiteInfo(ref result)
+                : ContainingPEModule.GetCompilerFeatureRequiredUseSiteInfo(ref result);
+        }
+#nullable disable
 
         internal string DefaultMemberName
         {
@@ -2528,16 +2574,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
                 {
                     return;
-                }
-
-
-                var decoder = new MetadataDecoder((PEModuleSymbol)ContainingModule);
-                foreach (var typeParameter in this.TypeParameters)
-                {
-                    if (((PETypeParameterSymbol)typeParameter).DeriveUseSiteInfo(ref result, decoder))
-                    {
-                        return;
-                    }
                 }
 
                 // Verify type parameters for containing types

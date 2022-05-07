@@ -16,10 +16,5 @@ namespace Microsoft.CodeAnalysis.Symbols
         AssemblyIdentity Identity { get; }
 
         IAssemblySymbolInternal CorLibrary { get; }
-
-        /// <summary>
-        /// Gets the first unsupported CompilerFeatureRequired string, if one exists. Null if there are none.
-        /// </summary>
-        string? GetUnsupportedCompilerFeature();
     }
 }

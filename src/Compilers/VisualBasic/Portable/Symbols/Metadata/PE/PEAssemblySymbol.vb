@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private _lazyUnsupportedCompilerFeature As UnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized
 
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
@@ -261,13 +261,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _assembly.GetNonDisposableMetadata()
         End Function
 
-        Public Overrides Function GetUnsupportedCompilerFeature() As String
-            If _lazyUnsupportedCompilerFeature Is UnsupportedCompilerFeature.Sentinel Then
-                Dim unsupportedFeature = PrimaryModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(_assembly.Handle, New MetadataDecoder(PrimaryModule), CompilerFeatureRequiredFeatures.None)
-                Interlocked.CompareExchange(_lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedFeature), UnsupportedCompilerFeature.Sentinel)
+        Friend Function GetCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), decoder As MetadataDecoder) As Boolean
+            If _lazyCachedUseSiteInfo.IsInitialized Then
+                result = MergeUseSiteInfo(result, _lazyCachedUseSiteInfo.ToUseSiteInfo(Me))
+                Return result.DiagnosticInfo IsNot Nothing
             End If
 
-            Return _lazyUnsupportedCompilerFeature.FeatureName
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, PrimaryModule, _assembly.Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            _lazyCachedUseSiteInfo.Initialize(result.PrimaryDependency, result)
+            Return result.DiagnosticInfo IsNot Nothing
         End Function
     End Class
 End Namespace

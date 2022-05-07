@@ -291,15 +291,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Dim primaryDependency As AssemblySymbol = Me.PrimaryDependency
+            Dim containingModule = _containingType.ContainingPEModule
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None)
+                DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo)
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
+
+        Private Sub DeriveCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol))
+            Dim containingModule = _containingType.ContainingPEModule
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(
+                result,
+                Me,
+                containingModule,
+                Handle,
+                CompilerFeatureRequiredFeatures.None,
+                New MetadataDecoder(containingModule, _containingType))
+
+            If result.DiagnosticInfo IsNot Nothing Then
+                Return
+            End If
+
+            _containingType.GetCompilerFeatureRequiredUseSiteInfo(result)
+        End Sub
 
         ''' <remarks>
         ''' This is for perf, not for correctness.

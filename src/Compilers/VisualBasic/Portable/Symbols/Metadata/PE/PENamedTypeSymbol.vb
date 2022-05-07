@@ -1274,17 +1274,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
-            Dim useSiteInfo = CalculateUseSiteInfo()
-            Dim decoder = New MetadataDecoder(ContainingPEModule)
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
+            If DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo) Then
+                Return useSiteInfo
+            End If
+
+            useSiteInfo = CalculateUseSiteInfo()
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
-
-                For Each typeParameter In Me.TypeParameters
-                    If DirectCast(typeParameter, PETypeParameterSymbol).DeriveUseSiteInfo(useSiteInfo, decoder) Then
-                        Return useSiteInfo
-                    End If
-                Next
 
                 ' Check if this type Is marked by RequiredAttribute attribute.
                 ' If so mark the type as bad, because it relies upon semantics that are not understood by the VB compiler.
@@ -1324,6 +1321,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Return useSiteInfo
+        End Function
+
+        Friend Function GetCompilerFeatureRequiredUseSiteInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As Boolean
+            Dim typeUseSiteInfo = GetUseSiteInfo()
+            If typeUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedCompilerFeature Then
+                useSiteInfo = typeUseSiteInfo
+                Return True
+            End If
+
+#if DEBUG then
+            typeUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
+            DeriveCompilerFeatureRequiredUseSiteInfo(typeUseSiteInfo)
+            Debug.Assert(typeUseSiteInfo.DiagnosticInfo Is Nothing)
+#end if
+
+            Return False
+        End Function
+
+        Private Function DeriveCompilerFeatureRequiredUseSiteInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As Boolean
+            Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+
+            if useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                Return True
+            End If
+
+
+            For Each typeParameter In Me.TypeParameters
+                If DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo, decoder) Then
+                    Return True
+                End If
+            Next
+
+            Dim containingType = TryCast(Me.ContainingType, PENamedTypeSymbol)
+            Return If(containingType IsNot Nothing,
+                containingType.GetCompilerFeatureRequiredUseSiteInfo(useSiteInfo),
+                ContainingPEModule.GetCompilerFeatureRequiredUseSiteInfo(useSiteInfo))
+
         End Function
 
         ''' <summary>

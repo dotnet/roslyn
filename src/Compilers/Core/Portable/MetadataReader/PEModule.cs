@@ -125,22 +125,6 @@ namespace Microsoft.CodeAnalysis
             public readonly bool Sense;
             public readonly string? String;
         }
-
-        internal struct StringAndNamedArgBool
-        {
-            public StringAndNamedArgBool(string? @string, bool @bool, string? namedArg, bool namedArgIsField)
-            {
-                StringValue = @string;
-                BoolValue = @bool;
-                NamedArgName = namedArg;
-                NamedArgIsField = namedArgIsField;
-            }
-
-            public readonly string? StringValue;
-            public readonly bool BoolValue;
-            public readonly string? NamedArgName;
-            public readonly bool NamedArgIsField;
-        }
 #nullable disable
 
         // 'ignoreAssemblyRefs' is used by the EE only, when debugging
@@ -1165,18 +1149,6 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
-        internal string? GetUnsupportedCompilerFeature(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, IModuleSymbolInternal containingModule, CompilerFeatureRequiredFeatures allowedFeatures)
-        {
-            string? unsupportedFeature = null;
-            if (!token.IsNil)
-            {
-                unsupportedFeature = GetFirstUnsupportedCompilerFeatureFromToken(token, attributeNamedArgumentDecoder, allowedFeatures);
-            }
-
-            // Check the containing module and assembly as well, if the symbol itself was fine
-            return unsupportedFeature ?? containingModule.GetUnsupportedCompilerFeature() ?? containingModule.ContainingAssembly.GetUnsupportedCompilerFeature();
-        }
-
         internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
         {
             List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);

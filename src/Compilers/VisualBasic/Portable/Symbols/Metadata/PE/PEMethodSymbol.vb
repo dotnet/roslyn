@@ -1143,12 +1143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Overrides Function GetUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
-                Dim decoder As New MetadataDecoder(DirectCast(ContainingModule, PEModuleSymbol))
-                DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+                DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo)
                 Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
                 EnsureTypeParametersAreLoaded(errorInfo)
                 CheckUnmanagedCallersOnly(errorInfo)
-                CheckParameterAndTypeParameterUseSiteInfo(errorInfo, decoder)
                 Return InitializeUseSiteInfo(useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
@@ -1170,26 +1168,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
         End Sub
 
-        Private Sub CheckParameterAndTypeParameterUseSiteInfo(ByRef errorInfo As DiagnosticInfo, decoder As MetadataDecoder)
-            If errorInfo IsNot Nothing Then
+        Private Sub DeriveCompilerFeatureRequiredUseSiteInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol))
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                 Return
             End If
 
-            Dim info As UseSiteInfo(Of AssemblySymbol) = Nothing
+            Dim containingModule = _containingType.ContainingPEModule
+            Dim decoder As New MetadataDecoder(containingModule, Me)
+
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, DirectCast(ContainingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                Return
+            End If
 
             For Each parameter In Parameters
-                If DirectCast(parameter, PEParameterSymbol).DeriveUseSiteInfo(info, decoder) Then
-                    errorInfo = info.DiagnosticInfo
+                If DirectCast(parameter, PEParameterSymbol).DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo, decoder) Then
                     Return
                 End If
             Next
 
             For Each typeParameter In TypeParameters
-                If DirectCast(typeParameter, PETypeParameterSymbol).DeriveUseSiteInfo(info, decoder) Then
-                    errorInfo = info.DiagnosticInfo
+                If DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo, decoder) Then
                     Return
                 End If
             Next
+
+            _containingType.GetCompilerFeatureRequiredUseSiteInfo(useSiteInfo)
         End Sub
 
         Private Function InitializeUseSiteInfo(useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As UseSiteInfo(Of AssemblySymbol)

@@ -77,6 +77,9 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (3,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnType.M();
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(3, 1),
+            // (3,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType.M").WithArguments("OnType", "test").WithLocation(3, 1),
             // (4,1): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnMethod.M()", "test").WithLocation(4, 1),
@@ -134,159 +137,315 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
         );
     }
 
-    protected override void AssertModuleAndAssemblyErrors(CSharpCompilation comp)
+    protected override void AssertModuleErrors(CSharpCompilation comp)
     {
         comp.VerifyDiagnostics(
-            // (2,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (2,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnType onType;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(2, 1),
-            // (3,1): error CS9512: 'OnType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnModule", "test").WithLocation(2, 1),
+            // (3,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnType.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnType", "test").WithLocation(3, 1),
-            // (3,1): error CS9512: 'OnType.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("OnModule", "test").WithLocation(3, 1),
+            // (3,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnType.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType.M").WithArguments("OnType.M()", "test").WithLocation(3, 1),
-            // (4,1): error CS9512: 'OnMethod' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType.M").WithArguments("OnModule", "test").WithLocation(3, 1),
+            // (4,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod").WithArguments("OnMethod", "test").WithLocation(4, 1),
-            // (4,1): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod").WithArguments("OnModule", "test").WithLocation(4, 1),
+            // (4,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnMethod.M()", "test").WithLocation(4, 1),
-            // (5,1): error CS9512: 'OnMethodReturn' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("OnModule", "test").WithLocation(4, 1),
+            // (5,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodReturn.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn").WithArguments("OnMethodReturn", "test").WithLocation(5, 1),
-            // (5,1): error CS9512: 'OnMethodReturn.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn").WithArguments("OnModule", "test").WithLocation(5, 1),
+            // (5,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodReturn.M();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn.M").WithArguments("OnMethodReturn.M()", "test").WithLocation(5, 1),
-            // (6,1): error CS9512: 'OnParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn.M").WithArguments("OnModule", "test").WithLocation(5, 1),
+            // (6,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter").WithArguments("OnParameter", "test").WithLocation(6, 1),
-            // (6,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter").WithArguments("OnModule", "test").WithLocation(6, 1),
+            // (6,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("int", "test").WithLocation(6, 1),
-            // (7,5): error CS9512: 'OnField' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("OnModule", "test").WithLocation(6, 1),
+            // (7,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnField.Field;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnField").WithArguments("OnField", "test").WithLocation(7, 5),
-            // (7,13): error CS9512: 'OnField.Field' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnField").WithArguments("OnModule", "test").WithLocation(7, 5),
+            // (7,13): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnField.Field;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnField.Field", "test").WithLocation(7, 13),
-            // (8,1): error CS9512: 'OnProperty' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("OnModule", "test").WithLocation(7, 13),
+            // (8,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnProperty.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnProperty", "test").WithLocation(8, 1),
-            // (8,12): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnModule", "test").WithLocation(8, 1),
+            // (8,12): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnProperty.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(8, 12),
-            // (9,5): error CS9512: 'OnProperty' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnModule", "test").WithLocation(8, 12),
+            // (9,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnProperty.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnProperty", "test").WithLocation(9, 5),
-            // (9,16): error CS9512: 'OnProperty.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("OnModule", "test").WithLocation(9, 5),
+            // (9,16): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnProperty.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnProperty.Property", "test").WithLocation(9, 16),
-            // (10,1): error CS9512: 'OnPropertySetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnModule", "test").WithLocation(9, 16),
+            // (10,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertySetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnPropertySetter", "test").WithLocation(10, 1),
-            // (10,18): error CS9512: 'OnPropertySetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnModule", "test").WithLocation(10, 1),
+            // (10,18): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertySetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property", "test").WithLocation(10, 18),
-            // (11,5): error CS9512: 'OnPropertySetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnModule", "test").WithLocation(10, 18),
+            // (11,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertySetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnPropertySetter", "test").WithLocation(11, 5),
-            // (11,22): error CS9512: 'OnPropertySetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("OnModule", "test").WithLocation(11, 5),
+            // (11,22): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertySetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertySetter.Property", "test").WithLocation(11, 22),
-            // (12,1): error CS9512: 'OnPropertyGetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnModule", "test").WithLocation(11, 22),
+            // (12,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertyGetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnPropertyGetter", "test").WithLocation(12, 1),
-            // (12,18): error CS9512: 'OnPropertyGetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnModule", "test").WithLocation(12, 1),
+            // (12,18): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnPropertyGetter.Property = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property", "test").WithLocation(12, 18),
-            // (13,5): error CS9512: 'OnPropertyGetter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnModule", "test").WithLocation(12, 18),
+            // (13,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertyGetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnPropertyGetter", "test").WithLocation(13, 5),
-            // (13,22): error CS9512: 'OnPropertyGetter.Property' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("OnModule", "test").WithLocation(13, 5),
+            // (13,22): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnPropertyGetter.Property;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnPropertyGetter.Property", "test").WithLocation(13, 22),
-            // (14,1): error CS9512: 'OnEvent' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("OnModule", "test").WithLocation(13, 22),
+            // (14,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEvent.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnEvent", "test").WithLocation(14, 1),
-            // (14,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnModule", "test").WithLocation(14, 1),
+            // (14,9): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEvent.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(14, 9),
-            // (15,1): error CS9512: 'OnEvent' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnModule", "test").WithLocation(14, 9),
+            // (15,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEvent.Event -= () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnEvent", "test").WithLocation(15, 1),
-            // (15,9): error CS9512: 'OnEvent.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("OnModule", "test").WithLocation(15, 1),
+            // (15,9): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEvent.Event -= () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEvent.Event", "test").WithLocation(15, 9),
-            // (16,1): error CS9512: 'OnEventAdder' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnModule", "test").WithLocation(15, 9),
+            // (16,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventAdder.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnEventAdder", "test").WithLocation(16, 1),
-            // (16,14): error CS9512: 'OnEventAdder.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnModule", "test").WithLocation(16, 1),
+            // (16,14): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventAdder.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventAdder.Event", "test").WithLocation(16, 14),
-            // (17,1): error CS9512: 'OnEventAdder' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnModule", "test").WithLocation(16, 14),
+            // (17,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventAdder.Event -= () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnEventAdder", "test").WithLocation(17, 1),
-            // (17,14): error CS9512: 'OnEventAdder.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("OnModule", "test").WithLocation(17, 1),
+            // (17,14): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventAdder.Event -= () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventAdder.Event", "test").WithLocation(17, 14),
-            // (18,1): error CS9512: 'OnEventRemover' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnModule", "test").WithLocation(17, 14),
+            // (18,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventRemover.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnEventRemover", "test").WithLocation(18, 1),
-            // (18,16): error CS9512: 'OnEventRemover.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnModule", "test").WithLocation(18, 1),
+            // (18,16): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventRemover.Event += () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventRemover.Event", "test").WithLocation(18, 16),
-            // (19,1): error CS9512: 'OnEventRemover' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnModule", "test").WithLocation(18, 16),
+            // (19,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventRemover.Event -= () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnEventRemover", "test").WithLocation(19, 1),
-            // (19,16): error CS9512: 'OnEventRemover.Event' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("OnModule", "test").WithLocation(19, 1),
+            // (19,16): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEventRemover.Event -= () => {};
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnEventRemover.Event", "test").WithLocation(19, 16),
-            // (20,1): error CS9512: 'OnEnum' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("OnModule", "test").WithLocation(19, 16),
+            // (20,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnEnum onEnum;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("OnEnum", "test").WithLocation(20, 1),
-            // (21,5): error CS9512: 'OnEnumMember' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("OnModule", "test").WithLocation(20, 1),
+            // (21,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnEnumMember.A;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnumMember").WithArguments("OnEnumMember", "test").WithLocation(21, 5),
-            // (21,18): error CS9512: 'OnEnumMember.A' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnumMember").WithArguments("OnModule", "test").WithLocation(21, 5),
+            // (21,18): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnEnumMember.A;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("OnEnumMember.A", "test").WithLocation(21, 18),
-            // (22,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("OnModule", "test").WithLocation(21, 18),
+            // (22,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnClassTypeParameter<int> onClassTypeParameter;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("T", "test").WithLocation(22, 1),
-            // (23,1): error CS9512: 'OnMethodTypeParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("OnModule", "test").WithLocation(22, 1),
+            // (23,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodTypeParameter.M<int>();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter").WithArguments("OnMethodTypeParameter", "test").WithLocation(23, 1),
-            // (23,1): error CS9512: 'T' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter").WithArguments("OnModule", "test").WithLocation(23, 1),
+            // (23,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethodTypeParameter.M<int>();
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("T", "test").WithLocation(23, 1),
-            // (24,1): error CS9512: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("OnModule", "test").WithLocation(23, 1),
+            // (24,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnDelegateType onDelegateType;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnDelegateType", "test").WithLocation(24, 1),
-            // (25,1): error CS9512: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("OnModule", "test").WithLocation(24, 1),
+            // (25,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnIndexedPropertyParameter.set_Property(1, 1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnIndexedPropertyParameter", "test").WithLocation(25, 1),
-            // (25,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnModule", "test").WithLocation(25, 1),
+            // (25,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnIndexedPropertyParameter.set_Property(1, 1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("int", "test").WithLocation(25, 1),
-            // (26,5): error CS9512: 'OnIndexedPropertyParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("OnModule", "test").WithLocation(25, 1),
+            // (26,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnIndexedPropertyParameter", "test").WithLocation(26, 5),
-            // (26,5): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("OnModule", "test").WithLocation(26, 5),
+            // (26,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("int", "test").WithLocation(26, 5),
-            // (27,5): error CS9512: 'OnThisIndexerParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("OnModule", "test").WithLocation(26, 5),
+            // (27,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // new OnThisIndexerParameter()[1] = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter", "test").WithLocation(27, 5),
-            // (27,5): error CS9512: 'OnThisIndexerParameter.OnThisIndexerParameter()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnModule", "test").WithLocation(27, 5),
+            // (27,5): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // new OnThisIndexerParameter()[1] = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter.OnThisIndexerParameter()", "test").WithLocation(27, 5),
-            // (28,9): error CS9512: 'OnThisIndexerParameter' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnModule", "test").WithLocation(27, 5),
+            // (28,9): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = new OnThisIndexerParameter()[1];
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter", "test").WithLocation(28, 9),
-            // (28,9): error CS9512: 'OnThisIndexerParameter.OnThisIndexerParameter()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnModule", "test").WithLocation(28, 9),
+            // (28,9): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = new OnThisIndexerParameter()[1];
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnThisIndexerParameter.OnThisIndexerParameter()", "test").WithLocation(28, 9)
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnModule", "test").WithLocation(28, 9)
+        );
+    }
+
+    protected override void AssertAssemblyErrors(CSharpCompilation comp)
+    {
+        comp.VerifyDiagnostics(
+            // (2,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType onType;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(2, 1),
+            // (3,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(3, 1),
+            // (3,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnType.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnType.M").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(3, 1),
+            // (4,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethod.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(4, 1),
+            // (4,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethod.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethod.M").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(4, 1),
+            // (5,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethodReturn.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(5, 1),
+            // (5,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethodReturn.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodReturn.M").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(5, 1),
+            // (6,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnParameter.M(1);
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(6, 1),
+            // (6,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnParameter.M(1);
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnParameter.M").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(6, 1),
+            // (7,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnField.Field;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnField").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(7, 5),
+            // (7,13): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnField.Field;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Field").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(7, 13),
+            // (8,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnProperty.Property = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(8, 1),
+            // (8,12): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnProperty.Property = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(8, 12),
+            // (9,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnProperty.Property;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnProperty").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(9, 5),
+            // (9,16): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnProperty.Property;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(9, 16),
+            // (10,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnPropertySetter.Property = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(10, 1),
+            // (10,18): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnPropertySetter.Property = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(10, 18),
+            // (11,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnPropertySetter.Property;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertySetter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(11, 5),
+            // (11,22): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnPropertySetter.Property;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(11, 22),
+            // (12,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnPropertyGetter.Property = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(12, 1),
+            // (12,18): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnPropertyGetter.Property = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(12, 18),
+            // (13,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnPropertyGetter.Property;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnPropertyGetter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(13, 5),
+            // (13,22): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnPropertyGetter.Property;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(13, 22),
+            // (14,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event += () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(14, 1),
+            // (14,9): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event += () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(14, 9),
+            // (15,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEvent").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(15, 1),
+            // (15,9): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEvent.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(15, 9),
+            // (16,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventAdder.Event += () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(16, 1),
+            // (16,14): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventAdder.Event += () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(16, 14),
+            // (17,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventAdder.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventAdder").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(17, 1),
+            // (17,14): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventAdder.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(17, 14),
+            // (18,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventRemover.Event += () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(18, 1),
+            // (18,16): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventRemover.Event += () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(18, 16),
+            // (19,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventRemover.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEventRemover").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(19, 1),
+            // (19,16): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEventRemover.Event -= () => {};
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Event").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(19, 16),
+            // (20,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnEnum onEnum;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnum").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(20, 1),
+            // (21,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnEnumMember.A;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnEnumMember").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(21, 5),
+            // (21,18): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnEnumMember.A;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "A").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(21, 18),
+            // (22,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnClassTypeParameter<int> onClassTypeParameter;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnClassTypeParameter<int>").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(22, 1),
+            // (23,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethodTypeParameter.M<int>();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(23, 1),
+            // (23,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethodTypeParameter.M<int>();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnMethodTypeParameter.M<int>").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(23, 1),
+            // (24,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnDelegateType onDelegateType;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnDelegateType").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(24, 1),
+            // (25,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnIndexedPropertyParameter.set_Property(1, 1);
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(25, 1),
+            // (25,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnIndexedPropertyParameter.set_Property(1, 1);
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.set_Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(25, 1),
+            // (26,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnIndexedPropertyParameter.get_Property(1);
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(26, 5),
+            // (26,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = OnIndexedPropertyParameter.get_Property(1);
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnIndexedPropertyParameter.get_Property").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(26, 5),
+            // (27,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // new OnThisIndexerParameter()[1] = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(27, 5),
+            // (27,5): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // new OnThisIndexerParameter()[1] = 1;
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(27, 5),
+            // (28,9): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = new OnThisIndexerParameter()[1];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(28, 9),
+            // (28,9): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // _ = new OnThisIndexerParameter()[1];
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(28, 9)
         );
     }
 

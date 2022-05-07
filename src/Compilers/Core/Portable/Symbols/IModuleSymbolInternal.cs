@@ -6,10 +6,5 @@ namespace Microsoft.CodeAnalysis.Symbols
 {
     internal interface IModuleSymbolInternal : ISymbolInternal
     {
-        /// <summary>
-        /// Gets the first unsupported CompilerFeatureRequired string, if one exists. Null if there are none.
-        /// </summary>
-        string? GetUnsupportedCompilerFeature();
-        new IAssemblySymbolInternal ContainingAssembly { get; }
     }
 }

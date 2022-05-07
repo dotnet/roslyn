@@ -310,8 +310,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCachedBoundsUseSiteInfo.ToUseSiteInfo(PrimaryDependency)
         End Function
 
-        Friend Function DeriveUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), decoder As MetadataDecoder) As Boolean
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+        Friend Function DeriveCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), decoder As MetadataDecoder) As Boolean
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, DirectCast(ContainingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
             Return result.DiagnosticInfo IsNot Nothing
         End Function
 

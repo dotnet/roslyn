@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyTypeNames As ICollection(Of String)
         Private _lazyNamespaceNames As ICollection(Of String)
 
-        Private _lazyUnsupportedCompilerFeature As UnsupportedCompilerFeature = UnsupportedCompilerFeature.Sentinel
+        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized
 
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
@@ -487,13 +487,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _module.GetNonDisposableMetadata()
         End Function
 
-        Friend Overrides Function GetUnsupportedCompilerFeature() As String
-            If _lazyUnsupportedCompilerFeature Is UnsupportedCompilerFeature.Sentinel Then
-                Dim unsupportedFeature = [Module].GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle.ModuleDefinition, New MetadataDecoder(Me), CompilerFeatureRequiredFeatures.None)
-                Interlocked.CompareExchange(_lazyUnsupportedCompilerFeature, UnsupportedCompilerFeature.Create(unsupportedFeature), UnsupportedCompilerFeature.Sentinel)
+        Friend Function GetCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol)) As Boolean
+            If _lazyCachedUseSiteInfo.IsInitialized Then
+                result = MergeUseSiteInfo(result, _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency))
+                Return result.DiagnosticInfo IsNot Nothing
             End If
 
-            Return _lazyUnsupportedCompilerFeature.FeatureName
+            Dim decoder As New MetadataDecoder(Me)
+            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, Me, EntityHandle.ModuleDefinition, CompilerFeatureRequiredFeatures.None, decoder)
+
+            If result.DiagnosticInfo Is Nothing Then
+                TryCast(ContainingAssembly, PEAssemblySymbol)?.GetCompilerFeatureRequiredUseSiteInfo(result, decoder)
+            End If
+
+            _lazyCachedUseSiteInfo.Initialize(PrimaryDependency, result)
+
+            Return result.DiagnosticInfo IsNot Nothing
         End Function
     End Class
 End Namespace
