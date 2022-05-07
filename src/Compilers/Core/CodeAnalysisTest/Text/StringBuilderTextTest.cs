@@ -54,7 +54,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             assertWriteEquals(7, 0, "");
 
             using (var textWriter = new StringWriter())
+            {
                 Assert.Throws<ArgumentOutOfRangeException>("span", () => text.Write(textWriter, new TextSpan(0, text.Length + 1)));
+                Assert.Throws<ArgumentOutOfRangeException>("span", () => text.Write(textWriter, new TextSpan(text.Length + 1, 0)));
+            }
 
             void assertWriteEquals(int start, int length, string expected)
             {
