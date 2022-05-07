@@ -4153,38 +4153,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private void ReportNamespaceChangeRudeEdit(
-            ArrayBuilder<RudeEditDiagnostic> diagnostics,
-            SyntaxNode? oldNode,
-            SyntaxNode? newNode,
-            INamedTypeSymbol? newType,
-            CancellationToken cancellationToken)
-        {
-            if (newNode != null)
-            {
-                // insert or update
-                diagnostics.Add(new RudeEditDiagnostic(
-                    (oldNode != null) ? RudeEditKind.Insert : RudeEditKind.Update,
-                    GetDiagnosticSpan(newNode, (oldNode != null) ? EditKind.Insert : EditKind.Update),
-                    newNode,
-                    new[] { GetDisplayName(newNode) }));
-            }
-            else
-            {
-                // delete
-                Contract.ThrowIfNull(oldNode);
-                Contract.ThrowIfNull(newType);
-
-                var node = newNode ?? GetRudeEditDiagnosticNode(newType, cancellationToken);
-
-                diagnostics.Add(new RudeEditDiagnostic(
-                    RudeEditKind.Update,
-                    GetDiagnosticSpan(node, EditKind.Update),
-                    node,
-                    new[] { GetDisplayName(node) }));
-            }
-        }
-
         private void ReportDeletedMemberRudeEdit(
             ArrayBuilder<RudeEditDiagnostic> diagnostics,
             ISymbol oldSymbol,
