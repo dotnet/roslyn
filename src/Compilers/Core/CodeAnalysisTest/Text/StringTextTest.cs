@@ -295,10 +295,37 @@ bar baz";
 
             void assertWriteEquals(int start, int length, string expected)
             {
-                using var textWriter = new StringWriter();
-                text.Write(textWriter, new TextSpan(start, length));
-                Assert.Equal(expected, textWriter.ToString());
+                using (var textWriter = new StringWriter())
+                {
+                    text.Write(textWriter, new TextSpan(start, length));
+                    Assert.Equal(expected, textWriter.ToString());
+                }
+
+                // Also test with a TextWriter that doesn't override Write(ReadOnlySpan<char>) because the implementation
+                // specializes that.
+                using (var textWriter = new CustomTextWriter())
+                {
+                    text.Write(textWriter, new TextSpan(start, length));
+                    Assert.Equal(expected, textWriter.ToString());
+                }
             }
+        }
+
+        private sealed class CustomTextWriter : TextWriter
+        {
+            private readonly StringWriter _writer = new();
+
+            public override Encoding Encoding =>
+                _writer.Encoding;
+
+            public override void Write(string value) =>
+                _writer.Write(value);
+
+            public override void Write(char[] buffer, int index, int count) =>
+                _writer.Write(buffer, index, count);
+
+            public override string ToString() =>
+                _writer.ToString();
         }
     }
 }
