@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
             var isLiteral = StringExpressionBeforePaste is LiteralExpressionSyntax;
+            var isMultiLine = IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste);
 
 #if false
 
@@ -272,13 +273,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         }
 #endif
 
-
-            foreach (var content in _copyPasteData.Contents)
+            for (var contentIndex = 0; contentIndex < _copyPasteData.Contents.Length; contentIndex++)
             {
+                var content = _copyPasteData.Contents[contentIndex];
                 if (content.IsText)
                 {
                     // Convert the string to a source-text instance so we can easily process it one line at a time.
                     var sourceText = SourceText.From(content.TextValue);
+
+                    if (contentIndex == 0 && isMultiLine)
+                    {
+                        TextBeforePaste.GetLineAndOffset(_selectionSpanBeforePaste.Start, out var line, out var offset);
+                        if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.SpanStart).LineNumber)
+                        {
+                            // the user selection starts on the line containing the leading delimiter.  e.g.
+                            // var v = """ [| ...
+                            //
+                            // In this case, ensure we add a new-line + indentation so that the copied
+                            // text will actually start in the right location.
+                            builder.Append(NewLine);
+                            builder.Append(indentationWhitespace);
+                        }
+                    }
 
                     for (var i = 0; i < sourceText.Lines.Count; i++)
                     {
