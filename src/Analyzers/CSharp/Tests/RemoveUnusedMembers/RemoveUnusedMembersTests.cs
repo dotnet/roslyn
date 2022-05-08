@@ -1701,7 +1701,7 @@ class Test
 
         [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
         {
             var code = @"class MyClass
 {
