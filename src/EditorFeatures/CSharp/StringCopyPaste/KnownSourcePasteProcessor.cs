@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // at the sequences of `"` and `{` in them to see if we need to update the delimiters of the raw string.
             // Note: this is why it is critical that any interpolations are not inserted.  We don't want the content of
             // the interpolation to affect the delimiters.  e.g. a interpolation containing `""""` *inside* of it
-            // doesn't require updating the delimiters of the outer expression.
+            // doesn't require updating the delimiters of the outer raw-string expression.
             //
             // Also, after the text is inserted, look to see if we need to convert a single-line raw expression to
             // multi-line.
