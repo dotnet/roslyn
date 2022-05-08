@@ -998,16 +998,16 @@ ghi[||]
           [||]
           """"""",
 @"var x = """"""
-    abc
-        def
-    ghi[||]
-    """"""",
+          abc
+              def
+          ghi[||]
+          """"""",
                 afterUndo:
 @"var x = """"""
-    abc
+          abc
     def
 ghi[||]
-    """"""");
+          """"""");
         }
 
         [WpfFact]

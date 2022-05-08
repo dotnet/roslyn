@@ -1435,10 +1435,10 @@ ghi[||]
           """"""",
                 afterUndo:
 @"var x = $""""""
-    abc
+          abc
     def
 ghi[||]
-    """"""");
+          """"""");
         }
 
         [WpfFact]
