@@ -506,6 +506,94 @@ var dest =
     """""";");
         }
 
+        [WpfFact]
+        public void TestPasteBracesWithExistingInterpolation1()
+        {
+            TestPasteKnownSource(
+pasteText: @"{{{",
+@"
+var dest =
+    $""""""
+    [||]{0}
+    """""";",
+@"
+var dest =
+    $$$$""""""
+    {{{[||]{{{{0}}}}
+    """""";",
+@"
+var dest =
+    $""""""
+    {{{[||]{0}
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteBracesWithExistingInterpolation2()
+        {
+            TestPasteKnownSource(
+pasteText: @"{{{",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $$$$""""""
+    {{{{0}}}}{{{[||]
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}{{{[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteBracesWithExistingInterpolation3()
+        {
+            TestPasteKnownSource(
+pasteText: @"{{{",
+@"
+var dest =
+    $""""""
+    {0}[||]{1}
+    """""";",
+@"
+var dest =
+    $$$$""""""
+    {{{{0}}}}{{{[||]{{{{1}}}}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}{{{[||]{1}
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteBracesWithExistingInterpolation4()
+        {
+            TestPasteKnownSource(
+pasteText: @"{{{",
+@"
+var dest =
+    $""""""
+    {0}[||]{|Selection:{1}|}{2}
+    """""";",
+@"
+var dest =
+    $$$$""""""
+    {{{{0}}}}{{{[||]{{{{2}}}}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}{{{[||]{2}
+    """""";");
+        }
+
         #endregion
 
         #region Known Source tests 'PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests'
