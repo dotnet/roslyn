@@ -68,17 +68,21 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
         private sealed class CompilationAnalyzer
         {
             private readonly object _gate;
-            // State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
+            /// <summary>
+            /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
+            /// </summary>
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
-            // List of properies, which has a 'get' accessor usage, while the property itself is not used, e.g.:
-            //
-            // class C
-            // {
-            //     private int P { get; set; }
-            //     public void M() { P++; }
-            // }
-            //
-            // Here 'get' accessor is used in increment operation, but 'P' itself is not used anywhere else, so it can be safely removed
+            /// <summary>
+            /// List of properies, which has a 'get' accessor usage, while the property itself is not used, e.g.:
+            /// <code>
+            /// class C
+            /// {
+            ///     private int P { get; set; }
+            ///     public void M() { P++; }
+            /// }
+            /// </code>
+            /// Here 'get' accessor is used in increment operation, but 'P' itself is not used anywhere else, so it can be safely removed
+            /// </summary>
             private readonly List<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
             private readonly INamedTypeSymbol _eventArgsType;

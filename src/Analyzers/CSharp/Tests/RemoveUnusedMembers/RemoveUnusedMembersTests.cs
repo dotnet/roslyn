@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1512,6 +1513,23 @@ class MyClass
                 .WithArguments("MyClass.P"));
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenReadingPropertyFromSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    public void M1() { Test.P++; }
+}
+
+class Test
+{
+    public static int P { get; set; }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsIncrementedAndValueUsed()
         {
@@ -1638,6 +1656,23 @@ class MyClass
                 CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithSpan(3, 17, 3, 18)
                 .WithArguments("MyClass.P"));
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenReadingPropertyFromSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    public void M1(int x) { Test.P += x; }
+}
+
+class Test
+{
+    public static int P { get; set; }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
