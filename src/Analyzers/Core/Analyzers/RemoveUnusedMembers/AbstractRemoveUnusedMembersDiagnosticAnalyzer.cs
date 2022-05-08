@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// </summary>
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
             /// <summary>
-            /// List of properies, which has a 'get' accessor usage, while the property itself is not used, e.g.:
+            /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
             /// <code>
             /// class C
             /// {
