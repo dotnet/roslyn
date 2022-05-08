@@ -9,13 +9,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 {
     public class PasteKnownSourceIntoSingleLineRawStringTests : StringCopyPasteCommandHandlerKnownSourceTests
     {
+        #region Normal Copy/Paste tests
+
+        // Tests where we actually set up a document to copy code from.
+
         [WpfFact]
         public void TestPasteSimpleNormalLiteralContent()
         {
-            #region Normal Copy/Paste tests
-
-            // Tests where we actually set up a document to copy code from.
-
             TestCopyPaste(
 @"var v = ""{|Copy:goo|}"";",
 @"
