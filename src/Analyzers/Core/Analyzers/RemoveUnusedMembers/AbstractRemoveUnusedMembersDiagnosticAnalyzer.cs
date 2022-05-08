@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///     public void M() { P++; }
             /// }
             /// </code>
-            /// Here 'get' accessor is used in increment operation, but 'P' itself is not used anywhere else, so it can be safely removed
+            /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
             private readonly List<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
