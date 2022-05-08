@@ -129,14 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (stringExpressionBeforePaste == null)
                 return;
 
-            var pasteWasSuccessful = PasteWasSuccessful(
-                snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
-
-            var newLine = textView.Options.GetNewLineCharacter();
-            var indentationWhitespace = DetermineIndentationWhitespace(
-                documentBeforePaste, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
-
-            var textChanges = GetEdits(newLine, indentationWhitespace, cancellationToken);
+            var textChanges = GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -184,12 +177,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             transaction.Complete();
             return;
 
-            ImmutableArray<TextChange> GetEdits(string newLine, string indentationWhitespace, CancellationToken cancellationToken)
+            ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
             {
+                var newLine = textView.Options.GetNewLineCharacter();
+                var indentationWhitespace = DetermineIndentationWhitespace(
+                    documentBeforePaste, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
+
                 // See if this is a paste of the last copy that we heard about.
-                var edits = TryGetEditsFromKnownCopySource(newLine, cancellationToken);
+                var edits = TryGetEditsFromKnownCopySource(newLine, indentationWhitespace, cancellationToken);
                 if (!edits.IsDefaultOrEmpty)
                     return edits;
+
+                var pasteWasSuccessful = PasteWasSuccessful(
+                    snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
 
                 // If not, then just go through the fallback code path that applies more heuristics.
                 var unknownPasteProcessor = new UnknownSourcePasteProcessor(
@@ -200,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 return unknownPasteProcessor.GetEdits(cancellationToken);
             }
 
-            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(string newLine, CancellationToken cancellationToken)
+            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(
+                string newLine, string indentationWhitespace, CancellationToken cancellationToken)
             {
                 // For simplicity, we only support smart copy/paste when we are pasting into a single contiguous region.
                 if (selectionsBeforePaste.Count != 1)
