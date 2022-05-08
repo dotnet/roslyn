@@ -134,8 +134,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var newLine = textView.Options.GetNewLineCharacter();
             var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+            var indentationWhitespace = stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
 
-            var textChanges = GetEdits(newLine, indentationOptions, cancellationToken);
+            var textChanges = GetEdits(newLine, indentationWhitespace, cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             transaction.Complete();
             return;
 
-            ImmutableArray<TextChange> GetEdits(string newLine, IndentationOptions indentationOptions, CancellationToken cancellationToken)
+            ImmutableArray<TextChange> GetEdits(string newLine, string indentationWhitespace, CancellationToken cancellationToken)
             {
                 // See if this is a paste of the last copy that we heard about.
                 var edits = TryGetEditsFromKnownCopySource(newLine, indentationOptions, cancellationToken);
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                 // If not, then just go through teh fallback code path that applies more heuristics.
                 var unknownPasteProcessor = new UnknownSourcePasteProcessor(
-                    newLine, indentationOptions,
+                    newLine, indentationWhitespace,
                     snapshotBeforePaste, snapshotAfterPaste,
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste, pasteWasSuccessful);
@@ -215,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return default;
 
                 var knownProcessor = new KnownSourcePasteProcessor(
-                    newLine, indentationOptions,
+                    newLine, indentationWhitespace,
                     snapshotBeforePaste, snapshotAfterPaste,
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste,

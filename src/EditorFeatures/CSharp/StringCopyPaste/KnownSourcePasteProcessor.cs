@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public KnownSourcePasteProcessor(
             string newLine,
-            IndentationOptions indentationOptions,
+            string indentationWhitespace,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             TextSpan selectionSpanBeforePaste,
             StringCopyPasteData copyPasteData,
             ITextBufferFactoryService2 textBufferFactoryService)
-            : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
+            : base(newLine, indentationWhitespace, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _selectionSpanBeforePaste = selectionSpanBeforePaste;
             _copyPasteData = copyPasteData;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Smart Pasting into raw string not supported yet.  
             return IsAnyRawStringExpression(StringExpressionBeforePaste)
-                ? GetEditsForRawString(cancellationToken)
+                ? GetEditsForRawString()
                 : GetEditsForNonRawString();
         }
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return ImmutableArray.Create(new TextChange(_selectionSpanBeforePaste, builder.ToString()));
         }
 
-        private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
+        private ImmutableArray<TextChange> GetEditsForRawString()
         {
             // To make a change to a raw string we have to go through several passes to determine what to do.
             //
@@ -155,14 +155,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 out var quotesToAdd, out var dollarSignsToAdd, out var convertToMultiLine);
 
             return DetermineTotalEditsToMakeToRawString(
-                quotesToAdd, dollarSignsToAdd, convertToMultiLine, cancellationToken);
+                quotesToAdd, dollarSignsToAdd, convertToMultiLine);
         }
 
         private ImmutableArray<TextChange> DetermineTotalEditsToMakeToRawString(
-            string? quotesToAdd, string? dollarSignsToAdd, bool convertToMultiLine, CancellationToken cancellationToken)
+            string? quotesToAdd, string? dollarSignsToAdd, bool convertToMultiLine)
         {
-            var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, IndentationOptions, cancellationToken);
-
             var finalDollarSignCount = StringExpressionBeforePasteInfo.DelimiterDollarCount +
                 (dollarSignsToAdd == null ? 0 : dollarSignsToAdd.Length);
 
@@ -179,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // A newline and the indentation to start with.  Note: adding the indentation hear means that existing
             // content will start at the right location, as will any content we are pasting in.
             if (convertToMultiLine)
-                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + IndentationWhitespace));
 
             // If we need to add braces to existing interpolations, do so now for the interpolations before the selection.
             if (dollarSignsToAdd != null)
@@ -187,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // Now determine the actual content to add again, this time properly emitting it with
             // indentation/interpolations correctly.
-            edits.Add(GetContentEditForRawString(insertInterpolations: true, finalDollarSignCount, indentationWhitespace));
+            edits.Add(GetContentEditForRawString(insertInterpolations: true, finalDollarSignCount));
 
             // If we need to add braces to existing interpolations, do so now for the interpolations before the selection.
             if (dollarSignsToAdd != null)
@@ -195,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // A final new-line and indentation before the end delimiter.
             if (convertToMultiLine)
-                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpan.Start, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpan.Start, 0), NewLine + IndentationWhitespace));
 
             // Then  any extra quotes to the end delimiter.
             if (quotesToAdd != null)
@@ -215,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         private void PerformInitialBasicPasteInRawString(out SourceText textAfterDummyPaste, out ImmutableArray<TextSpan> contentSpansAfterDummyPaste)
         {
-            var dummyContentEdit = GetContentEditForRawString(insertInterpolations: false, dollarSignCount: -1, indentationWhitespace: "");
+            var dummyContentEdit = GetContentEditForRawString(insertInterpolations: false, dollarSignCount: -1);
 
             var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(
                 new SnapshotSpan(SnapshotBeforePaste, 0, SnapshotBeforePaste.Length), SnapshotBeforePaste.ContentType);
@@ -252,9 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         }
 
         private TextChange GetContentEditForRawString(
-            bool insertInterpolations,
-            int dollarSignCount,
-            string indentationWhitespace)
+            bool insertInterpolations, int dollarSignCount)
         {
             dollarSignCount = Math.Max(1, dollarSignCount);
             using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -278,9 +274,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         // In this case, ensure we add a new-line + indentation so that the copied
                         // text will actually start in the right location.
                         builder.Append(NewLine);
-                        builder.Append(indentationWhitespace);
+                        builder.Append(IndentationWhitespace);
                     }
-                    else if (offset < indentationWhitespace.Length)
+                    else if (offset < IndentationWhitespace.Length)
                     {
                         // if the line they're pasting into doesn't have enough indentation whitespace, then
                         // add enough whitespace to make the text insertion point level.  e.g.:
@@ -288,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                         // var v = """
                         //   [|   content|]
                         //      """
-                        builder.Append(indentationWhitespace[offset..]);
+                        builder.Append(IndentationWhitespace[offset..]);
                     }
                 }
 
@@ -303,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     for (var i = 0; i < sourceText.Lines.Count; i++)
                     {
                         if (i != 0)
-                            builder.Append(indentationWhitespace);
+                            builder.Append(IndentationWhitespace);
 
                         builder.Append(sourceText.ToString(sourceText.Lines[i].SpanIncludingLineBreak));
                     }

@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         public UnknownSourcePasteProcessor(
             string newLine,
-            IndentationOptions indentationOptions,
+            string indentationWhitespace,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
             Document documentAfterPaste,
             ExpressionSyntax stringExpressionBeforePaste,
             bool pasteWasSuccessful)
-            : base(newLine, indentationOptions, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
+            : base(newLine, indentationWhitespace, snapshotBeforePaste, snapshotAfterPaste, documentBeforePaste, documentAfterPaste, stringExpressionBeforePaste)
         {
             _pasteWasSuccessful = pasteWasSuccessful;
         }
@@ -172,13 +172,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             var mustBeMultiLine = RawContentMustBeMultiLine(TextAfterPaste, TextContentsSpansAfterPaste);
 
-            var indentationWhitespace = StringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(DocumentBeforePaste, IndentationOptions, cancellationToken);
-
             using var _ = PooledStringBuilder.GetInstance(out var buffer);
 
             // A newline and the indentation to start with.
             if (mustBeMultiLine)
-                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + IndentationWhitespace));
 
             SourceText? textOfCurrentChange = null;
             var commonIndentationPrefix = GetCommonIndentationPrefix(Changes) ?? "";
@@ -213,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
                     // if we ended with a newline, make sure the next line is indented enough.
                     if (HasNewLine(currentChangeLine))
-                        buffer.Append(indentationWhitespace);
+                        buffer.Append(IndentationWhitespace);
                 }
 
                 edits.Add(new TextChange(change.OldSpan.ToTextSpan(), buffer.ToString()));
@@ -222,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // if the last change ended at the closing delimiter *and* ended with a newline, then we don't need to add a
             // final newline-space at the end because we will have already done that.
             if (mustBeMultiLine && !LastPastedLineAddedNewLine())
-                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpan.Start, 0), NewLine + indentationWhitespace));
+                edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpan.Start, 0), NewLine + IndentationWhitespace));
 
             return;
 
