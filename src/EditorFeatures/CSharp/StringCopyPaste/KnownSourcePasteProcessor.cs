@@ -245,6 +245,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
             var isLiteral = StringExpressionBeforePaste is LiteralExpressionSyntax;
+
+#if false
+
+
+                        // The first line is often special.  It may be copied without any whitespace (e.g. the user
+                        // starts their selection at the start of text on that line, not the start of the line itself).
+                        // So we use some heuristics to try to decide what to do depending on how much whitespace we see
+                        // on that first copied line.
+
+                        TextBeforePaste.GetLineAndOffset(change.OldSpan.Start, out var line, out var offset);
+
+                        // First, ensure that the indentation whitespace of the *inserted* first line is sufficient.
+                        if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.SpanStart).LineNumber)
+                        {
+                            // if the first chunk was pasted into the space after the first `"""` then we need to actually
+                            // insert a newline, then the indentation whitespace, then the first line of the change.
+                            buffer.Append(NewLine);
+                            buffer.Append(indentationWhitespace);
+                        }
+                        else if (offset < indentationWhitespace.Length)
+                        {
+                            // On the first line, we were pasting into the indentation whitespace.  Ensure we add enough
+                            // whitespace so that the trimmed line starts at an acceptable position.
+                            buffer.Append(indentationWhitespace[offset..]);
+                        }
+#endif
+
+
             foreach (var content in _copyPasteData.Contents)
             {
                 if (content.IsText)
