@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (quotesToAdd != null)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.ContentSpans.First().Start, 0), quotesToAdd));
 
-            // A newline and the indentation to start with.  Note: adding the indentation hear means that existing
+            // A newline and the indentation to start with.  Note: adding the indentation here means that existing
             // content will start at the right location, as will any content we are pasting in.
             if (convertToMultiLine)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + IndentationWhitespace));
