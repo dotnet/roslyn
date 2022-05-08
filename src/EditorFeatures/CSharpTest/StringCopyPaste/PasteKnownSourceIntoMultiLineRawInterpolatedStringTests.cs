@@ -507,6 +507,288 @@ var dest =
         }
 
         [WpfFact]
+        public void TestPasteInterpolationIntoSelection1()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:|}
+
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+
+    """""";",
+@"
+var dest =
+    $""""""{0}[||]
+
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection2()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:
+|}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $""""""{0}[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection3()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:
+  |}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $""""""{0}[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection4()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:
+    |}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $""""""{0}[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection5()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:
+
+|}    """""";",
+@"
+var dest =
+    $""""""
+    {0}
+[||]    """""";",
+@"
+var dest =
+    $""""""{0}[||]    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection6()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:
+
+  |}  """""";",
+@"
+var dest =
+    $""""""
+    {0}
+  [||]  """""";",
+@"
+var dest =
+    $""""""{0}[||]  """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection7()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""[||]{|Selection:
+
+    |}"""""";",
+@"
+var dest =
+    $""""""
+    {0}
+    [||]"""""";",
+@"
+var dest =
+    $""""""{0}[||]"""""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection8()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""
+[||]{|Selection:|}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $""""""
+{0}[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection9()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""
+[||]{|Selection:  |}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $""""""
+{0}[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection10()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""
+[||]{|Selection:    |}
+    """""";",
+@"
+var dest =
+    $""""""
+    {0}[||]
+    """""";",
+@"
+var dest =
+    $""""""
+{0}[||]
+    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection11()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""
+[||]{|Selection:
+|}    """""";",
+@"
+var dest =
+    $""""""
+    {0}
+[||]    """""";",
+@"
+var dest =
+    $""""""
+{0}[||]    """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection12()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""
+[||]{|Selection:
+  |}  """""";",
+@"
+var dest =
+    $""""""
+    {0}
+  [||]  """""";",
+@"
+var dest =
+    $""""""
+{0}[||]  """""";");
+        }
+
+        [WpfFact]
+        public void TestPasteInterpolationIntoSelection13()
+        {
+            TestCopyPaste(
+@"var v = $@""{|Copy:{0}|}"";",
+@"
+var dest =
+    $""""""
+[||]{|Selection:
+    |}"""""";",
+@"
+var dest =
+    $""""""
+    {0}
+    [||]"""""";",
+@"
+var dest =
+    $""""""
+{0}[||]"""""";");
+        }
+
+        #endregion
+
+        #region Known Source tests 'PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests'
+
+        // Tests where we place things directly on the clipboard (avoiding the need to do the actual copy).
+        // This allows a port of the tests in PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests.cs
+
+        [WpfFact]
         public void TestPasteBracesWithExistingInterpolation1()
         {
             TestPasteKnownSource(
@@ -593,13 +875,6 @@ var dest =
     {0}{{{[||]{2}
     """""";");
         }
-
-        #endregion
-
-        #region Known Source tests 'PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests'
-
-        // Tests where we place things directly on the clipboard (avoiding the need to do the actual copy).
-        // This allows a port of the tests in PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests.cs
 
         [WpfFact]
         public void TestNewLineIntoSingleLineRawString1_A()
