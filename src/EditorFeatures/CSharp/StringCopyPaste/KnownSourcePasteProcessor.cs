@@ -247,54 +247,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var isLiteral = StringExpressionBeforePaste is LiteralExpressionSyntax;
             var isMultiLine = IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste);
 
-#if false
-
-
-                        // The first line is often special.  It may be copied without any whitespace (e.g. the user
-                        // starts their selection at the start of text on that line, not the start of the line itself).
-                        // So we use some heuristics to try to decide what to do depending on how much whitespace we see
-                        // on that first copied line.
-
-                        TextBeforePaste.GetLineAndOffset(change.OldSpan.Start, out var line, out var offset);
-
-                        // First, ensure that the indentation whitespace of the *inserted* first line is sufficient.
-                        if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.SpanStart).LineNumber)
-                        {
-                            // if the first chunk was pasted into the space after the first `"""` then we need to actually
-                            // insert a newline, then the indentation whitespace, then the first line of the change.
-                            buffer.Append(NewLine);
-                            buffer.Append(indentationWhitespace);
-                        }
-                        else if (offset < indentationWhitespace.Length)
-                        {
-                            // On the first line, we were pasting into the indentation whitespace.  Ensure we add enough
-                            // whitespace so that the trimmed line starts at an acceptable position.
-                            buffer.Append(indentationWhitespace[offset..]);
-                        }
-#endif
-
             for (var contentIndex = 0; contentIndex < _copyPasteData.Contents.Length; contentIndex++)
             {
+                if (contentIndex == 0 && isMultiLine)
+                {
+                    TextBeforePaste.GetLineAndOffset(_selectionSpanBeforePaste.Start, out var line, out var offset);
+                    if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.SpanStart).LineNumber)
+                    {
+                        // the user selection starts on the line containing the leading delimiter.  e.g.
+                        //
+                        // var v = """ [|
+                        //      content|]
+                        //      """
+                        //
+                        // In this case, ensure we add a new-line + indentation so that the copied
+                        // text will actually start in the right location.
+                        builder.Append(NewLine);
+                        builder.Append(indentationWhitespace);
+                    }
+                    else if (offset < indentationWhitespace.Length)
+                    {
+                        // if the line they're pasting into doesn't have enough indentation whitespace, then
+                        // add enough whitespace to make the text insertion point level.  e.g.:
+                        //
+                        // var v = """
+                        //   [|   content|]
+                        //      """
+                        builder.Append(indentationWhitespace[offset..]);
+                    }
+                }
+
                 var content = _copyPasteData.Contents[contentIndex];
+                SourceText? lastContentSourceText = null;
                 if (content.IsText)
                 {
                     // Convert the string to a source-text instance so we can easily process it one line at a time.
                     var sourceText = SourceText.From(content.TextValue);
-
-                    if (contentIndex == 0 && isMultiLine)
-                    {
-                        TextBeforePaste.GetLineAndOffset(_selectionSpanBeforePaste.Start, out var line, out var offset);
-                        if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.SpanStart).LineNumber)
-                        {
-                            // the user selection starts on the line containing the leading delimiter.  e.g.
-                            // var v = """ [| ...
-                            //
-                            // In this case, ensure we add a new-line + indentation so that the copied
-                            // text will actually start in the right location.
-                            builder.Append(NewLine);
-                            builder.Append(indentationWhitespace);
-                        }
-                    }
+                    lastContentSourceText = sourceText;
 
                     for (var i = 0; i < sourceText.Lines.Count; i++)
                     {
@@ -330,6 +319,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 else
                 {
                     throw ExceptionUtilities.UnexpectedValue(content.Kind);
+                }
+
+                if (contentIndex == _copyPasteData.Contents.Length - 1 && isMultiLine)
+                {
+                    // Similar to the check we do for the first-change, if the last change was pasted into the space
+                    // before the last `"""` then we need potentially insert a newline, then enough indentation
+                    // whitespace to keep delimiter in the right location.
+
+                    TextBeforePaste.GetLineAndOffset(_selectionSpanBeforePaste.End, out var line, out var offset);
+
+                    if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.Span.End).LineNumber)
+                    {
+                        var hasNewLine = content.IsText && HasNewLine(lastContentSourceText!.Lines.Last());
+                        if (!hasNewLine)
+                            builder.Append(NewLine);
+
+                        builder.Append(TextBeforePaste.ToString(new TextSpan(TextBeforePaste.Lines[line].Start, offset)));
+                    }
                 }
             }
 
