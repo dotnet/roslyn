@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// </summary>
             private readonly Dictionary<ISymbol, ValueUsageInfo> _symbolValueUsageStateMap = new();
             /// <summary>
-            /// List of properies, which has a 'get' accessor usage, while the property itself is not used, e.g.:
+            /// List of properties that have a 'get' accessor usage, while the value itself is not used, e.g.:
             /// <code>
             /// class C
             /// {
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///     public void M() { P++; }
             /// }
             /// </code>
-            /// Here 'get' accessor is used in increment operation, but 'P' itself is not used anywhere else, so it can be safely removed
+            /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
             private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
