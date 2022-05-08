@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             return null;
         }
 
-        protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
         protected abstract bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
             var names = GetTargetNodes(syntaxFacts, root, context.Span, diagnostic);
             foreach (var name in names)
             {
-                var codeActions = await GetCodeActionsAsync(context.Document, name, context.CancellationToken).ConfigureAwait(false);
+                var codeActions = await GetCodeActionsAsync(context.Document, name, context.Options, context.CancellationToken).ConfigureAwait(false);
                 if (codeActions.IsDefaultOrEmpty)
                 {
                     continue;

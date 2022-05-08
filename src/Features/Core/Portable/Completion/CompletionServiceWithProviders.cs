@@ -62,6 +62,9 @@ namespace Microsoft.CodeAnalysis.Completion
         internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
             => _providerManager.GetImportedProviders();
 
+        internal static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            => ProviderManager.GetProjectCompletionProviders(project);
+
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
             => _providerManager.GetProviders(roles);
 

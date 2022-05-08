@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
@@ -26,8 +28,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             Document document,
             Compilation symbolCompilation,
             ISymbol symbol,
-            SyntaxFormattingOptions formattingOptions,
-            SimplifierOptions simplifierOptions,
+            CleanCodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
             if (document == null)
@@ -39,19 +40,21 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var rootNamespace = newSemanticModel.GetEnclosingNamespace(position: 0, cancellationToken);
             Contract.ThrowIfNull(rootNamespace);
 
-            var context = new CodeGenerationContext(
-                contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
-                generateMethodBodies: false,
-                generateDocumentationComments: true,
-                mergeAttributes: false,
-                autoInsertionLocation: false);
+            var context = new CodeGenerationSolutionContext(
+                document.Project.Solution,
+                new CodeGenerationContext(
+                    contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                    generateMethodBodies: false,
+                    generateDocumentationComments: true,
+                    mergeAttributes: false,
+                    autoInsertionLocation: false),
+                new CodeAndImportGenerationOptions(options.GenerationOptions, options.CleanupOptions.AddImportOptions).CreateProvider());
 
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
-                document.Project.Solution,
+                context,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                context,
                 cancellationToken).ConfigureAwait(false);
 
             document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -65,12 +68,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var formattedDoc = await Formatter.FormatAsync(
                 docWithAssemblyInfo,
                 SpecializedCollections.SingletonEnumerable(node.FullSpan),
-                formattingOptions,
+                options.CleanupOptions.FormattingOptions,
                 GetFormattingRules(docWithAssemblyInfo),
                 cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
-            return await Simplifier.ReduceAsync(formattedDoc, reducers, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(formattedDoc, reducers, options.CleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);

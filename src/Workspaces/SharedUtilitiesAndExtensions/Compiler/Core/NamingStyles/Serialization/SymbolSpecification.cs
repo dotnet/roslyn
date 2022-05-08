@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using System.Runtime.Serialization;
+using System.Diagnostics;
 
 #if CODE_STYLE
 using Microsoft.CodeAnalysis.Internal.Editing;
@@ -21,25 +23,35 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
+    [DataContract]
     internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>, IObjectWritable
     {
         private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
 
+        [DataMember(Order = 0)]
         public Guid ID { get; }
+
+        [DataMember(Order = 1)]
         public string Name { get; }
 
+        [DataMember(Order = 2)]
         public ImmutableArray<SymbolKindOrTypeKind> ApplicableSymbolKindList { get; }
+
+        [DataMember(Order = 3)]
         public ImmutableArray<Accessibility> ApplicableAccessibilityList { get; }
+
+        [DataMember(Order = 4)]
         public ImmutableArray<ModifierKind> RequiredModifierList { get; }
 
         public SymbolSpecification(
-            Guid? id, string symbolSpecName,
+            Guid id,
+            string name,
             ImmutableArray<SymbolKindOrTypeKind> symbolKindList,
             ImmutableArray<Accessibility> accessibilityList = default,
             ImmutableArray<ModifierKind> modifiers = default)
         {
-            ID = id ?? Guid.NewGuid();
-            Name = symbolSpecName;
+            ID = id;
+            Name = name;
             ApplicableSymbolKindList = symbolKindList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableSymbolKindList : symbolKindList;
             ApplicableAccessibilityList = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
             RequiredModifierList = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
@@ -53,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             return new SymbolSpecification(
                 id: Guid.NewGuid(),
-                symbolSpecName: null,
+                name: null,
                 symbolKindList: ImmutableArray.Create(
                     new SymbolKindOrTypeKind(SymbolKind.Namespace),
                     new SymbolKindOrTypeKind(TypeKind.Class),
@@ -281,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal static SymbolSpecification FromXElement(XElement symbolSpecificationElement)
             => new(
                 id: Guid.Parse(symbolSpecificationElement.Attribute(nameof(ID)).Value),
-                symbolSpecName: symbolSpecificationElement.Attribute(nameof(Name)).Value,
+                name: symbolSpecificationElement.Attribute(nameof(Name)).Value,
                 symbolKindList: GetSymbolKindListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableSymbolKindList))),
                 accessibilityList: GetAccessibilityListFromXElement(symbolSpecificationElement.Element(nameof(ApplicableAccessibilityList))),
                 modifiers: GetModifierListFromXElement(symbolSpecificationElement.Element(nameof(RequiredModifierList))));
@@ -334,44 +346,66 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             bool MatchesSymbol(ISymbol symbol);
         }
 
-        public struct SymbolKindOrTypeKind : IEquatable<SymbolKindOrTypeKind>, ISymbolMatcher, IObjectWritable
+        [DataContract]
+        public readonly record struct SymbolKindOrTypeKind : ISymbolMatcher, IObjectWritable
         {
-            public SymbolKind? SymbolKind { get; }
-            public TypeKind? TypeKind { get; }
-            public MethodKind? MethodKind { get; }
-
-            public SymbolKindOrTypeKind(SymbolKind symbolKind) : this()
+            public enum SymbolCategory : byte
             {
-                SymbolKind = symbolKind;
-                TypeKind = null;
-                MethodKind = null;
+                Invalid = 0,
+                Other = 1,
+                Type = 2,
+                Method = 3,
             }
 
-            public SymbolKindOrTypeKind(TypeKind typeKind) : this()
+            [DataMember(Order = 0)]
+            private readonly SymbolCategory _category;
+
+            [DataMember(Order = 1)]
+            private readonly byte _kind;
+
+            // public for serialization
+            public SymbolKindOrTypeKind(SymbolCategory category, byte kind)
             {
-                SymbolKind = null;
-                TypeKind = typeKind;
-                MethodKind = null;
+                _category = category;
+                _kind = kind;
             }
 
-            public SymbolKindOrTypeKind(MethodKind methodKind) : this()
+            public SymbolKindOrTypeKind(SymbolKind symbolKind)
+                : this(SymbolCategory.Other, checked((byte)symbolKind))
             {
-                SymbolKind = null;
-                TypeKind = null;
-                MethodKind = methodKind;
             }
+
+            public SymbolKindOrTypeKind(TypeKind typeKind)
+                : this(SymbolCategory.Type, checked((byte)typeKind))
+            {
+            }
+
+            public SymbolKindOrTypeKind(MethodKind methodKind)
+                : this(SymbolCategory.Method, checked((byte)methodKind))
+            {
+            }
+
+            public SymbolKind? SymbolKind => (_category == SymbolCategory.Other) ? (SymbolKind)_kind : null;
+            public TypeKind? TypeKind => (_category == SymbolCategory.Type) ? (TypeKind)_kind : null;
+            public MethodKind? MethodKind => (_category == SymbolCategory.Method) ? (MethodKind)_kind : null;
 
             public bool MatchesSymbol(ISymbol symbol)
-                => SymbolKind.HasValue ? symbol.IsKind(SymbolKind.Value) :
-                   TypeKind.HasValue ? symbol is ITypeSymbol type && type.TypeKind == TypeKind.Value :
-                   MethodKind.HasValue ? symbol is IMethodSymbol method && method.MethodKind == MethodKind.Value :
-                   throw ExceptionUtilities.Unreachable;
+                => _category switch
+                {
+                    SymbolCategory.Other => symbol.IsKind((SymbolKind)_kind),
+                    SymbolCategory.Type => symbol is ITypeSymbol type && type.TypeKind == (TypeKind)_kind,
+                    SymbolCategory.Method => symbol is IMethodSymbol method && method.MethodKind == (MethodKind)_kind,
+                    _ => false
+                };
 
             internal XElement CreateXElement()
-                => SymbolKind.HasValue ? new XElement(nameof(SymbolKind), SymbolKind) :
-                   TypeKind.HasValue ? new XElement(nameof(TypeKind), GetTypeKindString(TypeKind.Value)) :
-                   MethodKind.HasValue ? new XElement(nameof(MethodKind), GetMethodKindString(MethodKind.Value)) :
-                   throw ExceptionUtilities.Unreachable;
+                => _category switch
+                {
+                    SymbolCategory.Other => new XElement(nameof(SymbolKind), (SymbolKind)_kind),
+                    SymbolCategory.Type => new XElement(nameof(TypeKind), GetTypeKindString((TypeKind)_kind)),
+                    SymbolCategory.Method => new XElement(nameof(MethodKind), GetMethodKindString((MethodKind)_kind)),
+                    _ => throw ExceptionUtilities.Unreachable
+                };
 
             private static string GetTypeKindString(TypeKind typeKind)
             {
@@ -392,7 +426,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 // change if other MethodKinds are added. This ensures we keep using the same string consistently.
                 return methodKind switch
                 {
-
                     CodeAnalysis.MethodKind.SharedConstructor => nameof(CodeAnalysis.MethodKind.StaticConstructor),
                     CodeAnalysis.MethodKind.AnonymousFunction => nameof(CodeAnalysis.MethodKind.LambdaMethod),
                     _ => methodKind.ToString()
@@ -403,37 +436,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public void WriteTo(ObjectWriter writer)
             {
-                if (SymbolKind != null)
+                writer.WriteInt32((int)_category);
+
+                // handle default(T)
+                if (_category != SymbolCategory.Invalid)
                 {
-                    writer.WriteInt32(1);
-                    writer.WriteInt32((int)SymbolKind);
-                }
-                else if (TypeKind != null)
-                {
-                    writer.WriteInt32(2);
-                    writer.WriteInt32((int)TypeKind);
-                }
-                else if (MethodKind != null)
-                {
-                    writer.WriteInt32(3);
-                    writer.WriteInt32((int)MethodKind);
-                }
-                else
-                {
-                    writer.WriteInt32(0);
+                    writer.WriteInt32(_kind);
                 }
             }
 
             public static SymbolKindOrTypeKind ReadFrom(ObjectReader reader)
             {
-                return reader.ReadInt32() switch
-                {
-                    0 => default,
-                    1 => new SymbolKindOrTypeKind((SymbolKind)reader.ReadInt32()),
-                    2 => new SymbolKindOrTypeKind((TypeKind)reader.ReadInt32()),
-                    3 => new SymbolKindOrTypeKind((MethodKind)reader.ReadInt32()),
-                    var v => throw ExceptionUtilities.UnexpectedValue(v),
-                };
+                var category = (SymbolCategory)reader.ReadInt32();
+                var kind = (byte)((category != SymbolCategory.Invalid) ? reader.ReadInt32() : 0);
+                return new SymbolKindOrTypeKind(category, kind);
             }
 
             internal static SymbolKindOrTypeKind AddSymbolKindFromXElement(XElement symbolKindElement)
@@ -444,27 +460,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             internal static SymbolKindOrTypeKind AddMethodKindFromXElement(XElement methodKindElement)
                 => new((MethodKind)Enum.Parse(typeof(MethodKind), methodKindElement.Value));
-
-            public override bool Equals(object obj)
-                => Equals((SymbolKindOrTypeKind)obj);
-
-            public bool Equals(SymbolKindOrTypeKind other)
-                => this.SymbolKind == other.SymbolKind && this.TypeKind == other.TypeKind && this.MethodKind == other.MethodKind;
-
-            public override int GetHashCode()
-            {
-                return Hash.Combine((int)SymbolKind.GetValueOrDefault(),
-                    Hash.Combine((int)TypeKind.GetValueOrDefault(), (int)MethodKind.GetValueOrDefault()));
-            }
         }
 
-        public struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>, IObjectWritable
+        [DataContract]
+        public readonly struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>, IObjectWritable
         {
-            public ModifierKindEnum ModifierKindWrapper;
+            [DataMember(Order = 0)]
+            public readonly ModifierKindEnum ModifierKindWrapper;
 
             internal DeclarationModifiers Modifier { get; }
 
-            public ModifierKind(DeclarationModifiers modifier) : this()
+            public ModifierKind(DeclarationModifiers modifier)
             {
                 this.Modifier = modifier;
 
@@ -494,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 }
             }
 
-            public ModifierKind(ModifierKindEnum modifierKind) : this()
+            public ModifierKind(ModifierKindEnum modifierKind)
             {
                 ModifierKindWrapper = modifierKind;
 
@@ -564,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 => ModifierKindWrapper == other.ModifierKindWrapper;
         }
 
-        public enum ModifierKindEnum
+        public enum ModifierKindEnum : byte
         {
             IsAbstract,
             IsStatic,

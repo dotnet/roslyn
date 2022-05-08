@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             TArgumentSyntax,
             TForEachStatementSyntax,
             TThrowStatementSyntax,
-            TConversion>
+            TConversion> : ISpeculationAnalyzer
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TAttributeSyntax : SyntaxNode
@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public TExpressionSyntax OriginalExpression => _expression;
 
+        SyntaxNode ISpeculationAnalyzer.OriginalExpression => OriginalExpression;
+
         /// <summary>
         /// First ancestor of <see cref="OriginalExpression"/> which is either a statement, attribute, constructor initializer,
         /// field initializer, default parameter initializer or type syntax node.
@@ -130,6 +132,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return _lazyReplacedExpression;
             }
         }
+
+        SyntaxNode ISpeculationAnalyzer.ReplacedExpression => ReplacedExpression;
 
         /// <summary>
         /// Node created by replacing <see cref="OriginalExpression"/> under <see cref="SemanticRootOfOriginalExpression"/> node.

@@ -143,10 +143,10 @@ public struct Struct
 {
   // Code size       14 (0xe)
   .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""Struct Program.<Property>k__BackingField""
-  IL_0006:  initobj    ""Struct""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""Struct Program.<Property>k__BackingField""
+  IL_0007:  initobj    ""Struct""
   IL_000d:  ret
 }
 ";
@@ -221,10 +221,10 @@ public struct Struct
 {
   // Code size       14 (0xe)
   .maxstack  1
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""Struct Program.Field""
-  IL_0006:  initobj    ""Struct""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""Struct Program.Field""
+  IL_0007:  initobj    ""Struct""
   IL_000d:  ret
 }
 ";
@@ -303,10 +303,10 @@ public struct Struct
   // Code size       28 (0x1c)
   .maxstack  1
   .locals init (Struct V_0) //s
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""Struct Program.Field""
-  IL_0006:  initobj    ""Struct""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""Struct Program.Field""
+  IL_0007:  initobj    ""Struct""
   IL_000d:  ldloca.s   V_0
   IL_000f:  constrained. ""Struct""
   IL_0015:  callvirt   ""string object.ToString()""
@@ -425,10 +425,10 @@ public struct Struct
   // Code size       33 (0x21)
   .maxstack  1
   .locals init (Struct V_0) //v2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""Struct Program.<Property>k__BackingField""
-  IL_0006:  initobj    ""Struct""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""Struct Program.<Property>k__BackingField""
+  IL_0007:  initobj    ""Struct""
   IL_000d:  ldarg.0
   IL_000e:  call       ""readonly Struct Program.Property.get""
   IL_0013:  stloc.0
@@ -512,10 +512,10 @@ public struct Struct
   // Code size       33 (0x21)
   .maxstack  1
   .locals init (Struct V_0) //v2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""Struct Program.Field""
-  IL_0006:  initobj    ""Struct""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""Struct Program.Field""
+  IL_0007:  initobj    ""Struct""
   IL_000d:  ldarg.0
   IL_000e:  ldfld      ""Struct Program.Field""
   IL_0013:  stloc.0
@@ -599,10 +599,10 @@ public struct Struct
   // Code size       33 (0x21)
   .maxstack  1
   .locals init (Program V_0) //p2
-  IL_0000:  ldarg.0
-  IL_0001:  ldflda     ""Struct Program.Field""
-  IL_0006:  initobj    ""Struct""
-  IL_000c:  nop
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     ""Struct Program.Field""
+  IL_0007:  initobj    ""Struct""
   IL_000d:  ldarg.0
   IL_000e:  ldobj      ""Program""
   IL_0013:  stloc.0
@@ -629,9 +629,9 @@ public struct Struct
                 parseOptions: TestOptions.Regular10,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'this' to auto-default the unassigned fields.
+                // (6,22): warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
                 //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("this", "preview").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisUnsupportedVersion, "this").WithArguments("preview").WithLocation(6, 22));
             verifier.VerifyIL("Program..ctor", expectedIL);
 
             // C# 11+
@@ -653,9 +653,9 @@ public struct Struct
                 parseOptions: TestOptions.RegularNext,
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics(
-                // (6,22): warning CS9019: The 'this' object cannot be used before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                // (6,22): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
                 //         Program p2 = this;
-                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "this").WithArguments("this").WithLocation(6, 22));
+                Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "this").WithLocation(6, 22));
             verifier.VerifyIL("Program..ctor", expectedIL);
         }
 

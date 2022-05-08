@@ -4,10 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
@@ -34,7 +33,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Callback to actually perform the processing of the next batch of work.
         /// </summary>
-        private readonly Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
+        private readonly Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> _processBatchAsync;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly CancellationToken _cancellationToken;
 
@@ -51,7 +50,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Data added that we want to process in our next update task.
         /// </summary>
-        private readonly ArrayBuilder<TItem> _nextBatch = ArrayBuilder<TItem>.GetInstance();
+        private readonly ImmutableSegmentedList<TItem>.Builder _nextBatch = ImmutableSegmentedList.CreateBuilder<TItem>();
 
         /// <summary>
         /// Used if <see cref="_equalityComparer"/> is present to ensure only unique items are added to <see
@@ -76,7 +75,7 @@ namespace Roslyn.Utilities
 
         public AsyncBatchingWorkQueue(
             TimeSpan delay,
-            Func<ImmutableArray<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
+            Func<ImmutableSegmentedList<TItem>, CancellationToken, ValueTask<TResult>> processBatchAsync,
             IEqualityComparer<TItem>? equalityComparer,
             IAsynchronousOperationListener asyncListener,
             CancellationToken cancellationToken)
@@ -165,12 +164,11 @@ namespace Roslyn.Utilities
             return _processBatchAsync(GetNextBatchAndResetQueue(), _cancellationToken);
         }
 
-        private ImmutableArray<TItem> GetNextBatchAndResetQueue()
+        private ImmutableSegmentedList<TItem> GetNextBatchAndResetQueue()
         {
             lock (_gate)
             {
-                var result = ArrayBuilder<TItem>.GetInstance();
-                result.AddRange(_nextBatch);
+                var result = _nextBatch.ToImmutable();
 
                 // mark there being no existing update task so that the next OOP notification will
                 // kick one off.
@@ -178,7 +176,7 @@ namespace Roslyn.Utilities
                 _uniqueItems.Clear();
                 _taskInFlight = false;
 
-                return result.ToImmutableAndFree();
+                return result;
             }
         }
     }
