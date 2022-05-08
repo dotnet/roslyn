@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (convertToMultiLine)
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.StartDelimiterSpan.End, 0), NewLine + IndentationWhitespace));
 
-            // If we need to add braces to existing interpolations, do so now for the interpolations before the selection.
+            // If we need to add braces to existing interpolations, do so now for the interpolations after the selection.
             if (dollarSignsToAdd != null)
                 UpdateExistingInterpolationBraces(edits, beforeSelection: true, dollarSignsToAdd.Length);
 
