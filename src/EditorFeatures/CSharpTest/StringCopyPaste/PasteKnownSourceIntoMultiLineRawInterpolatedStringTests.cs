@@ -1421,6 +1421,27 @@ ghi[||]
         }
 
         [WpfFact]
+        public void TestNormalTextIntoSingleLineRawStringSingleLine7_B()
+        {
+            TestPasteKnownSource(
+                pasteText: "abc\r\n    def\r\nghi",
+@"var x = $""""""
+          [||]
+          """"""",
+@"var x = $""""""
+          abc
+              def
+          ghi[||]
+          """"""",
+                afterUndo:
+@"var x = $""""""
+    abc
+    def
+ghi[||]
+    """"""");
+        }
+
+        [WpfFact]
         public void TestNormalTextIntoSingleLineRawStringSingleLine8_A()
         {
             TestPasteKnownSource(
