@@ -151,11 +151,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // At this point, we will now have the information necessary to actually insert the content and do things 
             // like give interpolations the proper number of braces for the final string we're making.
 
-            DetermineTopLevelChangesToMakeToRawString(
-                out var quotesToAdd, out var dollarSignsToAdd, out var convertToMultiLine);
+            var (quotesToAdd, dollarSignsToAdd, convertToMultiLine) = DetermineTopLevelChangesToMakeToRawString();
 
-            return DetermineTotalEditsToMakeToRawString(
-                quotesToAdd, dollarSignsToAdd, convertToMultiLine);
+            return DetermineTotalEditsToMakeToRawString(quotesToAdd, dollarSignsToAdd, convertToMultiLine);
+        }
+
+        private (string? quotesToAdd, string? dollarSignsToAdd, bool convertToMultiLine) DetermineTopLevelChangesToMakeToRawString()
+        {
+            PerformInitialBasicPasteInRawString(out var textAfterBasicPaste, out var contentSpansAfterBasicPaste);
+
+            var convertToMultiLine = !IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste) && RawContentMustBeMultiLine(textAfterBasicPaste, contentSpansAfterBasicPaste);
+            return (GetQuotesToAddToRawString(textAfterBasicPaste, contentSpansAfterBasicPaste),
+                    GetDollarSignsToAddToRawString(textAfterBasicPaste, contentSpansAfterBasicPaste),
+                    convertToMultiLine);
+        }
+
+        private void PerformInitialBasicPasteInRawString(
+            out SourceText textAfterBasicPaste, out ImmutableArray<TextSpan> contentSpansAfterBasicPaste)
+        {
+            var trivialContentEdit = GetContentEditForRawString(insertInterpolations: false, dollarSignCount: -1);
+
+            // We want to map spans forward (which requires tracking spans), but we don't want to modify the original
+            // text buffer.  So clone the text buffer to a new one where we can then make the change without touching
+            // the original.
+            var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(
+                new SnapshotSpan(SnapshotBeforePaste, 0, SnapshotBeforePaste.Length), SnapshotBeforePaste.ContentType);
+            var snapshotBeforeTrivialEdit = clonedBuffer.CurrentSnapshot;
+
+            var edit = clonedBuffer.CreateEdit();
+            edit.Replace(_selectionSpanBeforePaste.ToSpan(), trivialContentEdit.NewText);
+
+            var snapshotAfterTrivialEdit = edit.Apply();
+
+            textAfterBasicPaste = snapshotAfterTrivialEdit.AsText();
+            contentSpansAfterBasicPaste = StringExpressionBeforePasteInfo.ContentSpans.SelectAsArray(
+                ts => MapSpan(ts, snapshotBeforeTrivialEdit, snapshotAfterTrivialEdit));
         }
 
         private ImmutableArray<TextChange> DetermineTotalEditsToMakeToRawString(
@@ -200,32 +230,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 
             return edits.ToImmutable();
-        }
-
-        private void DetermineTopLevelChangesToMakeToRawString(out string? quotesToAdd, out string? dollarSignsToAdd, out bool convertToMultiLine)
-        {
-            PerformInitialBasicPasteInRawString(out var textAfterBasicPaste, out var contentSpansAfterBasicPaste);
-
-            quotesToAdd = GetQuotesToAddToRawString(textAfterBasicPaste, contentSpansAfterBasicPaste);
-            dollarSignsToAdd = GetDollarSignsToAddToRawString(textAfterBasicPaste, contentSpansAfterBasicPaste);
-            convertToMultiLine = !IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste) && RawContentMustBeMultiLine(textAfterBasicPaste, contentSpansAfterBasicPaste);
-        }
-
-        private void PerformInitialBasicPasteInRawString(out SourceText textAfterDummyPaste, out ImmutableArray<TextSpan> contentSpansAfterDummyPaste)
-        {
-            var dummyContentEdit = GetContentEditForRawString(insertInterpolations: false, dollarSignCount: -1);
-
-            var clonedBuffer = _textBufferFactoryService.CreateTextBuffer(
-                new SnapshotSpan(SnapshotBeforePaste, 0, SnapshotBeforePaste.Length), SnapshotBeforePaste.ContentType);
-            var snapshotBeforeDummyPaste = clonedBuffer.CurrentSnapshot;
-
-            var edit = clonedBuffer.CreateEdit();
-            edit.Replace(_selectionSpanBeforePaste.ToSpan(), dummyContentEdit.NewText);
-
-            var snapshotAfterDummyPaste = edit.Apply();
-            textAfterDummyPaste = snapshotAfterDummyPaste.AsText();
-            contentSpansAfterDummyPaste = StringExpressionBeforePasteInfo.ContentSpans.SelectAsArray(
-                ts => MapSpan(ts, snapshotBeforeDummyPaste, snapshotAfterDummyPaste));
         }
 
         private void UpdateExistingInterpolationBraces(
