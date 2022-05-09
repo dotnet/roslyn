@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// doesn't want the change we made, they can always undo to get the prior paste behavior.
     /// </remarks>
     [Export(typeof(ICommandHandler))]
-    [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
-    [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.StringCopyPaste)]
+    [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     internal partial class StringCopyPasteCommandHandler :
         IChainedCommandHandler<CutCommandArgs>,
         IChainedCommandHandler<CopyCommandArgs>,
