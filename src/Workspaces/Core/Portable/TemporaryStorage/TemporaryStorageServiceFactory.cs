@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Host
             _workspaceThreadingService = workspaceThreadingService;
         }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
@@ -117,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <seealso cref="_weakFileReference"/>
             private long _offset;
 
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
             public TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
             {
                 _workspaceThreadingService = workspaceThreadingService;
