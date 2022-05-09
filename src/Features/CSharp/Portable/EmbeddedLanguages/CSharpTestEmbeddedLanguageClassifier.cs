@@ -4,17 +4,12 @@
 
 using System;
 using System.Composition;
-using System.Net.Mime;
-using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
@@ -24,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         PredefinedEmbeddedLanguageClassifierNames.CSharpTest), Shared]
     internal class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
     {
-        private readonly EmbeddedLanguageInfo _info;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpTestEmbeddedLanguageClassifier()
         {
-            _info = CSharpEmbeddedLanguagesProvider.Info;
         }
+
+        private static TextSpan FromBounds(VirtualChar vc1, VirtualChar vc2)
+            => TextSpan.FromBounds(vc1.Span.Start, vc2.Span.End);
 
         public void RegisterClassifications(EmbeddedLanguageClassificationContext context)
         {
@@ -49,11 +44,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 return;
 
             cancellationToken.ThrowIfCancellationRequested();
-            // Simpler to only support literals with non-complex escapes.
+
+            // Simpler to only support literals where all characters/escapes map to a single utf16 character.  That way
+            // we can build a source-text as a trivial O(1) view over the virtual char sequence.
             if (virtualCharsWithMarkup.Any(static vc => vc.Utf16SequenceLength != 1))
                 return;
 
-            var virtualCharsWithoutMarkup = StringMarkupCharacters(context, virtualCharsWithMarkup);
+            var virtualCharsWithoutMarkup = StripMarkupCharacters(context, virtualCharsWithMarkup);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -83,40 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 AddClassifications(context, virtualCharsWithoutMarkup, testClassifiedSpan);
         }
 
-        private void AddClassifications(
-            EmbeddedLanguageClassificationContext context,
-            VirtualCharSequence virtualChars,
-            ClassifiedSpan classifiedSpan)
-        {
-            if (classifiedSpan.TextSpan.IsEmpty)
-                return;
-
-            var classificationType = classifiedSpan.ClassificationType;
-            var startIndexInclusive = classifiedSpan.TextSpan.Start;
-            var endIndexExclusive = classifiedSpan.TextSpan.End;
-
-            //var firstVirtualChar = virtualChars[startIndexInclusive];
-            //var lastVirtualChar = virtualChars[endIndexExclusive - 1];
-
-            var currentStartIndexInclusive = startIndexInclusive;
-            while (currentStartIndexInclusive < endIndexExclusive)
-            {
-                var currentEndIndexExclusive = currentStartIndexInclusive + 1;
-
-                while (currentEndIndexExclusive < endIndexExclusive &&
-                       virtualChars[currentEndIndexExclusive - 1].Span.End == virtualChars[currentEndIndexExclusive].Span.Start)
-                {
-                    currentEndIndexExclusive++;
-                }
-
-                context.AddClassification(
-                    classificationType,
-                    FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
-                currentStartIndexInclusive = currentEndIndexExclusive;
-            }
-        }
-
-        private static VirtualCharSequence StringMarkupCharacters(
+        /// <summary>
+        /// Takes a <see cref="VirtualCharSequence"/> and returns the same characters from it, without any characters
+        /// corresponding to test markup (e.g. <c>$$</c> and the like).  Because the virtual chars contain their
+        /// original text span, these final virtual chars can be used both as the underlying source of a <see
+        /// cref="SourceText"/> (which only cares about their <see cref="char"/> value), as well as the way to then map
+        /// positions/spans within that <see cref="SourceText"/> to actual full virtual char spans in the original
+        /// document for classification.
+        /// </summary>
+        private static VirtualCharSequence StripMarkupCharacters(
             EmbeddedLanguageClassificationContext context, VirtualCharSequence virtualChars)
         {
             var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
@@ -128,8 +100,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 {
                     var next = virtualChars[i + 1];
 
-                    // This cast is safe because we disallowed virtual chars whose Value doesn't fit in a char in
+                    // These casts are safe because we disallowed virtual chars whose Value doesn't fit in a char in
                     // RegisterClassifications.
+                    //
+                    // TODO: this algorithm is not actually the one used in roslyn or the roslyn-sdk for parsing a
+                    // markup file.  for example it will get `[|]` wrong (as that depends on knowing if we're starting
+                    // or ending an existing span).  Fix this up to follow the actual algorithm we use.
                     switch (((char)vc.Value, (char)next.Value))
                     {
                         case ('$', '$'):
@@ -168,11 +144,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             return VirtualCharSequence.Create(builder.ToImmutable());
         }
 
-        private static TextSpan FromBounds(VirtualChar vc1, VirtualChar vc2)
+        private static void AddClassifications(
+            EmbeddedLanguageClassificationContext context,
+            VirtualCharSequence virtualChars,
+            ClassifiedSpan classifiedSpan)
         {
-            return TextSpan.FromBounds(vc1.Span.Start, vc2.Span.End);
+            if (classifiedSpan.TextSpan.IsEmpty)
+                return;
+
+            // The classified span in C# may actually spread over discontinuous chunks when mapped back to the original
+            // virtual chars in the C#-Test content.  For example: `yield ret$$urn;`  There will be a classified span
+            // for `return` that has span [6, 12) (exactly the 6 characters corresponding to the contiguous 'return'
+            // seen). However, those positions will map to the two virtual char spans [6, 9) and [11, 14).
+
+            var classificationType = classifiedSpan.ClassificationType;
+            var startIndexInclusive = classifiedSpan.TextSpan.Start;
+            var endIndexExclusive = classifiedSpan.TextSpan.End;
+
+            var currentStartIndexInclusive = startIndexInclusive;
+            while (currentStartIndexInclusive < endIndexExclusive)
+            {
+                var currentEndIndexExclusive = currentStartIndexInclusive + 1;
+
+                while (currentEndIndexExclusive < endIndexExclusive &&
+                       virtualChars[currentEndIndexExclusive - 1].Span.End == virtualChars[currentEndIndexExclusive].Span.Start)
+                {
+                    currentEndIndexExclusive++;
+                }
+
+                context.AddClassification(
+                    classificationType,
+                    FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
+                currentStartIndexInclusive = currentEndIndexExclusive;
+            }
         }
 
+        /// <summary>
+        /// Trivial implementation of a <see cref="SourceText"/> that directly maps over a <see
+        /// cref="VirtualCharSequence"/>.
+        /// </summary>
         private class VirtualCharSequenceSourceText : SourceText
         {
             private readonly VirtualCharSequence _virtualChars;

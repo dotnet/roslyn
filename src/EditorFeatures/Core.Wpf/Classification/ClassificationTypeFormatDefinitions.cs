@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public TestCodeFormatDefinition()
             {
                 this.DisplayName = "test code";
-                this.BackgroundColor = Color.FromRgb(45, 45, 45);
+                this.BackgroundColor = Color.FromRgb(60, 60, 60);
             }
         }
 
