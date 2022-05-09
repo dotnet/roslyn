@@ -738,7 +738,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.TestCode)]
         [Order(After = ClassificationTypeNames.StringLiteral)]
         [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
-        [Order(Before = ClassificationTypeNames.RegexComment)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class TestCodeFormatDefinition : ClassificationFormatDefinition
@@ -748,7 +747,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public TestCodeFormatDefinition()
             {
                 this.DisplayName = "test code";
-                this.BackgroundColor = Color.FromRgb(127, 127, 127);
+                this.BackgroundColor = Color.FromRgb(60, 60, 60);
             }
         }
 
