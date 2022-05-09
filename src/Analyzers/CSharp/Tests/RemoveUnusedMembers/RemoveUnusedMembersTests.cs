@@ -1515,16 +1515,13 @@ class MyClass
 
         [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenReadingPropertyFromSomewhereElse()
+        public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
         {
             var code = @"class MyClass
 {
-    public void M1() { Test.P++; }
-}
-
-class Test
-{
-    public static int P { get; set; }
+    private int P { get; set; }
+    public void M1() { ++P; }
+    public int M2() => P;
 }";
 
             await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
@@ -1660,16 +1657,13 @@ class Test
 
         [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
-        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenReadingPropertyFromSomewhereElse()
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
         {
             var code = @"class MyClass
 {
-    public void M1(int x) { Test.P += x; }
-}
-
-class Test
-{
-    public static int P { get; set; }
+    private int P { get; set; }
+    public void M1(int x) { P += x; }
+    public int M2() => P;
 }";
 
             await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
