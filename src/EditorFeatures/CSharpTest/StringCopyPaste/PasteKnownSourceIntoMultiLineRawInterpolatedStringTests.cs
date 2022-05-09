@@ -24,52 +24,68 @@ var dest =
     [||]
     """;
 """",
-@"var dest =
-    $""""""
+""""
+var dest =
+    $"""
     goo[||]
-    """""";",
-@"var dest =
-    $""""""
+    """;
+"""",
+""""
+var dest =
+    $"""
     [||]
-    """""";");
+    """;
+"""");
         }
 
         [WpfFact]
         public void TestPasteOpenBraceNormalLiteralContent()
         {
             TestCopyPaste(
-@"var v = ""{|Copy:{|}"";",
-@"var dest =
-    $""""""
+"""var v = "{|Copy:{|}";""",
+""""
+var dest =
+    $"""
     [||]
-    """""";",
-@"var dest =
-    $$""""""
+    """;
+"""",
+""""
+var dest =
+    $$"""
     {[||]
-    """""";",
-@"var dest =
-    $""""""
+    """;
+"""",
+""""
+var dest =
+    $"""
     {[||]
-    """""";");
+    """;
+"""");
         }
 
         [WpfFact]
         public void TestPasteOpenCloseBraceNormalLiteralContent()
         {
             TestCopyPaste(
-@"var v = ""{|Copy:{}|}"";",
-@"var dest =
-    $""""""
+"""var v = "{|Copy:{}|}";""",
+""""
+var dest =
+    $"""
     [||]
-    """""";",
-@"var dest =
-    $$""""""
+    """;
+"""",
+""""
+var dest =
+    $$"""
     {}[||]
-    """""";",
-@"var dest =
-    $""""""
+    """;
+"""",
+""""
+var dest =
+    $"""
     {}[||]
-    """""";");
+    """;
+"""");
         }
 
         [WpfFact]
