@@ -4774,7 +4774,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
             edits.VerifyEdits(
-                "Move [class D {}]@29 -> @49");
+                "Move [class D {}]@29 -> @60");
 
             edits.VerifySemanticDiagnostics();
         }
