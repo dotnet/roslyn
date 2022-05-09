@@ -476,19 +476,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var serviceProviderBuilder = new ServiceProviderBuilder();
 
+            IApplicationInfo applicationInfo;
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
             if (this.RequiresMetalamaLicensingServices)
             {
                 var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses);
                 serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
-                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses),
-                    inputCompilation.AssemblyName,
-                    !licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.AdditionalLicenses,
-                    dotNetSdkDirectory,
-                    this.RequiresMetalamaSupportServices);
+                    applicationInfo: applicationInfo,
+                    projectName: inputCompilation.AssemblyName,
+                    considerUnattendedProcessLicense: !licenseOptions.SkipImplicitLicenses,
+                    ignoreUserProfileLicenses: licenseOptions.SkipImplicitLicenses,
+                    additionalLicenses: licenseOptions.AdditionalLicenses,
+                    dotNetSdkDirectory: dotNetSdkDirectory,
+                    addSupportServices: this.RequiresMetalamaSupportServices);
             }
             else
             {
@@ -497,8 +499,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException();
                 }
 
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false);
                 serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
-                    applicationInfo: new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false),
+                    applicationInfo: applicationInfo,
                     addSupportServices: true,
                     projectName: inputCompilation.AssemblyName,
                     dotnetSdkDirectory: dotNetSdkDirectory);
@@ -522,6 +525,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            var applicationInfoProvider = serviceProviderBuilder.ServiceProvider.GetRequiredService<IApplicationInfoProvider>();
 
             try
             {
@@ -588,6 +593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 finally
                 {
+                    // Reset the current application. It might have been changed by the transformer.
+                    applicationInfoProvider.CurrentApplication = applicationInfo;
+
                     // Write all licensing messages that may have been emitted during the compilation.
                     if (licenseManager != null)
                     {
