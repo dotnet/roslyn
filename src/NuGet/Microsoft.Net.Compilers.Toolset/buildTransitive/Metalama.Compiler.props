@@ -31,5 +31,6 @@
     <CompilerVisibleProperty Include="MetalamaDebugCompiler" />
     <CompilerVisibleProperty Include="MetalamaSourceOnlyAnalyzers" />
     <CompilerVisibleProperty Include="MetalamaLicense" />
+    <CompilerVisibleProperty Include="NETCoreSdkBundledVersionsProps" />
   </ItemGroup>
 </Project>

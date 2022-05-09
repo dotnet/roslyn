@@ -4,16 +4,12 @@
 
 // <Metalama /> This code is used by Try.Metalama.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Metalama.Backstage.Extensibility;
-using Metalama.Backstage.Licensing;
-using Metalama.Backstage.Licensing.Consumption;
 
 namespace Metalama.Compiler
 {
@@ -24,7 +20,8 @@ namespace Metalama.Compiler
             ImmutableArray<ResourceDescription> manifestResources, IAnalyzerAssemblyLoader assemblyLoader)
         {
             var diagnostics = DiagnosticBag.GetInstance();
-            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, new ServiceCollection(), CancellationToken.None);
+            var serviceProviderBuilder = new ServiceProviderBuilder();
+            var results = CSharpCompiler.RunTransformers(input, transformers, null, plugins, analyzerConfigProvider, diagnostics, manifestResources, assemblyLoader, serviceProviderBuilder.ServiceProvider, CancellationToken.None);
             return (results.TransformedCompilation, diagnostics.ToReadOnlyAndFree());
         }
 
