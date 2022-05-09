@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// <summary>
         /// Determine the edits that should be made to smartly handle pasting hte data that is on the clipboard._selectionBeforePaste
         /// </summary>
-        public abstract ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken);
+        public abstract ImmutableArray<TextChange> GetEdits();
 
         /// <summary>
         /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see

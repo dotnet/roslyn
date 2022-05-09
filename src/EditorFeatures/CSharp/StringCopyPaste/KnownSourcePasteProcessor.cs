@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             _textBufferFactoryService = textBufferFactoryService;
         }
 
-        public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
+        public override ImmutableArray<TextChange> GetEdits()
         {
             // For pastes into non-raw strings, we can just determine how the change should be escaped in-line at that
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to

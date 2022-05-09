@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     snapshotBeforePaste, snapshotAfterPaste,
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste, pasteWasSuccessful);
-                return unknownPasteProcessor.GetEdits(cancellationToken);
+                return unknownPasteProcessor.GetEdits();
             }
 
             ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     stringExpressionBeforePaste,
                     selectionsBeforePaste[0].Span.ToTextSpan(),
                     copyPasteData, _textBufferFactoryService);
-                return knownProcessor.GetEdits(cancellationToken);
+                return knownProcessor.GetEdits();
             }
         }
 
