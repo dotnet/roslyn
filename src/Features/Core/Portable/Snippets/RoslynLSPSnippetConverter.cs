@@ -111,12 +111,6 @@ namespace Microsoft.CodeAnalysis.Snippets
         private static async Task<TextChange> ExtendSnippetTextChangeAsync(Document document, TextChange textChange, ImmutableArray<SnippetPlaceholder> placeholders, int caretPosition, CancellationToken cancellationToken)
         {
             var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition);
-
-            if (extendedSpan.Length == 0)
-            {
-                return textChange;
-            }
-
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newString = documentText.ToString(extendedSpan);
             var newTextChange = new TextChange(TextSpan.FromBounds(extendedSpan.Start, extendedSpan.End), newString);
