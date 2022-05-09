@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract bool TryGetValue(string key, [NotNullWhen(true)] out string? value);
 
         /// <summary>
-        /// Enumerates keys of all available options in no specific order.
+        /// Enumerates unique keys of all available options in no specific order.
         /// </summary>
         /// <exception cref="NotImplementedException">Not implemented by the derived type.</exception>
         public virtual IEnumerable<string> Keys

@@ -31,6 +31,7 @@ internal sealed class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions
     public StructuredAnalyzerConfigOptions(ImmutableDictionary<string, string> options)
         : this(new DictionaryAnalyzerConfigOptions(options))
     {
+        Contract.ThrowIfFalse(options.KeyComparer == KeyComparer);
     }
 
     public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
