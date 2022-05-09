@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             _pasteWasSuccessful = pasteWasSuccessful;
         }
 
-        public override ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
+        public override ImmutableArray<TextChange> GetEdits()
         {
             // If we have a raw-string, then we always want to check for changes to make, even if the paste was
             // technically legal.  This is because we may want to touch up things like indentation to make the
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             // same location the paste originally happened at.  For raw-strings things get more complex as we have to
             // deal with things like indentation and potentially adding newlines to make things legal.
             return IsAnyRawStringExpression(StringExpressionBeforePaste)
-                ? GetEditsForRawString(cancellationToken)
+                ? GetEditsForRawString()
                 : GetEditsForNonRawString();
         }
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             return textChanges.ToImmutableAndClear();
         }
 
-        private ImmutableArray<TextChange> GetEditsForRawString(CancellationToken cancellationToken)
+        private ImmutableArray<TextChange> GetEditsForRawString()
         {
             // Can't really figure anything out if the raw string is in error.
             if (NodeOrTokenContainsError(StringExpressionBeforePaste))
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (IsAnyMultiLineRawStringExpression(StringExpressionBeforePaste))
                 AdjustWhitespaceAndAddTextChangesForMultiLineRawStringLiteral(edits);
             else
-                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(edits, cancellationToken);
+                AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(edits);
 
             // Then  any extra quotes to the end delimiter.
             if (quotesToAdd != null)
@@ -160,9 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         // Pasting with single line case.
 
-        private void AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(
-            ArrayBuilder<TextChange> edits,
-            CancellationToken cancellationToken)
+        private void AdjustWhitespaceAndAddTextChangesForSingleLineRawStringLiteral(ArrayBuilder<TextChange> edits)
         {
             // When pasting into a single-line raw literal we will keep it a single line if we can.  If the content
             // we're pasting starts/ends with a quote, or contains a newline, then we have to convert to a multiline.

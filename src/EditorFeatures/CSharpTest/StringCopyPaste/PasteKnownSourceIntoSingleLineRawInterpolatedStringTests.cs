@@ -257,7 +257,7 @@ var dest =
 """");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "Investigating")]
         public void TestPasteFullySelectedEscapeNormalLiteralContent2()
         {
             TestCopyPaste(
