@@ -163,25 +163,25 @@ var dest =
 """");
         }
 
-#if false
-
         [WpfFact]
         public void TestPasteFullySelectedEscapeNormalLiteralContent()
         {
             TestCopyPaste(
 @"var v = ""{|Copy:\n|}"";",
-@"var dest =
-    $""""""
+""""
+var dest =
+    $"""
     [||]
-    """""";",
+    """;
+"""",
 "var dest =\r\n    $\"\"\"\r\n    \n    [||]\r\n    \"\"\";",
-@"var dest =
-    $""""""
+""""
+var dest =
+    $"""
     \n[||]
-    """""";");
+    """;
+"""");
         }
-
-#endif
 
         [WpfFact]
         public void TestPastePartiallySelectedQuoteNormalLiteralContent()
@@ -1001,22 +1001,20 @@ var dest =
 """");
         }
 
-#if false
-
         [WpfFact]
         public void TestNewLineIntoSingleLineRawString1_A()
         {
             TestPasteKnownSource(
                 pasteText: "\n",
-@"var x = $""""""
+""""
+var x = $"""
     [||]
-    """"""",
+    """
+"""",
 "var x = $\"\"\"\r\n    \n    [||]\r\n    \"\"\"",
                 afterUndo:
 "var x = $\"\"\"\r\n    \n[||]\r\n    \"\"\"");
         }
-
-#endif
 
         [WpfFact]
         public void TestNewLineIntoSingleLineRawString2_A()
@@ -2068,23 +2066,22 @@ var x = $"""
 
         #endregion
 
-#region Known Source tests 'PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests'
+        #region Known Source tests 'PasteUnknownSourceIntoMultiLineInterpolatedRawStringTests'
 
-#if false
         [WpfFact]
         public void TestNewLineIntoMultiLineRawString1()
         {
             TestPasteKnownSource(
                 pasteText: "\n",
-@"var x = $""""""
+""""
+var x = $"""
     [||]
-    """"""",
+    """
+"""",
 "var x = $\"\"\"\r\n    \n    [||]\r\n    \"\"\"",
                 afterUndo:
 "var x = $\"\"\"\r\n    \n[||]\r\n    \"\"\"");
         }
-
-#endif
 
         [WpfFact]
         public void TestNewLineIntoMultiLineRawString2()
