@@ -2560,5 +2560,113 @@ class C
     public Task<string> SomeTask { get => this.someTask; set => this.someTask = value; }
 }", index: 1);
         }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        if (/*test*/Value())
+        {
+        }
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        if (/*test*/Value)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        if (Value()/*test*/)
+        {
+        }
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        if (Value/*test*/)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = /*test*/Value;
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = /*test*/{|Conflict:Value|};
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = Value/*test*/;
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = {|Conflict:Value|}/*test*/;
+    }
+}");
+        }
     }
 }

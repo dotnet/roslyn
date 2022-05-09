@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
 #End Region|}
 "
             Await VerifyBlockSpansAsync(code,
-                Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse:=True, isDefaultCollapsed:=False))
+                Region("span", "Assembly mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", autoCollapse:=True, isDefaultCollapsed:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
 #End Region|}
 "
             Await VerifyBlockSpansAsync(code,
-                Region("span", "#Region", autoCollapse:=True, isDefaultCollapsed:=False))
+                Region("span", "#Region", autoCollapse:=True, isDefaultCollapsed:=True))
         End Function
     End Class
 End Namespace
