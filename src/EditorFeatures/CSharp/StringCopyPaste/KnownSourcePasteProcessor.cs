@@ -264,7 +264,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             for (var contentIndex = 0; contentIndex < _copyPasteData.Contents.Length; contentIndex++)
             {
-                if (contentIndex == 0 && isMultiLine)
+                // Special handling for the first thing being pasted if we are pasting into a multi-line expression.
+                if (isMultiLine && contentIndex == 0)
                 {
                     TextBeforePaste.GetLineAndOffset(_selectionSpanBeforePaste.Start, out var line, out var offset);
                     if (line == TextBeforePaste.Lines.GetLineFromPosition(StringExpressionBeforePaste.SpanStart).LineNumber)
@@ -336,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     throw ExceptionUtilities.UnexpectedValue(content.Kind);
                 }
 
-                if (contentIndex == _copyPasteData.Contents.Length - 1 && isMultiLine)
+                if (isMultiLine && contentIndex == _copyPasteData.Contents.Length - 1)
                 {
                     // Similar to the check we do for the first-change, if the last change was pasted into the space
                     // before the last `"""` then we need potentially insert a newline, then enough indentation
