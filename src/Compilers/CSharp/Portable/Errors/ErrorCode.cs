@@ -2069,6 +2069,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
 
+        // PROTOTYPE(ft): compress these before feature merge
+        ERR_FileTypeDisallowedInSignature = 9300,
+        ERR_FileTypeNoExplicitAccessibility = 9301,
+        ERR_FileTypeBase = 9302,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

@@ -122,6 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _declarationSyntax = declarationSyntax;
             }
 
+            // PROTOTYPE(ft): is this the right way to get a syntax tree for a binder chain?
+            internal override SyntaxTree AssociatedSyntaxTree => _declarationSyntax.SyntaxTree;
+
             internal sealed override ImmutableArray<AliasAndExternAliasDirective> ExternAliases
             {
                 get

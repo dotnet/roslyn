@@ -372,13 +372,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)other != null)
                     {
-                        if ((nts as SourceNamedTypeSymbol)?.IsPartial == true && (other as SourceNamedTypeSymbol)?.IsPartial == true)
+                        switch (nts, other)
                         {
-                            diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
+                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isLeftAFileTypeInSeparateSourceTreeFromRight(left, right) || isLeftAFileTypeInSeparateSourceTreeFromRight(right, left):
+                                // no error
+                                break;
+                            case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
+                                diagnostics.Add(ErrorCode.ERR_PartialTypeKindConflict, symbol.Locations.FirstOrNone(), symbol);
+                                break;
+                            default:
+                                diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                                break;
                         }
-                        else
+
+                        // prototype(ft): better name? better diagnostic?
+                        bool isLeftAFileTypeInSeparateSourceTreeFromRight(SourceNamedTypeSymbol left, SourceNamedTypeSymbol right)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
+                            // no, left is not a file type.
+                            if (!left.IsFile)
+                            {
+                                return false;
+                            }
+
+                            var leftTree = left.MergedDeclaration.Declarations[0].Location.SourceTree;
+                            if (right.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                            {
+                                return false; // no, there's a declaration of 'right' in the same file as 'left'.
+                            }
+
+                            return true;
                         }
                     }
 

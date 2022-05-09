@@ -237,6 +237,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
+                if (!thisDecl.Location.SourceTree.Equals(otherDecl.Location.SourceTree)
+                    && (thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0)
+                {
+                    // declarations of 'file' types are only the same type if they are in the same file
+                    return false;
+                }
+
                 if (thisDecl._kind == DeclarationKind.Enum || thisDecl._kind == DeclarationKind.Delegate)
                 {
                     // oh, so close, but enums and delegates cannot be partial

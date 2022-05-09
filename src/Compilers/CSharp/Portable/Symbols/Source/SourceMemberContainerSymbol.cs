@@ -394,6 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 result |= defaultAccess;
             }
+            else if ((result & DeclarationModifiers.File) != 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeNoExplicitAccessibility, Locations[0], this);
+            }
 
             if (missingPartial)
             {
@@ -775,6 +779,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
+
+        internal bool IsFile => HasFlag(DeclarationModifiers.File);
+
+        // PROTOTYPE(ft): decide if this is the right internal API
+        // we will probably need this when we mangle the symbol name
+        // internal SyntaxTree? AssociatedSyntaxTree => HasFlag(DeclarationModifiers.File) ? declaration.Declarations[0].Location.SourceTree : null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;

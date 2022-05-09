@@ -1322,8 +1322,12 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
+            if (unwrappedSymbol is SourceNamedTypeSymbol { IsFile: true } && !unwrappedSymbol.IsDefinedInSourceTree(this.AssociatedSyntaxTree, definedWithinSpan: null))
+            {
+                return LookupResult.Empty();
+            }
             // Check for symbols marked with 'Microsoft.CodeAnalysis.Embedded' attribute
-            if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
+            else if (!this.Compilation.SourceModule.Equals(unwrappedSymbol.ContainingModule) && unwrappedSymbol.IsHiddenByCodeAnalysisEmbeddedAttribute())
             {
                 return LookupResult.Empty();
             }

@@ -50,6 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        // PROTOTYPE(ft): should the return type be nullable?
+        internal override SyntaxTree AssociatedSyntaxTree => throw ExceptionUtilities.Unreachable;
+
         internal override uint LocalScopeDepth => Binder.ExternalScope;
 
         protected override bool InExecutableBinder => false;

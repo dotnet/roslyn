@@ -475,7 +475,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode($$"""
                 public file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                """);
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,20): error CS9301: File type 'C' cannot use accessibility modifiers.
+                    // public file {{SyntaxFacts.GetText(typeKeyword)}} C { }
+                    Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
@@ -502,7 +508,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingNode($$"""
                 file public {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                """);
+                """,
+                expectedBindingDiagnostics: new[]
+                {
+                    // (1,19): error CS9301: File type 'C' cannot use accessibility modifiers.
+                    // file public {{SyntaxFacts.GetText(typeKeyword)}} C { }
+                    Diagnostic(ErrorCode.ERR_FileTypeNoExplicitAccessibility, "C").WithArguments("C")
+                });
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
