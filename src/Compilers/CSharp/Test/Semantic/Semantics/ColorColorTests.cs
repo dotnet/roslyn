@@ -2182,5 +2182,57 @@ class C2
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "new System.Action(C2.ReferenceEquals)").WithArguments("ReferenceEquals", "System.Action").WithLocation(9, 13)
                 );
         }
+
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
+        [Theory]
+        [InlineData(null)]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("unmanaged")]
+        [InlineData("notnull")]
+        public void WorkItem61171(string constraint)
+        {
+            string constraintLine = $"where TValue : {constraint}";
+            if (string.IsNullOrEmpty(constraint))
+            {
+                constraintLine = "";
+            }
+
+            string source = $@"
+#nullable enable
+
+namespace DataStructures.Trees;
+
+public sealed class Tree<TValue>
+    {constraintLine}
+{{
+    public abstract class Node
+    {{
+        public abstract NodeType NodeType {{ get; }}
+    }}
+
+    public sealed class ParentNode : Node
+    {{
+        public override NodeType NodeType => Tree<TValue>.NodeType.Parent;
+    }}
+
+    public sealed class LeafNode : Node
+    {{
+        public override Tree<TValue>.NodeType NodeType => NodeType.Leaf;
+    }}
+
+    public enum NodeType
+    {{
+        Parent,
+        Leaf,
+    }}
+}}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics();
+        }
     }
 }
