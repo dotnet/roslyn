@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
             }
 
+            if ((result & DeclarationModifiers.File) != 0)
+            {
+                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeatureFileTypes, diagnostics, errorLocation);
+            }
+
             return result;
         }
 
@@ -281,6 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 case DeclarationModifiers.Ref:
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
+                case DeclarationModifiers.File:
+                    return SyntaxFacts.GetText(SyntaxKind.FileKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -328,6 +335,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Volatile;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
+                case SyntaxKind.FileKeyword:
+                    return DeclarationModifiers.File;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }

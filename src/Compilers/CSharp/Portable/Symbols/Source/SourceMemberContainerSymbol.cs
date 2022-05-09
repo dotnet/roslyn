@@ -249,7 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Symbol containingSymbol = this.ContainingSymbol;
             DeclarationModifiers defaultAccess;
-            var allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            // PROTOTYPE(ft): confirm whether 'file' types can be nested
+            var allowedModifiers = DeclarationModifiers.AccessibilityMask | DeclarationModifiers.File;
 
             if (containingSymbol.Kind == SymbolKind.Namespace)
             {
