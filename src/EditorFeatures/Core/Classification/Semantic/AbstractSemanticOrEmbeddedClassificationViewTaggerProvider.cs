@@ -115,14 +115,7 @@ namespace Microsoft.CodeAnalysis.Classification
             if (workspaceContextService?.IsInLspEditorContext() == true)
                 return Task.CompletedTask;
 
-            // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-            var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
-            if (isLspSemanticTokensEnabled)
-                return Task.CompletedTask;
-
-            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-            return ClassificationUtilities.ProduceTagsAsync(
-                context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
+            return Task.CompletedTask;
         }
     }
 }

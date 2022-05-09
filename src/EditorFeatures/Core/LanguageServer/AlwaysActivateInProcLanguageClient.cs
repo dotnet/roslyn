@@ -85,24 +85,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
             serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
 
-            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
-            if (isLspSemanticTokensEnabled)
+            // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
+            // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
+            // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
+            // the old and new tokens.
+            serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
             {
-                // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
-                // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
-                // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
-                // the old and new tokens.
-                serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
+                Full = false,
+                Range = true,
+                Legend = new SemanticTokensLegend
                 {
-                    Full = false,
-                    Range = true,
-                    Legend = new SemanticTokensLegend
-                    {
-                        TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
-                        TokenModifiers = new string[] { SemanticTokenModifiers.Static }
-                    }
-                };
-            }
+                    TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                    TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                }
+            };
 
             return serverCapabilities;
         }

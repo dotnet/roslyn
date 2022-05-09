@@ -67,11 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
             // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and
             // remote scenarios.
-            var isLspSemanticTokenEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
-            if (isLspSemanticTokenEnabled)
-            {
-                defaultCapabilities.SemanticTokensOptions = null;
-            }
+            defaultCapabilities.SemanticTokensOptions = null;
 
             // When the lsp pull diagnostics feature flag is enabled we do not advertise pull diagnostics capabilities from here
             // as the AlwaysActivateInProcLanguageClient will provide pull diagnostics both locally and remote.
