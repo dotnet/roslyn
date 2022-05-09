@@ -805,14 +805,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
             }
 
-
+            // Map the AnalyzerConfigOptionsProvider
+            var mappedAnalyzerConfigProvider = analyzerConfigProvider switch
+            {
+                // This is the scenario when the code is compiled from the compiler.
+                CompilerAnalyzerConfigOptionsProvider fromCompiler => fromCompiler.WithMappedTrees(
+                    oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree))),
+                
+                // This is the scenario when the code is compiled from Metalama.Try.
+                _ => analyzerConfigProvider
+            };
+            
             return new TransformersResult(
                 annotatedInputCompilation, 
                 outputCompilation,
                  replacements, 
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
-                ((CompilerAnalyzerConfigOptionsProvider) analyzerConfigProvider).WithMappedTrees(oldTreeToNewTrees.Select( x => ( x.Key, x.Value.NewTree ) ) ) );
+                mappedAnalyzerConfigProvider );
             
     
         }
