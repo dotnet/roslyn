@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public async Task TestCreateFromTemporaryStorage()
         {
             var textFactory = CreateMockTextFactoryService();
-            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(workspaceThreadingService: null, textFactory);
 
             var text = SourceText.From("Hello, World!");
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public async Task TestCreateFromTemporaryStorageWithEncoding()
         {
             var textFactory = CreateMockTextFactoryService();
-            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(workspaceThreadingService: null, textFactory);
 
             var text = SourceText.From("Hello, World!", Encoding.ASCII);
 
