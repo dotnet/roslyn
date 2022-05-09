@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             }
         }
 
-        public void TryExpand(TextSpan textSpan, string lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)
+        public void Expand(TextSpan textSpan, string lspSnippetText, ITextView textView, ITextSnapshot textSnapshot)
         {
             Contract.ThrowIfFalse(CanExpandSnippet());
 
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.Snippets
             {
                 // ExpanderMethodInfo should not be null at this point.
                 var expandMethodResult = _expanderMethodInfo!.Invoke(_lspSnippetExpander, new object[] { textEdit, textView, textSnapshot });
-                if (expandMethodResult is null)
+                if (expandMethodResult is not bool resultValue)
                 {
-                    throw new Exception("The result of the invoked LSP snippet expander is null.");
+                    throw new Exception("The result of the invoked LSP snippet expander was not a boolean.");
                 }
 
-                if (!(bool)expandMethodResult)
+                if (!resultValue)
                 {
                     throw new Exception("The invoked LSP snippet expander came back as false.");
                 }

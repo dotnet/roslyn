@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
 
-                _roslynLSPSnippetExpander.TryExpand(change.TextChange.Span, lspSnippetText, _textView, triggerSnapshot);
+                _roslynLSPSnippetExpander.Expand(change.TextChange.Span, lspSnippetText, _textView, triggerSnapshot);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
