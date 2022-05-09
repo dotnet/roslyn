@@ -14,37 +14,38 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class SharedSyntaxContextsWithSpeculativeModel
     {
-        public Document Document { get; }
-        public int Position { get; }
+        private readonly Document _document;
+        private readonly int _position;
 
-        private readonly ConcurrentDictionary<Document, AsyncLazy<SyntaxContext?>> _cache;
+        private readonly ConcurrentDictionary<Document, AsyncLazy<SyntaxContext>> _cache;
         private readonly Lazy<ImmutableArray<DocumentId>> _lazyRelatedDocumentIds;
 
         public SharedSyntaxContextsWithSpeculativeModel(Document document, int position)
         {
-            Document = document;
-            Position = position;
+            _document = document;
+            _position = position;
             _cache = new();
-            _lazyRelatedDocumentIds = new(Document.GetLinkedDocumentIds, isThreadSafe: true);
+            _lazyRelatedDocumentIds = new(_document.GetLinkedDocumentIds, isThreadSafe: true);
         }
 
-        public Task<SyntaxContext?> GetSyntaxContextAsync(Document document, CancellationToken cancellationToken)
+        public Task<SyntaxContext> GetSyntaxContextAsync(Document document, CancellationToken cancellationToken)
         {
             if (!_cache.TryGetValue(document, out var lazyContext))
             {
-                if (Document.Id != document.Id || !_lazyRelatedDocumentIds.Value.Contains(document.Id))
+                if (_document.Id != document.Id && !_lazyRelatedDocumentIds.Value.Contains(document.Id))
                     throw new ArgumentException("Don't support getting SyntaxContext for document unrelated to the original document");
 
-                lazyContext = GetLazySyntaxContextWithSpeculativeModel(document, Position);
+                lazyContext = GetLazySyntaxContextWithSpeculativeModel(document);
             }
 
             return lazyContext.GetValueAsync(cancellationToken);
-        }
 
-        private AsyncLazy<SyntaxContext?> GetLazySyntaxContextWithSpeculativeModel(Document document, int position)
-        {
-            return _cache.GetOrAdd(document, d => AsyncLazy.Create(cancellationToken
-                => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(document, position, cancellationToken), cacheResult: true));
+            // Extract a local function to avoid creating a closure for code path of cache hit.
+            AsyncLazy<SyntaxContext> GetLazySyntaxContextWithSpeculativeModel(Document document)
+            {
+                return _cache.GetOrAdd(document, d => AsyncLazy.Create(cancellationToken
+                    => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, _position, cancellationToken), cacheResult: true));
+            }
         }
     }
 }

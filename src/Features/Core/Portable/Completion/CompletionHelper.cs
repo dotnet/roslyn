@@ -482,11 +482,9 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        public static async Task<SyntaxContext?> CreateSyntaxContextWithExistingSpeculativeModelAsync(Document document, int position, CancellationToken cancellationToken)
+        public static async Task<SyntaxContext> CreateSyntaxContextWithExistingSpeculativeModelAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            if (!document.SupportsSemanticModel)
-                return null;
-
+            Contract.ThrowIfFalse(document.SupportsSemanticModel, "Should only be called from C#/VB providers.");
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetRequiredLanguageService<ISyntaxContextService>();
