@@ -85,10 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         protected readonly string NewLine;
 
         /// <summary>
-        /// Users preferred indentation options.  Used when dealing with raw strings that we have to convert from
-        /// single-line to multiline.
+        /// Amount to indent content in a multi-line raw string literal.
         /// </summary>
-        protected readonly IndentationOptions IndentationOptions;
+        protected readonly string IndentationWhitespace;
 
         /// <summary>
         /// The set of <see cref="ITextChange"/>'s that produced <see cref="SnapshotAfterPaste"/> from <see
@@ -98,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
         protected AbstractPasteProcessor(
             string newLine,
-            IndentationOptions indentationOptions,
+            string indentationWhitespace,
             ITextSnapshot snapshotBeforePaste,
             ITextSnapshot snapshotAfterPaste,
             Document documentBeforePaste,
@@ -106,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             ExpressionSyntax stringExpressionBeforePaste)
         {
             NewLine = newLine;
-            IndentationOptions = indentationOptions;
+            IndentationWhitespace = indentationWhitespace;
 
             SnapshotBeforePaste = snapshotBeforePaste;
             SnapshotAfterPaste = snapshotAfterPaste;
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         /// <summary>
         /// Determine the edits that should be made to smartly handle pasting hte data that is on the clipboard._selectionBeforePaste
         /// </summary>
-        public abstract ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken);
+        public abstract ImmutableArray<TextChange> GetEdits();
 
         /// <summary>
         /// Takes a span in <see cref="SnapshotBeforePaste"/> and maps it appropriately (in an <see

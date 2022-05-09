@@ -381,6 +381,27 @@ ghi[||]
         }
 
         [WpfFact]
+        public void TestNormalTextIntoMultiLineRawStringMultiLine7_B()
+        {
+            TestPasteUnknownSource(
+                pasteText: "abc\r\n    def\r\nghi",
+@"var x = """"""
+          [||]
+          """"""",
+@"var x = """"""
+          abc
+              def
+          ghi[||]
+          """"""",
+                afterUndo:
+@"var x = """"""
+          abc
+    def
+ghi[||]
+          """"""");
+        }
+
+        [WpfFact]
         public void TestNormalTextIntoMultiLineRawStringMultiLine8()
         {
             TestPasteUnknownSource(

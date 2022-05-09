@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 }
             }
 
-            public void TestCopyPaste(string expectedMarkup, string? pasteText, string afterUndoMarkup)
+            public void TestCopyPaste(string expectedMarkup, string? pasteText, bool pasteTextIsKnown, string afterUndoMarkup)
             {
                 var workspace = this.Workspace;
 
@@ -112,6 +113,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 else
                 {
                     // otherwise, this is a test of text coming in from another source.  Do the edit manually.
+
+                    if (pasteTextIsKnown)
+                    {
+                        // we were given text to directly place on the clipboard without needing to do a copy.
+                        Contract.ThrowIfNull(pasteText);
+                        var json = new StringCopyPasteData(ImmutableArray.Create(StringCopyPasteContent.ForText(pasteText))).ToJson();
+                        Contract.ThrowIfNull(json);
+                        service.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, json);
+                    }
+
                     _commandHandler.ExecuteCommand(
                         new PasteCommandArgs(this.TextView, this.SubjectBuffer), () =>
                         {

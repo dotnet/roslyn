@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly ITextBufferFactoryService2 _textBufferFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -63,12 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             IThreadingContext threadingContext,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            ITextBufferFactoryService2 textBufferFactoryService)
         {
             _threadingContext = threadingContext;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
             _globalOptions = globalOptions;
+            _textBufferFactoryService = textBufferFactoryService;
         }
 
         public string DisplayName => nameof(StringCopyPasteCommandHandler);
@@ -126,13 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (stringExpressionBeforePaste == null)
                 return;
 
-            var pasteWasSuccessful = PasteWasSuccessful(
-                snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
-
-            var newLine = textView.Options.GetNewLineCharacter();
-            var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-
-            var textChanges = GetEdits(newLine, indentationOptions, cancellationToken);
+            var textChanges = GetEdits(cancellationToken);
 
             // If we didn't get any viable changes back, don't do anything.
             if (textChanges.IsDefaultOrEmpty)
@@ -180,23 +177,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             transaction.Complete();
             return;
 
-            ImmutableArray<TextChange> GetEdits(string newLine, IndentationOptions indentationOptions, CancellationToken cancellationToken)
+            ImmutableArray<TextChange> GetEdits(CancellationToken cancellationToken)
             {
+                var newLine = textView.Options.GetNewLineCharacter();
+                var indentationWhitespace = DetermineIndentationWhitespace(
+                    documentBeforePaste, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
+
                 // See if this is a paste of the last copy that we heard about.
-                var edits = TryGetEditsFromKnownCopySource(newLine, indentationOptions, cancellationToken);
+                var edits = TryGetEditsFromKnownCopySource(newLine, indentationWhitespace);
                 if (!edits.IsDefaultOrEmpty)
                     return edits;
 
-                // If not, then just go through teh fallback code path that applies more heuristics.
+                var pasteWasSuccessful = PasteWasSuccessful(
+                    snapshotBeforePaste, snapshotAfterPaste, documentAfterPaste, stringExpressionBeforePaste, cancellationToken);
+
+                // If not, then just go through the fallback code path that applies more heuristics.
                 var unknownPasteProcessor = new UnknownSourcePasteProcessor(
-                    newLine, indentationOptions,
+                    newLine, indentationWhitespace,
                     snapshotBeforePaste, snapshotAfterPaste,
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste, pasteWasSuccessful);
-                return unknownPasteProcessor.GetEdits(cancellationToken);
+                return unknownPasteProcessor.GetEdits();
             }
 
-            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(string newLine, IndentationOptions indentationOptions, CancellationToken cancellationToken)
+            ImmutableArray<TextChange> TryGetEditsFromKnownCopySource(
+                string newLine, string indentationWhitespace)
             {
                 // For simplicity, we only support smart copy/paste when we are pasting into a single contiguous region.
                 if (selectionsBeforePaste.Count != 1)
@@ -212,14 +217,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                     return default;
 
                 var knownProcessor = new KnownSourcePasteProcessor(
-                    newLine, indentationOptions,
+                    newLine, indentationWhitespace,
                     snapshotBeforePaste, snapshotAfterPaste,
                     documentBeforePaste, documentAfterPaste,
                     stringExpressionBeforePaste,
-                    selectionsBeforePaste[0],
-                    copyPasteData);
-                return knownProcessor.GetEdits(cancellationToken);
+                    selectionsBeforePaste[0].Span.ToTextSpan(),
+                    copyPasteData, _textBufferFactoryService);
+                return knownProcessor.GetEdits();
             }
+        }
+
+        private string DetermineIndentationWhitespace(
+            Document documentBeforePaste,
+            SourceText textBeforePaste,
+            ExpressionSyntax stringExpressionBeforePaste,
+            CancellationToken cancellationToken)
+        {
+            // Only raw strings care about indentation.  Don't bother computing if we don't need it.
+            if (!IsAnyRawStringExpression(stringExpressionBeforePaste))
+                return "";
+
+            if (IsAnyMultiLineRawStringExpression(stringExpressionBeforePaste))
+            {
+                // already have a multi-line raw string.  The indentation of it's end delimiter is the indentation all
+                // lines within it should have.
+                var lastLine = textBeforePaste.Lines.GetLineFromPosition(stringExpressionBeforePaste.Span.End);
+                var quotePosition = lastLine.GetFirstNonWhitespacePosition()!.Value;
+                return textBeforePaste.ToString(TextSpan.FromBounds(lastLine.Span.Start, quotePosition));
+            }
+
+            // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
+            // We'll use that if we have to convert this single-line raw string to a multi-line one.
+            var indentationOptions = documentBeforePaste.GetIndentationOptionsAsync(_globalOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+            return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
         }
 
         /// <summary>
