@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
         {
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
-            var result = editorConfigStorageLocation.TryGetOption(new StructuredAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty), typeof(NamingStylePreferences), out _);
+            var result = editorConfigStorageLocation.TryGetOption(new StructuredAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.Empty), typeof(NamingStylePreferences), out _);
             Assert.False(result, "Expected TryParseReadonlyDictionary to return 'false' for empty dictionary");
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
                 ["dotnet_naming_symbols.method_and_property_symbols.applicable_kinds"] = "method,property",
                 ["dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities"] = "*",
                 ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
-            }.ToImmutableDictionary());
+            }.ToImmutableDictionary(AnalyzerConfigOptions.KeyComparer));
 
             var result = editorConfigStorageLocation.TryGetOption(options, typeof(NamingStylePreferences), out var value);
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
             var editorConfigStorageLocation = new NamingStylePreferenceEditorConfigStorageLocation();
             Assert.Throws<InvalidOperationException>(() =>
             {
-                editorConfigStorageLocation.TryGetOption(new StructuredAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty), typeof(object), out var @object);
+                editorConfigStorageLocation.TryGetOption(new StructuredAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.Empty), typeof(object), out var @object);
             });
         }
     }
