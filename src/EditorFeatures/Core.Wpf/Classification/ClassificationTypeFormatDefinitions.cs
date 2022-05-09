@@ -522,6 +522,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.NamespaceName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
+        [Order(After = PredefinedClassificationTypeNames.String)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
@@ -747,7 +749,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public TestCodeFormatDefinition()
             {
                 this.DisplayName = "test code";
-                this.BackgroundColor = Color.FromRgb(60, 60, 60);
+                this.BackgroundColor = Color.FromRgb(45, 45, 45);
             }
         }
 
