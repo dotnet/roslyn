@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             // character position.
             // If there is a caret at the end of the line, then it's position
             // will be equivalent to the length of the TextChange.
-            for (var i = 0; i < textChangeText.Length + 1;)
+            for (var i = 0; i < textChange.Span.Length + 1;)
             {
                 if (i == caretPosition - textChangeStart)
                 {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Snippets
 
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newString = documentText.ToString(extendedSpan);
-            var newTextChange = new TextChange(new TextSpan(extendedSpan.Start, 0), newString);
+            var newTextChange = new TextChange(TextSpan.FromBounds(extendedSpan.Start, extendedSpan.End), newString);
 
             return newTextChange;
         }

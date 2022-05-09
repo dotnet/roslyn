@@ -396,6 +396,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Snippets
             return TestAsync(markup, expectedLSPSnippet);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public void TestExtendTextChangeInsertion()
+        {
+            var testString = "foo bar quux baz";
+            using var workspace = CreateWorkspaceFromCode(testString);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
+            var lspSnippetString = RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, 12, ImmutableArray<SnippetPlaceholder>.Empty, new TextChange(new TextSpan(8, 0), "quux"), CancellationToken.None).Result;
+            AssertEx.EqualOrDiff("quux$0", lspSnippetString);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RoslynLSPSnippetConverter)]
+        public void TestExtendTextChangeReplacement()
+        {
+            var testString = "foo bar quux baz";
+            using var workspace = CreateWorkspaceFromCode(testString);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
+            var lspSnippetString = RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(document, 12, ImmutableArray<SnippetPlaceholder>.Empty, new TextChange(new TextSpan(4, 4), "bar quux"), CancellationToken.None).Result;
+            AssertEx.EqualOrDiff("bar quux$0", lspSnippetString);
+        }
+
         #endregion
 
         #region LSP Snippet generation tests
