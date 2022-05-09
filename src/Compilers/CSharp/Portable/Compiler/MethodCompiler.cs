@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((getMethod is null || PassesFilter(_filterOpt, getMethod)) &&
                         (setMethod is null || PassesFilter(_filterOpt, setMethod)))
                     {
-                        property.MarkBackingFieldAsCalculated();
+                        property.MarkBackingFieldAsCalculated(_diagnostics);
                     }
                 }
             }

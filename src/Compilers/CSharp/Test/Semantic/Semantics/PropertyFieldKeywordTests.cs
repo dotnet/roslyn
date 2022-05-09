@@ -39,13 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     // both expression body and block body. We should confirm that SemanticModel doesn't bind an expression body in presence of a block body.
 
     // PROTOTYPE(semi-auto-props): Add ENC tests.
-
-    // PROTOTYPE(semi-auto-props): Add a test where a virtual `get; set;` auto property is overridden by a sealed `get => 0;`.
-    // A synthesized sealed accessor is expected to be produced.
-
-    // PROTOTYPE(semi-auto-props): Add a test where a virtual property is `public virtual int P6 { get => 0; set { } }`, and
-    // it's overridden by `public override int P6 { get => field; }`
-    // The assignment of the property in constructor should use the base setter.
     public class PropertyFieldKeywordTests : CompilingTestBase
     {
         /// <summary>
@@ -85,6 +78,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
             }
 
             CompileAndVerify(compilation).VerifyTypeIL(typeName, expected);
+        }
+
+        [Theory, CombinatorialData]
+        public void TestVirtualPropertyOverride(bool callGetFieldsToEmit, bool callSemanticModel)
+        {
+            var comp = CreateCompilation(@"
+public class Base
+{
+    public virtual int P1 { get; set; }
+    public virtual int P2 { get => 0; set { } }
+}
+
+public class Derived1 : Base
+{
+    public override int P1 { get { _ = field; return field; } }
+    public override int P2 { get => field; }
+}
+
+public class Derived2 : Base
+{
+    public override int P1 { set => _ = field; }
+    public override int P2 { set => _ = field; }
+}
+
+public class Derived3 : Base
+{
+    // PROTOTYPE(semi-auto-props):
+    // This should produce ERR_AutoPropertyMustOverrideSet ""Auto-implemented properties must override all accessors of the overridden property.""
+    // instead of ERR_AutoPropertyMustHaveGetAccessor, unless https://github.com/dotnet/csharplang/issues/6089 is accepted.
+    public override int P1 { set; }
+}
+
+public class Derived4 : Base
+{
+    public override int P1 { get => field; set => field = value; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            if (callGetFieldsToEmit)
+            {
+                var baseFields = comp.GetTypeByMetadataName("Base").GetFieldsToEmit().ToArray();
+                Assert.Equal(1, baseFields.Length);
+                Assert.Equal("System.Int32 Base.<P1>k__BackingField", baseFields[0].ToTestDisplayString());
+
+                var derived1Fields = comp.GetTypeByMetadataName("Derived1").GetFieldsToEmit().ToArray();
+                Assert.Equal(2, derived1Fields.Length);
+                Assert.Equal("System.Int32 Derived1.<P1>k__BackingField", derived1Fields[0].ToTestDisplayString());
+                Assert.Equal("System.Int32 Derived1.<P2>k__BackingField", derived1Fields[1].ToTestDisplayString());
+
+                var derived2Fields = comp.GetTypeByMetadataName("Derived2").GetFieldsToEmit().ToArray();
+                Assert.Equal(2, derived2Fields.Length);
+                Assert.Equal("System.Int32 Derived2.<P1>k__BackingField", derived2Fields[0].ToTestDisplayString());
+                Assert.Equal("System.Int32 Derived2.<P2>k__BackingField", derived2Fields[1].ToTestDisplayString());
+
+                var derived3Fields = comp.GetTypeByMetadataName("Derived3").GetFieldsToEmit().ToArray();
+                Assert.Equal(0, derived3Fields.Length);
+
+                var derived4Fields = comp.GetTypeByMetadataName("Derived4").GetFieldsToEmit().ToArray();
+                Assert.Equal(1, derived4Fields.Length);
+                Assert.Equal("System.Int32 Derived4.<P1>k__BackingField", derived4Fields[0].ToTestDisplayString());
+            }
+
+            if (callSemanticModel)
+            {
+                var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+                var nodes = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().Where(n => n is IdentifierNameSyntax identifier && identifier.Identifier.ContextualKind() == SyntaxKind.FieldKeyword);
+                foreach (var node in nodes)
+                {
+                    var typeInfo = model.GetTypeInfo(node);
+                    Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+                }
+            }
+
+            comp.VerifyDiagnostics(
+                // (10,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P1 { get { _ = field; return field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(10, 25),
+                // (11,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P2 { get => field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(11, 25),
+                // (16,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P1 { set => _ = field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(16, 25),
+                // (17,25): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override int P2 { set => _ = field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(17, 25),
+                // (25,30): error CS8051: Auto-implemented properties must have get accessors.
+                //     public override int P1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("Derived3.P1.set").WithLocation(25, 30)
+                );
+            Assert.Equal(callGetFieldsToEmit ? 5 : 0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
