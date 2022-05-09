@@ -6,12 +6,12 @@ using PostSharp.Engineering.BuildTools.NuGet;
 using Spectre.Console.Cli;
 using System.IO;
 
-var product = new Product
+var product = new Product( Dependencies.MetalamaCompiler )
 {
     PrivateArtifactsDirectory = "artifacts\\packages\\$(MSSBuildConfiguration)\\Shipping",
     ProductName = "Metalama.Compiler",
     EngineeringDirectory = "eng-Metalama",
-    VersionsFile = "eng\\Versions.props",
+    VersionsFilePath = "eng\\Versions.props",
     GenerateArcadeProperties = true,
     AdditionalDirectoriesToClean = new [] { "artifacts" },
     Solutions = new [] { new RoslynSolution() },
@@ -32,9 +32,10 @@ var product = new Product
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Features.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.VisualBasic.Workspaces.$(PackageVersion).nupkg" ),
-    Dependencies = new[] { Dependencies.PostSharpEngineering, Dependencies.MetalamaBackstage, Dependencies.Roslyn },
+    Dependencies = new[] { Dependencies.PostSharpEngineering, Dependencies.MetalamaBackstage },
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
-    KeepEditorConfig = true,
+    ExportedProperties = new[] { "RoslynVersion" },
+    KeepEditorConfig = true
 };
 
 product.BuildCompleted += OnBuildCompleted;

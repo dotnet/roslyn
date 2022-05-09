@@ -12,6 +12,7 @@ using System.Threading;
 using Metalama.Compiler;
 using Metalama.Compiler.Interface.TypeForwards;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Metalama.Backstage.Diagnostics;
@@ -40,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
         private readonly string? _tempDirectory;
-        
+
         // <Metalama>
         static CSharpCompiler()
         {
             // Debugger.Launch();
-            
+
             // Ensure that our Metalama.Compiler.Interfaces (the one with type forwarders) get loaded first, and not the user-facing one, which
             // is a reference assembly.
             MetalamaInitializer.Initialize();
@@ -58,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
             _tempDirectory = buildPaths.TempDirectory;
         }
-        
-        
+
+
         // <Metalama>
         protected abstract bool IsLongRunningProcess { get; }
         // </Metalama>
@@ -454,7 +455,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string? GetDotNetSdkDirectory(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             if (!analyzerConfigOptionsProvider.GlobalOptions.TryGetValue(
-                "build_property.NETCoreSdkBundledVersionsProps", out var propsFilePath))
+                "build_property.NETCoreSdkBundledVersionsProps", out var propsFilePath)
+                || string.IsNullOrEmpty(propsFilePath))
             {
                 return null;
             }
@@ -474,19 +476,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var serviceProviderBuilder = new ServiceProviderBuilder();
 
+            IApplicationInfo applicationInfo;
             var dotNetSdkDirectory = GetDotNetSdkDirectory(analyzerConfigProvider);
 
             if (this.RequiresMetalamaLicensingServices)
             {
                 var licenseOptions = GetLicensingOptions(analyzerConfigProvider);
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses);
                 serviceProviderBuilder = serviceProviderBuilder.AddBackstageServices(
-                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses),
-                    inputCompilation.AssemblyName,
-                    !licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.SkipImplicitLicenses,
-                    licenseOptions.AdditionalLicenses,
-                    dotNetSdkDirectory,
-                    this.RequiresMetalamaSupportServices);
+                    applicationInfo: applicationInfo,
+                    projectName: inputCompilation.AssemblyName,
+                    considerUnattendedProcessLicense: !licenseOptions.SkipImplicitLicenses,
+                    ignoreUserProfileLicenses: licenseOptions.SkipImplicitLicenses,
+                    additionalLicenses: licenseOptions.AdditionalLicenses,
+                    dotNetSdkDirectory: dotNetSdkDirectory,
+                    addSupportServices: this.RequiresMetalamaSupportServices);
             }
             else
             {
@@ -495,7 +499,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw new InvalidOperationException();
                 }
 
-                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(dotNetSdkDirectory);
+                applicationInfo = new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, false);
+                serviceProviderBuilder = serviceProviderBuilder.AddMinimalBackstageServices(
+                    applicationInfo: applicationInfo,
+                    addSupportServices: true,
+                    projectName: inputCompilation.AssemblyName,
+                    dotnetSdkDirectory: dotNetSdkDirectory);
             }
 
             void ReportException(Exception e, bool throwReporterExceptions)
@@ -517,6 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            var applicationInfoProvider = serviceProviderBuilder.ServiceProvider.GetRequiredService<IApplicationInfoProvider>();
+
             try
             {
                 // Initialize usage reporting
@@ -530,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (usageReporter != null && usageReporter.ShouldReportSession(inputCompilation.AssemblyName ?? "<unknown>"))
                         {
-                            usageSample = usageReporter.CreateSample("MetalamaCompilerUsage");
+                            usageSample = usageReporter.CreateSample("CompilerUsage");
                             serviceProviderBuilder = serviceProviderBuilder.AddSingleton<IUsageSample>(usageSample);
                         }
                     }
@@ -582,6 +593,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 finally
                 {
+                    // Reset the current application. It might have been changed by the transformer.
+                    applicationInfoProvider.CurrentApplication = applicationInfo;
+
                     // Write all licensing messages that may have been emitted during the compilation.
                     if (licenseManager != null)
                     {
@@ -595,9 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    // Close logs.
-                    serviceProviderBuilder.ServiceProvider.GetLoggerFactory().Dispose();
-
                     // Report usage.
                     try
                     {
@@ -609,6 +620,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // We don't re-throw here as we don't want compiler to crash because of usage reporting exceptions.
                     }
+
+                    // Close logs.
+                    // Logging has to be disposed as the last one, so it could be used until now.
+                    serviceProviderBuilder.ServiceProvider.GetLoggerFactory().Dispose();
                 }
             }
             catch (Exception e)
@@ -790,14 +805,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
             }
 
-
+            // Map the AnalyzerConfigOptionsProvider
+            var mappedAnalyzerConfigProvider = analyzerConfigProvider switch
+            {
+                // This is the scenario when the code is compiled from the compiler.
+                CompilerAnalyzerConfigOptionsProvider fromCompiler => fromCompiler.WithMappedTrees(
+                    oldTreeToNewTrees.Select(x => (x.Key, x.Value.NewTree))),
+                
+                // This is the scenario when the code is compiled from Metalama.Try.
+                _ => analyzerConfigProvider
+            };
+            
             return new TransformersResult(
                 annotatedInputCompilation, 
                 outputCompilation,
                  replacements, 
                 new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()), 
                 addedResources.SelectAsArray( m => m.Resource),
-                ((CompilerAnalyzerConfigOptionsProvider) analyzerConfigProvider).WithMappedTrees(oldTreeToNewTrees.Select( x => ( x.Key, x.Value.NewTree ) ) ) );
+                mappedAnalyzerConfigProvider );
             
     
         }
