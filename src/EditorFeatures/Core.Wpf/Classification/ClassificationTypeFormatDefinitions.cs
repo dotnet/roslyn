@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
         [Name(ClassificationTypeNames.StaticSymbol)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
-        [Order(After = ClassificationTypeNames.StringLiteral)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
