@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken);
 
         void AddEmbeddedLanguageClassifications(
+            HostWorkspaceServices workspaceServices,
             Project? project,
             SemanticModel semanticModel,
             TextSpan textSpan,

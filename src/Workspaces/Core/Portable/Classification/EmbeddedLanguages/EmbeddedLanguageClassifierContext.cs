@@ -4,6 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal struct EmbeddedLanguageClassificationContext
     {
+        internal readonly HostWorkspaceServices WorkspaceServices;
         internal readonly ClassificationOptions Options;
+
         private readonly ArrayBuilder<ClassifiedSpan> _result;
 
         public Project? Project { get; }
@@ -29,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public CancellationToken CancellationToken { get; }
 
         internal EmbeddedLanguageClassificationContext(
+            HostWorkspaceServices workspaceServices,
             Project? project,
             SemanticModel semanticModel,
             SyntaxToken syntaxToken,
@@ -36,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
+            WorkspaceServices = workspaceServices;
             Project = project;
             SemanticModel = semanticModel;
             SyntaxToken = syntaxToken;

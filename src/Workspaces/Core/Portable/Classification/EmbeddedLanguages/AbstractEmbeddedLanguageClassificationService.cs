@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -88,21 +89,25 @@ namespace Microsoft.CodeAnalysis.Classification
             Document document, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            AddEmbeddedLanguageClassifications(document.Project, semanticModel, textSpan, options, result, cancellationToken);
+            var project = document.Project;
+            AddEmbeddedLanguageClassifications(
+                project.Solution.Workspace.Services, project, semanticModel, textSpan, options, result, cancellationToken);
         }
 
         public void AddEmbeddedLanguageClassifications(
-            Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            HostWorkspaceServices workspaceServices, Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             using var _1 = ArrayBuilder<IEmbeddedLanguageClassifier>.GetInstance(out var classifierBuffer);
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-            var worker = new Worker(this, project, semanticModel, textSpan, options, result, classifierBuffer, cancellationToken);
+            var worker = new Worker(this, workspaceServices, project, semanticModel, textSpan, options, result, classifierBuffer, cancellationToken);
             worker.Recurse(root);
         }
 
         private ref struct Worker
         {
             private readonly AbstractEmbeddedLanguageClassificationService _service;
+
+            private readonly HostWorkspaceServices _workspaceServices;
             private readonly Project? _project;
             private readonly SemanticModel _semanticModel;
             private readonly TextSpan _textSpan;
@@ -113,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
             public Worker(
                 AbstractEmbeddedLanguageClassificationService service,
+                HostWorkspaceServices workspaceServices,
                 Project? project,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
@@ -122,6 +128,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 CancellationToken cancellationToken)
             {
                 _service = service;
+                _workspaceServices = workspaceServices;
                 _project = project;
                 _semanticModel = semanticModel;
                 _textSpan = textSpan;
@@ -165,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _classifierBuffer.Clear();
 
                     var context = new EmbeddedLanguageClassificationContext(
-                        _project, _semanticModel, token, _options, _result, _cancellationToken);
+                        _workspaceServices, _project, _semanticModel, token, _options, _result, _cancellationToken);
 
                     // First, see if this is a string annotated with either a comment or [StringSyntax] attribute. If
                     // so, delegate to the first classifier we have registered for whatever language ID we find.

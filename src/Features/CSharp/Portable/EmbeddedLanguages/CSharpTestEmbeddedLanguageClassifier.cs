@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 
             var testFileTree = SyntaxFactory.ParseSyntaxTree(testFileSourceText, semanticModel.SyntaxTree.Options, cancellationToken: cancellationToken);
             var compilationWithTestFile = compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(testFileTree);
+            var semanticModeWithTestFile = compilationWithTestFile.GetSemanticModel(testFileTree);
 
             var start = virtualCharsWithoutTestCharacters[0].Span.Start;
             context.AddClassification(
@@ -66,15 +67,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                     start,
                     virtualCharsWithoutTestCharacters.Last().Span.End));
 
+            var testFileClassifiedSpans = Classifier.GetClassifiedSpans(
+                context.WorkspaceServices,
+                project: null,
+                semanticModeWithTestFile,
+                new TextSpan(0, virtualCharsWithoutTestCharacters.Length),
+                ClassificationOptions.Default,
+                cancellationToken);
+
+            foreach (var testClassifiedSpan in testFileClassifiedSpans)
+            {
+                context.AddClassification(
+                    testClassifiedSpan.ClassificationType,
+                    new TextSpan(start + testClassifiedSpan.TextSpan.Start, testClassifiedSpan.TextSpan.Length));
+            }
+
             //context.AddClassification(
             //    ClassificationTypeNames.StaticSymbol,
             //    TextSpan.FromBounds(
             //        virtualCharsWithoutTestCharacters[0].Span.Start,
             //        virtualCharsWithoutTestCharacters.Last().Span.End));
 
-            context.AddClassification(
-                ClassificationTypeNames.Keyword,
-                TextSpan.FromBounds(start + 1, start + 8));
+            //context.AddClassification(
+            //    ClassificationTypeNames.Keyword,
+            //    TextSpan.FromBounds(start + 1, start + 8));
         }
 
         private VirtualCharSequence StripTestCharacters(VirtualCharSequence virtualChars)
