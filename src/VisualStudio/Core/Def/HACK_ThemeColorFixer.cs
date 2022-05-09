@@ -117,6 +117,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.TypeParameterName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ModuleName, sourceFormatMap, targetFormatMap);
 
+            UpdateForegroundColor(ClassificationTypeNames.TestCode, sourceFormatMap, targetFormatMap);
+            UpdateBackgroundColor(ClassificationTypeNames.TestCode, sourceFormatMap, targetFormatMap);
+
             UpdateForegroundColor(ClassificationTypeNames.FieldName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.EnumMemberName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ConstantName, sourceFormatMap, targetFormatMap);
@@ -160,6 +163,25 @@ namespace Microsoft.VisualStudio.LanguageServices
             var targetProps = targetFormatMap.GetTextProperties(classificationType);
 
             targetProps = targetProps.SetForegroundBrush(sourceProps.ForegroundBrush);
+
+            targetFormatMap.SetTextProperties(classificationType, targetProps);
+        }
+
+        private void UpdateBackgroundColor(
+            string classificationTypeName,
+            IClassificationFormatMap sourceFormatMap,
+            IClassificationFormatMap targetFormatMap)
+        {
+            var classificationType = _classificationTypeRegistryService.GetClassificationType(classificationTypeName);
+            if (classificationType == null)
+            {
+                return;
+            }
+
+            var sourceProps = sourceFormatMap.GetTextProperties(classificationType);
+            var targetProps = targetFormatMap.GetTextProperties(classificationType);
+
+            targetProps = targetProps.SetBackgroundBrush(sourceProps.BackgroundBrush);
 
             targetFormatMap.SetTextProperties(classificationType, targetProps);
         }

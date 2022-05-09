@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string RecordStructName = "record struct name";
         public const string TypeParameterName = "type parameter name";
 
+        internal const string TestCode = "test code";
+
         public const string FieldName = "field name";
         public const string EnumMemberName = "enum member name";
         public const string ConstantName = "constant name";

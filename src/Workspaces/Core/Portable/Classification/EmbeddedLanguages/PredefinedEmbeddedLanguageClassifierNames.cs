@@ -9,5 +9,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string Regex = nameof(Regex);
 
         public const string Json = nameof(Json);
+
+        public const string CSharpTest = $"{LanguageNames.CSharp}-Test";
     }
 }

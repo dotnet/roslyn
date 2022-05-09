@@ -151,6 +151,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
         [Name(ClassificationTypeNames.StaticSymbol)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
@@ -730,6 +732,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
         }
         #endregion
+
+        [Export(typeof(EditorFormatDefinition))]
+        [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.TestCode)]
+        [Name(ClassificationTypeNames.TestCode)]
+        [Order(After = ClassificationTypeNames.StringLiteral)]
+        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
+        [Order(Before = ClassificationTypeNames.RegexComment)]
+        [UserVisible(true)]
+        [ExcludeFromCodeCoverage]
+        private class TestCodeFormatDefinition : ClassificationFormatDefinition
+        {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public TestCodeFormatDefinition()
+            {
+                this.DisplayName = "test code";
+                this.BackgroundColor = Color.FromRgb(127, 127, 127);
+            }
+        }
 
         #region Regex
 
