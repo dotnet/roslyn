@@ -894,9 +894,9 @@ var dest =
 """");
         }
 
-#endregion
+        #endregion
 
-#region Known Source tests 'PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests'
+        #region Known Source tests 'PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests'
 
         // Tests where we place things directly on the clipboard (avoiding the need to do the actual copy).
         // This allows a port of the tests in PasteUnknownSourceIntoSingleLineInterpolatedRawStringTests.cs
@@ -3085,6 +3085,6 @@ var x = $""""""[||]"""
 """"""");
         }
 
-#endregion
+        #endregion
     }
 }

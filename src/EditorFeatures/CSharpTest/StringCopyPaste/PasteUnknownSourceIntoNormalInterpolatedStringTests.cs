@@ -496,9 +496,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 """);
         }
 
-#endregion
+        #endregion
 
-#region Paste from external source into normal interpolated string after hole
+        #region Paste from external source into normal interpolated string after hole
 
         [WpfFact]
         public void TestNewLineIntoNormalInterpolatedStringAfterHole1()
@@ -740,6 +740,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 """);
         }
 
-#endregion
+        #endregion
     }
 }

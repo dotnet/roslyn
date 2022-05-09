@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
         #endregion
 
-#region Paste from external source into verbatim interpolated string before hole
+        #region Paste from external source into verbatim interpolated string before hole
 
         [WpfFact]
         public void TestNewLineIntoVerbatimInterpolatedStringBeforeHole1()
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
         #endregion
 
-#region Paste from external source into verbatim interpolated string after hole
+        #region Paste from external source into verbatim interpolated string after hole
 
         [WpfFact]
         public void TestNewLineIntoVerbatimInterpolatedStringAfterHole1()
@@ -743,6 +743,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 """);
         }
 
-#endregion
+        #endregion
     }
 }
