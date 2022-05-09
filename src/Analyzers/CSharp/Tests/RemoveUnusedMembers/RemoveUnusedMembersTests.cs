@@ -1567,6 +1567,20 @@ class MyClass
                 .WithArguments("MyClass.this[]"));
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x) => ++this[x];
+    public int M2(int x) => this[x];
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task FieldIsTargetOfCompoundAssignmentAndValueUsed()
         {
@@ -1707,6 +1721,20 @@ class MyClass
                 CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                 .WithSpan(3, 17, 3, 21)
                 .WithArguments("MyClass.this[]"));
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x, int y) => this[x] += y;
+    public int M2(int x) => this[x];
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
