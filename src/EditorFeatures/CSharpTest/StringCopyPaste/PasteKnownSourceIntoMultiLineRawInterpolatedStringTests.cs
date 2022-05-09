@@ -17,19 +17,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestPasteSimpleNormalLiteralContent()
         {
             TestCopyPaste(
-@"var v = ""{|Copy:goo|}"";",
-@"
+"""var v = "{|Copy:goo|}";""",
+""""
 var dest =
-    $""""""
+    $"""
     [||]
-    """""";",
-@"
-var dest =
+    """;
+"""",
+@"var dest =
     $""""""
     goo[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -40,18 +39,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""{|Copy:{|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $$""""""
     {[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {[||]
     """""";");
@@ -62,18 +58,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""{|Copy:{}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $$""""""
     {}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {}[||]
     """""";");
@@ -84,18 +77,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $$""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";");
@@ -106,18 +96,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""g{|Copy:o|}o"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     o[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -128,18 +115,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""\{|Copy:n|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     n[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -150,14 +134,12 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""{|Copy:\n|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-"\r\nvar dest =\r\n    $\"\"\"\r\n    \n    [||]\r\n    \"\"\";",
-@"
-var dest =
+"var dest =\r\n    $\"\"\"\r\n    \n    [||]\r\n    \"\"\";",
+@"var dest =
     $""""""
     \n[||]
     """""";");
@@ -168,18 +150,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""\{|Copy:""|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     ""[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -190,18 +169,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = ""{|Copy:\""|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     ""[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     \""[||]
     """""";");
@@ -212,18 +188,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = @""{|Copy:goo|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     goo[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -234,18 +207,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = @""g{|Copy:o|}o"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     o[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -256,19 +226,16 @@ var dest =
         {
             TestCopyPaste(
 "var v = @\"{|Copy:\r\n|}\";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     
 [||]
@@ -280,18 +247,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = @""{|Copy:""""|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     ""[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     """"[||]
     """""";");
@@ -302,18 +266,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = """"""{|Copy:goo|}"""""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     goo[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -324,18 +285,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = """"""{|Copy: """" |}"""""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
      """" [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -348,18 +306,15 @@ var dest =
 @"var v = """"""
     {|Copy:goo|}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     goo[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -373,19 +328,16 @@ var dest =
     {|Copy:goo
     bar|}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     goo
     bar[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -399,19 +351,16 @@ var dest =
 {|Copy:    goo
     bar|}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     goo
     bar[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
         goo
     bar[||]
@@ -423,18 +372,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $""{|Copy:{0:X}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0:X}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -445,18 +391,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $""{|Copy:{0:\""X\""}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0:""X""}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0:\""X\""}[||]
     """""";");
@@ -467,18 +410,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0:X}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0:X}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";");
@@ -489,18 +429,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0:""""X""""}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0:""X""}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0:""""X""""}[||]
     """""";");
@@ -511,19 +448,16 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:|}
 
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
 
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]
 
     """""";");
@@ -534,18 +468,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:
 |}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]
     """""";");
         }
@@ -555,18 +486,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:
   |}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]
     """""";");
         }
@@ -576,18 +504,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:
     |}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]
     """""";");
         }
@@ -597,18 +522,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:
 
 |}    """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}
 [||]    """""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]    """""";");
         }
 
@@ -617,18 +539,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:
 
   |}  """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}
   [||]  """""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]  """""";");
         }
 
@@ -637,18 +556,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""[||]{|Selection:
 
     |}"""""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}
     [||]"""""";",
-@"
-var dest =
+@"var dest =
     $""""""{0}[||]"""""";");
         }
 
@@ -657,18 +573,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
 [||]{|Selection:|}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
 {0}[||]
     """""";");
@@ -679,18 +592,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
 [||]{|Selection:  |}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
 {0}[||]
     """""";");
@@ -701,18 +611,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
 [||]{|Selection:    |}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
 {0}[||]
     """""";");
@@ -723,18 +630,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
 [||]{|Selection:
 |}    """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}
 [||]    """""";",
-@"
-var dest =
+@"var dest =
     $""""""
 {0}[||]    """""";");
         }
@@ -744,18 +648,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
 [||]{|Selection:
   |}  """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}
   [||]  """""";",
-@"
-var dest =
+@"var dest =
     $""""""
 {0}[||]  """""";");
         }
@@ -765,18 +666,15 @@ var dest =
         {
             TestCopyPaste(
 @"var v = $@""{|Copy:{0}|}"";",
-@"
-var dest =
+@"var dest =
     $""""""
 [||]{|Selection:
     |}"""""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}
     [||]"""""";",
-@"
-var dest =
+@"var dest =
     $""""""
 {0}[||]"""""";");
         }
@@ -793,18 +691,15 @@ var dest =
         {
             TestPasteKnownSource(
 pasteText: @"{{{",
-@"
-var dest =
+@"var dest =
     $""""""
     [||]{0}
     """""";",
-@"
-var dest =
+@"var dest =
     $$$$""""""
     {{{[||]{{{{0}}}}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {{{[||]{0}
     """""";");
@@ -815,18 +710,15 @@ var dest =
         {
             TestPasteKnownSource(
 pasteText: @"{{{",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $$$$""""""
     {{{{0}}}}{{{[||]
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}{{{[||]
     """""";");
@@ -837,18 +729,15 @@ var dest =
         {
             TestPasteKnownSource(
 pasteText: @"{{{",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]{1}
     """""";",
-@"
-var dest =
+@"var dest =
     $$$$""""""
     {{{{0}}}}{{{[||]{{{{1}}}}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}{{{[||]{1}
     """""";");
@@ -859,18 +748,15 @@ var dest =
         {
             TestPasteKnownSource(
 pasteText: @"{{{",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}[||]{|Selection:{1}|}{2}
     """""";",
-@"
-var dest =
+@"var dest =
     $$$$""""""
     {{{{0}}}}{{{[||]{{{{2}}}}
     """""";",
-@"
-var dest =
+@"var dest =
     $""""""
     {0}{{{[||]{2}
     """""";");
