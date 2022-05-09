@@ -219,7 +219,7 @@ var dest =
     $""""""\n[||] """""";");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "Investigating")]
         public void TestPasteFullySelectedEscapeNormalLiteralContent2()
         {
             TestCopyPaste(
