@@ -352,10 +352,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 enabedDiagnosticSets.ToImmutableArray(),
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
-            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, _ => ideOptions, formattingOptions, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, ideOptions.CreateProvider(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

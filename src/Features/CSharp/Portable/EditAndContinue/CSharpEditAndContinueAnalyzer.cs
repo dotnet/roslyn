@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         private static bool IsPropertyDeclarationMatchingPrimaryConstructorParameter(SyntaxNode declaration, INamedTypeSymbol newContainingType)
         {
             if (newContainingType.IsRecord &&
-                declaration is PropertyDeclarationSyntax { Identifier: { ValueText: var name } })
+                declaration is PropertyDeclarationSyntax { Identifier.ValueText: var name })
             {
                 // We need to use symbol information to find the primary constructor, because it could be in another file if the type is partial
                 foreach (var reference in newContainingType.DeclaringSyntaxReferences)
@@ -2423,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 _ when !insertingIntoExistingContainingType => RudeEditKind.None,
 
                 // Inserting a member into an existing generic type is not allowed.
-                { ContainingType: { Arity: > 0 } } and not INamedTypeSymbol
+                { ContainingType.Arity: > 0 } and not INamedTypeSymbol
                     => RudeEditKind.InsertIntoGenericType,
 
                 // Inserting virtual or interface member into an existing type is not allowed.
@@ -2443,11 +2443,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     => RudeEditKind.InsertOperator,
 
                 // Inserting a method that explictly implements an interface method into an existing type is not allowed.
-                IMethodSymbol { ExplicitInterfaceImplementations: { IsEmpty: false } }
+                IMethodSymbol { ExplicitInterfaceImplementations.IsEmpty: false }
                     => RudeEditKind.InsertMethodWithExplicitInterfaceSpecifier,
 
                 // TODO: Inserting non-virtual member to an interface (https://github.com/dotnet/roslyn/issues/37128)
-                { ContainingType: { TypeKind: TypeKind.Interface } } and not INamedTypeSymbol
+                { ContainingType.TypeKind: TypeKind.Interface } and not INamedTypeSymbol
                     => RudeEditKind.InsertIntoInterface,
 
                 // Inserting a field into an enum:

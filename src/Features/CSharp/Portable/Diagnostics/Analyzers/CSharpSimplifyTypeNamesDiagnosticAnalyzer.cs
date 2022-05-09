@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
             var syntaxTree = semanticModel.SyntaxTree;
             var options = context.Options.GetCSharpSimplifierOptions(syntaxTree);
-            var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
+            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
             simplifier.Visit(context.CodeBlock);
             return simplifier.Diagnostics;
         }

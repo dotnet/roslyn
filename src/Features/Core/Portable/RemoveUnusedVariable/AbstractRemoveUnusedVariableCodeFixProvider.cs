@@ -47,10 +47,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             var blockFacts = document.GetRequiredLanguageService<IBlockFactsService>();
 
             if (ShouldOfferFixForLocalDeclaration(blockFacts, node))
-                context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), diagnostic);
+            {
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        FeaturesResources.Remove_unused_variable,
+                        GetDocumentUpdater(context),
+                        nameof(FeaturesResources.Remove_unused_variable)),
+                    diagnostic);
+            }
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var nodesToRemove = new HashSet<SyntaxNode>();
 
@@ -192,14 +199,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
                         nodesToRemove.Remove(variable);
                     }
                 }
-            }
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_unused_variable, createChangedDocument, FeaturesResources.Remove_unused_variable)
-            {
             }
         }
     }

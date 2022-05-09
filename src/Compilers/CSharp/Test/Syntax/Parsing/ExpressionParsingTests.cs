@@ -2775,7 +2775,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(6, 14),
                 // (6,24): error CS1003: Syntax error, ',' expected
                 //         Task.await Task.Delay();
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(6, 24),
                 // (6,25): error CS1002: ; expected
                 //         Task.await Task.Delay();
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Delay").WithLocation(6, 25));
@@ -5489,7 +5489,7 @@ select t";
             UsingExpression("c?..b",
                 // (1,6): error CS1003: Syntax error, ':' expected
                 // c?..b
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(1, 6),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 6),
                 // (1,6): error CS1733: Expected expression
                 // c?..b
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
@@ -5946,7 +5946,7 @@ select t";
             UsingExpression("new[] { in[] }",
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // new[] { in[] }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -5969,7 +5969,7 @@ select t";
             UsingExpression("new[] { out[] }",
                     // (1,9): error CS1003: Syntax error, ',' expected
                     // new[] { out[] }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(1, 9));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.ImplicitArrayCreationExpression);
             {
@@ -6057,7 +6057,7 @@ select t";
                 Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
                 // (7,33): error CS1003: Syntax error, ',' expected
                 //             A B = new C($@"{D(.E}");
-                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(7, 33),
                 // (7,34): error CS1026: ) expected
                 //             A B = new C($@"{D(.E}");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 34)
@@ -6094,37 +6094,37 @@ select t";
                     Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(")").WithLocation(7, 33),
                     // (7,33): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 33),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(7, 33),
                     // (7,34): error CS1056: Unexpected character '\'
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
                     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 34),
                     // (7,35): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",", "").WithLocation(7, 35),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "F").WithArguments(",").WithLocation(7, 35),
                     // (7,36): error CS1056: Unexpected character '\'
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
                     Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(7, 36),
                     // (7,37): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "G").WithArguments(",", "").WithLocation(7, 37),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "G").WithArguments(",").WithLocation(7, 37),
                     // (7,38): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 38),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(7, 38),
                     // (7,39): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "H").WithArguments(",", "").WithLocation(7, 39),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "H").WithArguments(",").WithLocation(7, 39),
                     // (7,40): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",", "}").WithLocation(7, 40),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments(",").WithLocation(7, 40),
                     // (7,41): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",", "").WithLocation(7, 41),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",").WithLocation(7, 41),
                     // (7,42): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(7, 42),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(7, 42),
                     // (7,43): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments(",", "").WithLocation(7, 43),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "I").WithArguments(",").WithLocation(7, 43),
                     // (7,49): error CS1026: ) expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
@@ -6133,10 +6133,10 @@ select t";
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 49),
                     // (7,50): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "L").WithArguments(",", "").WithLocation(7, 50),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "L").WithArguments(",").WithLocation(7, 50),
                     // (7,51): error CS1003: Syntax error, ',' expected
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
-                    Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",", "").WithLocation(7, 51)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",").WithLocation(7, 51)
                 );
         }
 

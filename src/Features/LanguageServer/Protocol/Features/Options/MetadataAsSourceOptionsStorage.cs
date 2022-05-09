@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -12,7 +14,7 @@ internal static class MetadataAsSourceOptionsStorage
 {
     public static MetadataAsSourceOptions GetMetadataAsSourceOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => new(
-            SimplifierOptions: globalOptions.GetSimplifierOptions(languageServices),
+            GenerationOptions: globalOptions.GetCleanCodeGenerationOptions(languageServices),
             NavigateToDecompiledSources: globalOptions.GetOption(NavigateToDecompiledSources),
             AlwaysUseDefaultSymbolServers: globalOptions.GetOption(AlwaysUseDefaultSymbolServers));
 

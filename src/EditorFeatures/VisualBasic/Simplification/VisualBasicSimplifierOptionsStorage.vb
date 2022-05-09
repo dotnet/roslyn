@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     Friend Module VisualBasicSimplifierOptionsStorage
 
         <ExportLanguageService(GetType(ISimplifierOptionsStorage), LanguageNames.VisualBasic), [Shared]>
-        Private NotInheritable Class Service
+        Friend NotInheritable Class Service
             Implements ISimplifierOptionsStorage
 
             <ImportingConstructor>

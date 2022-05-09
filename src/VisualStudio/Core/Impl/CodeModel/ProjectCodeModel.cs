@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -29,7 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private CodeModelProjectCache _codeModelCache;
 
-        public ProjectCodeModel(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspace visualStudioWorkspace, IServiceProvider serviceProvider, ProjectCodeModelFactory projectCodeModelFactory)
+        public ProjectCodeModel(
+            IThreadingContext threadingContext,
+            ProjectId projectId,
+            ICodeModelInstanceFactory codeModelInstanceFactory,
+            VisualStudioWorkspace visualStudioWorkspace,
+            IServiceProvider serviceProvider,
+            ProjectCodeModelFactory projectCodeModelFactory)
         {
             _threadingContext = threadingContext;
             _projectId = projectId;

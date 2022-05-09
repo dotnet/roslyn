@@ -4735,8 +4735,8 @@ End Class
 
                 Dim options = SyntaxFormattingOptions.Create(
                     workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
-                    workspace.Services,
-                    tree.Language)
+                    fallbackOptions:=Nothing,
+                    workspace.Services.GetLanguageServices(tree.Language))
 
                 Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
                 Dim actual = formatted.ToFullString()

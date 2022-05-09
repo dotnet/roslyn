@@ -58,12 +58,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// representing the queue's cancellation token and the individual request cancellation token.
         /// </summary>
         private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue = new();
-        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancelSource = new();
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
 
         private readonly ILspLogger _logger;
         private readonly LspWorkspaceManager _lspWorkspaceManager;
+        private readonly ILanguageServerNotificationManager _notificationManager;
 
         /// <summary>
         /// For test purposes only.
@@ -89,7 +90,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ImmutableArray<string> supportedLanguages,
             WellKnownLspServerKinds serverKind,
             RequestTelemetryLogger requestTelemetryLogger,
-            LspWorkspaceManager lspWorkspaceManager)
+            LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager)
         {
             _logger = logger;
             _globalOptions = globalOptions;
@@ -97,6 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _serverKind = serverKind;
             _requestTelemetryLogger = requestTelemetryLogger;
             _lspWorkspaceManager = lspWorkspaceManager;
+            _notificationManager = notificationManager;
 
             // Start the queue processing
             _queueProcessingTask = ProcessQueueAsync();
@@ -210,7 +213,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
                         // Restore our activity id so that logging/tracking works across asynchronous calls.
                         Trace.CorrelationManager.ActivityId = work.ActivityId;
-                        var context = CreateRequestContext(work);
+                        var context = await CreateRequestContextAsync(work, cancellationToken).ConfigureAwait(false);
 
                         if (work.MutatesSolutionState)
                         {
@@ -254,22 +257,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Shutdown();
         }
 
-        private RequestContext? CreateRequestContext(IQueueItem queueItem)
+        private Task<RequestContext?> CreateRequestContextAsync(IQueueItem queueItem, CancellationToken cancellationToken)
         {
             var trackerToUse = queueItem.MutatesSolutionState
                 ? (IDocumentChangeTracker)_lspWorkspaceManager
                 : new NonMutatingDocumentChangeTracker();
 
-            return RequestContext.Create(
+            return RequestContext.CreateAsync(
                 queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
                 _serverKind,
                 _logger,
                 queueItem.ClientCapabilities,
                 _lspWorkspaceManager,
+                _notificationManager,
                 trackerToUse,
                 _supportedLanguages,
-                _globalOptions);
+                _globalOptions,
+                queueCancellationToken: this.CancellationToken,
+                requestCancellationToken: cancellationToken);
         }
     }
 }

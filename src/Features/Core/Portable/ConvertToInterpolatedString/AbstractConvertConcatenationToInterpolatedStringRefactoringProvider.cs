@@ -106,8 +106,10 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var interpolatedString = CreateInterpolatedString(document, isVerbatimStringLiteral, pieces);
             context.RegisterRefactoring(
-                new MyCodeAction(
-                    _ => UpdateDocumentAsync(document, root, top, interpolatedString)),
+                CodeAction.Create(
+                    FeaturesResources.Convert_to_interpolated_string,
+                    _ => UpdateDocumentAsync(document, root, top, interpolatedString),
+                    nameof(FeaturesResources.Convert_to_interpolated_string)),
                 top.Span);
         }
 
@@ -249,14 +251,6 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                    method.ContainingType?.SpecialType == SpecialType.System_String &&
                    (method.MetadataName == WellKnownMemberNames.AdditionOperatorName ||
                     method.MetadataName == WellKnownMemberNames.ConcatenateOperatorName);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Convert_to_interpolated_string, createChangedDocument, nameof(FeaturesResources.Convert_to_interpolated_string))
-            {
-            }
         }
     }
 }
