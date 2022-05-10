@@ -315,7 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
-                else if (!isIndexer)
+
+                if (!isIndexer)
                 {
                     allowedModifiers |= DeclarationModifiers.Static;
                 }

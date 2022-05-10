@@ -56,9 +56,10 @@ public interface I1
             return isStatic ? Verification.Skipped : VerifyOnMonoOrCoreClr;
         }
 
-        private static bool Execute(bool isStatic)
+        private static bool Execute(bool isStatic, bool haveImplementationInDerivedInterface = false)
         {
-            if (!ExecutionConditionUtil.IsMonoOrCoreClr)
+            // PROTOTYPE(DefaultInterfaceImplementation) : Enable execution for isStatic and haveImplementationInDerivedInterface once runtime can handle it.
+            if (!ExecutionConditionUtil.IsMonoOrCoreClr || (isStatic && haveImplementationInDerivedInterface))
             {
                 return false;
             }
@@ -79,6 +80,11 @@ public interface I1
             {
                 return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped;
             }
+        }
+
+        private static Verification VerifyFailsIlVerify(bool isStatic)
+        {
+            return !isStatic && ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped;
         }
 
         private void ValidateMethodImplementation_011(string source, bool isStatic = false)
@@ -194,7 +200,7 @@ typeKind + " Test2 " + @": I1
             }
         }
 
-        private static void ValidateMethodImplementationTest1_011(ModuleSymbol m, string expectedImplementation, bool isStatic = false, string methodName = null)
+        private static void ValidateMethodImplementationTest1_011(ModuleSymbol m, string expectedImplementation, bool isStatic, string methodName = null)
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
 
@@ -31856,20 +31862,24 @@ interface IB<T> : IA<IQ<T>> { }
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
-        public void MethodImplementationInDerived_01()
+        public void MethodImplementationInDerived_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I4
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I5 : I4
@@ -31878,11 +31888,11 @@ public interface I5 : I4
 
 public interface I1 : I2, I5
 {
-    void I2.M1() 
+    " + implModifiers + @"void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    void I4.M1() 
+    " + implModifiers + @"void I4.M1() 
     {
         System.Console.WriteLine(""I4.M1"");
     }
@@ -31897,70 +31907,98 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I2 i2 = new Test1();
-        i2.M1();
         I4 i4 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source2 +=
+@"
+        i2.M1();
         i4.M1();
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            validateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+            validateMethodImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
+            validateMethodImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
+
+            void validateMethodImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateMethodImplementationInDerived_01(m, isStatic: isStatic);
+            }
         }
 
-        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m)
+        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m, bool isStatic)
         {
-            ValidateMethodImplementationInDerived_01(m, i4M1IsAbstract: false);
+            ValidateMethodImplementationInDerived_01(m, i4M1IsAbstract: false, isStatic: isStatic);
         }
 
-        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract)
+        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract, bool isStatic)
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
@@ -31975,8 +32013,8 @@ I4.M1
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
 
-            ValidateExplicitImplementation(i1i2m1);
-            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract);
+            ValidateExplicitImplementation(i1i2m1, isStatic: isStatic);
+            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract, isStatic: isStatic);
 
             Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
             Assert.Null(test1.FindImplementationForInterfaceMember(i1i4m1));
@@ -31995,15 +32033,15 @@ I4.M1
             Assert.Same(i4M1IsAbstract ? null : i1i4m1, i3.FindImplementationForInterfaceMember(i4m1));
         }
 
-        private static void ValidateExplicitImplementation(MethodSymbol m1, bool isAbstract = false)
+        private static void ValidateExplicitImplementation(MethodSymbol m1, bool isAbstract = false, bool isStatic = false)
         {
-            Assert.True(m1.IsMetadataVirtual());
-            Assert.True(m1.IsMetadataFinal);
+            Assert.Equal(isAbstract || !isStatic, m1.IsMetadataVirtual());
+            Assert.Equal(isAbstract || !isStatic, m1.IsMetadataFinal);
             Assert.False(m1.IsMetadataNewSlot());
             Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.False(m1.IsVirtual);
             Assert.Equal(isAbstract, m1.IsSealed);
-            Assert.False(m1.IsStatic);
+            Assert.Equal(isStatic, m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
@@ -32065,7 +32103,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(18, 13)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, isStatic: false);
 
             var source2 = @"
 public interface I3 : I1
@@ -32090,7 +32128,97 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+            ValidateMethodImplementationInDerived_01(compilation2.SourceModule, isStatic: false);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_Static_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    static abstract void M1(); 
+}
+
+public interface I4
+{
+    static abstract void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    static void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    static void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract void M1(); 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                // (9,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract void M1(); 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(9, 26),
+                // (14,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static void I2.M1() 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(14, 20),
+                // (18,20): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static void I4.M1() 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(18, 20)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, isStatic: true);
+
+            CreateCompilation(source1, options: TestOptions.DebugDll,
+                              parseOptions: TestOptions.RegularPreview,
+                              targetFramework: TargetFramework.Net60).VerifyEmitDiagnostics();
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8706: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                // (6,15): error CS8706: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation2.SourceModule, isStatic: true);
+
+            CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                              parseOptions: TestOptions.RegularPreview,
+                              targetFramework: TargetFramework.Net60).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32141,7 +32269,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(18, 13)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, isStatic: false);
 
             var source2 = @"
 public interface I3 : I1
@@ -32168,24 +32296,106 @@ class Test1 : I1
         }
 
         [Fact]
-        public void MethodImplementationInDerived_04()
+        public void MethodImplementationInDerived_Static_03()
         {
             var source1 =
 @"
 public interface I2
 {
-    void M1(); 
+    static abstract void M1(); 
 }
 
 public interface I4
 {
-    void M1(); 
+    static abstract void M1(); 
 }
 
 public interface I1 : I2, I4
 {
-    void I2.M1(); 
-    void I4.M1(); 
+    static void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    static void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+
+            compilation1.VerifyDiagnostics(
+                // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract void M1(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(4, 26),
+                // (9,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract void M1(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(9, 26),
+                // (14,20): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static void I2.M1() 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(14, 20),
+                // (18,20): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static void I4.M1() 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(18, 20)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, isStatic: true);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8929: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8929: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1").WithLocation(6, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_04(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
+            var source1 =
+@"
+public interface I2
+{
+    " + modifiers + @"void M1(); 
+}
+
+public interface I4
+{
+    " + modifiers + @"void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    " + implModifiers + @"void I2.M1(); 
+    " + implModifiers + @"void I4.M1(); 
 }
 
 public interface I3 : I1
@@ -32197,43 +32407,47 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (15,13): error CS0501: 'I1.I4.M1()' must declare a body because it is not marked abstract, extern, or partial
                 //     void I4.M1(); 
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("I1.I4.M1()").WithLocation(15, 13),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("I1.I4.M1()").WithLocation(15, 13 + implModifiers.Length),
                 // (14,13): error CS0501: 'I1.I2.M1()' must declare a body because it is not marked abstract, extern, or partial
                 //     void I2.M1(); 
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("I1.I2.M1()").WithLocation(14, 13)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("I1.I2.M1()").WithLocation(14, 13 + implModifiers.Length)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, isStatic: isStatic);
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_05()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_05(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I4
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I1
 {
-    void I2.M1() 
+    " + implModifiers + @"void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    void I4.M1() 
+    " + implModifiers + @"void I4.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
@@ -32241,16 +32455,16 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (18,10): error CS0540: 'I1.I4.M1()': containing type does not implement interface 'I4'
                 //     void I4.M1() 
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.M1()", "I4").WithLocation(18, 10),
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.M1()", "I4").WithLocation(18, 10 + implModifiers.Length),
                 // (14,10): error CS0540: 'I1.I2.M1()': containing type does not implement interface 'I2'
                 //     void I2.M1() 
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1()", "I2").WithLocation(14, 10)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1()", "I2").WithLocation(14, 10 + implModifiers.Length)
                 );
         }
 
@@ -32290,49 +32504,50 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (14,27): error CS0106: The modifier 'static' is not valid for this item
-                //     public static void I2.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(14, 27),
                 // (14,27): error CS0106: The modifier 'public' is not valid for this item
                 //     public static void I2.M1() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 27),
+                // (14,27): error CS0539: 'I1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     public static void I2.M1() 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1()").WithLocation(14, 27),
                 // (18,30): error CS0106: The modifier 'internal' is not valid for this item
                 //     internal virtual void I4.M1() 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(18, 30),
                 // (18,30): error CS0106: The modifier 'virtual' is not valid for this item
                 //     internal virtual void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(18, 30)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(18, 30),
+                // (28,15): error CS0535: 'Test1' does not implement interface member 'I2.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I2.M1()").WithLocation(28, 15)
                 );
-
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
         }
 
         [Fact]
-        public void MethodImplementationInDerived_07()
+        public void MethodImplementationInDerived_Static_06()
         {
             var source1 =
 @"
 public interface I2
 {
-    void M1(); 
+    static abstract void M1(); 
 }
 
 public interface I4
 {
-    void M1(); 
+    static abstract void M1(); 
 }
 
 public interface I1 : I2, I4
 {
-    private sealed void I2.M1() 
+    public void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    protected abstract void I4.M1() 
+    internal virtual static void I4.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
@@ -32347,52 +32562,118 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,20): error CS0106: The modifier 'public' is not valid for this item
+                //     public void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 20),
+                // (14,20): error CS0539: 'I1.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     public void I2.M1() 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1()").WithLocation(14, 20),
+                // (18,37): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal virtual static void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(18, 37),
+                // (18,37): error CS0106: The modifier 'virtual' is not valid for this item
+                //     internal virtual static void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(18, 37),
+                // (28,15): error CS0535: 'Test1' does not implement interface member 'I2.M1()'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I2.M1()").WithLocation(28, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_07(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
+            var source1 =
+@"
+public interface I2
+{
+    " + modifiers + @"void M1(); 
+}
+
+public interface I4
+{
+    " + modifiers + @"void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    " + implModifiers + @"private sealed void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    " + implModifiers + @"protected abstract void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,28): error CS0106: The modifier 'sealed' is not valid for this item
                 //     private sealed void I2.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 28 + implModifiers.Length),
                 // (14,28): error CS0106: The modifier 'private' is not valid for this item
                 //     private sealed void I2.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 28 + implModifiers.Length),
                 // (18,32): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(18, 32),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(18, 32 + implModifiers.Length),
                 // (18,32): error CS0500: 'I1.I4.M1()' cannot declare a body because it is marked abstract
                 //     protected abstract void I4.M1() 
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I1.I4.M1()").WithLocation(18, 32),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I1.I4.M1()").WithLocation(18, 32 + implModifiers.Length),
                 // (28,15): error CS0535: 'Test1' does not implement interface member 'I4.M1()'
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I4.M1()").WithLocation(28, 15)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract: true);
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract: true, isStatic: isStatic);
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_08()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_08(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I4
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I1 : I2, I4
 {
-    private protected void I2.M1() 
+    " + implModifiers + @"private protected void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    internal protected override void I4.M1() 
+    " + implModifiers + @"internal protected override void I4.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
@@ -32407,37 +32688,41 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,31): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected void I2.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(14, 31),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(14, 31 + implModifiers.Length),
                 // (18,41): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     internal protected override void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(18, 41),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(18, 41 + implModifiers.Length),
                 // (18,41): error CS0106: The modifier 'override' is not valid for this item
                 //     internal protected override void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(18, 41)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(18, 41 + implModifiers.Length)
                 );
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule, isStatic: isStatic);
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_09()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_09(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I1 : I2
 {
-    extern void I2.M1(); 
+    " + implModifiers + @"extern void I2.M1(); 
 }
 
 public interface I3 : I1
@@ -32449,13 +32734,13 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20 + implModifiers.Length)
                 );
 
             Validate1(compilation1.SourceModule);
@@ -32472,7 +32757,7 @@ class Test1 : I1
                 Assert.True(i1.IsAbstract);
                 Assert.True(i1.IsMetadataAbstract);
 
-                ValidateExplicitExternImplementation(i1i2m1);
+                ValidateExplicitExternImplementation(i1i2m1, isStatic: isStatic);
 
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
                 Assert.Same(i1i2m1, test1.FindImplementationForInterfaceMember(i2m1));
@@ -32485,35 +32770,69 @@ class Test1 : I1
                 Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(
-                // (9,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(9, 20),
-                // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
-                );
+
+            if (!isStatic)
+            {
+                compilation2.VerifyDiagnostics(
+                    // (9,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     extern void I2.M1(); 
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(9, 20),
+                    // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                    //     extern void I2.M1(); 
+                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    //     static abstract void M1(); 
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                    // (9,27): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    //     static extern void I2.M1(); 
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(9, 27),
+                    // (9,27): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                    //     static extern void I2.M1(); 
+                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 27)
+                    );
+            }
 
             Validate1(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
-            Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
-            compilation3.VerifyDiagnostics(
-                // (9,20): error CS8501: Target runtime doesn't support default interface implementation.
-                //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 20),
-                // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                //     extern void I2.M1(); 
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
-                );
+            if (!isStatic)
+            {
+                compilation3.VerifyDiagnostics(
+                    // (9,20): error CS8501: Target runtime doesn't support default interface implementation.
+                    //     extern void I2.M1(); 
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 20),
+                    // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                    //     extern void I2.M1(); 
+                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                    );
+            }
+            else
+            {
+                compilation3.VerifyDiagnostics(
+                    // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static abstract void M1(); 
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(4, 26),
+                    // (9,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static extern void I2.M1(); 
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(9, 27),
+                    // (9,27): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                    //     static extern void I2.M1(); 
+                    Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 27)
+                    );
+            }
 
             Validate1(compilation3.SourceModule);
 
@@ -32521,12 +32840,12 @@ class Test1 : I1
 @"
 public interface I2
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I1 : I2
 {
-    extern void I2.M1()
+    " + implModifiers + @"extern void I2.M1()
     {} 
 }
 
@@ -32539,27 +32858,27 @@ class Test1 : I1
 ";
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
                 // (9,20): error CS0179: 'I1.I2.M1()' cannot be extern and declare a body
                 //     extern void I2.M1()
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20 + implModifiers.Length)
                 );
 
             Validate1(compilation4.SourceModule);
         }
 
-        private static void ValidateExplicitExternImplementation(MethodSymbol m1)
+        private static void ValidateExplicitExternImplementation(MethodSymbol m1, bool isStatic = false)
         {
-            Assert.True(m1.IsMetadataVirtual());
-            Assert.True(m1.IsMetadataFinal);
+            Assert.Equal(!isStatic, m1.IsMetadataVirtual());
+            Assert.Equal(!isStatic, m1.IsMetadataFinal);
             Assert.False(m1.IsMetadataNewSlot());
             Assert.False(m1.IsAbstract);
             Assert.False(m1.IsVirtual);
             Assert.False(m1.IsSealed);
-            Assert.False(m1.IsStatic);
+            Assert.Equal(isStatic, m1.IsStatic);
             Assert.NotEqual(m1.OriginalDefinition is PEMethodSymbol, m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
@@ -32573,21 +32892,25 @@ class Test1 : I1
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_10()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_10(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 using System.Threading.Tasks;
 
 public interface I2
 {
-    Task M1(); 
+    " + modifiers + @"Task M1(); 
 }
 
 public interface I1 : I2
 {
-    async Task I2.M1()
+    " + implModifiers + @"async Task I2.M1()
     {
         await Task.Factory.StartNew(() => System.Console.WriteLine(""I2.M1""));
     }
@@ -32599,17 +32922,40 @@ public interface I3 : I1
 
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Main()
     {
         I2 i2 = new Test1();
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1().Wait();
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -32642,13 +32988,13 @@ class Test1 : I1
 
             void Validate2(MethodSymbol m1)
             {
-                Assert.True(m1.IsMetadataVirtual());
-                Assert.True(m1.IsMetadataFinal);
+                Assert.Equal(!isStatic, m1.IsMetadataVirtual());
+                Assert.Equal(!isStatic, m1.IsMetadataFinal);
                 Assert.False(m1.IsMetadataNewSlot());
                 Assert.False(m1.IsAbstract);
                 Assert.False(m1.IsVirtual);
                 Assert.False(m1.IsSealed);
-                Assert.False(m1.IsStatic);
+                Assert.Equal(isStatic, m1.IsStatic);
                 Assert.False(m1.IsExtern);
                 Assert.NotEqual(m1 is PEMethodSymbol, m1.IsAsync);
                 Assert.False(m1.IsOverride);
@@ -32663,25 +33009,29 @@ class Test1 : I1
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "I2.M1",
-                verify: VerifyOnMonoOrCoreClr,
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null : "I2.M1",
+                verify: Verify(isStatic),
                 symbolValidator: Validate1);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
-        public void MethodImplementationInDerived_11()
+        public void MethodImplementationInDerived_11(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    internal void M1(); 
+    " + modifiers + @"internal void M1(); 
 }
 
 public interface I4
 {
-    internal void M1(); 
+    " + modifiers + @"internal void M1(); 
 }
 
 public interface I5 : I4
@@ -32690,8 +33040,26 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1();
         i4.M1();
     }
@@ -32701,11 +33069,11 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    void I2.M1() 
+    " + implModifiers + @"void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    void I4.M1() 
+    " + implModifiers + @"void I4.M1() 
     {
         System.Console.WriteLine(""I4.M1"");
     }
@@ -32720,112 +33088,140 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         TestHelper.Test(new Test1(), new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        TestHelper.Test<Test1, Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            validateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+            validateMethodImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
+            validateMethodImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+            validateMethodImplementationInDerived_01(compilation5.SourceModule);
 
             compilation5.VerifyDiagnostics(
                 // (8,13): error CS0122: 'I4.M1()' is inaccessible due to its protection level
                 //     void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13 + implModifiers.Length),
                 // (4,13): error CS0122: 'I2.M1()' is inaccessible due to its protection level
                 //     void I2.M1() 
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13 + implModifiers.Length)
                 );
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidateMethodImplementationInDerived_01(compilation6.SourceModule);
+            validateMethodImplementationInDerived_01(compilation6.SourceModule);
 
             compilation6.VerifyDiagnostics(
                 // (8,13): error CS0122: 'I4.M1()' is inaccessible due to its protection level
                 //     void I4.M1() 
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13 + implModifiers.Length),
                 // (4,13): error CS0122: 'I2.M1()' is inaccessible due to its protection level
                 //     void I2.M1() 
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13 + implModifiers.Length)
                 );
+
+            void validateMethodImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateMethodImplementationInDerived_01(m, isStatic: isStatic);
+            }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
-        public void MethodImplementationInDerived_12()
+        public void MethodImplementationInDerived_12(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1(){ System.Console.WriteLine(""Unexpected!!!""); } 
+    " + modifiers + @"void M1(){ System.Console.WriteLine(""Unexpected!!!""); } 
 }
 
 public interface I2 : I1
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
         System.Console.WriteLine(""I2.I1.M1"");
     }
@@ -32833,7 +33229,7 @@ public interface I2 : I1
 
 public interface I3 : I1
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
         System.Console.WriteLine(""I3.I1.M1"");
     }
@@ -32841,7 +33237,7 @@ public interface I3 : I1
 
 public interface I4 : I1
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
         System.Console.WriteLine(""I4.I1.M1"");
     }
@@ -32849,7 +33245,7 @@ public interface I4 : I1
 
 public interface I5 : I2, I3
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
         System.Console.WriteLine(""I5.I1.M1"");
     }
@@ -32860,8 +33256,8 @@ public interface I6 : I1, I2, I3, I5
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -32877,8 +33273,8 @@ public interface I6 : I1, I2, I3, I5
                 var i5m1 = i5.GetMember<MethodSymbol>("I1.M1");
                 var i6 = FindType(m, "I6");
 
-                ValidateExplicitImplementation(i2m1);
-                ValidateExplicitImplementation(i5m1);
+                ValidateExplicitImplementation(i2m1, isStatic: isStatic);
+                ValidateExplicitImplementation(i5m1, isStatic: isStatic);
 
                 Assert.Same(i1m1, i1.FindImplementationForInterfaceMember(i1m1));
                 Assert.Same(i2m1, i2.FindImplementationForInterfaceMember(i1m1));
@@ -32886,7 +33282,7 @@ public interface I6 : I1, I2, I3, I5
                 Assert.Same(i5m1, i6.FindImplementationForInterfaceMember(i1m1));
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -32926,42 +33322,88 @@ class Test6 : I1, I2, I3, I5
 
 class Test7 : I6
 {
+";
+            if (!isStatic)
+            {
+                source4 +=
+@"
     static void Main()
     {
-        I1 i1 = new Test5();
-        i1.M1();
-        i1 = new Test6();
-        i1.M1();
-        i1 = new Test7();
-        i1.M1();
+        I1 i5 = new Test5();
+        I1 i6 = new Test6();
+        I1 i7 = new Test7();
+";
+            }
+            else
+            {
+                source4 +=
+@"
+    static void Main()
+    {
+        Test<Test5, Test6, Test7>();
+    }
+
+    static void Test<i5, i6, i7>() where i5 : I1 where i6 : I1 where i7 : I1
+    {
+";
+            }
+
+            source4 +=
+@"
+        i5.M1();
+        i6.M1();
+        i7.M1();
     }
 }
 ";
             var source5 = @"
 class Test8 : I2, I3
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
         System.Console.WriteLine(""Test8.I1.M1"");
     }
+";
+            if (!isStatic)
+            {
+                source5 +=
+@"
     static void Main()
     {
-        I1 i1 = new Test8();
-        i1.M1();
-        i1 = new Test9();
-        i1.M1();
-        i1 = new Test10();
-        i1.M1();
-        i1 = new Test11();
-        i1.M1();
-        i1 = new Test12();
-        i1.M1();
+        I1 i8 = new Test8();
+        I1 i9 = new Test9();
+        I1 i10 = new Test10();
+        I1 i11 = new Test11();
+        I1 i12 = new Test12();
+";
+            }
+            else
+            {
+                source5 +=
+@"
+    static void Main()
+    {
+        Test<Test8, Test9, Test10, Test11, Test12>();
+    }
+
+    static void Test<i8, i9, i10, i11, i12>() where i8 : I1 where i9 : I1 where i10 : I1 where i11 : I1 where i12 : I1
+    {
+";
+            }
+
+            source5 +=
+@"
+        i8.M1();
+        i9.M1();
+        i10.M1();
+        i11.M1();
+        i12.M1();
     }
 }
 
 class Test9 : I7
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
         System.Console.WriteLine(""Test9.I1.M1"");
     }
@@ -32969,7 +33411,7 @@ class Test9 : I7
 
 class Test10 : I1, I2, I3, I4
 {
-    public void M1() 
+    " + implModifiers + @"public void M1() 
     {
         System.Console.WriteLine(""Test10.M1"");
     }
@@ -32977,7 +33419,7 @@ class Test10 : I1, I2, I3, I4
 
 class Test11 : I1, I2, I3, I5, I4
 {
-    public void M1() 
+    " + implModifiers + @"public void M1() 
     {
         System.Console.WriteLine(""Test11.M1"");
     }
@@ -32985,7 +33427,7 @@ class Test11 : I1, I2, I3, I5, I4
 
 class Test12 : I8
 {
-    public virtual void M1() 
+    " + implModifiers + @"public " + (isStatic ? "" : "virtual") + @" void M1() 
     {
         System.Console.WriteLine(""Test12.M1"");
     }
@@ -32995,8 +33437,8 @@ class Test12 : I8
             foreach (var ref1 in refs1)
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-14.md,
@@ -33018,23 +33460,23 @@ class Test12 : I8
                     Assert.Null(i8.FindImplementationForInterfaceMember(i1m1));
                 }
 
-                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
@@ -33060,38 +33502,38 @@ class Test12 : I8
                 }
 
                 CompileAndVerify(compilation4,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.I1.M1
 I5.I1.M1
 I5.I1.M1
 "
 ,
-                    verify: VerifyOnMonoOrCoreClr,
+                    verify: Verify(isStatic),
                     symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetCoreApp);
+                                                         parseOptions: TestOptions.RegularPreview,
+                                                         targetFramework: TargetFramework.Net60);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
-                // class Test1 : I2, I3
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
-                // (5,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
-                // class Test2 : I7
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(5, 15),
-                // (8,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
-                // class Test3 : I1, I2, I3, I4
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(8, 15),
-                // (11,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
-                // class Test4 : I1, I2, I3, I5, I4
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(11, 15),
-                // (14,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
-                // class Test5 : I8
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(14, 15)
+                        // (2,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                        // class Test1 : I2, I3
+                        Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
+                        // (5,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                        // class Test2 : I7
+                        Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(5, 15),
+                        // (8,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                        // class Test3 : I1, I2, I3, I4
+                        Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(8, 15),
+                        // (11,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
+                        // class Test4 : I1, I2, I3, I5, I4
+                        Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(11, 15),
+                        // (14,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
+                        // class Test5 : I8
+                        Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(14, 15)
                         );
 
                     Validate3(compilation3.SourceModule);
@@ -33117,8 +33559,8 @@ I5.I1.M1
                     }
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetCoreApp);
+                                                         parseOptions: TestOptions.RegularPreview,
+                                                         targetFramework: TargetFramework.Net60);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation5.VerifyDiagnostics();
@@ -33143,14 +33585,14 @@ I5.I1.M1
                     }
 
                     CompileAndVerify(compilation5,
-                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                        expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"Test8.I1.M1
 Test9.I1.M1
 Test10.M1
 Test11.M1
 Test12.M1
 ",
-                        verify: VerifyOnMonoOrCoreClr,
+                        verify: Verify(isStatic),
                         symbolValidator: Validate5);
                 }
             }
@@ -33177,26 +33619,30 @@ Test12.M1
             return result;
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_13()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_13(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I2 : I1
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
     }
 }
 
 public interface I3 : I1
 {
-    void I1.M1() 
+    " + implModifiers + @"void I1.M1() 
     {
     }
 }
@@ -33206,19 +33652,19 @@ public interface I3 : I1
 @"
 class Test1 : I2, I3
 {
-    public int M1() => 1;
+    " + implModifiers + @"public int M1() => 1;
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -33231,8 +33677,8 @@ class Test1 : I2, I3
                 );
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -33245,19 +33691,23 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
-        public void MethodImplementationInDerived_14()
+        public void MethodImplementationInDerived_14(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1<T>
 {
-    void M1()
+    " + modifiers + @"void M1()
     {
         System.Console.WriteLine(""I1.M1"");
     }
-    void M2<S>()
+    " + modifiers + @"void M2<S>()
     {
         System.Console.WriteLine(""I1.M2"");
     }
@@ -33265,11 +33715,11 @@ public interface I1<T>
 
 public interface I2<T> : I1<T>
 {
-    void I1<T>.M1() 
+    " + implModifiers + @"void I1<T>.M1() 
     {
         System.Console.WriteLine(""I2.I1.M1"");
     }
-    void I1<T>.M2<S>() 
+    " + implModifiers + @"void I1<T>.M2<S>() 
     {
         System.Console.WriteLine(""I2.I1.M2"");
     }
@@ -33283,12 +33733,35 @@ public interface I3<T> : I1<T>
 @"
 class Test1 : I1<int>
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1<int> i1Int = new Test1();
+        I1<long> i1Long = new Test2();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test2>();
+    }
+
+    static void Test<i1Int, i1Long>() where i1Int : I1<int> where i1Long : I1<long>
+    {
+";
+            }
+
+            source2 +=
+@"
         i1Int.M1();
         i1Int.M2<int>();
-        I1<long> i1Long = new Test2();
         i1Long.M1();
         i1Long.M2<int>();
     }
@@ -33298,8 +33771,8 @@ class Test2 : I2<long>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -33338,8 +33811,8 @@ class Test2 : I2<long>
                 Assert.Same(i3i1m1, i3.FindImplementationForInterfaceMember(i3i1m1));
                 Assert.Same(i3i1m2, i3.FindImplementationForInterfaceMember(i3i1m2));
 
-                ValidateExplicitImplementation(i2m1);
-                ValidateExplicitImplementation(i2m2);
+                ValidateExplicitImplementation(i2m1, isStatic: isStatic);
+                ValidateExplicitImplementation(i2m2, isStatic: isStatic);
 
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var test1i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
@@ -33371,8 +33844,8 @@ class Test2 : I2<long>
                 Assert.Equal(test2i2m1, test2i2.FindImplementationForInterfaceMember(test2i1m1));
                 Assert.Equal(test2i2m2, test2i2.FindImplementationForInterfaceMember(test2i1m2));
 
-                ValidateExplicitImplementation(test2i2m1);
-                ValidateExplicitImplementation(test2i2m2);
+                ValidateExplicitImplementation(test2i2m1, isStatic: isStatic);
+                ValidateExplicitImplementation(test2i2m2, isStatic: isStatic);
 
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1m2));
@@ -33385,73 +33858,77 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1
 I1.M2
 I2.I1.M1
 I2.I1.M2
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1
 I1.M2
 I2.I1.M1
 I2.I1.M2
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1
 I1.M2
 I2.I1.M1
 I2.I1.M2
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_15()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_15(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I2 : I1<string>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
     }
 }
 
 public interface I3 : I1<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
     }
 }
@@ -33465,13 +33942,13 @@ class Test1 : I2, I3
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation2.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33494,8 +33971,8 @@ class Test1 : I2, I3
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation3.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33518,27 +33995,31 @@ class Test1 : I2, I3
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_16()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_16(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 public interface I1<T>
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I2 : I1<string>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
     }
 }
 
 public interface I3 : I1<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
     }
 }
@@ -33552,13 +34033,13 @@ class Test1 : I2, I3, I1<string>
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation2.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33585,8 +34066,8 @@ class Test1 : I2, I3, I1<string>
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation3.VerifyDiagnostics(
                 // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33613,19 +34094,23 @@ class Test1 : I2, I3, I1<string>
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_17()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_17(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1<T>
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I2 : I1<string>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
     }
 }
@@ -33634,7 +34119,7 @@ public interface I2 : I1<string>
 
 public interface I3 : I1<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
     }
 }
@@ -33649,13 +34134,13 @@ class Test1 : I2, I3, I1<string>
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation2.VerifyDiagnostics(
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
@@ -33679,8 +34164,8 @@ class Test1 : I2, I3, I1<string>
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation3.VerifyDiagnostics(
                 // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
@@ -33704,28 +34189,32 @@ class Test1 : I2, I3, I1<string>
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_18()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_18(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I2 : I1<string>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
     }
 }
 
 public interface I3 : I1<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
     }
 }
@@ -33741,13 +34230,13 @@ class Test1 : I2, I3, I1<string?>
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation2.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33770,8 +34259,8 @@ class Test1 : I2, I3, I1<string?>
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation3.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33794,16 +34283,20 @@ class Test1 : I2, I3, I1<string?>
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_19()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_19(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1(); 
+    " + modifiers + @"void M1(); 
 }
 
 public interface I2 : I1<string>
@@ -33812,11 +34305,11 @@ public interface I2 : I1<string>
 
 public interface I3 : I2, I1<string?>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
     }
 
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
     }
 }
@@ -33832,8 +34325,8 @@ class Test1 : I3
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
                 // public interface I3 : I2, I1<string?>
@@ -33847,8 +34340,8 @@ class Test1 : I3
                 );
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation2.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -33871,16 +34364,20 @@ class Test1 : I3
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_20()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_20(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1() 
+    " + modifiers + @"void M1() 
     {
         System.Console.WriteLine(""I1.M1"");
     } 
@@ -33892,7 +34389,7 @@ public interface I2 : I1<string>
 
 public interface I3 : I1<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
         System.Console.WriteLine(""I3.M1"");
     } 
@@ -33905,24 +34402,49 @@ public interface I3 : I1<string?>
 
 class Test1 : I2, I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -33942,25 +34464,29 @@ class Test1 : I2, I3
                     );
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I3.M1
 I3.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_21()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_21(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1() 
+    " + modifiers + @"void M1() 
     {
         System.Console.WriteLine(""I1.M1"");
     } 
@@ -33972,7 +34498,7 @@ public interface I2 : I1<string>
 
 public interface I3 : I1<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
         System.Console.WriteLine(""I3.M1"");
     } 
@@ -33985,24 +34511,49 @@ public interface I3 : I1<string?>
 
 class Test1 : I3, I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -34022,25 +34573,29 @@ class Test1 : I3, I2
                     );
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I3.M1
 I3.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_22()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_22(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1() 
+    " + modifiers + @"void M1() 
     {
         System.Console.WriteLine(""I1.M1"");
     } 
@@ -34048,7 +34603,7 @@ public interface I1<T>
 
 public interface I2<T> : I1<T>
 {
-    void I1<T>.M1() 
+    " + implModifiers + @"void I1<T>.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     } 
@@ -34069,24 +34624,49 @@ public interface I4 : I2<string?>
 
 class Test1 : I3, I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -34106,25 +34686,29 @@ class Test1 : I3, I4
                     );
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I2.M1
 I2.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_23()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_23(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1() 
+    " + modifiers + @"void M1() 
     {
         System.Console.WriteLine(""I1.M1"");
     } 
@@ -34132,7 +34716,7 @@ public interface I1<T>
 
 public interface I2<T> : I1<T>
 {
-    void I1<T>.M1() 
+    " + implModifiers + @"void I1<T>.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     } 
@@ -34153,24 +34737,49 @@ public interface I4 : I2<string?>
 
 class Test1 : I4, I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -34190,30 +34799,34 @@ class Test1 : I4, I3
                     );
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I2.M1
 I2.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_24()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_24(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1<string>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     } 
@@ -34226,28 +34839,53 @@ public interface I2 : I1<string>
 
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
                 //     void I1<string?>.M1() 
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string?>").WithLocation(11, 10)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string?>").WithLocation(11, 10 + implModifiers.Length)
                 );
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -34256,33 +34894,49 @@ class Test1 : I2
 
                 Assert.Equal("void I2.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
 
-                compilation2.VerifyDiagnostics();
+                if (!isStatic)
+                {
+                    compilation2.VerifyDiagnostics();
+                }
+                else
+                {
+                    // PROTOTYPE(DefaultInterfaceImplementation): Should we have similar warning for cast in the non-static scenario? Bug in nullability analysis?
+                    compilation2.VerifyDiagnostics(
+                        // (9,9): warning CS8631: The type 'Test1' cannot be used as type parameter 'i11' in the generic type or method 'Test1.Test<i11, i12>()'. Nullability of type argument 'Test1' doesn't match constraint type 'I1<string?>'.
+                        //         Test<Test1, Test1>();
+                        Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Test<Test1, Test1>").WithArguments("Test1.Test<i11, i12>()", "I1<string?>", "i11", "Test1").WithLocation(9, 9)
+                        );
+                }
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I2.M1
 I2.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_25()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_25(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1<string>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     } 
@@ -34295,24 +34949,49 @@ public interface I2 : I1<string>
 
 class Test1 : I2, I1<string?>
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 compilation2.VerifyDiagnostics(
                     // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -34324,30 +35003,34 @@ class Test1 : I2, I1<string?>
                     );
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I2.M1
 I2.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_26()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_26(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1<string?>
 {
-    void I1<string>.M1() 
+    " + implModifiers + @"void I1<string>.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     } 
@@ -34360,56 +35043,97 @@ public interface I2 : I1<string?>
 
 class Test1 : I2, I1<string?>
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
                 //     void I1<string>.M1() 
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string>").WithLocation(11, 10)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string>").WithLocation(11, 10 + implModifiers.Length)
                 );
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
-                compilation2.VerifyDiagnostics();
+                if (!isStatic)
+                {
+                    compilation2.VerifyDiagnostics();
+                }
+                else
+                {
+                    // PROTOTYPE(DefaultInterfaceImplementation): Should we have similar warning for cast in the non-static scenario? Bug in nullability analysis?
+                    compilation2.VerifyDiagnostics(
+                        // (9,9): warning CS8631: The type 'Test1' cannot be used as type parameter 'i12' in the generic type or method 'Test1.Test<i11, i12>()'. Nullability of type argument 'Test1' doesn't match constraint type 'I1<string>'.
+                        //         Test<Test1, Test1>();
+                        Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "Test<Test1, Test1>").WithArguments("Test1.Test<i11, i12>()", "I1<string>", "i12", "Test1").WithLocation(9, 9)
+                        );
+                }
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I2.M1
 I2.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_27()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_27(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2<T>: I1<T>
 {
-    void I1<T>.M1() 
+    " + implModifiers + @"void I1<T>.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     } 
@@ -34417,7 +35141,7 @@ public interface I2<T>: I1<T>
 
 public interface I3<T> : I1<T>
 {
-    void I1<T>.M1() 
+    " + implModifiers + @"void I1<T>.M1() 
     {
         System.Console.WriteLine(""I3.M1"");
     } 
@@ -34425,7 +35149,7 @@ public interface I3<T> : I1<T>
 
 public interface I4 : I2<string?>, I3<string?>
 {
-    void I1<string?>.M1() 
+    " + implModifiers + @"void I1<string?>.M1() 
     {
         System.Console.WriteLine(""I4.M1"");
     } 
@@ -34438,24 +35162,49 @@ public interface I4 : I2<string?>, I3<string?>
 
 class Test1 : I2<string>, I3<string>, I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         ((I1<string?>)new Test1()).M1();
         ((I1<string>)new Test1()).M1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i11, i12>() where i11 : I1<string?> where i12 : I1<string>
+    {
+        i11.M1();
+        i12.M1();
+";
+            }
+
+            source2 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                        parseOptions: TestOptions.Regular,
-                                                        targetFramework: TargetFramework.NetCoreApp);
+                                                        parseOptions: TestOptions.RegularPreview,
+                                                        targetFramework: TargetFramework.Net60);
 
                 var test1 = compilation2.GetTypeByMetadataName("Test1");
 
@@ -34481,42 +35230,82 @@ class Test1 : I2<string>, I3<string>, I4
                     );
 
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"
 I4.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr);
+                    verify: Verify(isStatic));
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_28()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_28(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    protected void M1(); 
+    " + modifiers + @"protected void M1(); 
 }
 
 public interface I4
 {
-    protected void M1(); 
+    " + modifiers + @"protected void M1(); 
 }
 
 public interface I5 : I4
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Test(I5 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Test<i4>() where i4 : I5
+    {
+";
+            }
+
+            source1 +=
+@"
         i4.M1();
     }
 }
 
 public interface I6 : I2
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Test(I6 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Test<i2>() where i2 : I6
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1();
     }
 }
@@ -34525,11 +35314,11 @@ public interface I6 : I2
 @"
 public interface I1 : I6, I5
 {
-    void I2.M1() 
+    " + implModifiers + @"void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    void I4.M1() 
+    " + implModifiers + @"void I4.M1() 
     {
         System.Console.WriteLine(""I4.M1"");
     }
@@ -34544,102 +35333,167 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         I6.Test(new Test1());
         I5.Test(new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        I6.Test<Test1>();
+        I5.Test<Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            validateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr_FailsIlVerify,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: VerifyFailsIlVerify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+                validateMethodImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateMethodImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateMethodImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+                validateMethodImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateMethodImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateMethodImplementationInDerived_01);
+            }
+
+            void validateMethodImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateMethodImplementationInDerived_01(m, isStatic: isStatic);
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_29()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_29(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    protected internal void M1(); 
+    " + modifiers + @"protected internal void M1(); 
 }
 
 public interface I4
 {
-    protected internal void M1(); 
+    " + modifiers + @"protected internal void M1(); 
 }
 
 public interface I5 : I4
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Test(I5 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Test<i4>() where i4 : I5
+    {
+";
+            }
+
+            source1 +=
+@"
         i4.M1();
     }
 }
 
 public interface I6 : I2
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Test(I6 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Test<i2>() where i2 : I6
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1();
     }
 }
@@ -34648,11 +35502,11 @@ public interface I6 : I2
 @"
 public interface I1 : I6, I5
 {
-    void I2.M1() 
+    " + implModifiers + @"void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    void I4.M1() 
+    " + implModifiers + @"void I4.M1() 
     {
         System.Console.WriteLine(""I4.M1"");
     }
@@ -34667,102 +35521,167 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         I6.Test(new Test1());
         I5.Test(new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        I6.Test<Test1>();
+        I5.Test<Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            validateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+                validateMethodImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateMethodImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateMethodImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+                validateMethodImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateMethodImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateMethodImplementationInDerived_01);
+            }
+
+            void validateMethodImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateMethodImplementationInDerived_01(m, isStatic: isStatic);
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_30()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_30(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    private protected void M1(); 
+    " + modifiers + @"private protected void M1(); 
 }
 
 public interface I4
 {
-    private protected void M1(); 
+    " + modifiers + @"private protected void M1(); 
 }
 
 public interface I5 : I4
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Test(I5 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Test<i4>() where i4 : I5
+    {
+";
+            }
+
+            source1 +=
+@"
         i4.M1();
     }
 }
 
 public interface I6 : I2
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Test(I6 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Test<i2>() where i2 : I6
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1();
     }
 }
@@ -34771,11 +35690,11 @@ public interface I6 : I2
 @"
 public interface I1 : I6, I5
 {
-    void I2.M1() 
+    " + implModifiers + @"void I2.M1() 
     {
         System.Console.WriteLine(""I2.M1"");
     }
-    void I4.M1() 
+    " + implModifiers + @"void I4.M1() 
     {
         System.Console.WriteLine(""I4.M1"");
     }
@@ -34790,91 +35709,120 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         I6.Test(new Test1());
         I5.Test(new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        I6.Test<Test1>();
+        I5.Test<Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+            validateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnMonoOrCoreClr_FailsIlVerify,
-                symbolValidator: ValidateMethodImplementationInDerived_01);
+                verify: VerifyFailsIlVerify(isStatic),
+                symbolValidator: validateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+                validateMethodImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateMethodImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateMethodImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+                validateMethodImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics(
                     // (4,13): error CS0122: 'I2.M1()' is inaccessible due to its protection level
                     //     void I2.M1() 
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13),
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13 + implModifiers.Length),
                     // (8,13): error CS0122: 'I4.M1()' is inaccessible due to its protection level
                     //     void I4.M1() 
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13)
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13 + implModifiers.Length)
                     );
+            }
+
+            void validateMethodImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateMethodImplementationInDerived_01(m, isStatic: isStatic);
             }
         }
 
-        [Fact]
-        public void MethodImplementationInDerived_31()
+        [Theory]
+        [CombinatorialData]
+        public void MethodImplementationInDerived_31(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1(); 
-    void M2(); 
+    " + modifiers + @"void M1(); 
+    " + modifiers + @"void M2(); 
 }
 
 public interface I2 : I1
 {
-    public virtual void M1()
+    " + implModifiers + @"public virtual void M1()
     {}
-    new public virtual void M2()
+    " + implModifiers + @"new public virtual void M2()
     {}
 }
 
@@ -34887,12 +35835,12 @@ class Test1 : I1, I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (10,25): warning CS0108: 'I2.M1()' hides inherited member 'I1.M1()'. Use the new keyword if hiding was intended.
                 //     public virtual void M1()
-                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("I2.M1()", "I1.M1()").WithLocation(10, 25),
+                Diagnostic(ErrorCode.WRN_NewRequired, "M1").WithArguments("I2.M1()", "I1.M1()").WithLocation(10, 25 + implModifiers.Length),
                 // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2()'
                 // class Test1 : I1, I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.M2()").WithLocation(20, 15),
@@ -35461,13 +36409,17 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
-                // (14,26): error CS0106: The modifier 'static' is not valid for this item
-                //     public static int I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(14, 26),
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
                 // (14,26): error CS0106: The modifier 'public' is not valid for this item
                 //     public static int I2.M1 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 26),
+                // (14,26): error CS0539: 'I1.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     public static int I2.M1 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1").WithLocation(14, 26),
                 // (16,18): error CS0106: The modifier 'internal' is not valid for this item
                 //         internal get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("internal").WithLocation(16, 18),
@@ -35479,7 +36431,10 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 29),
                 // (21,16): error CS0106: The modifier 'public' is not valid for this item
                 //         public get => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(21, 16)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(21, 16),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I2.M1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I2.M1").WithLocation(30, 15)
                 );
         }
 
@@ -37672,25 +38627,26 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (14,42): error CS0106: The modifier 'static' is not valid for this item
-                //     public static event System.Action I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(14, 42),
                 // (14,42): error CS0106: The modifier 'public' is not valid for this item
                 //     public static event System.Action I2.M1 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 42),
+                // (14,42): error CS0539: 'I1.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     public static event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1").WithLocation(14, 42),
                 // (19,45): error CS0106: The modifier 'internal' is not valid for this item
                 //     internal virtual event System.Action I4.M1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(19, 45),
                 // (19,45): error CS0106: The modifier 'virtual' is not valid for this item
                 //     internal virtual event System.Action I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 45)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 45),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I2.M1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I2.M1").WithLocation(30, 15)
                 );
-
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
         }
 
         [Fact]
@@ -47572,19 +48528,23 @@ interface I3 : I1
                 );
         }
 
-        [Fact]
-        public void MethodReAbstraction_01()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static abstract " : "abstract ";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"void I1.M1();
 }
 ";
 
@@ -47594,14 +48554,14 @@ class Test1 : I2
 {
 }
 ";
-            ValidateMethodReAbstraction_01(source1, source2);
+            ValidateMethodReAbstraction_01(source1, source2, isStatic);
         }
 
-        private static void ValidateMethodReAbstraction_01(string source1, string source2)
+        private static void ValidateMethodReAbstraction_01(string source1, string source2, bool isStatic)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -47614,27 +48574,27 @@ class Test1 : I2
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
 
-                ValidateReabstraction(i2m1);
+                ValidateReabstraction(i2m1, isStatic: isStatic);
 
                 var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
                 Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
@@ -47644,7 +48604,7 @@ class Test1 : I2
             }
         }
 
-        private static void ValidateReabstraction(MethodSymbol m)
+        private static void ValidateReabstraction(MethodSymbol m, bool isStatic = false)
         {
             Assert.True(m.IsMetadataVirtual());
             Assert.True(m.IsMetadataFinal);
@@ -47652,26 +48612,30 @@ class Test1 : I2
             Assert.True(m.IsAbstract);
             Assert.False(m.IsVirtual);
             Assert.True(m.IsSealed);
-            Assert.False(m.IsStatic);
+            Assert.Equal(isStatic, m.IsStatic);
             Assert.False(m.IsExtern);
             Assert.False(m.IsAsync);
             Assert.False(m.IsOverride);
             Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
         }
 
-        [Fact]
-        public void MethodReAbstraction_02()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_02(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static abstract " : "abstract ";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {} 
+    " + modifiers + @"void M1() {} 
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"void I1.M1();
 }
 ";
 
@@ -47682,23 +48646,27 @@ class Test1 : I2
 }
 ";
 
-            ValidateMethodReAbstraction_01(source1, source2);
+            ValidateMethodReAbstraction_01(source1, source2, isStatic);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void MethodReAbstraction_03()
+        public void MethodReAbstraction_03(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
 
@@ -47706,49 +48674,72 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.M1();
     }
 
-    void I1.M1()
+    " + implModifiers + @"void I1.M1()
     {
         System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
-            ValidateMethodReAbstraction_03(source1, source2);
+            ValidateMethodReAbstraction_03(source1, source2, isStatic);
         }
 
-        private void ValidateMethodReAbstraction_03(string source1, string source2)
+        private void ValidateMethodReAbstraction_03(string source1, string source2, bool isStatic)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1.M1" : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "Test1.M1" : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1.M1" : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "Test1.M1" : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -47766,20 +48757,24 @@ class Test1 : I2
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void MethodReAbstraction_04()
+        public void MethodReAbstraction_04(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {}
+    " + modifiers + @"void M1() {}
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
 
@@ -47787,35 +48782,62 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.M1();
     }
 
-    void I1.M1()
+    " + implModifiers + @"void I1.M1()
     {
         System.Console.WriteLine(""Test1.M1"");
     }
 }
 ";
 
-            ValidateMethodReAbstraction_03(source1, source2);
+            ValidateMethodReAbstraction_03(source1, source2, isStatic);
         }
 
-        [Fact]
-        public void MethodReAbstraction_05()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_05(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I2 {}
@@ -47833,8 +48855,8 @@ class Test1 : I3
         private static void ValidateMethodReAbstraction_05(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -47847,15 +48869,15 @@ class Test1 : I3
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -47873,19 +48895,23 @@ class Test1 : I3
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_06()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_06(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {} 
+    " + modifiers + @"void M1() {} 
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I2 {}
@@ -47901,25 +48927,29 @@ class Test1 : I3
             ValidateMethodReAbstraction_05(source1, source2);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void MethodReAbstraction_07()
+        public void MethodReAbstraction_07(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I2
 {
-    void I1.M1()
+    " + implModifiers + @"void I1.M1()
     {
         System.Console.WriteLine(""I3.M1"");
     }
@@ -47930,44 +48960,67 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.M1();
     }
 }
 ";
-            ValidateMethodReAbstraction_07(source1, source2);
+            ValidateMethodReAbstraction_07(source1, source2, isStatic);
         }
 
-        private void ValidateMethodReAbstraction_07(string source1, string source2)
+        private void ValidateMethodReAbstraction_07(string source1, string source2, bool isStatic)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I3.M1" : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "I3.M1" : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I3.M1" : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "I3.M1" : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -47983,25 +49036,29 @@ class Test1 : I3
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void MethodReAbstraction_08()
+        public void MethodReAbstraction_08(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {}
+    " + modifiers + @"void M1() {}
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I2
 {
-    void I1.M1()
+    " + implModifiers + @"void I1.M1()
     {
         System.Console.WriteLine(""I3.M1"");
     }
@@ -48012,34 +49069,61 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.M1();
     }
 }
 ";
-            ValidateMethodReAbstraction_07(source1, source2);
+            ValidateMethodReAbstraction_07(source1, source2, isStatic);
         }
 
-        [Fact]
-        public void MethodReAbstraction_09()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_09(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {} 
+    " + modifiers + @"void M1() {} 
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
 
@@ -48055,8 +49139,8 @@ class Test1 : I2, I3
         private void ValidateMethodReAbstraction_09(string source1, string source2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -48069,15 +49153,15 @@ class Test1 : I2, I3
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -48092,24 +49176,28 @@ class Test1 : I2, I3
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_10()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_10(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {} 
+    " + modifiers + @"void M1() {} 
 }
 
 public interface I2 : I1
 {
-    void I1.M1() {}
+    " + implModifiers + @"void I1.M1() {}
 }
 
 public interface I3 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
 
@@ -48122,24 +49210,28 @@ class Test1 : I2, I3
             ValidateMethodReAbstraction_09(source1, source2);
         }
 
-        [Fact]
-        public void MethodReAbstraction_11()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_11(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {} 
+    " + modifiers + @"void M1() {} 
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I1
 {
-    void I1.M1() {}
+    " + implModifiers + @"void I1.M1() {}
 }
 ";
 
@@ -48152,24 +49244,28 @@ class Test1 : I2, I3
             ValidateMethodReAbstraction_09(source1, source2);
         }
 
-        [Fact]
-        public void MethodReAbstraction_12()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_12(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {} 
+    " + modifiers + @"void M1() {} 
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I4 : I2, I3 {}
@@ -48183,8 +49279,8 @@ class Test1 : I4
 ";
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             var expected = new DiagnosticDescription[]
@@ -48197,15 +49293,15 @@ class Test1 : I4
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -48223,30 +49319,34 @@ class Test1 : I4
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void MethodReAbstraction_13()
+        public void MethodReAbstraction_13(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1() {}
+    " + modifiers + @"void M1() {}
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I3 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 public interface I4 : I2, I3
 {
-    void I1.M1()
+    " + implModifiers + @"void I1.M1()
     {
         System.Console.WriteLine(""I4.M1"");
     }
@@ -48257,40 +49357,63 @@ public interface I4 : I2, I3
 @"
 class Test1 : I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.M1();
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I4.M1" : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "I4.M1" : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "I4.M1" : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? "I4.M1" : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -48306,19 +49429,23 @@ class Test1 : I4
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_14()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_14(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1() {}
+    " + implModifiers + @"abstract void I1.M1() {}
 }
 
 class Test1 : I2
@@ -48327,27 +49454,27 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
                     // (9,22): error CS0500: 'I2.I1.M1()' cannot declare a body because it is marked abstract
                     //     abstract void I1.M1() {}
-                    Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 22),
+                    Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 22 + implModifiers.Length),
                     // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                     // class Test1 : I2
                     Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
                 );
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
 
-                ValidateReabstraction(i2m1);
+                ValidateReabstraction(i2m1, isStatic);
 
                 var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
                 Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
@@ -48357,19 +49484,23 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_15()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_15(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract extern void I1.M1();
+    " + implModifiers + @"abstract extern void I1.M1();
 }
 
 class Test1 : I2
@@ -48378,20 +49509,20 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
                 // (9,29): error CS0180: 'I2.I1.M1()' cannot be both extern and abstract
                 //     abstract extern void I1.M1();
-                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 29),
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "M1").WithArguments("I2.I1.M1()").WithLocation(9, 29 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
                 );
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -48404,7 +49535,7 @@ class Test1 : I2
                 Assert.True(i2m1.IsAbstract);
                 Assert.False(i2m1.IsVirtual);
                 Assert.True(i2m1.IsSealed);
-                Assert.False(i2m1.IsStatic);
+                Assert.Equal(isStatic, i2m1.IsStatic);
                 Assert.True(i2m1.IsExtern);
                 Assert.False(i2m1.IsAsync);
                 Assert.False(i2m1.IsOverride);
@@ -48418,19 +49549,23 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_16()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_16(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public partial interface I2 : I1
 {
-    abstract partial void I1.M1();
+    " + implModifiers + @"abstract partial void I1.M1();
 }
 
 class Test1 : I2
@@ -48439,30 +49574,30 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularWithExtendedPartialMethods,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
                 // (9,30): error CS0754: A partial method may not explicitly implement an interface method
                 //     abstract partial void I1.M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30 + implModifiers.Length),
                 // (9,30): error CS0750: A partial method cannot have the 'abstract' modifier
                 //     abstract partial void I1.M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
                 );
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
 
-                ValidateReabstraction(i2m1);
+                ValidateReabstraction(i2m1, isStatic);
 
                 var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
                 Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
@@ -48472,19 +49607,23 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_17()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_17(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public partial interface I2 : I1
 {
-    abstract async void I1.M1();
+    " + implModifiers + @"abstract async void I1.M1();
 }
 
 class Test1 : I2
@@ -48493,20 +49632,20 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
                 // (9,28): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     abstract async void I1.M1();
-                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M1").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
                 );
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -48519,7 +49658,7 @@ class Test1 : I2
                 Assert.True(i2m1.IsAbstract);
                 Assert.False(i2m1.IsVirtual);
                 Assert.True(i2m1.IsSealed);
-                Assert.False(i2m1.IsStatic);
+                Assert.Equal(isStatic, i2m1.IsStatic);
                 Assert.False(i2m1.IsExtern);
                 Assert.True(i2m1.IsAsync);
                 Assert.False(i2m1.IsOverride);
@@ -48533,19 +49672,23 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_18()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_18(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public partial interface I2 : I1
 {
-    abstract public void I1.M1();
+    " + implModifiers + @"abstract public void I1.M1();
 }
 
 class Test1 : I2
@@ -48554,27 +49697,27 @@ class Test1 : I2
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
                 // (9,29): error CS0106: The modifier 'public' is not valid for this item
                 //     abstract public void I1.M1();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(9, 29),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(9, 29 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
                 );
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
 
-                ValidateReabstraction(i2m1);
+                ValidateReabstraction(i2m1, isStatic);
 
                 var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
                 Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
@@ -48584,38 +49727,42 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_19()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_19(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public class C2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
-            ValidateMethodReAbstraction_19(source1);
+            ValidateMethodReAbstraction_19(source1, isStatic);
         }
 
-        private static void ValidateMethodReAbstraction_19(string source1)
+        private static void ValidateMethodReAbstraction_19(string source1, bool isStatic)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
                 // (9,22): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(9, 22),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(9, 22 + (isStatic ? 7 : 0)),
                 // (9,22): error CS0501: 'C2.I1.M1()' must declare a body because it is not marked abstract, extern, or partial
                 //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("C2.I1.M1()").WithLocation(9, 22)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("C2.I1.M1()").WithLocation(9, 22 + (isStatic ? 7 : 0))
                 );
 
             static void validate(ModuleSymbol m)
@@ -48633,27 +49780,34 @@ public class C2 : I1
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_20()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_20(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public struct C2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
-            ValidateMethodReAbstraction_19(source1);
+            ValidateMethodReAbstraction_19(source1, isStatic);
         }
 
-        [Fact]
-        public void MethodReAbstraction_21()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_21(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
@@ -48662,102 +49816,139 @@ public interface I1
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateMethodReAbstraction_21(source1,
+            ValidateMethodReAbstraction_21(source1, isStatic,
                 // (8,22): error CS0539: 'I2.M1()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I2.M1()").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I2.M1()").WithLocation(8, 22 + implModifiers.Length)
                 );
         }
 
-        private static void ValidateMethodReAbstraction_21(string source1, params DiagnosticDescription[] expected)
+        private static void ValidateMethodReAbstraction_21(string source1, bool isStatic, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
 
-                ValidateReabstraction(i2m1);
+                ValidateReabstraction(i2m1, isStatic);
 
                 Assert.Empty(i2m1.ExplicitInterfaceImplementations);
             }
         }
 
-        [Fact]
-        public void MethodReAbstraction_22()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_22(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateMethodReAbstraction_21(source1,
+            ValidateMethodReAbstraction_21(source1, isStatic,
                 // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 // public interface I2 : I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
                 // (4,19): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 19 + implModifiers.Length),
                 // (4,19): error CS0538: 'I1' in explicit interface declaration is not an interface
                 //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 19)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 19 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void MethodReAbstraction_23()
+        [Theory]
+        [CombinatorialData]
+        public void MethodReAbstraction_23(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    void M1();
+    " + modifiers + @"void M1();
 }
 
 public interface I2 : I1
 {
-    abstract void I1.M1();
+    " + implModifiers + @"abstract void I1.M1();
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
-            compilation1.VerifyDiagnostics(
-                // (9,22): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(9, 22)
-                );
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
+
+            if (!isStatic)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (9,22): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
+                    //     abstract void I1.M1();
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "M1").WithArguments("default interface implementation", "8.0").WithLocation(9, 22)
+                    );
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,26): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    //     static abstract void M1();
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 26),
+                    // (9,29): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    //     static abstract void I1.M1();
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(9, 29)
+                    );
+            }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
-            compilation2.VerifyDiagnostics(
-                // (9,22): error CS8701: Target runtime doesn't support default interface implementation.
-                //     abstract void I1.M1();
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 22)
-                );
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended);
+
+            if (!isStatic)
+            {
+                compilation2.VerifyDiagnostics(
+                    // (9,22): error CS8701: Target runtime doesn't support default interface implementation.
+                    //     abstract void I1.M1();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 22)
+                    );
+            }
+            else
+            {
+                compilation2.VerifyDiagnostics(
+                    // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static abstract void M1();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(4, 26),
+                    // (9,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static abstract void I1.M1();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(9, 29)
+                    );
+            }
         }
 
         [Fact]

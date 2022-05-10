@@ -50,10 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled);
 
             if (this.ContainingType.IsInterface &&
-                !IsAbstract && (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
+                !IsAbstract &&
+                !(syntax is OperatorDeclarationSyntax { OperatorToken: var opToken } && opToken.Kind() is not (SyntaxKind.EqualsEqualsToken or SyntaxKind.ExclamationEqualsToken)))
             {
-                // If we have an unsupported conversion or equality/inequality operator in an interface, we already have reported that fact as 
-                // an error. No need to cascade the error further.
+                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, this.Locations[0]);
+                // No need to cascade the error further.
                 return;
             }
 
@@ -144,6 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         allowedModifiers |= DeclarationModifiers.Sealed | DeclarationModifiers.Virtual;
                     }
                 }
+            }
+            else if (inInterface)
+            {
+                Debug.Assert(isExplicitInterfaceImplementation);
+                allowedModifiers |= DeclarationModifiers.Abstract;
             }
 
             var result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(

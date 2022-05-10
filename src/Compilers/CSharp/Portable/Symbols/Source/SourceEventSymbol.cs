@@ -478,10 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
-                else
-                {
-                    allowedModifiers |= DeclarationModifiers.Static;
-                }
+
+                allowedModifiers |= DeclarationModifiers.Static;
             }
 
             if (this.ContainingType.IsStructType())
