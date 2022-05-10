@@ -102,7 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
-        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+#nullable enable
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.VoidDiagnosticInfo;
+#nullable disable
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
@@ -759,25 +761,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal bool GetCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
         {
-            bool highestPriorityUseSiteFound = false;
-            if (_lazyCachedUseSiteInfo.IsInitialized)
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.VoidDiagnosticInfo)
             {
-                return MergeUseSiteInfo(ref result, _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency));
+                Interlocked.CompareExchange(
+                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, this, Token, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(this)),
+                    CSDiagnosticInfo.VoidDiagnosticInfo);
             }
 
-            var decoder = new MetadataDecoder(this);
-            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, this, Token, CompilerFeatureRequiredFeatures.None, decoder);
-            highestPriorityUseSiteFound = result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
-
-            if (!highestPriorityUseSiteFound && ContainingAssembly is PEAssemblySymbol containingPEAssembly)
-            {
-                highestPriorityUseSiteFound = containingPEAssembly.GetCompilerFeatureRequiredUseSiteInfo(ref result, decoder);
-            }
-
-            _lazyCachedUseSiteInfo.Initialize(PrimaryDependency, result);
-            return highestPriorityUseSiteFound;
+            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo ?? (_assemblySymbol as PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnostic();
         }
     }
 }

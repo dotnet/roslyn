@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyTypeNames As ICollection(Of String)
         Private _lazyNamespaceNames As ICollection(Of String)
 
-        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized
+        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.VoidDiagnosticInfo
 
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
@@ -468,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Yield ContainingAssembly.CreateMultipleForwardingErrorTypeSymbol(name, Me, firstSymbol, secondSymbol)
                 Else
-                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=true)
+                    Yield firstSymbol.LookupTopLevelMetadataType(name, digThroughForwardedTypes:=True)
                 End If
             Next
         End Function
@@ -487,22 +487,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _module.GetNonDisposableMetadata()
         End Function
 
-        Friend Function GetCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol)) As Boolean
-            If _lazyCachedUseSiteInfo.IsInitialized Then
-                result = MergeUseSiteInfo(result, _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency))
-                Return result.DiagnosticInfo IsNot Nothing
+        Friend Function GetCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
+            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is Nothing Then
+                Interlocked.CompareExchange(
+                    _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, Me, EntityHandle.ModuleDefinition, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(Me)),
+                    ErrorFactory.VoidDiagnosticInfo)
             End If
 
-            Dim decoder As New MetadataDecoder(Me)
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, Me, EntityHandle.ModuleDefinition, CompilerFeatureRequiredFeatures.None, decoder)
-
-            If result.DiagnosticInfo Is Nothing Then
-                TryCast(ContainingAssembly, PEAssemblySymbol)?.GetCompilerFeatureRequiredUseSiteInfo(result, decoder)
-            End If
-
-            _lazyCachedUseSiteInfo.Initialize(PrimaryDependency, result)
-
-            Return result.DiagnosticInfo IsNot Nothing
+            Return If(_lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                      TryCast(ContainingAssembly, PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnosticInfo())
         End Function
     End Class
 End Namespace

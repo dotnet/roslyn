@@ -5,13 +5,14 @@
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     Module PEUtilities
 
-        Friend Sub DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ByRef result As UseSiteInfo(Of AssemblySymbol), symbol As Symbol, [module] As PEModuleSymbol, handle As System.Reflection.Metadata.EntityHandle, allowedFeatures As CompilerFeatureRequiredFeatures, decoder As MetadataDecoder)
+        Friend Function DeriveCompilerFeatureRequiredAttributeDiagnostic(symbol As Symbol, [module] As PEModuleSymbol, handle As System.Reflection.Metadata.EntityHandle, allowedFeatures As CompilerFeatureRequiredFeatures, decoder As MetadataDecoder) As DiagnosticInfo
             Dim unsupportedFeature = [module].Module.GetFirstUnsupportedCompilerFeatureFromToken(handle, decoder, allowedFeatures)
             If unsupportedFeature IsNot Nothing Then
                 ' '{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.
-                result = result.AdjustDiagnosticInfo(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedCompilerFeature, symbol, unsupportedFeature))
-                Return
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedCompilerFeature, symbol, unsupportedFeature)
+            Else
+                Return Nothing
             End If
-        End Sub
+        End Function
     End Module
 End Namespace

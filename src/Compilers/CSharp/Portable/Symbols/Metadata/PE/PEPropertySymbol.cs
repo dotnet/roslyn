@@ -795,20 +795,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var containingType = (PENamedTypeSymbol)ContainingType;
                 PEModuleSymbol containingPEModule = _containingType.ContainingPEModule;
-                PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(
-                    ref result,
+                var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
                     this,
                     containingPEModule,
                     Handle,
                     allowedFeatures: CompilerFeatureRequiredFeatures.None,
                     new MetadataDecoder(containingPEModule, containingType));
 
-                if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
-                {
-                    return;
-                }
+                diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
 
-                _ = containingType.GetCompilerFeatureRequiredUseSiteInfo(ref result);
+                MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
+                result = result.AdjustDiagnosticInfo(diag);
             }
         }
 

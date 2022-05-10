@@ -8,13 +8,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 
 internal static class PEUtilities
 {
-    internal static void DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref UseSiteInfo<AssemblySymbol> result, Symbol symbol, PEModuleSymbol module, EntityHandle handle, CompilerFeatureRequiredFeatures allowedFeatures, MetadataDecoder decoder)
+    internal static DiagnosticInfo? DeriveCompilerFeatureRequiredAttributeDiagnostic(Symbol symbol, PEModuleSymbol module, EntityHandle handle, CompilerFeatureRequiredFeatures allowedFeatures, MetadataDecoder decoder)
     {
         string? disallowedFeature = module.Module.GetFirstUnsupportedCompilerFeatureFromToken(handle, decoder, allowedFeatures);
-        if (disallowedFeature != null)
-        {
-            // '{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.
-            result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCompilerFeature, symbol, disallowedFeature));
-        }
+        return disallowedFeature != null
+            ?  // '{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.
+               new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCompilerFeature, symbol, disallowedFeature)
+            : null;
     }
 }

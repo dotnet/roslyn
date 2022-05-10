@@ -658,10 +658,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Function DeriveCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), decoder As MetadataDecoder) As Boolean
-            Dim containingModule = DirectCast(Me.ContainingModule, PEModuleSymbol)
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(result, Me, containingModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
-            Return result.DiagnosticInfo IsNot Nothing
+        Friend Function DeriveCompilerFeatureRequiredDiagnostic(decoder As MetadataDecoder) As DiagnosticInfo
+            Return DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, DirectCast(Me.ContainingModule, PEModuleSymbol), Handle, CompilerFeatureRequiredFeatures.None, decoder)
         End Function
     End Class
 End Namespace

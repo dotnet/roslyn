@@ -1071,16 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
 #nullable enable
-        internal bool DeriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, MetadataDecoder decoder)
-        {
-            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(
-                ref result,
-                this,
-                (PEModuleSymbol)ContainingModule,
-                Handle,
-                allowedFeatures: CompilerFeatureRequiredFeatures.None,
-                decoder);
-            return result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
-        }
+        internal DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic(MetadataDecoder decoder)
+            => PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, (PEModuleSymbol)ContainingModule, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None, decoder);
     }
 }

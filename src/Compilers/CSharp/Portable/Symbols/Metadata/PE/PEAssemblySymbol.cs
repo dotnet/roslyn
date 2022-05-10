@@ -64,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
-        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+#nullable enable
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.VoidDiagnosticInfo;
+#nullable disable
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
         {
@@ -284,16 +286,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override AssemblyMetadata GetMetadata() => _assembly.GetNonDisposableMetadata();
 
-        internal bool GetCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result, MetadataDecoder decoder)
+#nullable enable
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
         {
-            if (_lazyCachedUseSiteInfo.IsInitialized)
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.VoidDiagnosticInfo)
             {
-                return MergeUseSiteInfo(ref result, _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency));
+                Interlocked.CompareExchange(
+                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, PrimaryModule, this.Assembly.Handle, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(PrimaryModule)),
+                    CSDiagnosticInfo.VoidDiagnosticInfo);
             }
 
-            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, PrimaryModule, this.Assembly.Handle, CompilerFeatureRequiredFeatures.None, decoder);
-            _lazyCachedUseSiteInfo.Initialize(result.PrimaryDependency, result);
-            return result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo);
+            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo;
         }
     }
 }

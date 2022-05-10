@@ -1274,12 +1274,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function CalculateUseSiteInfoImpl() As UseSiteInfo(Of AssemblySymbol)
-            Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
-            If DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo) Then
-                Return useSiteInfo
+            ' GetCompilerFeatureRequiredDiagnostic depends on this being the highest priority use-site diagnostic. If another
+            ' diagnostic was calculated first and cached, it will return incorrect results and assert in Debug mode.
+            Dim compilerFeatureRequiredDiagnostic = DeriveCompilerFeatureRequiredDiagnostic()
+            If compilerFeatureRequiredDiagnostic IsNot Nothing Then
+                Return New UseSiteInfo(Of AssemblySymbol)(compilerFeatureRequiredDiagnostic)
             End If
 
-            useSiteInfo = CalculateUseSiteInfo()
+            Dim useSiteInfo = CalculateUseSiteInfo()
 
             If useSiteInfo.DiagnosticInfo Is Nothing Then
 
@@ -1323,42 +1325,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return useSiteInfo
         End Function
 
-        Friend Function GetCompilerFeatureRequiredUseSiteInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As Boolean
+        Friend Function GetCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
             Dim typeUseSiteInfo = GetUseSiteInfo()
             If typeUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedCompilerFeature Then
-                useSiteInfo = typeUseSiteInfo
-                Return True
+                Return typeUseSiteInfo.DiagnosticInfo
             End If
 
-#if DEBUG then
-            typeUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
-            DeriveCompilerFeatureRequiredUseSiteInfo(typeUseSiteInfo)
-            Debug.Assert(typeUseSiteInfo.DiagnosticInfo Is Nothing)
-#end if
+            Debug.Assert(DeriveCompilerFeatureRequiredDiagnostic() Is Nothing)
 
-            Return False
+            Return Nothing
         End Function
 
-        Private Function DeriveCompilerFeatureRequiredUseSiteInfo(ByRef useSiteInfo As UseSiteInfo(Of AssemblySymbol)) As Boolean
+        Private Function DeriveCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
             Dim decoder = New MetadataDecoder(ContainingPEModule, Me)
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(useSiteInfo, Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
 
-            if useSiteInfo.DiagnosticInfo IsNot Nothing Then
-                Return True
+            Dim diagnostic = DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, ContainingPEModule, Handle, CompilerFeatureRequiredFeatures.None, decoder)
+
+            If diagnostic IsNot Nothing Then
+                Return diagnostic
             End If
 
+            For Each typeParameter In TypeParameters
+                diagnostic = DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
 
-            For Each typeParameter In Me.TypeParameters
-                If DirectCast(typeParameter, PETypeParameterSymbol).DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo, decoder) Then
-                    Return True
+                If diagnostic IsNot Nothing Then
+                    Return diagnostic
                 End If
             Next
 
-            Dim containingType = TryCast(Me.ContainingType, PENamedTypeSymbol)
-            Return If(containingType IsNot Nothing,
-                containingType.GetCompilerFeatureRequiredUseSiteInfo(useSiteInfo),
-                ContainingPEModule.GetCompilerFeatureRequiredUseSiteInfo(useSiteInfo))
+            Dim containingPEType = TryCast(ContainingType, PENamedTypeSymbol)
 
+            Return If(containingPEType IsNot Nothing, containingPEType.GetCompilerFeatureRequiredDiagnostic(), ContainingPEModule.GetCompilerFeatureRequiredDiagnostic())
         End Function
 
         ''' <summary>

@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -2017,99 +2016,95 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
                 AssemblySymbol primaryDependency = PrimaryDependency;
-                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
-                GetUseSiteDiagnosticImpl(ref result);
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, new UseSiteInfo<AssemblySymbol>(primaryDependency).AdjustDiagnosticInfo(GetUseSiteDiagnosticImpl()));
             }
 
             return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
-        protected virtual void GetUseSiteDiagnosticImpl(ref UseSiteInfo<AssemblySymbol> result)
+        protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
         {
-            if (DeriveCompilerFeatureRequiredUseSiteInfo(ref result)
-                || MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(CalculateUseSiteDiagnostic())))
+            // GetCompilerFeatureRequiredDiagnostic depends on UnsupportedCompilerFeature being the highest priority diagnostic, or it will return incorrect
+            // results and assert in Debug mode.
+            DiagnosticInfo diagnostic = DeriveCompilerFeatureRequiredDiagnostic();
+
+            if (diagnostic != null)
             {
-                return;
+                return diagnostic;
             }
 
-            // Check if this type is marked by RequiredAttribute attribute.
-            // If so mark the type as bad, because it relies upon semantics that are not understood by the C# compiler.
-            if (this.ContainingPEModule.Module.HasRequiredAttributeAttribute(_handle))
+            if (!MergeUseSiteDiagnostics(ref diagnostic, CalculateUseSiteDiagnostic()))
             {
-                result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
-                return;
-            }
-            else if (TypeKind == TypeKind.Class && SpecialType != SpecialType.System_Enum)
-            {
-                TypeSymbol @base = GetDeclaredBaseType(null);
-                if (@base?.SpecialType == SpecialType.None && @base.ContainingAssembly?.IsMissing == true)
+                // Check if this type is marked by RequiredAttribute attribute.
+                // If so mark the type as bad, because it relies upon semantics that are not understood by the C# compiler.
+                if (this.ContainingPEModule.Module.HasRequiredAttributeAttribute(_handle))
                 {
-                    var missingType = @base as MissingMetadataTypeSymbol.TopLevel;
-                    if ((object)missingType != null && missingType.Arity == 0)
+                    diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                }
+                else if (TypeKind == TypeKind.Class && SpecialType != SpecialType.System_Enum)
+                {
+                    TypeSymbol @base = GetDeclaredBaseType(null);
+                    if (@base?.SpecialType == SpecialType.None && @base.ContainingAssembly?.IsMissing == true)
                     {
-                        string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
-                        switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
+                        var missingType = @base as MissingMetadataTypeSymbol.TopLevel;
+                        if ((object)missingType != null && missingType.Arity == 0)
                         {
-                            case SpecialType.System_Enum:
-                            case SpecialType.System_MulticastDelegate:
-                            case SpecialType.System_ValueType:
-                                // This might be a structure, an enum, or a delegate
-                                if (MergeUseSiteInfo(ref result, missingType.GetUseSiteInfo()))
-                                {
-                                    return;
-                                }
-                                break;
+                            string emittedName = MetadataHelpers.BuildQualifiedName(missingType.NamespaceName, missingType.MetadataName);
+                            switch (SpecialTypes.GetTypeFromMetadataName(emittedName))
+                            {
+                                case SpecialType.System_Enum:
+                                case SpecialType.System_MulticastDelegate:
+                                case SpecialType.System_ValueType:
+                                    // This might be a structure, an enum, or a delegate
+                                    diagnostic = missingType.GetUseSiteInfo().DiagnosticInfo;
+                                    break;
+                            }
                         }
                     }
                 }
             }
 
+            return diagnostic;
         }
 
-        // Note: The implementation of GetCompilerFeatureRequiredUseSiteInfo depends on this, as it uses _lazyCachedUseSiteInfo to determine
-        // if there is an unsupported compiler feature.
         protected override int HighestPriorityUseSiteError => (int)ErrorCode.ERR_UnsupportedCompilerFeature;
 
 #nullable enable
-        internal bool GetCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
         {
-            UseSiteInfo<AssemblySymbol> typeUseSiteInfo = GetUseSiteInfo();
-            if (typeUseSiteInfo.DiagnosticInfo?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature)
+            var useSiteInfo = GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } diag)
             {
-                result = typeUseSiteInfo;
-                return true;
+                return diag;
             }
 
-#if DEBUG
-            typeUseSiteInfo = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
-            DeriveCompilerFeatureRequiredUseSiteInfo(ref typeUseSiteInfo);
-            Debug.Assert(typeUseSiteInfo.DiagnosticInfo is null);
-#endif
-            return false;
+            Debug.Assert(DeriveCompilerFeatureRequiredDiagnostic() is null);
+            return null;
         }
 
-        protected bool DeriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+        private DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic()
         {
             var decoder = new MetadataDecoder(ContainingPEModule, this);
-            PEUtilities.DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(ref result, this, ContainingPEModule, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None, decoder);
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, ContainingPEModule, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None, decoder);
 
-            if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
+            if (diag != null)
             {
-                return true;
+                return diag;
             }
 
-            foreach (var typeParameter in this.TypeParameters)
+            foreach (var typeParameter in TypeParameters)
             {
-                if (((PETypeParameterSymbol)typeParameter).DeriveCompilerFeatureRequiredUseSiteInfo(ref result, decoder))
+                diag = ((PETypeParameterSymbol)typeParameter).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+
+                if (diag != null)
                 {
-                    return true;
+                    return diag;
                 }
             }
 
             return ContainingType is PENamedTypeSymbol containingType
-                ? containingType.GetCompilerFeatureRequiredUseSiteInfo(ref result)
-                : ContainingPEModule.GetCompilerFeatureRequiredUseSiteInfo(ref result);
+                ? containingType.GetCompilerFeatureRequiredDiagnostic()
+                : ContainingPEModule.GetCompilerFeatureRequiredDiagnostic();
         }
 #nullable disable
 
@@ -2568,20 +2563,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            protected override void GetUseSiteDiagnosticImpl(ref UseSiteInfo<AssemblySymbol> result)
+            protected override DiagnosticInfo GetUseSiteDiagnosticImpl()
             {
-                base.GetUseSiteDiagnosticImpl(ref result);
-                if (result.DiagnosticInfo != null && IsHighestPriorityUseSiteError(result.DiagnosticInfo))
+                DiagnosticInfo diagnostic = null;
+
+                if (!MergeUseSiteDiagnostics(ref diagnostic, base.GetUseSiteDiagnosticImpl()))
                 {
-                    return;
+                    // Verify type parameters for containing types
+                    // match those on the containing types.
+                    if (!MatchesContainingTypeParameters())
+                    {
+                        diagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this);
+                    }
                 }
 
-                // Verify type parameters for containing types
-                // match those on the containing types.
-                if (!MatchesContainingTypeParameters())
-                {
-                    result = result.AdjustDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
-                }
+                return diagnostic;
             }
 
             /// <summary>

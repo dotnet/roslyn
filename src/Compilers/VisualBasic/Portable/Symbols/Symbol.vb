@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
 
 Namespace Microsoft.CodeAnalysis.VisualBasic

@@ -382,7 +382,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim fieldUseSiteInfo = CalculateUseSiteInfo()
-                DeriveCompilerFeatureRequiredUseSiteInfo(fieldUseSiteInfo)
+
+                If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
+                    Dim errorInfo = DeriveCompilerFeatureRequiredDiagnostic(fieldUseSiteInfo)
+                    If errorInfo IsNot Nothing Then
+                        fieldUseSiteInfo = New UseSiteInfo(Of AssemblySymbol)(errorInfo)
+                    End If
+                End If
 
                 ' if there was no previous use site error for this symbol, check the constant value
                 If fieldUseSiteInfo.DiagnosticInfo Is Nothing Then
@@ -404,22 +410,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
-        Private Sub DeriveCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol))
+        Private Function DeriveCompilerFeatureRequiredDiagnostic(ByRef result As UseSiteInfo(Of AssemblySymbol)) As DiagnosticInfo
             Dim containingModule = _containingType.ContainingPEModule
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(
-                result,
-                Me,
-                containingModule,
-                Handle,
-                CompilerFeatureRequiredFeatures.None,
-                New MetadataDecoder(containingModule, _containingType))
-
-            If result.DiagnosticInfo IsNot Nothing Then
-                Return
-            End If
-
-            _containingType.GetCompilerFeatureRequiredUseSiteInfo(result)
-        End Sub
+            Return If(DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, containingModule, Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(containingModule, _containingType)),
+                      _containingType.GetCompilerFeatureRequiredDiagnostic())
+        End Function
 
         Friend ReadOnly Property Handle As FieldDefinitionHandle
             Get

@@ -546,28 +546,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If Not _lazyCachedUseSiteInfo.IsInitialized Then
                 Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = CalculateUseSiteInfo()
-                DeriveCompilerFeatureRequiredUseSiteInfo(useSiteInfo)
-                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo)
+                Dim errorInfo = useSiteInfo.DiagnosticInfo
+                DeriveCompilerFeatureRequiredDiagnostic(errorInfo)
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, useSiteInfo.AdjustDiagnosticInfo(errorInfo))
             End If
 
             Return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency)
         End Function
 
-        Private Sub DeriveCompilerFeatureRequiredUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol))
+        Private Sub DeriveCompilerFeatureRequiredDiagnostic(ByRef errorInfo As DiagnosticInfo)
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
             Dim containingModule = _containingType.ContainingPEModule
-            DeriveUseSiteInfoFromCompilerFeatureRequiredAttributes(
-                result,
+            errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(
                 Me,
                 containingModule,
                 Handle,
                 CompilerFeatureRequiredFeatures.None,
                 New MetadataDecoder(containingModule, _containingType))
 
-            If result.DiagnosticInfo IsNot Nothing Then
+            If errorInfo IsNot Nothing Then
                 Return
             End If
 
-            _containingType.GetCompilerFeatureRequiredUseSiteInfo(result)
+            errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
         End Sub
 
         Friend ReadOnly Property Handle As PropertyDefinitionHandle
