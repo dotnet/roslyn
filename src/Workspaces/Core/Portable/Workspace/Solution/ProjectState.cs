@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis
             // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
             // So, we use a dummy language-specific file name appended to the project directory to query analyzer config options.
             // NIL character is invalid in paths so it will never match any pattern in editorconfig, but editorconfig parsing allows it.
+            // TODO: https://github.com/dotnet/roslyn/issues/61217
 
             var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
             Contract.ThrowIfNull(projectDirectory);
