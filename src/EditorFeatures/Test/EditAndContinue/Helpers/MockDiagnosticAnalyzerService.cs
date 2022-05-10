@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         public void Reanalyze(Workspace workspace, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
-            => DocumentsToReanalyze.AddRange(documentIds);
+            => DocumentsToReanalyze.AddRange(documentIds ?? Enumerable.Empty<DocumentId>());
 
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache
             => throw new NotImplementedException();

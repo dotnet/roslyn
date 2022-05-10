@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
-        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IMetadataAsSourceFileService? _metadataAsSourceFileService;
 
         private readonly Dictionary<string, ITextBuffer2> _createdTextBuffers = new();
         private readonly string _workspaceKind;
@@ -249,19 +249,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             return hostDocument.Id;
         }
 
-        public TestHostDocument GetTestDocument(DocumentId documentId)
+        public TestHostDocument? GetTestDocument(DocumentId documentId)
             => this.Documents.FirstOrDefault(d => d.Id == documentId);
 
-        public TestHostDocument GetTestAdditionalDocument(DocumentId documentId)
+        public TestHostDocument? GetTestAdditionalDocument(DocumentId documentId)
             => this.AdditionalDocuments.FirstOrDefault(d => d.Id == documentId);
 
-        public TestHostDocument GetTestAnalyzerConfigDocument(DocumentId documentId)
+        public TestHostDocument? GetTestAnalyzerConfigDocument(DocumentId documentId)
             => this.AnalyzerConfigDocuments.FirstOrDefault(d => d.Id == documentId);
 
-        public TestHostProject GetTestProject(DocumentId documentId)
+        public TestHostProject? GetTestProject(DocumentId documentId)
             => GetTestProject(documentId.ProjectId);
 
-        public TestHostProject GetTestProject(ProjectId projectId)
+        public TestHostProject? GetTestProject(ProjectId projectId)
             => this.Projects.FirstOrDefault(p => p.Id == projectId);
 
         public TServiceInterface GetService<TServiceInterface>()
@@ -322,13 +322,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
         {
-            var testDocument = this.GetTestDocument(document);
+            var testDocument = this.GetTestDocument(document) ?? throw new InvalidOperationException();
             testDocument.Update(newText);
         }
 
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
-            var hostProject = this.GetTestProject(info.Id.ProjectId);
+            var hostProject = this.GetTestProject(info.Id.ProjectId) ?? throw new InvalidOperationException();
             var hostDocument = new TestHostDocument(
                 text.ToString(), info.Name, info.SourceCodeKind,
                 info.Id, info.FilePath, info.Folders, ExportProvider,
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
-            var hostProject = this.GetTestProject(documentId.ProjectId);
+            var hostProject = this.GetTestProject(documentId.ProjectId) ?? throw new InvalidOperationException();
             var hostDocument = this.GetTestDocument(documentId);
             hostProject.RemoveDocument(hostDocument);
             this.OnDocumentRemoved(documentId, closeDocument: true);
@@ -347,13 +347,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void ApplyAdditionalDocumentTextChanged(DocumentId document, SourceText newText)
         {
-            var testDocument = this.GetTestAdditionalDocument(document);
+            var testDocument = this.GetTestAdditionalDocument(document) ?? throw new InvalidOperationException();
             testDocument.Update(newText);
         }
 
         protected override void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
         {
-            var hostProject = this.GetTestProject(info.Id.ProjectId);
+            var hostProject = this.GetTestProject(info.Id.ProjectId) ?? throw new InvalidOperationException();
             var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, exportProvider: ExportProvider);
             hostProject.AddAdditionalDocument(hostDocument);
             this.OnAdditionalDocumentAdded(hostDocument.ToDocumentInfo());
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
-            var hostProject = this.GetTestProject(documentId.ProjectId);
+            var hostProject = this.GetTestProject(documentId.ProjectId) ?? throw new InvalidOperationException();
             var hostDocument = this.GetTestAdditionalDocument(documentId);
             hostProject.RemoveAdditionalDocument(hostDocument);
             this.OnAdditionalDocumentRemoved(documentId);
@@ -369,13 +369,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void ApplyAnalyzerConfigDocumentTextChanged(DocumentId document, SourceText newText)
         {
-            var testDocument = this.GetTestAnalyzerConfigDocument(document);
+            var testDocument = this.GetTestAnalyzerConfigDocument(document) ?? throw new InvalidOperationException();
             testDocument.Update(newText);
         }
 
         protected override void ApplyAnalyzerConfigDocumentAdded(DocumentInfo info, SourceText text)
         {
-            var hostProject = this.GetTestProject(info.Id.ProjectId);
+            var hostProject = this.GetTestProject(info.Id.ProjectId) ?? throw new InvalidOperationException();
             var hostDocument = new TestHostDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders, exportProvider: ExportProvider);
             hostProject.AddAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentAdded(hostDocument.ToDocumentInfo());
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void ApplyAnalyzerConfigDocumentRemoved(DocumentId documentId)
         {
-            var hostProject = this.GetTestProject(documentId.ProjectId);
+            var hostProject = this.GetTestProject(documentId.ProjectId) ?? throw new InvalidOperationException();
             var hostDocument = this.GetTestAnalyzerConfigDocument(documentId);
             hostProject.RemoveAnalyzerConfigDocument(hostDocument);
             this.OnAnalyzerConfigDocumentRemoved(documentId);
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (projectChanges.OldProject.FilePath != projectChanges.NewProject.FilePath)
             {
-                var hostProject = this.GetTestProject(projectChanges.NewProject.Id);
+                var hostProject = this.GetTestProject(projectChanges.NewProject.Id) ?? throw new InvalidOperationException();
                 hostProject.OnProjectFilePathChanged(projectChanges.NewProject.FilePath);
                 base.OnProjectNameChanged(projectChanges.NewProject.Id, projectChanges.NewProject.Name, projectChanges.NewProject.FilePath);
             }
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
             // Fetching the open SourceTextContainer implicitly opens the document.
-            var testDocument = GetTestDocument(documentId);
+            var testDocument = GetTestDocument(documentId) ?? throw new InvalidOperationException();
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
             testDocument.GetOpenTextContainer();
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public override void CloseDocument(DocumentId documentId)
         {
-            var testDocument = this.GetTestDocument(documentId);
+            var testDocument = this.GetTestDocument(documentId) ?? throw new InvalidOperationException();
             Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 
@@ -692,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void OpenSourceGeneratedDocument(DocumentId documentId)
         {
             // Fetching the open SourceTextContainer implicitly opens the document.
-            var testDocument = GetTestDocument(documentId);
+            var testDocument = GetTestDocument(documentId) ?? throw new InvalidOperationException();
             Contract.ThrowIfFalse(testDocument.IsSourceGenerated);
 
             testDocument.GetOpenTextContainer();
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public async Task CloseSourceGeneratedDocumentAsync(DocumentId documentId)
         {
-            var testDocument = this.GetTestDocument(documentId);
+            var testDocument = this.GetTestDocument(documentId) ?? throw new InvalidOperationException();
             Contract.ThrowIfFalse(testDocument.IsSourceGenerated);
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 

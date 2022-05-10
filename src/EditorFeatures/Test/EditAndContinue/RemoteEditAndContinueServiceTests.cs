@@ -91,8 +91,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var diagnosticUpdateSource = new EditAndContinueDiagnosticUpdateSource();
             var emitDiagnosticsUpdated = new List<DiagnosticsUpdatedArgs>();
             var emitDiagnosticsClearedCount = 0;
-            diagnosticUpdateSource.DiagnosticsUpdated += (object sender, DiagnosticsUpdatedArgs args) => emitDiagnosticsUpdated.Add(args);
-            diagnosticUpdateSource.DiagnosticsCleared += (object sender, EventArgs args) => emitDiagnosticsClearedCount++;
+            diagnosticUpdateSource.DiagnosticsUpdated += (object? sender, DiagnosticsUpdatedArgs args) => emitDiagnosticsUpdated.Add(args);
+            diagnosticUpdateSource.DiagnosticsCleared += (object? sender, EventArgs args) => emitDiagnosticsClearedCount++;
 
             var span1 = new LinePositionSpan(new LinePosition(1, 2), new LinePosition(1, 5));
             var moduleId1 = new Guid("{44444444-1111-1111-1111-111111111111}");

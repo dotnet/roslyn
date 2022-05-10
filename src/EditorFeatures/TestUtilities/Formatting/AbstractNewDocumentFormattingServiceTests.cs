@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
         {
             return TestCoreAsync<T>(testCode,
                 expected,
-                options.Select(o => (new OptionKey(o.Item1, Language), o.Item2)).ToArray(),
+                options?.Select(o => (new OptionKey(o.Item1, Language), o.Item2)).ToArray(),
                 parseOptions);
         }
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
         {
             return TestCoreAsync<T>(testCode,
                 expected,
-                options.Select(o => (new OptionKey(o.Item1), o.Item2)).ToArray(),
+                options?.Select(o => (new OptionKey(o.Item1), o.Item2)).ToArray(),
                 parseOptions);
         }
 

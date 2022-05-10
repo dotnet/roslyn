@@ -92,9 +92,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        protected class OrderLocations : Comparer<LSP.Location>
+        protected class OrderLocations : Comparer<LSP.Location?>
         {
-            public override int Compare(LSP.Location x, LSP.Location y) => CompareLocations(x, y);
+            public override int Compare(LSP.Location? x, LSP.Location? y) => CompareLocations(x, y);
         }
 
         protected virtual TestComposition Composition => s_composition;
@@ -133,8 +133,13 @@ namespace Roslyn.Test.Utilities
             AssertJsonEquals(orderedExpectedLocations, orderedActualLocations);
         }
 
-        protected static int CompareLocations(LSP.Location l1, LSP.Location l2)
+        protected static int CompareLocations(LSP.Location? l1, LSP.Location? l2)
         {
+            if (l1 is null)
+                return l2 is null ? 0 : -1;
+            else if (l2 is null)
+                return 1;
+
             var compareDocument = l1.Uri.OriginalString.CompareTo(l2.Uri.OriginalString);
             var compareRange = CompareRange(l1.Range, l2.Range);
             return compareDocument != 0 ? compareDocument : compareRange;
@@ -399,7 +404,7 @@ namespace Roslyn.Test.Utilities
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
                     var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
-                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, new Uri(document.FilePath))));
+                    locationsForName.AddRange(spans.Select(span => ConvertTextSpanWithTextToLocation(span, text, new Uri(document.FilePath ?? throw new NotSupportedException()))));
 
                     // Linked files will return duplicate annotated Locations for each document that links to the same file.
                     // Since the test output only cares about the actual file, make sure we de-dupe before returning.
