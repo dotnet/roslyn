@@ -101,7 +101,7 @@ namespace Microsoft.RoslynTools.NuGet
                 if (dependencies.TryGetValue(DependencyResult.ReleasedPackage, out var releasedPackages))
                 {
                     logger.LogDebug("");
-                    logger.LogDebug("Packages already on a release package:");
+                    logger.LogDebug("Packages already on a release version:");
                     foreach (var (dependency, _) in releasedPackages.OrderBy(x => x.Dependency.Id))
                     {
                         logger.LogDebug("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
