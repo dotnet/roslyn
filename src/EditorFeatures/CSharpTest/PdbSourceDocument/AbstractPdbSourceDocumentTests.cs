@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
             else if (sourceLocation == Location.OnDisk)
             {
                 embeddedTexts = null;
-                File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding);
+                File.WriteAllText(sourceCodePath, source.ToString(), source.Encoding ?? throw new InvalidOperationException());
             }
             else
             {

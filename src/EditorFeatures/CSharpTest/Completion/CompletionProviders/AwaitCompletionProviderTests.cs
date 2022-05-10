@@ -333,7 +333,7 @@ class C
 ", dotAwait: true, dotAwaitf: true);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61258")]
         public async Task TestDotAwaitSuggestAfterDotOnValueTask()
         {
             var valueTaskAssembly = typeof(ValueTask).Assembly.Location;

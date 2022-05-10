@@ -258,6 +258,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -871,6 +872,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -911,6 +913,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -962,6 +965,7 @@ class Program : Base
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1010,6 +1014,7 @@ class Program : Base
 
             await new TestWithDialog
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1048,6 +1053,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 Options =
@@ -1091,6 +1097,7 @@ class Program<T>
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1131,6 +1138,7 @@ class Program<T>
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1179,6 +1187,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1281,6 +1290,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1336,6 +1346,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1479,6 +1490,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1519,6 +1531,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1567,6 +1580,7 @@ struct Bar
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1617,6 +1631,7 @@ struct Bar
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1665,6 +1680,7 @@ struct Bar
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1705,6 +1721,7 @@ class Foo<TBar> where TBar : struct
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1745,6 +1762,7 @@ class Foo<TBar> where TBar : struct
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1793,6 +1811,7 @@ enum Bar
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -1833,6 +1852,7 @@ class Foo
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -3038,7 +3058,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS1069").WithSpan(18, 52, 18, 57).WithArguments("Int32", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
                     },
                 },
-                ReferenceAssemblies = ReferenceAssemblies.Default.WithAssemblies(ImmutableArray<string>.Empty),
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default.WithAssemblies(ImmutableArray<string>.Empty),
             }.RunAsync();
         }
 
@@ -3085,6 +3105,7 @@ class Program
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -3146,6 +3167,7 @@ struct S : IEquatable<S>
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedCode = fixedCode,
                 CodeActionIndex = 1,
@@ -3265,6 +3287,7 @@ struct S : IEquatable<S>
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     AdditionalProjects =
@@ -3339,6 +3362,7 @@ struct S : IEquatable<S>
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     AdditionalProjects =
@@ -3762,6 +3786,7 @@ namespace N
 
             await new TestWithDialog
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = code,
                 FixedState =
                 {
@@ -3843,6 +3868,7 @@ namespace N
         {
             await new TestWithDialog
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     Sources =
@@ -3896,6 +3922,7 @@ namespace N
         {
             await new TestWithDialog
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     Sources =
@@ -3947,6 +3974,7 @@ namespace N
         {
             await new TestWithDialog
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     Sources =
@@ -3998,6 +4026,7 @@ namespace N
         {
             await new TestWithDialog
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     Sources =

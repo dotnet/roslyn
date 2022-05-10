@@ -1310,7 +1310,7 @@ class $$Test<T, U>
                 workspaceKind: WorkspaceKind.Interactive,
                 composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
-            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
+            workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id)!.GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 

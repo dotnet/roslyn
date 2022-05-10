@@ -11323,7 +11323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void TestCharacterClass28()
         {
             Test(@"@""[a-[:L:]""", $@"<Tree>
@@ -12349,7 +12349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 </Tree>", RegexOptions.None);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/61232")]
         public void TestCharacterClassRange13()
         {
             Test(@"@""[[:x:]-a]""", @"<Tree>

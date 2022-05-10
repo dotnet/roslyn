@@ -2376,7 +2376,7 @@ End Class
 
             if (service.GetProvider(completionItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
+                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2633,7 +2633,7 @@ int bar;
 
             if (service.GetProvider(completionItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
+                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -2689,7 +2689,7 @@ int bar;
 
             if (service.GetProvider(completionItem) is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
-                var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
+                var textView = testWorkspace.GetTestDocument(documentId)!.GetTextView();
                 customCommitCompletionProvider.Commit(completionItem, textView, textView.TextBuffer, textView.TextSnapshot, '\t');
                 var actualCodeAfterCommit = textView.TextBuffer.CurrentSnapshot.AsText().ToString();
                 var caretPosition = textView.Caret.Position.BufferPosition.Position;
@@ -3085,7 +3085,7 @@ namespace NS3
             // could hardcode in the value "<Clone>$", however if the compiler ever changed the name and we somehow
             // started showing it in completion, this test would continue to pass.  So this allows us to at least go
             // back and explicitly validate this scenario even in that event.
-            var cloneMemberName = (string)typeof(WellKnownMemberNames).GetField("CloneMethodName", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            var cloneMemberName = (string?)typeof(WellKnownMemberNames).GetField("CloneMethodName", BindingFlags.NonPublic | BindingFlags.Static)?.GetValue(null);
             Assert.Equal("<Clone>$", cloneMemberName);
 
             await VerifyItemIsAbsentAsync(@"

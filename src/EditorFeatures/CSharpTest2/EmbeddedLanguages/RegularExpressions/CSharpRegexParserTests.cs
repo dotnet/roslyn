@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -172,7 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                     // do this in en-US as that's the only culture where we control the text exactly
                     // and can ensure it exactly matches Regex.  We depend on localization to do a 
                     // good enough job here for other languages.
-                    if (Thread.CurrentThread.CurrentCulture.Name == "en-US")
+                    //
+                    // TODO: Messages in .NET 6 differ, and are not validated. https://github.com/dotnet/roslyn/issues/61232
+                    if (Thread.CurrentThread.CurrentCulture.Name == "en-US" && !ExecutionConditionUtil.IsCoreClr)
                     {
                         Assert.True(tree.Diagnostics.Any(d => ex.Message.Contains(d.Message)));
                     }

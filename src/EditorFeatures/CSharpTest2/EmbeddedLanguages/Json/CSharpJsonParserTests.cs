@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 
             var diagnosticsElement = XElement.Parse(value);
             foreach (var diagnosticElement in diagnosticsElement.Elements("Diagnostic"))
-                diagnosticElement.Attribute("Message").Remove();
+                diagnosticElement.Attribute("Message")?.Remove();
 
             return diagnosticsElement.ToString();
         }

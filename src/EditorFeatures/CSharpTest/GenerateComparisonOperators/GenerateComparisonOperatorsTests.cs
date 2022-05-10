@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
     Microsoft.CodeAnalysis.GenerateComparisonOperators.GenerateComparisonOperatorsCodeRefactoringProvider>;
@@ -431,7 +432,7 @@ class C : IComparable<C>, IComparable<int>
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateComparisonOperators)]
         public async Task TestInInterfaceWithDefaultImpl()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            var testCode =
 @"
 using System;
 
@@ -440,7 +441,8 @@ interface C : IComparable<C>
     int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
 
 [||]
-}",
+}";
+            var fixedCode =
 @"
 using System;
 
@@ -467,7 +469,13 @@ interface C : IComparable<C>
     {
         return left.CompareTo(right) >= 0;
     }
-}");
+}";
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
+                TestCode = testCode,
+                FixedCode = fixedCode,
+            }.RunAsync();
         }
     }
 }

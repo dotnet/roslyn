@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents
             foreach (var documentChange in result.DocumentChanges)
             {
                 // Get the document and open it.  Since we're modifying the text buffer we don't care about linked documents.
-                var documentBuffer = workspace.GetTestDocument(documentChange.Key).GetTextBuffer();
+                var documentBuffer = workspace.GetTestDocument(documentChange.Key)!.GetTextBuffer();
 
                 using var edit = documentBuffer.CreateEdit();
                 foreach (var change in documentChange.Value)

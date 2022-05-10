@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = initialMarkup,
                 FixedCode = expectedMarkup,
                 Options = { AllOptionsOff },
@@ -5607,6 +5608,7 @@ class C : IDisposable
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = @"class C : {|CS0535:System.IDisposable|}{|CS1513:|}{|CS1514:|}",
                 FixedCode = $@"class C : System.IDisposable
 {{
@@ -6699,6 +6701,7 @@ class Program : IDisposable
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = @"using System;
 
 class Program : {|CS0535:IDisposable|}

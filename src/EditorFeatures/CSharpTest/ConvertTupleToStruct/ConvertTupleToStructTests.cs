@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertTupleToStruct
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = text,
                 FixedCode = expected,
                 TestHost = testHost,
@@ -2305,6 +2306,7 @@ internal struct NewStruct
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = text,
                 FixedCode = expected,
                 TestHost = host,
@@ -3377,6 +3379,7 @@ partial class Other
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestState =
                 {
                     Sources =
@@ -3534,6 +3537,7 @@ partial class Other
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 CodeActionIndex = 2,
                 CodeActionEquivalenceKey = Scope.ContainingProject.ToString(),
                 TestHost = host,
@@ -3659,6 +3663,7 @@ partial class Other
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 CodeActionIndex = 3,
                 CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
                 TestHost = host,
@@ -3796,6 +3801,7 @@ partial class Other
 
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 CodeActionIndex = 3,
                 CodeActionEquivalenceKey = Scope.DependentProjects.ToString(),
                 TestHost = host,

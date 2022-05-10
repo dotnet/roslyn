@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
@@ -37,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         private static IEnumerable<object[]> GetRealWorldCases()
         {
             using var stream = typeof(CSharpRegexParserTests).Assembly.GetManifestResourceStream("Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions.Regex_RealWorldPatterns.json");
+            Contract.ThrowIfNull(stream);
+
             using var streamReader = new StreamReader(stream);
             using var textReader = new JsonTextReader(streamReader);
 
