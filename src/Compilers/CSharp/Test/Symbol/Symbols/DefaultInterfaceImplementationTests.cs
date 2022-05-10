@@ -38901,20 +38901,24 @@ public interface I3 : I1
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
-        public void EventImplementationInDerived_01()
+        public void EventImplementationInDerived_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    event System.Action M1; 
+    " + modifiers + @"event System.Action M1; 
 }
 
 public interface I4
 {
-    event System.Action M1; 
+    " + modifiers + @"event System.Action M1; 
 }
 
 public interface I5 : I4
@@ -38923,7 +38927,7 @@ public interface I5 : I4
 
 public interface I1 : I2, I5
 {
-    event System.Action I2.M1
+    " + implModifiers + @"event System.Action I2.M1
     {
         add
         {
@@ -38934,7 +38938,7 @@ public interface I1 : I2, I5
             System.Console.WriteLine(""I2.M1.remove"");
         }
     }
-    event System.Action I4.M1 
+    " + implModifiers + @"event System.Action I4.M1 
     {
         add => System.Console.WriteLine(""I4.M1.add"");
         remove => System.Console.WriteLine(""I4.M1.remove"");
@@ -38950,12 +38954,35 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I2 i2 = new Test1();
+        I4 i4 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source2 +=
+@"
         i2.M1 += null;
         i2.M1 -= null;
-        I4 i4 = new Test1();
         i4.M1 += null;
         i4.M1 -= null;
     }
@@ -38963,65 +38990,70 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            validateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+            validateEventImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidateEventImplementationInDerived_01(compilation3.SourceModule);
+            validateEventImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
+
+            void validateEventImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateEventImplementationInDerived_01(m, isStatic);
+            }
         }
 
-        private static void ValidateEventImplementationInDerived_01(ModuleSymbol m)
+        private static void ValidateEventImplementationInDerived_01(ModuleSymbol m, bool isStatic)
         {
-            ValidateEventImplementationInDerived_01(m, i4M1IsAbstract: false);
+            ValidateEventImplementationInDerived_01(m, i4M1IsAbstract: false, isStatic);
         }
 
-        private static void ValidateEventImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract)
+        private static void ValidateEventImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract, bool isStatic)
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
@@ -39036,8 +39068,8 @@ I4.M1.remove
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
 
-            ValidateExplicitImplementation(i1i2m1);
-            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract);
+            ValidateExplicitImplementation(i1i2m1, isStatic: isStatic);
+            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract, isStatic: isStatic);
 
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i4m1);
@@ -39095,12 +39127,12 @@ I4.M1.remove
             }
         }
 
-        private static void ValidateExplicitImplementation(EventSymbol m1, bool isAbstract = false)
+        private static void ValidateExplicitImplementation(EventSymbol m1, bool isAbstract = false, bool isStatic = false)
         {
             Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.False(m1.IsVirtual);
             Assert.Equal(isAbstract, m1.IsSealed);
-            Assert.False(m1.IsStatic);
+            Assert.Equal(isStatic, m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
@@ -39108,11 +39140,11 @@ I4.M1.remove
             ValidateAccessor(m1.AddMethod, isAbstract);
             ValidateAccessor(m1.RemoveMethod, isAbstract);
 
-            static void ValidateAccessor(MethodSymbol accessor, bool isAbstract)
+            void ValidateAccessor(MethodSymbol accessor, bool isAbstract)
             {
                 if ((object)accessor != null)
                 {
-                    ValidateExplicitImplementation(accessor, isAbstract);
+                    ValidateExplicitImplementation(accessor, isAbstract, isStatic);
                 }
             }
         }
@@ -39174,7 +39206,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "remove").WithArguments("default interface implementation", "8.0").WithLocation(23, 9)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, isStatic: false);
 
             var source2 = @"
 public interface I3 : I1
@@ -39205,7 +39237,97 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7.3", "8.0").WithLocation(6, 15)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+            ValidateEventImplementationInDerived_01(compilation2.SourceModule, isStatic: false);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_Static_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    static abstract event System.Action M1; 
+}
+
+public interface I4
+{
+    static abstract event System.Action M1; 
+}
+
+public interface I1 : I2, I4
+{
+    static event System.Action I2.M1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+
+    static event System.Action I4.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (4,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract event System.Action M1; 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 41),
+                // (9,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract event System.Action M1; 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(9, 41),
+                // (14,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static event System.Action I2.M1
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(14, 35),
+                // (20,35): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static event System.Action I4.M1 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(20, 35)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, isStatic: true);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8706: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                // (6,15): error CS8706: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                // (6,15): error CS8706: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                // (6,15): error CS8706: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation2.SourceModule, isStatic: true);
         }
 
         [Fact]
@@ -39265,7 +39387,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(23, 9)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, isStatic: false);
 
             var source2 = @"
 public interface I3 : I1
@@ -39298,28 +39420,119 @@ class Test1 : I1
         }
 
         [Fact]
-        public void EventImplementationInDerived_04()
+        public void EventImplementationInDerived_Static_03()
         {
             var source1 =
 @"
 public interface I2
 {
-    event System.Action M1;
+    static abstract event System.Action M1;
 }
 
 public interface I4
 {
-    event System.Action M1;
+    static abstract event System.Action M1; 
 }
 
 public interface I1 : I2, I4
 {
-    event System.Action I2.M1
+    static event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+
+    static event System.Action I4.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+
+            compilation1.VerifyDiagnostics(
+                // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract event System.Action M1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(4, 41),
+                // (9,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract event System.Action M1; 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(9, 41),
+                // (14,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(14, 35),
+                // (20,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static event System.Action I4.M1 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(20, 35)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, isStatic: true);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8929: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8929: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8929: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8929: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1").WithLocation(6, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_04(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
+            var source1 =
+@"
+public interface I2
+{
+    " + modifiers + @"event System.Action M1;
+}
+
+public interface I4
+{
+    " + modifiers + @"event System.Action M1;
+}
+
+public interface I1 : I2, I4
+{
+    " + implModifiers + @"event System.Action I2.M1
     {
         add; 
         remove;
     } 
-    event System.Action I4.M1 
+    " + implModifiers + @"event System.Action I4.M1 
     {
         add; 
         remove {}
@@ -39335,8 +39548,8 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (16,12): error CS0073: An add or remove accessor must have a body
@@ -39350,22 +39563,26 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(21, 12)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, isStatic);
         }
 
-        [Fact]
-        public void EventImplementationInDerived_05()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_05(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    event System.Action M1; 
+    " + modifiers + @"event System.Action M1; 
 }
 
 public interface I1
 {
-    event System.Action I2.M1 
+    " + implModifiers + @"event System.Action I2.M1 
     {
         add => throw null;
         remove => throw null;
@@ -39374,13 +39591,13 @@ public interface I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (9,25): error CS0540: 'I1.I2.M1': containing type does not implement interface 'I2'
                 //     event System.Action I2.M1 
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1", "I2").WithLocation(9, 25)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1", "I2").WithLocation(9, 25 + implModifiers.Length)
                 );
         }
 
@@ -39445,28 +39662,28 @@ class Test1 : I1
         }
 
         [Fact]
-        public void EventImplementationInDerived_07()
+        public void EventImplementationInDerived_Static_06()
         {
             var source1 =
 @"
 public interface I2
 {
-    event System.Action M1;
+    static abstract event System.Action M1; 
 }
 
 public interface I4
 {
-    event System.Action M1; 
+    static abstract event System.Action M1; 
 }
 
 public interface I1 : I2, I4
 {
-    private sealed event System.Action I2.M1 
+    public event System.Action I2.M1 
     {
         add => throw null;
         remove => throw null;
     }
-    protected abstract event System.Action I4.M1
+    static internal virtual event System.Action I4.M1
     {
         add => throw null;
         remove => throw null;
@@ -39482,19 +39699,83 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (14,35): error CS0106: The modifier 'public' is not valid for this item
+                //     public event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 35),
+                // (14,35): error CS0539: 'I1.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     public event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1").WithLocation(14, 35),
+                // (19,52): error CS0106: The modifier 'internal' is not valid for this item
+                //     static internal virtual event System.Action I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(19, 52),
+                // (19,52): error CS0106: The modifier 'virtual' is not valid for this item
+                //     static internal virtual event System.Action I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 52),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I2.M1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I2.M1").WithLocation(30, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_07(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
+            var source1 =
+@"
+public interface I2
+{
+    " + modifiers + @"event System.Action M1;
+}
+
+public interface I4
+{
+    " + modifiers + @"event System.Action M1; 
+}
+
+public interface I1 : I2, I4
+{
+    " + implModifiers + @"private sealed event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+    " + implModifiers + @"protected abstract event System.Action I4.M1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,43): error CS0106: The modifier 'sealed' is not valid for this item
                 //     private sealed event System.Action I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 43),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 43 + implModifiers.Length),
                 // (14,43): error CS0106: The modifier 'private' is not valid for this item
                 //     private sealed event System.Action I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 43),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 43 + implModifiers.Length),
                 // (19,47): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract event System.Action I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 47),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 47 + implModifiers.Length),
                 // (20,5): error CS8712: 'I1.I4.M1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I1.I4.M1").WithLocation(20, 5),
@@ -39503,32 +39784,36 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I4.M1").WithLocation(30, 15)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract: true);
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract: true, isStatic);
         }
 
-        [Fact]
-        public void EventImplementationInDerived_08()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_08(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    event System.Action M1; 
+    " + modifiers + @"event System.Action M1; 
 }
 
 public interface I4
 {
-    event System.Action M1;
+    " + modifiers + @"event System.Action M1;
 }
 
 public interface I1 : I2, I4
 {
-    private protected extern event System.Action I2.M1 
+    " + implModifiers + @"private protected extern event System.Action I2.M1 
     {
         add => throw null;
         remove => throw null;
     }
-    internal protected override event System.Action I4.M1 
+    " + implModifiers + @"internal protected override event System.Action I4.M1 
     {
         add => throw null;
         remove => throw null;
@@ -39544,45 +39829,49 @@ class Test1 : I1
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (14,53): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected extern event System.Action I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(14, 53),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(14, 53 + implModifiers.Length),
                 // (14,53): error CS0106: The modifier 'extern' is not valid for this item
                 //     private protected extern event System.Action I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("extern").WithLocation(14, 53),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("extern").WithLocation(14, 53 + implModifiers.Length),
                 // (19,56): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     internal protected override event System.Action I4.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 56),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 56 + implModifiers.Length),
                 // (19,56): error CS0106: The modifier 'override' is not valid for this item
                 //     internal protected override event System.Action I4.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(19, 56)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(19, 56 + implModifiers.Length)
                 );
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule, isStatic);
         }
 
-        [Fact]
-        public void EventImplementationInDerived_10()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_10(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action M1; 
-    event System.Action M2;
+    " + modifiers + @"event System.Action M1; 
+    " + modifiers + @"event System.Action M2;
 }
 
 public interface I2 : I1
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add => throw null;
     }
-    event System.Action I1.M2 
+    " + implModifiers + @"event System.Action I1.M2 
     {
         remove => throw null;
     }
@@ -39593,12 +39882,12 @@ class Test1 : I2
 
 public interface I3
 {
-    event System.Action M1; 
+    " + modifiers + @"event System.Action M1; 
 }
 
 public interface I4 : I3
 {
-    event System.Action I3.M1;
+    " + implModifiers + @"event System.Action I3.M1;
 }
 
 class Test2 : I4
@@ -39606,7 +39895,7 @@ class Test2 : I4
 
 public interface I5 : I3
 {
-    event System.Action I3.M1
+    " + implModifiers + @"event System.Action I3.M1
 }
 
 class Test3 : I5
@@ -39614,19 +39903,19 @@ class Test3 : I5
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
                 // (30,28): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I3.M1;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "M1").WithLocation(30, 28),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "M1").WithLocation(30, 28 + implModifiers.Length),
                 // (10,28): error CS0065: 'I2.I1.M1': event property must have both add and remove accessors
                 //     event System.Action I1.M1
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I2.I1.M1").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I2.I1.M1").WithLocation(10, 28 + implModifiers.Length),
                 // (14,28): error CS0065: 'I2.I1.M2': event property must have both add and remove accessors
                 //     event System.Action I1.M2 
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M2").WithArguments("I2.I1.M2").WithLocation(14, 28),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M2").WithArguments("I2.I1.M2").WithLocation(14, 28 + implModifiers.Length),
                 // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1'
                 // class Test2 : I4
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1").WithLocation(33, 15),
@@ -39638,27 +39927,31 @@ class Test3 : I5
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2").WithLocation(20, 15),
                 // (38,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     event System.Action I3.M1
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(38, 27),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(38, 27 + implModifiers.Length),
                 // (41,15): error CS0535: 'Test3' does not implement interface member 'I3.M1'
                 // class Test3 : I5
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test3", "I3.M1").WithLocation(41, 15)
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
-        public void EventImplementationInDerived_11()
+        public void EventImplementationInDerived_11(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    internal event System.Action M1;
+    " + modifiers + @"internal event System.Action M1;
 }
 
 public interface I4
 {
-    event System.Action M1;
+    " + modifiers + @"event System.Action M1;
 }
 
 public interface I5 : I4
@@ -39667,8 +39960,26 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1 += null;
         i2.M1 -= null;
         i4.M1 += null;
@@ -39680,7 +39991,7 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    event System.Action I2.M1
+    " + implModifiers + @"event System.Action I2.M1
     {
         add 
         {
@@ -39688,7 +39999,7 @@ public interface I1 : I2, I5
         }
         remove => System.Console.WriteLine(""I2.M1.remove"");
     }
-    event System.Action I4.M1 
+    " + implModifiers + @"event System.Action I4.M1 
     {
         add 
         {
@@ -39707,112 +40018,140 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         TestHelper.Test(new Test1(), new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        TestHelper.Test<Test1, Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            validateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+            validateEventImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidateEventImplementationInDerived_01(compilation3.SourceModule);
+            validateEventImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+            validateEventImplementationInDerived_01(compilation5.SourceModule);
 
             compilation5.VerifyDiagnostics(
                 // (4,28): error CS0122: 'I2.M1' is inaccessible due to its protection level
                 //     event System.Action I2.M1
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28 + implModifiers.Length)
                 );
 
             var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidateEventImplementationInDerived_01(compilation6.SourceModule);
+            validateEventImplementationInDerived_01(compilation6.SourceModule);
 
             compilation6.VerifyDiagnostics(
                 // (4,28): error CS0122: 'I2.M1' is inaccessible due to its protection level
                 //     event System.Action I2.M1
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28 + implModifiers.Length)
                 );
+
+            void validateEventImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateEventImplementationInDerived_01(m, isStatic);
+            }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
-        public void EventImplementationInDerived_12()
+        public void EventImplementationInDerived_12(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action M1 { add => throw null; remove => throw null;} 
+    " + modifiers + @"event System.Action M1 { add => throw null; remove => throw null;} 
 }
 
 public interface I2 : I1
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add
         {
@@ -39827,7 +40166,7 @@ public interface I2 : I1
 
 public interface I3 : I1
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add
         {
@@ -39842,7 +40181,7 @@ public interface I3 : I1
 
 public interface I4 : I1
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add
         {
@@ -39857,7 +40196,7 @@ public interface I4 : I1
 
 public interface I5 : I2, I3
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add
         {
@@ -39875,8 +40214,8 @@ public interface I6 : I1, I2, I3, I5
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -39892,8 +40231,8 @@ public interface I6 : I1, I2, I3, I5
                 var i5m1 = GetSingleEvent(i5);
                 var i6 = FindType(m, "I6");
 
-                ValidateExplicitImplementation(i2m1);
-                ValidateExplicitImplementation(i5m1);
+                ValidateExplicitImplementation(i2m1, isStatic: isStatic);
+                ValidateExplicitImplementation(i5m1, isStatic: isStatic);
 
                 VerifyFindImplementationForInterfaceMemberSame(i1m1, i1, i1m1);
                 VerifyFindImplementationForInterfaceMemberSame(i2m1, i2, i1m1);
@@ -39901,7 +40240,7 @@ public interface I6 : I1, I2, I3, I5
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -39941,24 +40280,47 @@ class Test6 : I1, I2, I3, I5
 
 class Test7 : I6
 {
+";
+            if (!isStatic)
+            {
+                source4 +=
+@"
     static void Main()
     {
-        I1 i1 = new Test5();
-        i1.M1 += null;
-        i1.M1 -= null;
-        i1 = new Test6();
-        i1.M1 += null;
-        i1.M1 -= null;
-        i1 = new Test7();
-        i1.M1 += null;
-        i1.M1 -= null;
+        I1 i5 = new Test5();
+        I1 i6 = new Test6();
+        I1 i7 = new Test7();
+";
+            }
+            else
+            {
+                source4 +=
+@"
+    static void Main()
+    {
+        Test<Test5, Test6, Test7>();
+    }
+
+    static void Test<i5, i6, i7>() where i5 : I1 where i6 : I1 where i7 : I1
+    {
+";
+            }
+
+            source4 +=
+@"
+        i5.M1 += null;
+        i5.M1 -= null;
+        i6.M1 += null;
+        i6.M1 -= null;
+        i7.M1 += null;
+        i7.M1 -= null;
     }
 }
 ";
             var source5 = @"
 class Test8 : I2, I3
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add
         {
@@ -39969,29 +40331,52 @@ class Test8 : I2, I3
             System.Console.WriteLine(""Test8.I1.M1.remove"");
         }
     }
+";
+            if (!isStatic)
+            {
+                source5 +=
+@"
     static void Main()
     {
-        I1 i1 = new Test8();
-        i1.M1 += null;
-        i1.M1 -= null;
-        i1 = new Test9();
-        i1.M1 += null;
-        i1.M1 -= null;
-        i1 = new Test10();
-        i1.M1 += null;
-        i1.M1 -= null;
-        i1 = new Test11();
-        i1.M1 += null;
-        i1.M1 -= null;
-        i1 = new Test12();
-        i1.M1 += null;
-        i1.M1 -= null;
+        I1 i8 = new Test8();
+        I1 i9 = new Test9();
+        I1 i10 = new Test10();
+        I1 i11 = new Test11();
+        I1 i12 = new Test12();
+";
+            }
+            else
+            {
+                source5 +=
+@"
+    static void Main()
+    {
+        Test<Test8, Test9, Test10, Test11, Test12>();
+    }
+
+    static void Test<i8, i9, i10, i11, i12>() where i8 : I1 where i9 : I1 where i10 : I1 where i11 : I1 where i12 : I1
+    {
+";
+            }
+
+            source5 +=
+@"
+        i8.M1 += null;
+        i8.M1 -= null;
+        i9.M1 += null;
+        i9.M1 -= null;
+        i10.M1 += null;
+        i10.M1 -= null;
+        i11.M1 += null;
+        i11.M1 -= null;
+        i12.M1 += null;
+        i12.M1 -= null;
     }
 }
 
 class Test9 : I7
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     {
         add
         {
@@ -40006,7 +40391,7 @@ class Test9 : I7
 
 class Test10 : I1, I2, I3, I4
 {
-    public event System.Action M1
+    " + implModifiers + @"public event System.Action M1
     {
         add
         {
@@ -40021,7 +40406,7 @@ class Test10 : I1, I2, I3, I4
 
 class Test11 : I1, I2, I3, I5, I4
 {
-    public event System.Action M1
+    " + implModifiers + @"public event System.Action M1
     {
         add
         {
@@ -40036,7 +40421,7 @@ class Test11 : I1, I2, I3, I5, I4
 
 class Test12 : I8
 {
-    public virtual event System.Action M1
+    " + implModifiers + @"public " + (isStatic ? "" : "virtual") + @" event System.Action M1
     {
         add
         {
@@ -40053,8 +40438,8 @@ class Test12 : I8
             foreach (var ref1 in refs1)
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-14.md,
@@ -40076,23 +40461,23 @@ class Test12 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
@@ -40118,7 +40503,7 @@ class Test12 : I8
                 }
 
                 CompileAndVerify(compilation4,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.I1.M1.add
 I2.I1.M1.remove
 I5.I1.M1.add
@@ -40127,14 +40512,14 @@ I5.I1.M1.add
 I5.I1.M1.remove
 "
 ,
-                    verify: VerifyOnMonoOrCoreClr,
+                    verify: Verify(isStatic),
                     symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
-                                                         parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetCoreApp);
+                                                         parseOptions: TestOptions.RegularPreview,
+                                                         targetFramework: TargetFramework.Net60);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(
@@ -40178,8 +40563,8 @@ I5.I1.M1.remove
                     }
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetCoreApp);
+                                                         parseOptions: TestOptions.RegularPreview,
+                                                         targetFramework: TargetFramework.Net60);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation5.VerifyDiagnostics();
@@ -40204,7 +40589,7 @@ I5.I1.M1.remove
                     }
 
                     CompileAndVerify(compilation5,
-                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                        expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"Test8.I1.M1.add
 Test8.I1.M1.remove
 Test9.I1.M1.add
@@ -40216,31 +40601,35 @@ Test11.M1.remove
 Test12.M1.add
 Test12.M1.remove
 ",
-                        verify: VerifyOnMonoOrCoreClr,
+                        verify: Verify(isStatic),
                         symbolValidator: Validate5);
                 }
             }
         }
 
-        [Fact]
-        public void EventImplementationInDerived_13()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_13(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action M1; 
+    " + modifiers + @"event System.Action M1; 
 }
 
 public interface I2 : I1
 {
-    event System.Action I1.M1
+    " + implModifiers + @"event System.Action I1.M1
     { add => throw null; remove => throw null;} 
 }
 
 public interface I3 : I1
 {
-    event System.Action I1.M1 
+    " + implModifiers + @"event System.Action I1.M1 
     { add => throw null; remove => throw null;} 
 }
 ";
@@ -40249,20 +40638,20 @@ public interface I3 : I1
 @"
 class Test1 : I2, I3
 {
-    public event System.Action<object> M1
+    " + implModifiers + @"public event System.Action<object> M1
     { add => throw null; remove => throw null;} 
 }
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
@@ -40275,8 +40664,8 @@ class Test1 : I2, I3
                 );
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
@@ -40289,15 +40678,19 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
-        public void EventImplementationInDerived_14()
+        public void EventImplementationInDerived_14(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1<T>
 {
-    event System.Action M1
+    " + modifiers + @"event System.Action M1
     {
         add
         {
@@ -40309,7 +40702,7 @@ public interface I1<T>
 
 public interface I2<T> : I1<T>
 {
-    event System.Action I1<T>.M1
+    " + implModifiers + @"event System.Action I1<T>.M1
     {
         add
         {
@@ -40327,12 +40720,35 @@ public interface I3<T> : I1<T>
 @"
 class Test1 : I1<int>
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1<int> i1Int = new Test1();
+        I1<long> i1Long = new Test2();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test2>();
+    }
+
+    static void Test<i1Int, i1Long>() where i1Int : I1<int> where i1Long : I1<long>
+    {
+";
+            }
+
+            source2 +=
+@"
         i1Int.M1 += null;
         i1Int.M1 -= null;
-        I1<long> i1Long = new Test2();
         i1Long.M1 += null;
         i1Long.M1 -= null;
     }
@@ -40342,8 +40758,8 @@ class Test2 : I2<long>
 ";
 
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -40371,7 +40787,7 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberSame(null, i3, i2i1m1);
                 VerifyFindImplementationForInterfaceMemberEqual(i3i1m1, i3, i3i1m1);
 
-                ValidateExplicitImplementation(i2m1);
+                ValidateExplicitImplementation(i2m1, isStatic: isStatic);
 
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var test1i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
@@ -40392,7 +40808,7 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberSame(null, test2i2, i1m1);
                 VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2i2, test2i1m1);
 
-                ValidateExplicitImplementation(test2i2m1);
+                ValidateExplicitImplementation(test2i2m1, isStatic: isStatic);
 
                 VerifyFindImplementationForInterfaceMemberSame(null, test1, i1m1);
                 VerifyFindImplementationForInterfaceMemberEqual(test1i1m1, test1, test1i1m1);
@@ -40401,61 +40817,83 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1.add
 I1.M1.remove
 I2.I1.M1.add
 I2.I1.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1.add
 I1.M1.remove
 I2.I1.M1.add
 I2.I1.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1.add
 I1.M1.remove
 I2.I1.M1.add
 I2.I1.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
         }
 
-        [Fact]
-        public void EventImplementationInDerived_15()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_15(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    protected event System.Action M1;
+    " + modifiers + @"protected event System.Action M1;
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1 += null;
         i2.M1 -= null;
     }
@@ -40463,7 +40901,7 @@ public interface I2
 
 public interface I4
 {
-    event System.Action M1;
+    " + modifiers + @"event System.Action M1;
 }
 
 public interface I5 : I4
@@ -40472,9 +40910,28 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
         I2.Test(i2);
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+        I2.Test<i2>();
+";
+            }
+
+            source1 +=
+@"
         i4.M1 += null;
         i4.M1 -= null;
     }
@@ -40484,7 +40941,7 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    event System.Action I2.M1
+    " + implModifiers + @"event System.Action I2.M1
     {
         add 
         {
@@ -40492,7 +40949,7 @@ public interface I1 : I2, I5
         }
         remove => System.Console.WriteLine(""I2.M1.remove"");
     }
-    event System.Action I4.M1 
+    " + implModifiers + @"event System.Action I4.M1 
     {
         add 
         {
@@ -40511,90 +40968,136 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         TestHelper.Test(new Test1(), new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        TestHelper.Test<Test1, Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            validateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+                validateEventImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateEventImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateEventImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+                validateEventImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateEventImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateEventImplementationInDerived_01);
+            }
+
+            void validateEventImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateEventImplementationInDerived_01(m, isStatic);
             }
         }
 
-        [Fact]
-        public void EventImplementationInDerived_16()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_16(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    protected internal event System.Action M1;
+    " + modifiers + @"protected internal event System.Action M1;
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1 += null;
         i2.M1 -= null;
     }
@@ -40602,7 +41105,7 @@ public interface I2
 
 public interface I4
 {
-    event System.Action M1;
+    " + modifiers + @"event System.Action M1;
 }
 
 public interface I5 : I4
@@ -40611,9 +41114,28 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
         I2.Test(i2);
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+        I2.Test<i2>();
+";
+            }
+
+            source1 +=
+@"
         i4.M1 += null;
         i4.M1 -= null;
     }
@@ -40623,7 +41145,7 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    event System.Action I2.M1
+    " + implModifiers + @"event System.Action I2.M1
     {
         add 
         {
@@ -40631,7 +41153,7 @@ public interface I1 : I2, I5
         }
         remove => System.Console.WriteLine(""I2.M1.remove"");
     }
-    event System.Action I4.M1 
+    " + implModifiers + @"event System.Action I4.M1 
     {
         add 
         {
@@ -40650,90 +41172,136 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         TestHelper.Test(new Test1(), new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        TestHelper.Test<Test1, Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            validateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+                validateEventImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateEventImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateEventImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+                validateEventImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateEventImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateEventImplementationInDerived_01);
+            }
+
+            void validateEventImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateEventImplementationInDerived_01(m, isStatic);
             }
         }
 
-        [Fact]
-        public void EventImplementationInDerived_17()
+        [Theory]
+        [CombinatorialData]
+        public void EventImplementationInDerived_17(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    private protected event System.Action M1;
+    " + modifiers + @"private protected event System.Action M1;
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         i2.M1 += null;
         i2.M1 -= null;
     }
@@ -40741,7 +41309,7 @@ public interface I2
 
 public interface I4
 {
-    event System.Action M1;
+    " + modifiers + @"event System.Action M1;
 }
 
 public interface I5 : I4
@@ -40750,9 +41318,28 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
         I2.Test(i2);
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+        I2.Test<i2>();
+";
+            }
+
+            source1 +=
+@"
         i4.M1 += null;
         i4.M1 -= null;
     }
@@ -40762,7 +41349,7 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    event System.Action I2.M1
+    " + implModifiers + @"event System.Action I2.M1
     {
         add 
         {
@@ -40770,7 +41357,7 @@ public interface I1 : I2, I5
         }
         remove => System.Console.WriteLine(""I2.M1.remove"");
     }
-    event System.Action I4.M1 
+    " + implModifiers + @"event System.Action I4.M1 
     {
         add 
         {
@@ -40789,72 +41376,96 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         TestHelper.Test(new Test1(), new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        TestHelper.Test<Test1, Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+            validateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidateEventImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validateEventImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+                validateEventImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidateEventImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validateEventImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+                validateEventImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics(
                     // (4,28): error CS0122: 'I2.M1' is inaccessible due to its protection level
                     //     event System.Action I2.M1
-                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28 + implModifiers.Length)
                     );
+            }
+
+            void validateEventImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidateEventImplementationInDerived_01(m, isStatic);
             }
         }
 
@@ -55850,19 +56461,23 @@ public interface I2 : I1
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_001()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_001(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static abstract " : "abstract ";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"event System.Action I1.P1;
 }
 ";
 
@@ -55872,43 +56487,43 @@ class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_001(source1, source2,
+            ValidateEventReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        private static void ValidateEventReAbstraction_001(string source1, string source2, params DiagnosticDescription[] expected)
+        private static void ValidateEventReAbstraction_001(string source1, string source2, bool isStatic, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
 
@@ -55925,40 +56540,44 @@ class Test1 : I2
             }
         }
 
-        private static void ValidateReabstraction(EventSymbol reabstracting)
+        private static void ValidateReabstraction(EventSymbol reabstracting, bool isStatic = false)
         {
             Assert.True(reabstracting.IsAbstract);
             Assert.False(reabstracting.IsVirtual);
             Assert.True(reabstracting.IsSealed);
-            Assert.False(reabstracting.IsStatic);
+            Assert.Equal(isStatic, reabstracting.IsStatic);
             Assert.False(reabstracting.IsExtern);
             Assert.False(reabstracting.IsOverride);
             Assert.Equal(Accessibility.Private, reabstracting.DeclaredAccessibility);
 
             if (reabstracting.AddMethod is object)
             {
-                ValidateReabstraction(reabstracting.AddMethod);
+                ValidateReabstraction(reabstracting.AddMethod, isStatic);
             }
 
             if (reabstracting.RemoveMethod is object)
             {
-                ValidateReabstraction(reabstracting.RemoveMethod);
+                ValidateReabstraction(reabstracting.RemoveMethod, isStatic);
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_002()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_002(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static abstract " : "abstract ";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"event System.Action I1.P1;
 }
 ";
 
@@ -55968,27 +56587,31 @@ class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_001(source1, source2,
+            ValidateEventReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void EventReAbstraction_003()
+        public void EventReAbstraction_003(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 ";
 
@@ -55996,14 +56619,37 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 += null;
         i1.P1 -= null;
     }
 
-    event System.Action I1.P1
+    " + implModifiers + @"event System.Action I1.P1
     {
         add
         {
@@ -56013,41 +56659,41 @@ class Test1 : I2
     }
 }
 ";
-            ValidateEventReAbstraction_003(source1, source2,
+            ValidateEventReAbstraction_003(source1, source2, isStatic,
 @"
 Test1.add_P1
 Test1.remove_P1
 ");
         }
 
-        private void ValidateEventReAbstraction_003(string source1, string source2, string expected)
+        private void ValidateEventReAbstraction_003(string source1, string source2, bool isStatic, string expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -56071,20 +56717,24 @@ Test1.remove_P1
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void EventReAbstraction_004()
+        public void EventReAbstraction_004(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 ";
 
@@ -56092,14 +56742,37 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 += null;
         i1.P1 -= null;
     }
 
-    event System.Action I1.P1
+    " + implModifiers + @"event System.Action I1.P1
     {
         add
         {
@@ -56109,26 +56782,30 @@ class Test1 : I2
     }
 }
 ";
-            ValidateEventReAbstraction_003(source1, source2,
+            ValidateEventReAbstraction_003(source1, source2, isStatic,
 @"
 Test1.add_P1
 Test1.remove_P1
 ");
         }
 
-        [Fact]
-        public void EventReAbstraction_005()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_005(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I2 {}
@@ -56150,21 +56827,21 @@ class Test1 : I3
         private static void ValidateEventReAbstraction_005(string source1, string source2, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -56188,19 +56865,23 @@ class Test1 : I3
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_006()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_006(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I2 {}
@@ -56219,25 +56900,29 @@ class Test1 : I3
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void EventReAbstraction_007()
+        public void EventReAbstraction_007(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I2
 {
-    event System.Action I1.P1
+    " + implModifiers + @"event System.Action I1.P1
     {
         add
         {
@@ -56252,49 +56937,72 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 += null;
         i1.P1 -= null;
     }
 }
 ";
-            ValidateEventReAbstraction_007(source1, source2,
+            ValidateEventReAbstraction_007(source1, source2, isStatic,
 @"
 I3.add_P1
 I3.remove_P1
 ");
         }
 
-        private void ValidateEventReAbstraction_007(string source1, string source2, string expected)
+        private void ValidateEventReAbstraction_007(string source1, string source2, bool isStatic, string expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -56317,25 +57025,29 @@ I3.remove_P1
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void EventReAbstraction_008()
+        public void EventReAbstraction_008(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I2
 {
-    event System.Action I1.P1
+    " + implModifiers + @"event System.Action I1.P1
     {
         add
         {
@@ -56350,39 +57062,66 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 += null;
         i1.P1 -= null;
     }
 }
 ";
-            ValidateEventReAbstraction_007(source1, source2,
+            ValidateEventReAbstraction_007(source1, source2, isStatic,
 @"
 I3.add_P1
 I3.remove_P1
 ");
         }
 
-        [Fact]
-        public void EventReAbstraction_009()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_009(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 ";
 
@@ -56402,21 +57141,21 @@ class Test1 : I2, I3
         private static void ValidateEventReAbstraction_009(string source1, string source2, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -56432,24 +57171,28 @@ class Test1 : I2, I3
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_010()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_010(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    event System.Action I1.P1 { add => throw null; remove => throw null; }
+    " + implModifiers + @"event System.Action I1.P1 { add => throw null; remove => throw null; }
 }
 
 public interface I3 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 ";
 
@@ -56466,24 +57209,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_011()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_011(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I1
 {
-    event System.Action I1.P1 { add => throw null; remove => throw null; }
+    " + implModifiers + @"event System.Action I1.P1 { add => throw null; remove => throw null; }
 }
 ";
 
@@ -56500,24 +57247,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_012()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_012(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I4 : I2, I3 {}
@@ -56539,21 +57290,21 @@ class Test1 : I4
         private static void ValidateEventReAbstraction_012(string source1, string source2, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -56576,30 +57327,34 @@ class Test1 : I4
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void EventReAbstraction_013()
+        public void EventReAbstraction_013(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 { add => throw null; remove => throw null; }
+    " + modifiers + @"event System.Action P1 { add => throw null; remove => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I3 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 public interface I4 : I2, I3
 {
-    event System.Action I1.P1
+    " + implModifiers + @"event System.Action I1.P1
     {
         add
         {
@@ -56614,49 +57369,72 @@ public interface I4 : I2, I3
 @"
 class Test1 : I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 += null;
         i1.P1 -= null;
     }
 }
 ";
-            ValidateEventReAbstraction_013(source1, source2,
+            ValidateEventReAbstraction_013(source1, source2, isStatic,
 @"
 I4.add_P1
 I4.remove_P1
 ");
         }
 
-        private void ValidateEventReAbstraction_013(string source1, string source2, string expected)
+        private void ValidateEventReAbstraction_013(string source1, string source2, bool isStatic, string expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -56679,19 +57457,23 @@ I4.remove_P1
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_014()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_014(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
     {
         add
         {
@@ -56708,7 +57490,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
@@ -56720,14 +57502,19 @@ class Test1 : I2
 
         private static void ValidateEventReAbstraction_014(string source1, params DiagnosticDescription[] expected)
         {
+            ValidateEventReAbstraction_014(source1, isStatic: false, expected);
+        }
+
+        private static void ValidateEventReAbstraction_014(string source1, bool isStatic, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -56735,7 +57522,7 @@ class Test1 : I2
                 var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
                 var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
@@ -56772,19 +57559,23 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_015()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_015(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
     {
         add => throw null;
         remove => throw null;
@@ -56795,7 +57586,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
@@ -56805,77 +57596,89 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_016()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_016(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    extern abstract event System.Action I1.P1;
+    " + implModifiers + @"extern abstract event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,44): error CS0106: The modifier 'extern' is not valid for this item
                 //     extern abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("extern").WithLocation(9, 44),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("extern").WithLocation(9, 44 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_017()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_017(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract public event System.Action I1.P1;
+    " + implModifiers + @"abstract public event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,44): error CS0106: The modifier 'public' is not valid for this item
                 //     abstract public event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 44),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 44 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_018()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_018(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public class C2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 ";
             ValidateEventReAbstraction_018(source1,
@@ -56887,18 +57690,18 @@ public class C2 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.add").WithLocation(7, 19),
                 // (9,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P1").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P1").WithLocation(9, 37 + implModifiers.Length),
                 // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37 + implModifiers.Length)
                 );
         }
 
         private static void ValidateEventReAbstraction_018(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -56947,19 +57750,23 @@ public class C2 : I1
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_019()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_019(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public class C2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
     {
         add => throw null;
         remove => throw null;
@@ -56969,23 +57776,27 @@ public class C2 : I1
             ValidateEventReAbstraction_018(source1,
                 // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action I1.P1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_020()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_020(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public struct C2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 ";
             ValidateEventReAbstraction_018(source1,
@@ -56997,26 +57808,30 @@ public struct C2 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C2", "I1.P1.add").WithLocation(7, 20),
                 // (9,37): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P1").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, "P1").WithLocation(9, 37 + implModifiers.Length),
                 // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_021()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_021(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public struct C2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
     {
         add => throw null;
         remove => throw null;
@@ -57026,258 +57841,294 @@ public struct C2 : I1
             ValidateEventReAbstraction_018(source1,
                 // (9,37): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract event System.Action I1.P1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 37 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_022()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_022(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 { add => throw null; }
+    " + implModifiers + @"abstract event System.Action I1.P1 { add => throw null; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_023()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_023(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 { add; }
+    " + implModifiers + @"abstract event System.Action I1.P1 { add; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_024()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_024(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 { remove => throw null; }
+    " + implModifiers + @"abstract event System.Action I1.P1 { remove => throw null; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_025()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_025(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 { remove; }
+    " + implModifiers + @"abstract event System.Action I1.P1 { remove; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { remove; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_026()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_026(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 { add; remove; }
+    " + implModifiers + @"abstract event System.Action I1.P1 { add; remove; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add; remove; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_027()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_027(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 {}
+    " + implModifiers + @"abstract event System.Action I1.P1 {}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 {}
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_028()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_028(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1 { add => throw null; remove => throw null; }
+    " + implModifiers + @"abstract event System.Action I1.P1 { add => throw null; remove => throw null; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,40): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     abstract event System.Action I1.P1 { add => throw null; remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(9, 40 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_029()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void EventReAbstraction_029(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 {add => throw null;}
+    " + modifiers + @"event System.Action P1 {add => throw null;}
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {add => throw null;}
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25 + modifiers.Length),
                 // (9,37): error CS0550: 'I2.I1.P1.remove' adds an accessor not found in interface member 'I1.P1'
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "P1").WithArguments("I2.I1.P1.remove", "I1.P1").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "P1").WithArguments("I2.I1.P1.remove", "I1.P1").WithLocation(9, 37 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_030()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_030(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 {add => throw null;}
+    " + modifiers + @"event System.Action P1 {add => throw null;}
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
     {
         add {}
         remove {}
@@ -57288,10 +58139,10 @@ class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {add => throw null;}
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25 + modifiers.Length),
                 // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
@@ -57304,51 +58155,59 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_031()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_031(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 {remove => throw null;}
+    " + modifiers + @"event System.Action P1 {remove => throw null;}
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {remove => throw null;}
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25 + modifiers.Length),
                 // (9,37): error CS0550: 'I2.I1.P1.add' adds an accessor not found in interface member 'I1.P1'
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "P1").WithArguments("I2.I1.P1.add", "I1.P1").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "P1").WithArguments("I2.I1.P1.add", "I1.P1").WithLocation(9, 37 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_032()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_032(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1 {remove => throw null;}
+    " + modifiers + @"event System.Action P1 {remove => throw null;}
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
     {
         add {}
         remove {}
@@ -57359,10 +58218,10 @@ class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (4,25): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     event System.Action P1 {remove => throw null;}
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25 + modifiers.Length),
                 // (10,5): error CS8712: 'I2.I1.P1': abstract event cannot use event accessor syntax
                 //     {
                 Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("I2.I1.P1").WithLocation(10, 5),
@@ -57375,56 +58234,60 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_033()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_033(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    internal event System.Action P1 {add => throw null; remove => throw null;}
+    " + modifiers + @"internal event System.Action P1 {add => throw null; remove => throw null;}
 }
 ";
             var source2 =
 @"
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_033(source1, source2,
+            ValidateEventReAbstraction_033(source1, source2, isStatic,
                 // (4,37): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 37),
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 37 + implModifiers.Length),
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
                 );
         }
 
-        private static void ValidateEventReAbstraction_033(string source1, string source2, params DiagnosticDescription[] expected)
+        private static void ValidateEventReAbstraction_033(string source1, string source2, bool isStatic, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular,
+                                                     parseOptions: TestOptions.RegularPreview,
                                                      references: new[] { reference },
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
 
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -57432,7 +58295,7 @@ class Test1 : I2
                 var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
                 var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
@@ -57447,9 +58310,12 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_034()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_034(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
@@ -57458,36 +58324,36 @@ public interface I1
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_034(source1,
+            ValidateEventReAbstraction_034(source1, isStatic,
                 // (8,37): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 37)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 37 + implModifiers.Length)
                 );
         }
 
-        private static void ValidateEventReAbstraction_034(string source1, params DiagnosticDescription[] expected)
+        private static void ValidateEventReAbstraction_034(string source1, bool isStatic, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2p1 = i2.GetMembers().OfType<EventSymbol>().Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 Assert.Empty(i2p1.ExplicitInterfaceImplementations);
                 Assert.Empty(i2p1.AddMethod.ExplicitInterfaceImplementations);
@@ -57495,56 +58361,63 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void EventReAbstraction_035()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_035(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1;
+    " + implModifiers + @"abstract event System.Action I1.P1;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_034(source1,
+            ValidateEventReAbstraction_034(source1, isStatic,
                 // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 // public interface I2 : I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
                 // (4,34): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 34),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 34 + implModifiers.Length),
                 // (4,34): error CS0538: 'I1' in explicit interface declaration is not an interface
                 //     abstract event System.Action I1.P1;
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 34 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void EventReAbstraction_036()
+        [Theory]
+        [CombinatorialData]
+        public void EventReAbstraction_036(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    event System.Action P1;
+    " + modifiers + @"event System.Action P1;
 }
 
 public interface I2 : I1
 {
-    abstract event System.Action I1.P1
+    " + implModifiers + @"abstract event System.Action I1.P1
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidateEventReAbstraction_014(source1,
+            ValidateEventReAbstraction_014(source1, isStatic,
                 // (9,36): error CS0071: An explicit interface implementation of an event must use event accessor syntax
                 //     abstract event System.Action I1.P1
-                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 36),
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(9, 36 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -57583,6 +58456,47 @@ public interface I2 : I1
                 // (9,37): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract event System.Action I1.P1;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P1").WithLocation(9, 37)
+                );
+        }
+
+        [Fact]
+        public void EventReAbstraction_Static_037()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract event System.Action P1;
+}
+
+public interface I2 : I1
+{
+    static abstract event System.Action I1.P1;
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (4,41): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract event System.Action P1;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 41),
+                // (9,44): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "10.0", "preview").WithLocation(9, 44)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net50);
+            compilation2.VerifyDiagnostics(
+                // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract event System.Action P1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P1").WithLocation(4, 41),
+                // (9,44): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract event System.Action I1.P1;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P1").WithLocation(9, 44)
                 );
         }
 
