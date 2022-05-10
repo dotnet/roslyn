@@ -111,8 +111,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var type = assembly.GetType("Microsoft.VisualStudio.Language.Intellisense.Implementation.ForegroundThreadAffinitizedObject", throwOnError: false);
                 if (type != null)
                 {
-                    type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, thread);
-                    type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, taskScheduler);
+                    try
+                    {
+                        type.GetField("foregroundThread", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, thread);
+                        type.GetField("ForegroundTaskScheduler", BindingFlags.Static | BindingFlags.NonPublic)!.SetValue(null, taskScheduler);
+                    }
+                    catch (FieldAccessException)
+                    {
+                        // .NET runtime does not allow overwriting static readonly fields via reflection
+                        // https://github.com/dotnet/runtime/issues/11571
+                    }
 
                     break;
                 }
