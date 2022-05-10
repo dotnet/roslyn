@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -42,10 +39,6 @@ namespace Microsoft.CodeAnalysis.Options
                 value = storageLocation.GetEditorConfigStringValue(typedValue, _optionSet);
                 return true;
             }
-
-            // no way to enumerate OptionSet
-            public override IEnumerable<string> Keys
-                => throw new NotImplementedException();
         }
     }
 }

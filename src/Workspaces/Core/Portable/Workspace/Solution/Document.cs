@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
 
-        internal async Task<AnalyzerConfigData?> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
         {
             var projectFilePath = Project.FilePath;
             // We need to work out path to this document. Documents may not have a "real" file path if they're something created
@@ -535,12 +535,15 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (effectiveFilePath == null)
+            if (effectiveFilePath != null)
             {
-                return null;
+                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
             }
-
-            return await Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken).ConfigureAwait(false);
+            else
+            {
+                // Really no idea where this is going, so bail
+                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
+            }
         }
     }
 }
