@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -54,10 +53,10 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public bool RazorUseTabs
-            => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
+            => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
 
         public int RazorTabSize
-            => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
+            => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
 
         /// TODO: remove. https://github.com/dotnet/roslyn/issues/57283
         public bool InlineHintsOptionsDisplayAllOverride
