@@ -316,24 +316,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            try
+            for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
             {
-                for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
-                {
-                    currentClassifiedSpanIndex = ComputeNextToken(
-                        lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
-                        currentClassifiedSpanIndex, tokenTypesToIndex,
-                        out var deltaLine, out var startCharacterDelta, out var tokenLength,
-                        out var tokenType, out var tokenModifiers);
+                currentClassifiedSpanIndex = ComputeNextToken(
+                    lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
+                    currentClassifiedSpanIndex, tokenTypesToIndex,
+                    out var deltaLine, out var startCharacterDelta, out var tokenLength,
+                    out var tokenType, out var tokenModifiers);
 
-                    data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
-                }
+                data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
             }
-            catch (Exception)
-            {
-
-            }
-
 
             return data.ToArray();
         }
