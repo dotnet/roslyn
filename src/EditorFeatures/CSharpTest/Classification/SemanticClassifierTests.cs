@@ -3571,14 +3571,10 @@ testHost, Namespace("System"),
 Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
-Regex.Text(@"
-            "),
 Regex.Anchor("$"),
 Regex.OtherEscape("\\"),
 Regex.OtherEscape("a"),
-Regex.Comment("(?#comment)"),
-Regex.Text(@"
-            "));
+Regex.Comment("(?#comment)"));
         }
 
         [Theory]
@@ -3602,14 +3598,10 @@ testHost, Namespace("System"),
 Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
-Regex.Text(@"
-            "),
 Regex.Anchor("$"),
 Regex.OtherEscape("\\"),
 Regex.OtherEscape("a"),
-Regex.Comment("(?#comment)"),
-Regex.Text(@"
-            "));
+Regex.Comment("(?#comment)"));
         }
 
         [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
