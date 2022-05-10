@@ -35873,20 +35873,24 @@ public partial interface I
             Assert.Equal(Accessibility.Private, method.DeclaredAccessibility);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
-        public void PropertyImplementationInDerived_01()
+        public void PropertyImplementationInDerived_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get;} 
+    " + modifiers + @"int M1 {get;} 
 }
 
 public interface I4
 {
-    int M1 {set;} 
+    " + modifiers + @"int M1 {set;} 
 }
 
 public interface I5 : I4
@@ -35895,7 +35899,7 @@ public interface I5 : I4
 
 public interface I1 : I2, I5
 {
-    int I2.M1
+    " + implModifiers + @"int I2.M1
     {
         get
         {
@@ -35903,7 +35907,7 @@ public interface I1 : I2, I5
             return 1;
         }
     }
-    int I4.M1 
+    " + implModifiers + @"int I4.M1 
     {
         set => System.Console.WriteLine(""I4.M1"");
     }
@@ -35917,78 +35921,106 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I2 i2 = new Test1();
-        _ = i2.M1;
         I4 i4 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source2 +=
+@"
+        _ = i2.M1;
         i4.M1 = 0;
     }
 }
 ";
 
-            ValidatePropertyImplementationInDerived_01(source1, source2);
+            ValidatePropertyImplementationInDerived_01(source1, source2, isStatic);
         }
 
-        private void ValidatePropertyImplementationInDerived_01(string source1, string source2)
+        private void ValidatePropertyImplementationInDerived_01(string source1, string source2, bool isStatic = false)
         {
             foreach (var options in new[] { TestOptions.DebugExe, TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All) })
             {
                 var compilation1 = CreateCompilation(source1 + source2, options: options,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyDiagnostics();
 
-                ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+                validatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
                 CompileAndVerify(compilation1,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validatePropertyImplementationInDerived_01);
 
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: options,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+                validatePropertyImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validatePropertyImplementationInDerived_01);
 
                 var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: options,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-                ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
+                validatePropertyImplementationInDerived_01(compilation3.SourceModule);
 
                 compilation3.VerifyDiagnostics();
                 CompileAndVerify(compilation3,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validatePropertyImplementationInDerived_01);
+            }
+
+            void validatePropertyImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidatePropertyImplementationInDerived_01(m, isStatic: isStatic);
             }
         }
 
-        private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m)
+        private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m, bool isStatic)
         {
-            ValidatePropertyImplementationInDerived_01(m, i4M1IsAbstract: false);
+            ValidatePropertyImplementationInDerived_01(m, i4M1IsAbstract: false, isStatic: isStatic);
         }
 
-        private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract)
+        private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract, bool isStatic)
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
@@ -36003,8 +36035,8 @@ I4.M1
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
 
-            ValidateExplicitImplementation(i1i2m1);
-            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract);
+            ValidateExplicitImplementation(i1i2m1, isStatic: isStatic);
+            ValidateExplicitImplementation(i1i4m1, i4M1IsAbstract, isStatic: isStatic);
 
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
             VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i4m1);
@@ -36062,24 +36094,24 @@ I4.M1
             }
         }
 
-        private static void ValidateExplicitImplementation(PropertySymbol m1, bool isAbstract = false)
+        private static void ValidateExplicitImplementation(PropertySymbol m1, bool isAbstract = false, bool isStatic = false)
         {
             Assert.Equal(isAbstract, m1.IsAbstract);
             Assert.False(m1.IsVirtual);
             Assert.Equal(isAbstract, m1.IsSealed);
-            Assert.False(m1.IsStatic);
+            Assert.Equal(isStatic, m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
-            ValidateAccessor(m1.GetMethod, isAbstract);
-            ValidateAccessor(m1.SetMethod, isAbstract);
+            ValidateAccessor(m1.GetMethod, isAbstract, isStatic);
+            ValidateAccessor(m1.SetMethod, isAbstract, isStatic);
 
-            static void ValidateAccessor(MethodSymbol accessor, bool isAbstract)
+            static void ValidateAccessor(MethodSymbol accessor, bool isAbstract, bool isStatic)
             {
                 if ((object)accessor != null)
                 {
-                    ValidateExplicitImplementation(accessor, isAbstract);
+                    ValidateExplicitImplementation(accessor, isAbstract, isStatic);
                 }
             }
         }
@@ -36126,7 +36158,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_02(source1,
+            ValidatePropertyImplementationInDerived_02(source1, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (14,18): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -36148,15 +36180,82 @@ class Test1 : I1
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_02(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        [Fact]
+        public void PropertyImplementationInDerived_Static_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    static abstract int M1 {get;} 
+}
+
+public interface I4
+{
+    static abstract int M1 {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    static int I2.M1 => Getter();
+
+    static private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+
+    static int I4.M1 
+    {
+        set 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_02(source1, isStatic: true,
+                new DiagnosticDescription[]
+                {
+                // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int M1 {get;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 25),
+                // (9,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int M1 {set;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(9, 25),
+                // (14,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static int I2.M1 => Getter();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(14, 19),
+                // (22,19): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static int I4.M1 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(22, 19)
+                },
+                // (6,15): error CS8706: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15),
+                // (6,15): error CS8706: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "static abstract members in interfaces", "10.0", "preview").WithLocation(6, 15)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_02(string source1, bool isStatic, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
-            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule, isStatic: isStatic);
 
             var source2 = @"
 public interface I3 : I1
@@ -36168,13 +36267,13 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected2);
 
-            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule, isStatic: isStatic);
         }
 
         [Fact]
@@ -36224,7 +36323,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_03(source1,
+            ValidatePropertyImplementationInDerived_03(source1, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
@@ -36249,15 +36348,14 @@ class Test1 : I1
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_03(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        private void ValidatePropertyImplementationInDerived_03(string source1, bool isStatic, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
-            Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             compilation1.VerifyDiagnostics(expected1);
 
-            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule, isStatic);
 
             var source2 = @"
 public interface I3 : I1
@@ -36269,11 +36367,88 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular);
-            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 parseOptions: TestOptions.RegularPreview);
 
             compilation2.VerifyDiagnostics(expected2);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_Static_03()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    static abstract int M1 {get; set;} 
+}
+
+public interface I4
+{
+    static abstract int M1 {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    static int I2.M1 
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+
+    static int I4.M1 
+    {
+        set 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_03(source1, isStatic: true,
+                new DiagnosticDescription[]
+                {
+                // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int M1 {get; set;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 29),
+                // (4,34): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int M1 {get; set;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 34),
+                // (9,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int M1 {set;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(9, 29),
+                // (14,19): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static int I2.M1 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(14, 19),
+                // (27,19): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static int I4.M1 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(27, 19)
+                },
+                // (6,15): error CS8929: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8929: 'I1.I2.M1.set' cannot implement interface member 'I2.M1.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I2.M1.set", "I2.M1.set", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8929: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1").WithLocation(6, 15)
+                );
         }
 
         [Fact]
@@ -36305,7 +36480,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic: false,
                 // (14,16): error CS0501: 'I1.I2.M1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     int I2.M1 {get;} 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.I2.M1.get").WithLocation(14, 16),
@@ -36315,59 +36490,99 @@ class Test1 : I1
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_04(string source1, params DiagnosticDescription[] expected)
+        private void ValidatePropertyImplementationInDerived_04(string source1, bool isStatic, params DiagnosticDescription[] expected)
         {
-            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: false, expected);
+            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: false, isStatic, expected);
         }
 
-        private void ValidatePropertyImplementationInDerived_04(string source1, bool i4M1IsAbstract, params DiagnosticDescription[] expected)
+        private void ValidatePropertyImplementationInDerived_04(string source1, bool i4M1IsAbstract, bool isStatic, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
-            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract);
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule, i4M1IsAbstract, isStatic: isStatic);
         }
 
         [Fact]
-        public void PropertyImplementationInDerived_05()
+        public void PropertyImplementationInDerived_Static_04()
         {
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get;} 
+    static abstract int M1 {get;} 
 }
 
 public interface I4
 {
-    int M1 {set;} 
+    static abstract int M1 {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    static int I2.M1 {get;} 
+    static int I4.M1 {set;} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1, isStatic: true,
+                // (15,23): error CS8051: Auto-implemented properties must have get accessors.
+                //     static int I4.M1 {set;} 
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("I1.I4.M1.set").WithLocation(15, 23)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_05(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
+            var source1 =
+@"
+public interface I2
+{
+    " + modifiers + @"int M1 {get;} 
+}
+
+public interface I4
+{
+    " + modifiers + @"int M1 {set;} 
 }
 
 public interface I1
 {
-    int I2.M1 {get => throw null;} 
-    int I4.M1 {set => throw null;} 
+    " + implModifiers + @"int I2.M1 {get => throw null;} 
+    " + implModifiers + @"int I4.M1 {set => throw null;} 
 }
 ";
 
             ValidatePropertyImplementationInDerived_05(source1,
                 // (14,9): error CS0540: 'I1.I2.M1': containing type does not implement interface 'I2'
                 //     int I2.M1 {get => throw null;} 
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1", "I2").WithLocation(14, 9),
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1", "I2").WithLocation(14, 9 + implModifiers.Length),
                 // (15,9): error CS0540: 'I1.I4.M1': containing type does not implement interface 'I4'
                 //     int I4.M1 {set => throw null;} 
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.M1", "I4").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.M1", "I4").WithLocation(15, 9 + implModifiers.Length)
                 );
         }
 
         private void ValidatePropertyImplementationInDerived_05(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
         }
@@ -36439,28 +36654,98 @@ class Test1 : I1
         }
 
         [Fact]
-        public void PropertyImplementationInDerived_07()
+        public void PropertyImplementationInDerived_Static_06()
         {
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get; set;} 
+    static abstract int M1 {get; set;} 
 }
 
 public interface I4
 {
-    int M1 {get; set;} 
+    static abstract int M1 {get; set;} 
 }
 
 public interface I1 : I2, I4
 {
-    private sealed int I2.M1 
+    public int I2.M1 
+    {
+        internal get => throw null;
+        set => throw null;
+    }
+    internal static virtual int I4.M1
+    {
+        public get => throw null;
+        set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+
+            compilation1.VerifyDiagnostics(
+                // (14,19): error CS0106: The modifier 'public' is not valid for this item
+                //     public int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 19),
+                // (14,19): error CS0539: 'I1.M1' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     public int I2.M1 
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "M1").WithArguments("I1.M1").WithLocation(14, 19),
+                // (16,18): error CS0106: The modifier 'internal' is not valid for this item
+                //         internal get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("internal").WithLocation(16, 18),
+                // (19,36): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal static virtual int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(19, 36),
+                // (19,36): error CS0106: The modifier 'virtual' is not valid for this item
+                //     internal static virtual int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 36),
+                // (21,16): error CS0106: The modifier 'public' is not valid for this item
+                //         public get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(21, 16),
+                // (30,15): error CS0535: 'Test1' does not implement interface member 'I2.M1'
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I2.M1").WithLocation(30, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_07(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
+            var source1 =
+@"
+public interface I2
+{
+    " + modifiers + @"int M1 {get; set;} 
+}
+
+public interface I4
+{
+    " + modifiers + @"int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    " + implModifiers + @"private sealed int I2.M1 
     {
         private get => throw null;
         set => throw null;
     }
-    protected abstract int I4.M1
+    " + implModifiers + @"protected abstract int I4.M1
     {
         get => throw null;
         protected set => throw null;
@@ -36475,19 +36760,19 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: true,
+            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: true, isStatic: isStatic,
                 // (14,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     private sealed int I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 27),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 27 + implModifiers.Length),
                 // (14,27): error CS0106: The modifier 'private' is not valid for this item
                 //     private sealed int I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 27),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 27 + implModifiers.Length),
                 // (16,17): error CS0106: The modifier 'private' is not valid for this item
                 //         private get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 17),
                 // (19,31): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected abstract int I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 31),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 31 + implModifiers.Length),
                 // (21,9): error CS0500: 'I1.I4.M1.get' cannot declare a body because it is marked abstract
                 //         get => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.I4.M1.get").WithLocation(21, 9),
@@ -36503,29 +36788,33 @@ class Test1 : I1
                 );
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_08()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_08(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I4
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I1 : I2, I4
 {
-    private protected int I2.M1 
+    " + implModifiers + @"private protected int I2.M1 
     {
         private protected get => throw null;
         set => throw null;
     }
-    internal protected override int I4.M1 
+    " + implModifiers + @"internal protected override int I4.M1 
     {
         get => throw null;
         internal protected set => throw null;
@@ -36540,19 +36829,19 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic: isStatic,
                 // (14,30): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected int I2.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(14, 30),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(14, 30 + implModifiers.Length),
                 // (16,27): error CS0106: The modifier 'private protected' is not valid for this item
                 //         private protected get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private protected").WithLocation(16, 27),
                 // (19,40): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     internal protected override int I4.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 40),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 40 + implModifiers.Length),
                 // (19,40): error CS0106: The modifier 'override' is not valid for this item
                 //     internal protected override int I4.M1 
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(19, 40),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(19, 40 + implModifiers.Length),
                 // (22,28): error CS0106: The modifier 'protected internal' is not valid for this item
                 //         internal protected set => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected internal").WithLocation(22, 28)
@@ -36603,7 +36892,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_09(source1, source2,
+            ValidatePropertyImplementationInDerived_09(source1, source2, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -36634,13 +36923,13 @@ class Test1 : I1
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_09(string source1, string source2,
+        private void ValidatePropertyImplementationInDerived_09(string source1, string source2, bool isStatic,
             DiagnosticDescription[] expected1, DiagnosticDescription[] expected2,
             DiagnosticDescription[] expected3, params DiagnosticDescription[] expected4)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
@@ -36658,7 +36947,7 @@ class Test1 : I1
                 Assert.True(i1.IsAbstract);
                 Assert.True(i1.IsMetadataAbstract);
 
-                ValidateExplicitExternImplementation(i1i2m1);
+                ValidateExplicitExternImplementation(i1i2m1, isStatic: isStatic);
 
                 VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
                 VerifyFindImplementationForInterfaceMemberSame(i1i2m1, test1, i2m1);
@@ -36671,39 +36960,38 @@ class Test1 : I1
                 VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected2);
 
             Validate1(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
-                                                 parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
-            Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             compilation3.VerifyDiagnostics(expected3);
 
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected4);
 
             Validate1(compilation4.SourceModule);
         }
 
-        private static void ValidateExplicitExternImplementation(PropertySymbol m1)
+        private static void ValidateExplicitExternImplementation(PropertySymbol m1, bool isStatic)
         {
             Assert.False(m1.IsAbstract);
             Assert.False(m1.IsVirtual);
             Assert.False(m1.IsSealed);
-            Assert.False(m1.IsStatic);
+            Assert.Equal(isStatic, m1.IsStatic);
             Assert.NotEqual(m1.OriginalDefinition is PEPropertySymbol, m1.IsExtern);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
@@ -36715,9 +37003,90 @@ class Test1 : I1
             {
                 if ((object)accessor != null)
                 {
-                    ValidateExplicitExternImplementation(accessor);
+                    ValidateExplicitExternImplementation(accessor, isStatic: isStatic);
                 }
             }
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_Static_09()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    static abstract int M1 {get;} 
+}
+
+public interface I1 : I2
+{
+    static extern int I2.M1 {get;} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var source2 =
+@"
+public interface I2
+{
+    static abstract int M1 {set;} 
+}
+
+public interface I1 : I2
+{
+    static extern int I2.M1
+    { set {}} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_09(source1, source2, isStatic: true,
+                new DiagnosticDescription[]
+                {
+                // (9,30): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 30)
+                },
+                new DiagnosticDescription[]
+                {
+                // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int M1 {get;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 25),
+                // (9,26): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "M1").WithArguments("static", "10.0", "preview").WithLocation(9, 26),
+                // (9,30): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 30)
+                },
+                new DiagnosticDescription[]
+                {
+                // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int M1 {get;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 29),
+                // (9,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "M1").WithLocation(9, 26),
+                // (9,30): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 30)
+                },
+                // (10,7): error CS0179: 'I1.I2.M1.set' cannot be extern and declare a body
+                //     { set {}} 
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I1.I2.M1.set").WithLocation(10, 7)
+                );
         }
 
         [Fact]
@@ -36812,19 +37181,99 @@ class Test2 : I4
         }
 
         [Fact]
-        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
-        public void PropertyImplementationInDerived_11()
+        public void PropertyImplementationInDerived_Static_10()
         {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int M1 {get;set;} 
+    static abstract int M2 {get;set;} 
+}
+
+public interface I2 : I1
+{
+    static int I1.M1
+    {
+        get => throw null;
+    }
+    static int I1.M2 
+    {
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{}
+
+public interface I3
+{
+    static abstract int M1 {get;} 
+    static abstract int M2 {set;} 
+    static abstract int M3 {get;set;} 
+    static abstract int M4 {get;set;} 
+}
+
+public interface I4 : I3
+{
+    static int I3.M1
+    {
+        get => throw null;
+        set => throw null;
+    }
+    static int I3.M2 
+    {
+        get => throw null;
+        set => throw null;
+    }
+    static int I3.M3 {get; set;}
+    static int I3.M4 {get; set;} = 0;
+}
+
+class Test2 : I4
+{}
+";
+
+            ValidatePropertyImplementationInDerived_05(source1,
+                // (10,19): error CS0551: Explicit interface implementation 'I2.I1.M1' is missing accessor 'I1.M1.set'
+                //     static int I1.M1
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M1").WithArguments("I2.I1.M1", "I1.M1.set").WithLocation(10, 19),
+                // (14,19): error CS0551: Explicit interface implementation 'I2.I1.M2' is missing accessor 'I1.M2.get'
+                //     static int I1.M2 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M2").WithArguments("I2.I1.M2", "I1.M2.get").WithLocation(14, 19),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2").WithLocation(20, 15),
+                // (36,9): error CS0550: 'I4.I3.M1.set' adds an accessor not found in interface member 'I3.M1'
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I4.I3.M1.set", "I3.M1").WithLocation(36, 9),
+                // (40,9): error CS0550: 'I4.I3.M2.get' adds an accessor not found in interface member 'I3.M2'
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I4.I3.M2.get", "I3.M2").WithLocation(40, 9)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
+        public void PropertyImplementationInDerived_11(bool isStatic)
+        {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    internal int M1 {get;} 
+    " + modifiers + @"internal int M1 {get;} 
 }
 
 public interface I4
 {
-    int M1 {get; internal set;} 
+    " + modifiers + @"int M1 {get; internal set;} 
 }
 
 public interface I5 : I4
@@ -36833,8 +37282,26 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source1 +=
+@"
         _ = i2.M1;
         i4.M1 = i4.M1;
     }
@@ -36844,14 +37311,14 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    int I2.M1 => Getter();
+    " + implModifiers + @"int I2.M1 => Getter();
 
-    private int Getter()
+    " + implModifiers + @"private int Getter()
     {
         System.Console.WriteLine(""I2.M1"");
         return 1;
     }
-    int I4.M1 
+    " + implModifiers + @"int I4.M1 
     {
         get 
         {
@@ -36867,111 +37334,139 @@ public interface I3 : I1
 }
 ";
 
-            ValidatePropertyImplementationInDerived_11(source1, source2,
+            ValidatePropertyImplementationInDerived_11(source1, source2, isStatic,
                 // (4,12): error CS0122: 'I2.M1' is inaccessible due to its protection level
                 //     int I2.M1 => Getter();
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 12),
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 12 + implModifiers.Length),
                 // (11,12): error CS0122: 'I4.M1.set' is inaccessible due to its protection level
                 //     int I4.M1 
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1.set").WithLocation(11, 12)
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1.set").WithLocation(11, 12 + implModifiers.Length)
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_11(string source1, string source2, params DiagnosticDescription[] expected)
+        private void ValidatePropertyImplementationInDerived_11(string source1, string source2, bool isStatic, params DiagnosticDescription[] expected)
         {
             var source3 =
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source3 +=
+@"
     static void Main()
     {
         TestHelper.Test(new Test1(), new Test1());
+";
+            }
+            else
+            {
+                source3 +=
+@"
+    static void Main()
+    {
+        TestHelper.Test<Test1, Test1>();
+";
+            }
+
+            source3 +=
+@"
     }
 }
 ";
 
             var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+            validatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidatePropertyImplementationInDerived_01);
+                verify: Verify(isStatic),
+                symbolValidator: validatePropertyImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+                validatePropertyImplementationInDerived_01(compilation2.SourceModule);
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                    verify: VerifyOnMonoOrCoreClr,
-                    symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    verify: Verify(isStatic),
+                    symbolValidator: validatePropertyImplementationInDerived_01);
             }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
             {
                 var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                ValidatePropertyImplementationInDerived_01(compilation5.SourceModule);
+                validatePropertyImplementationInDerived_01(compilation5.SourceModule);
 
                 compilation5.VerifyDiagnostics(expected);
 
                 if (expected.Length == 0)
                 {
                     CompileAndVerify(compilation5,
-                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                        expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                        verify: VerifyOnMonoOrCoreClr,
-                        symbolValidator: ValidatePropertyImplementationInDerived_01);
+                        verify: Verify(isStatic),
+                        symbolValidator: validatePropertyImplementationInDerived_01);
                 }
+            }
+
+            void validatePropertyImplementationInDerived_01(ModuleSymbol m)
+            {
+                ValidatePropertyImplementationInDerived_01(m, isStatic: isStatic);
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
-        public void PropertyImplementationInDerived_12()
+        public void PropertyImplementationInDerived_12(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int M1 { get => throw null; set => throw null;} 
+    " + modifiers + @"int M1 { get => throw null; set => throw null;} 
 }
 
 public interface I2 : I1
 {
-    int I1.M1
+    " + implModifiers + @"int I1.M1
     {
         get
         {
@@ -36987,7 +37482,7 @@ public interface I2 : I1
 
 public interface I3 : I1
 {
-    int I1.M1
+    " + implModifiers + @"int I1.M1
     {
         get
         {
@@ -37003,7 +37498,7 @@ public interface I3 : I1
 
 public interface I4 : I1
 {
-    int I1.M1
+    " + implModifiers + @"int I1.M1
     {
         get
         {
@@ -37019,7 +37514,7 @@ public interface I4 : I1
 
 public interface I5 : I2, I3
 {
-    int I1.M1
+    " + implModifiers + @"int I1.M1
     {
         get
         {
@@ -37046,21 +37541,44 @@ class Test6 : I1, I2, I3, I5
 
 class Test7 : I6
 {
+";
+            if (!isStatic)
+            {
+                source4 +=
+@"
     static void Main()
     {
-        I1 i1 = new Test5();
-        i1.M1 = i1.M1;
-        i1 = new Test6();
-        i1.M1 = i1.M1;
-        i1 = new Test7();
-        i1.M1 = i1.M1;
+        I1 i5 = new Test5();
+        I1 i6 = new Test6();
+        I1 i7 = new Test7();
+";
+            }
+            else
+            {
+                source4 +=
+@"
+    static void Main()
+    {
+        Test<Test5, Test6, Test7>();
+    }
+
+    static void Test<i5, i6, i7>() where i5 : I1 where i6 : I1 where i7 : I1
+    {
+";
+            }
+
+            source4 +=
+@"
+        i5.M1 = i5.M1;
+        i6.M1 = i6.M1;
+        i7.M1 = i7.M1;
     }
 }
 ";
             var source5 = @"
 class Test8 : I2, I3
 {
-    int I1.M1
+    " + implModifiers + @"int I1.M1
     {
         get
         {
@@ -37072,24 +37590,47 @@ class Test8 : I2, I3
             System.Console.WriteLine(""Test8.I1.M1.set"");
         }
     }
+";
+            if (!isStatic)
+            {
+                source5 +=
+@"
     static void Main()
     {
-        I1 i1 = new Test8();
-        i1.M1 = i1.M1;
-        i1 = new Test9();
-        i1.M1 = i1.M1;
-        i1 = new Test10();
-        i1.M1 = i1.M1;
-        i1 = new Test11();
-        i1.M1 = i1.M1;
-        i1 = new Test12();
-        i1.M1 = i1.M1;
+        I1 i8 = new Test8();
+        I1 i9 = new Test9();
+        I1 i10 = new Test10();
+        I1 i11 = new Test11();
+        I1 i12 = new Test12();
+";
+            }
+            else
+            {
+                source5 +=
+@"
+    static void Main()
+    {
+        Test<Test8, Test9, Test10, Test11, Test12>();
+    }
+
+    static void Test<i8, i9, i10, i11, i12>() where i8 : I1 where i9 : I1 where i10 : I1 where i11 : I1 where i12 : I1
+    {
+";
+            }
+
+            source5 +=
+@"
+        i8.M1 = i8.M1;
+        i9.M1 = i9.M1;
+        i10.M1 = i10.M1;
+        i11.M1 = i11.M1;
+        i12.M1 = i12.M1;
     }
 }
 
 class Test9 : I7
 {
-    int I1.M1
+    " + implModifiers + @"int I1.M1
     {
         get
         {
@@ -37105,7 +37646,7 @@ class Test9 : I7
 
 class Test10 : I1, I2, I3, I4
 {
-    public int M1
+    " + implModifiers + @"public int M1
     {
         get
         {
@@ -37121,7 +37662,7 @@ class Test10 : I1, I2, I3, I4
 
 class Test11 : I1, I2, I3, I5, I4
 {
-    public int M1
+    " + implModifiers + @"public int M1
     {
         get
         {
@@ -37137,7 +37678,7 @@ class Test11 : I1, I2, I3, I5, I4
 
 class Test12 : I8
 {
-    public virtual int M1
+    " + implModifiers + @"public " + (isStatic ? "" : "virtual") + @" int M1
     {
         get
         {
@@ -37151,7 +37692,7 @@ class Test12 : I8
     }
 }
 ";
-            ValidatePropertyImplementationInDerived_12(source1, source4, source5,
+            ValidatePropertyImplementationInDerived_12(source1, source4, source5, isStatic,
                 new DiagnosticDescription[]
                 {
                 // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
@@ -37173,11 +37714,11 @@ class Test12 : I8
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_12(string source1, string source4, string source5, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
+        private void ValidatePropertyImplementationInDerived_12(string source1, string source4, string source5, bool isStatic, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -37193,8 +37734,8 @@ class Test12 : I8
                 var i5m1 = GetSingleProperty(i5);
                 var i6 = FindType(m, "I6");
 
-                ValidateExplicitImplementation(i2m1);
-                ValidateExplicitImplementation(i5m1);
+                ValidateExplicitImplementation(i2m1, isStatic: isStatic);
+                ValidateExplicitImplementation(i5m1, isStatic: isStatic);
 
                 VerifyFindImplementationForInterfaceMemberSame(i1m1, i1, i1m1);
                 VerifyFindImplementationForInterfaceMemberSame(i2m1, i2, i1m1);
@@ -37202,7 +37743,7 @@ class Test12 : I8
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -37235,8 +37776,8 @@ class Test5 : I8
             foreach (var ref1 in refs1)
             {
                 var compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-06-14.md,
@@ -37258,23 +37799,23 @@ class Test5 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular7_3,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.Net60);
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
                 var compilation4 = CreateCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
@@ -37300,7 +37841,7 @@ class Test5 : I8
                 }
 
                 CompileAndVerify(compilation4,
-                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                    expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I2.I1.M1.get
 I2.I1.M1.set
 I5.I1.M1.get
@@ -37309,14 +37850,14 @@ I5.I1.M1.get
 I5.I1.M1.set
 "
 ,
-                    verify: VerifyOnMonoOrCoreClr,
+                    verify: Verify(isStatic),
                     symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
                 {
                     var compilation3 = CreateCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
-                                                         parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetCoreApp);
+                                                         parseOptions: TestOptions.RegularPreview,
+                                                         targetFramework: TargetFramework.Net60);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(ref1 is CompilationReference ? expected1 : expected2 ?? expected1);
@@ -37344,8 +37885,8 @@ I5.I1.M1.set
                     }
 
                     var compilation5 = CreateCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
-                                                         parseOptions: TestOptions.Regular,
-                                                         targetFramework: TargetFramework.NetCoreApp);
+                                                         parseOptions: TestOptions.RegularPreview,
+                                                         targetFramework: TargetFramework.Net60);
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation5.VerifyDiagnostics();
@@ -37370,7 +37911,7 @@ I5.I1.M1.set
                     }
 
                     CompileAndVerify(compilation5,
-                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                        expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"Test8.I1.M1.get
 Test8.I1.M1.set
 Test9.I1.M1.get
@@ -37382,30 +37923,34 @@ Test11.M1.set
 Test12.M1.get
 Test12.M1.set
 ",
-                        verify: VerifyOnMonoOrCoreClr,
+                        verify: Verify(isStatic),
                         symbolValidator: Validate5);
                 }
             }
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_13()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_13(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int M1 {get;} 
+    " + modifiers + @"int M1 {get;} 
 }
 
 public interface I2 : I1
 {
-    int I1.M1 => throw null; 
+    " + implModifiers + @"int I1.M1 => throw null; 
 }
 
 public interface I3 : I1
 {
-    int I1.M1 => throw null; 
+    " + implModifiers + @"int I1.M1 => throw null; 
 }
 ";
 
@@ -37413,7 +37958,7 @@ public interface I3 : I1
 @"
 class Test1 : I2, I3
 {
-    public long M1 => 1;
+    " + implModifiers + @"public long M1 => 1;
 }
 ";
 
@@ -37433,35 +37978,39 @@ class Test1 : I2, I3
         private void ValidatePropertyImplementationInDerived_13(string source1, string source2, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(expected1);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(expected2 ?? expected1);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
-        public void PropertyImplementationInDerived_14()
+        public void PropertyImplementationInDerived_14(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1<T>
 {
-    int M1
+    " + modifiers + @"int M1
     {
         get
         {
@@ -37474,7 +38023,7 @@ public interface I1<T>
 
 public interface I2<T> : I1<T>
 {
-    int I1<T>.M1
+    " + implModifiers + @"int I1<T>.M1
     {
         get
         {
@@ -37492,11 +38041,34 @@ public interface I3<T> : I1<T>
 @"
 class Test1 : I1<int>
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1<int> i1Int = new Test1();
-        i1Int.M1 = i1Int.M1;
         I1<long> i1Long = new Test2();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test2>();
+    }
+
+    static void Test<i1Int, i1Long>() where i1Int : I1<int> where i1Long : I1<long>
+    {
+";
+            }
+
+            source2 +=
+@"
+        i1Int.M1 = i1Int.M1;
         i1Long.M1 = i1Long.M1;
     }
 }
@@ -37504,14 +38076,14 @@ class Test2 : I2<long>
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_14(source1, source2);
+            ValidatePropertyImplementationInDerived_14(source1, source2, isStatic);
         }
 
-        private void ValidatePropertyImplementationInDerived_14(string source1, string source2)
+        private void ValidatePropertyImplementationInDerived_14(string source1, string source2, bool isStatic = false)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
@@ -37539,7 +38111,7 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberSame(null, i3, i2i1m1);
                 VerifyFindImplementationForInterfaceMemberEqual(i3i1m1, i3, i3i1m1);
 
-                ValidateExplicitImplementation(i2m1);
+                ValidateExplicitImplementation(i2m1, isStatic: isStatic);
 
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var test1i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
@@ -37560,7 +38132,7 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberSame(null, test2i2, i1m1);
                 VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2i2, test2i1m1);
 
-                ValidateExplicitImplementation(test2i2m1);
+                ValidateExplicitImplementation(test2i2m1, isStatic: isStatic);
 
                 VerifyFindImplementationForInterfaceMemberSame(null, test1, i1m1);
                 VerifyFindImplementationForInterfaceMemberEqual(test1i1m1, test1, test1i1m1);
@@ -37569,64 +38141,68 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1.get
 I1.M1.set
 I2.I1.M1.get
 I2.I1.M1.set
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1.get
 I1.M1.set
 I2.I1.M1.get
 I2.I1.M1.set
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null :
 @"I1.M1.get
 I1.M1.set
 I2.I1.M1.get
 I2.I1.M1.set
 ",
-                verify: VerifyOnMonoOrCoreClr,
+                verify: Verify(isStatic),
                 symbolValidator: Validate);
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_15()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_15(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    virtual int M1 {get => throw null; private set => throw null;} 
+    " + modifiers + @"int M1 {get => throw null; private set => throw null;} 
 }
 
 public interface I4
 {
-    int M1 {set => throw null; private get => throw null;} 
+    " + modifiers + @"int M1 {set => throw null; private get => throw null;} 
 }
 
 public interface I5 : I4
@@ -37635,7 +38211,7 @@ public interface I5 : I4
 
 public interface I1 : I2, I5
 {
-    int I2.M1
+    " + implModifiers + @"int I2.M1
     {
         get
         {
@@ -37643,7 +38219,7 @@ public interface I1 : I2, I5
             return 1;
         }
     }
-    int I4.M1 
+    " + implModifiers + @"int I4.M1 
     {
         set => System.Console.WriteLine(""I4.M1"");
     }
@@ -37657,42 +38233,69 @@ public interface I3 : I1
 @"
 class Test1 : I1
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I2 i2 = new Test1();
-        _ = i2.M1;
         I4 i4 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1, Test1>();
+    }
+
+    static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+";
+            }
+
+            source2 +=
+@"
+        _ = i2.M1;
         i4.M1 = 0;
     }
 }
 ";
 
-            ValidatePropertyImplementationInDerived_01(source1, source2);
+            ValidatePropertyImplementationInDerived_01(source1, source2, isStatic);
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_16()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_16(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I4
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I1 : I2, I4
 {
-    int I2.M1 
+    " + implModifiers + @"int I2.M1 
     {
         protected get => throw null;
         set => throw null;
     }
-    protected int I4.M1
+    " + implModifiers + @"protected int I4.M1
     {
         get => throw null;
         set => throw null;
@@ -37707,39 +38310,43 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic,
                 // (16,19): error CS0106: The modifier 'protected' is not valid for this item
                 //         protected get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected").WithLocation(16, 19),
                 // (19,22): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected int I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 22)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 22 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_17()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_17(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I4
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I1 : I2, I4
 {
-    int I2.M1 
+    " + implModifiers + @"int I2.M1 
     {
         get => throw null;
         protected internal set => throw null;
     }
-    protected internal int I4.M1
+    " + implModifiers + @"protected internal int I4.M1
     {
         get => throw null;
         set => throw null;
@@ -37754,39 +38361,43 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic,
                 // (17,28): error CS0106: The modifier 'protected internal' is not valid for this item
                 //         protected internal set => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected internal").WithLocation(17, 28),
                 // (19,31): error CS0106: The modifier 'protected internal' is not valid for this item
                 //     protected internal int I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 31)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 31 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_18()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_18(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I4
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I1 : I2, I4
 {
-    int I2.M1 
+    " + implModifiers + @"int I2.M1 
     {
         private protected get => throw null;
         set => throw null;
     }
-    private protected int I4.M1
+    " + implModifiers + @"private protected int I4.M1
     {
         get => throw null;
         set => throw null;
@@ -37801,26 +38412,30 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic,
                 // (16,27): error CS0106: The modifier 'private protected' is not valid for this item
                 //         private protected get => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private protected").WithLocation(16, 27),
                 // (19,30): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected int I4.M1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(19, 30)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(19, 30 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_19()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_19(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 #nullable enable
 
 public interface I1<T>
 {
-    int M1 {get; set;} 
+    " + modifiers + @"int M1 {get; set;} 
 }
 
 public interface I2 : I1<string>
@@ -37829,13 +38444,13 @@ public interface I2 : I1<string>
 
 public interface I3 : I2, I1<string?>
 {
-    int I1<string>.M1 
+    " + implModifiers + @"int I1<string>.M1 
     {
         get => throw null!;
         set => throw null!;
     }
 
-    int I1<string?>.M1 
+    " + implModifiers + @"int I1<string?>.M1 
     {
         get => throw null!;
         set => throw null!;
@@ -37853,8 +38468,8 @@ class Test1 : I3
 ";
 
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
                 // public interface I3 : I2, I1<string?>
@@ -37867,12 +38482,12 @@ class Test1 : I3
                 Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1").WithLocation(13, 18),
                 // (21,21): error CS0102: The type 'I3' already contains a definition for 'I1<System.String>.M1'
                 //     int I1<string?>.M1 
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("I3", "I1<System.String>.M1").WithLocation(21, 21)
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("I3", "I1<System.String>.M1").WithLocation(21, 21 + implModifiers.Length)
                 );
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                    parseOptions: TestOptions.Regular,
-                                                    targetFramework: TargetFramework.NetCoreApp);
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: TargetFramework.Net60);
 
             compilation2.VerifyDiagnostics(
                 // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
@@ -37895,27 +38510,67 @@ class Test1 : I3
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_20()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_20(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    protected int M1 {get;} 
+    " + modifiers + @"protected int M1 {get;} 
 
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         _ = i2.M1;
     }
 }
 
 public interface I4
 {
-    int M1 {get; protected set;} 
+    " + modifiers + @"int M1 {get; protected set;} 
 
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I4 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i4>() where i4 : I4
+    {
+";
+            }
+
+            source1 +=
+@"
         i4.M1 = i4.M1;
     }
 }
@@ -37926,10 +38581,30 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
         I2.Test(i2);
         I4.Test(i4);
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+        I2.Test<i2>();
+        I4.Test<i4>();
+";
+            }
+
+            source1 +=
+@"
     }
 }
 ";
@@ -37937,14 +38612,14 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    int I2.M1 => Getter();
+    " + implModifiers + @"int I2.M1 => Getter();
 
-    private int Getter()
+    " + implModifiers + @"private int Getter()
     {
         System.Console.WriteLine(""I2.M1"");
         return 1;
     }
-    int I4.M1 
+    " + implModifiers + @"int I4.M1 
     {
         get 
         {
@@ -37960,30 +38635,70 @@ public interface I3 : I1
 }
 ";
 
-            ValidatePropertyImplementationInDerived_11(source1, source2);
+            ValidatePropertyImplementationInDerived_11(source1, source2, isStatic);
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_21()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_21(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    protected internal int M1 {get;} 
+    " + modifiers + @"protected internal int M1 {get;} 
 
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         _ = i2.M1;
     }
 }
 
 public interface I4
 {
-    int M1 {get; protected internal set;} 
+    " + modifiers + @"int M1 {get; protected internal set;} 
 
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I4 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i4>() where i4 : I4
+    {
+";
+            }
+
+            source1 +=
+@"
         i4.M1 = i4.M1;
     }
 }
@@ -37994,10 +38709,30 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
         I2.Test(i2);
         I4.Test(i4);
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+        I2.Test<i2>();
+        I4.Test<i4>();
+";
+            }
+
+            source1 +=
+@"
     }
 }
 ";
@@ -38005,14 +38740,14 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    int I2.M1 => Getter();
+    " + implModifiers + @"int I2.M1 => Getter();
 
-    private int Getter()
+    " + implModifiers + @"private int Getter()
     {
         System.Console.WriteLine(""I2.M1"");
         return 1;
     }
-    int I4.M1 
+    " + implModifiers + @"int I4.M1 
     {
         get 
         {
@@ -38028,30 +38763,70 @@ public interface I3 : I1
 }
 ";
 
-            ValidatePropertyImplementationInDerived_11(source1, source2);
+            ValidatePropertyImplementationInDerived_11(source1, source2, isStatic);
         }
 
-        [Fact]
-        public void PropertyImplementationInDerived_22()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementationInDerived_22(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2
 {
-    private protected int M1 {get;} 
+    " + modifiers + @"private protected int M1 {get;} 
 
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2>() where i2 : I2
+    {
+";
+            }
+
+            source1 +=
+@"
         _ = i2.M1;
     }
 }
 
 public interface I4
 {
-    int M1 {get; private protected set;} 
+    " + modifiers + @"int M1 {get; private protected set;} 
 
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I4 i4)
     {
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i4>() where i4 : I4
+    {
+";
+            }
+
+            source1 +=
+@"
         i4.M1 = i4.M1;
     }
 }
@@ -38062,10 +38837,30 @@ public interface I5 : I4
 
 public class TestHelper
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     public static void Test(I2 i2, I4 i4)
     {
         I2.Test(i2);
         I4.Test(i4);
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    public static void Test<i2, i4>() where i2 : I2 where i4 : I4
+    {
+        I2.Test<i2>();
+        I4.Test<i4>();
+";
+            }
+
+            source1 +=
+@"
     }
 }
 ";
@@ -38073,14 +38868,14 @@ public class TestHelper
 @"
 public interface I1 : I2, I5
 {
-    int I2.M1 => Getter();
+    " + implModifiers + @"int I2.M1 => Getter();
 
-    private int Getter()
+    " + implModifiers + @"private int Getter()
     {
         System.Console.WriteLine(""I2.M1"");
         return 1;
     }
-    int I4.M1 
+    " + implModifiers + @"int I4.M1 
     {
         get 
         {
@@ -38096,13 +38891,13 @@ public interface I3 : I1
 }
 ";
 
-            ValidatePropertyImplementationInDerived_11(source1, source2,
+            ValidatePropertyImplementationInDerived_11(source1, source2, isStatic,
                 // (4,12): error CS0122: 'I2.M1' is inaccessible due to its protection level
                 //     int I2.M1 => Getter();
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 12),
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 12 + implModifiers.Length),
                 // (11,12): error CS0122: 'I4.M1.set' is inaccessible due to its protection level
                 //     int I4.M1 
-                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1.set").WithLocation(11, 12)
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1.set").WithLocation(11, 12 + implModifiers.Length)
                 );
         }
 
@@ -40772,7 +41567,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_02(source1,
+            ValidatePropertyImplementationInDerived_02(source1, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (16,17): error CS8652: The feature 'default interface implementation' is not available in C# 7.3. Please use language version 8.0 or greater.
@@ -40841,7 +41636,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_03(source1,
+            ValidatePropertyImplementationInDerived_03(source1, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
@@ -40895,7 +41690,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic: false,
                 // (14,25): error CS0501: 'I1.I2.this[int].get' must declare a body because it is not marked abstract, extern, or partial
                 //     int I2.this[int x] {get;} 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.I2.this[int].get").WithLocation(14, 25),
@@ -40974,7 +41769,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic: false,
                 // (14,26): error CS0106: The modifier 'static' is not valid for this item
                 //     public static int I2.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(14, 26),
@@ -41033,7 +41828,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: true,
+            ValidatePropertyImplementationInDerived_04(source1, i4M1IsAbstract: true, isStatic: false,
                 // (14,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     private sealed int I2.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(14, 27),
@@ -41098,7 +41893,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_04(source1,
+            ValidatePropertyImplementationInDerived_04(source1, isStatic: false,
                 // (14,30): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected int I2.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("private protected").WithLocation(14, 30),
@@ -41161,7 +41956,7 @@ class Test1 : I1
 {}
 ";
 
-            ValidatePropertyImplementationInDerived_09(source1, source2,
+            ValidatePropertyImplementationInDerived_09(source1, source2, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
@@ -41339,7 +42134,7 @@ public interface I3 : I1
 }
 ";
 
-            ValidatePropertyImplementationInDerived_11(source1, source2,
+            ValidatePropertyImplementationInDerived_11(source1, source2, isStatic: false,
                 // (4,12): error CS0122: 'I2.this[int]' is inaccessible due to its protection level
                 //     int I2.this[int x] => Getter();
                 Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I2.this[int]").WithLocation(4, 12),
@@ -41542,7 +42337,7 @@ class Test12 : I8
     }
 }
 ";
-            ValidatePropertyImplementationInDerived_12(source1, source4, source5,
+            ValidatePropertyImplementationInDerived_12(source1, source4, source5, isStatic: false,
                 new DiagnosticDescription[]
                 {
                 // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
@@ -41740,6 +42535,126 @@ class Test1 : I1
 }
 ";
             ValidatePropertyImplementationInDerived_01(source1, source2);
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_16()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int this[int x] {get;} 
+}
+
+public interface I2 : I1
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+}
+
+public interface I3 : I1
+{
+    abstract int I1.this[int x] {get;} 
+}
+";
+            var compilation1 = CreateCompilation(source1,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (4,16): error CS0106: The modifier 'static' is not valid for this item
+                //     static int this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 16)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_17()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static virtual int this[int x] {get => 0;} 
+}
+
+public interface I2 : I1
+{
+    static int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+}
+
+public interface I3 : I1
+{
+    abstract static int I1.this[int x] {get;} 
+}
+";
+            var compilation1 = CreateCompilation(source1,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (4,24): error CS0106: The modifier 'static' is not valid for this item
+                //     static virtual int this[int x] {get => 0;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(4, 24),
+                // (9,19): error CS0106: The modifier 'static' is not valid for this item
+                //     static int I1.this[int x]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(9, 19),
+                // (21,28): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static int I1.this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(21, 28)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_18()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int x] {get;} 
+}
+
+public interface I2 : I1
+{
+    static int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+}
+
+public interface I3 : I1
+{
+    abstract static int I1.this[int x] {get;} 
+}
+";
+            var compilation1 = CreateCompilation(source1,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (9,19): error CS0106: The modifier 'static' is not valid for this item
+                //     static int I1.this[int x]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(9, 19),
+                // (21,28): error CS0106: The modifier 'static' is not valid for this item
+                //     abstract static int I1.this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(21, 28)
+                );
         }
 
         [Fact]
@@ -50562,19 +51477,23 @@ public interface I2 : I1
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_001()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_001(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static abstract " : "abstract ";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"int I1.P1 {get; set;}
 }
 ";
 
@@ -50584,7 +51503,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_001(source1, source2,
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
@@ -50593,34 +51512,39 @@ class Test1 : I2
 
         private static void ValidatePropertyReAbstraction_001(string source1, string source2, params DiagnosticDescription[] expected)
         {
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic: false, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_001(string source1, string source2, bool isStatic, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
 
@@ -50651,40 +51575,44 @@ class Test1 : I2
             }
         }
 
-        private static void ValidateReabstraction(PropertySymbol reabstracting)
+        private static void ValidateReabstraction(PropertySymbol reabstracting, bool isStatic = false)
         {
             Assert.True(reabstracting.IsAbstract);
             Assert.False(reabstracting.IsVirtual);
             Assert.True(reabstracting.IsSealed);
-            Assert.False(reabstracting.IsStatic);
+            Assert.Equal(isStatic, reabstracting.IsStatic);
             Assert.False(reabstracting.IsExtern);
             Assert.False(reabstracting.IsOverride);
             Assert.Equal(Accessibility.Private, reabstracting.DeclaredAccessibility);
 
             if (reabstracting.GetMethod is object)
             {
-                ValidateReabstraction(reabstracting.GetMethod);
+                ValidateReabstraction(reabstracting.GetMethod, isStatic);
             }
 
             if (reabstracting.SetMethod is object)
             {
-                ValidateReabstraction(reabstracting.SetMethod);
+                ValidateReabstraction(reabstracting.SetMethod, isStatic);
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_002()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_002(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static abstract " : "abstract ";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"int I1.P1 {get; set;}
 }
 ";
 
@@ -50694,27 +51622,31 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_001(source1, source2,
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_003()
+        public void PropertyReAbstraction_003(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 ";
 
@@ -50722,14 +51654,37 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
         i1.P1 = 1;
     }
 
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -50740,7 +51695,7 @@ class Test1 : I2
     }
 }
 ";
-            ValidatePropertyReAbstraction_003(source1, source2,
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic,
 @"
 Test1.get_P1
 Test1.set_P1
@@ -50749,32 +51704,37 @@ Test1.set_P1
 
         private void ValidatePropertyReAbstraction_003(string source1, string source2, string expected)
         {
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic: false, expected);
+        }
+
+        private void ValidatePropertyReAbstraction_003(string source1, string source2, bool isStatic, string expected)
+        {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -50804,20 +51764,24 @@ Test1.set_P1
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_004()
+        public void PropertyReAbstraction_004(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 ";
 
@@ -50825,14 +51789,37 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
         i1.P1 = 1;
     }
 
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -50843,26 +51830,30 @@ class Test1 : I2
     }
 }
 ";
-            ValidatePropertyReAbstraction_003(source1, source2,
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic,
 @"
 Test1.get_P1
 Test1.set_P1
 ");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_005()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_005(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I2 {}
@@ -50884,21 +51875,21 @@ class Test1 : I3
         private static void ValidatePropertyReAbstraction_005(string source1, string source2, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
             }
@@ -50928,19 +51919,23 @@ class Test1 : I3
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_006()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_006(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I2 {}
@@ -50959,25 +51954,29 @@ class Test1 : I3
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_007()
+        public void PropertyReAbstraction_007(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I2
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -50993,15 +51992,38 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
         i1.P1 = 1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_007(source1, source2,
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic,
 @"
 I3.get_P1
 I3.set_P1
@@ -51010,32 +52032,37 @@ I3.set_P1
 
         private void ValidatePropertyReAbstraction_007(string source1, string source2, string expected)
         {
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic: false, expected);
+        }
+
+        private void ValidatePropertyReAbstraction_007(string source1, string source2, bool isStatic, string expected)
+        {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -51064,25 +52091,29 @@ I3.set_P1
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_008()
+        public void PropertyReAbstraction_008(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I2
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -51098,39 +52129,66 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
         i1.P1 = 1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_007(source1, source2,
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic,
 @"
 I3.get_P1
 I3.set_P1
 ");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_009()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_009(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 ";
 
@@ -51155,22 +52213,22 @@ class Test1 : I2, I3
         private static void ValidatePropertyReAbstraction_009(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             var expected = expected1;
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
                 expected = expected2;
@@ -51193,24 +52251,28 @@ class Test1 : I2, I3
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_010()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_010(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    int I1.P1 { get => throw null; set => throw null; }
+    " + implModifiers + @"int I1.P1 { get => throw null; set => throw null; }
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 ";
 
@@ -51227,24 +52289,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_011()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_011(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I1
 {
-    int I1.P1 { get => throw null; set => throw null; }
+    " + implModifiers + @"int I1.P1 { get => throw null; set => throw null; }
 }
 ";
 
@@ -51261,24 +52327,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_012()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_012(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I4 : I2, I3 {}
@@ -51305,22 +52375,22 @@ class Test1 : I4
         private static void ValidatePropertyReAbstraction_012(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             var expected = expected1;
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics(expected);
                 expected = expected2;
@@ -51348,30 +52418,34 @@ class Test1 : I4
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_013()
+        public void PropertyReAbstraction_013(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; set => throw null; }
+    " + modifiers + @"int P1 { get => throw null; set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 public interface I4 : I2, I3
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -51387,15 +52461,38 @@ public interface I4 : I2, I3
 @"
 class Test1 : I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
         i1.P1 = 1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_013(source1, source2,
+            ValidatePropertyReAbstraction_013(source1, source2, isStatic,
 @"
 I4.get_P1
 I4.set_P1
@@ -51404,32 +52501,37 @@ I4.set_P1
 
         private void ValidatePropertyReAbstraction_013(string source1, string source2, string expected)
         {
+            ValidatePropertyReAbstraction_013(source1, source2, isStatic: false, expected);
+        }
+
+        private void ValidatePropertyReAbstraction_013(string source1, string source2, bool isStatic, string expected)
+        {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                             expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                             verify: Verify(isStatic), symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation2.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe, references: new[] { reference },
-                                                     parseOptions: TestOptions.Regular,
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
                 compilation3.VerifyDiagnostics();
 
                 CompileAndVerify(compilation1,
-                                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expected : null,
-                                 verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+                                 expectedOutput: Execute(isStatic, haveImplementationInDerivedInterface: true) ? expected : null,
+                                 verify: Verify(isStatic), symbolValidator: validate);
             }
 
             static void validate(ModuleSymbol m)
@@ -51458,19 +52560,23 @@ I4.set_P1
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_014()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_014(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1
+    " + implModifiers + @"abstract int I1.P1
     {
         get
         {
@@ -51487,7 +52593,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
                 //         get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
@@ -51502,14 +52608,19 @@ class Test1 : I2
 
         private static void ValidatePropertyReAbstraction_014(string source1, params DiagnosticDescription[] expected)
         {
+            ValidatePropertyReAbstraction_014(source1, isStatic: false, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_014(string source1, bool isStatic, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -51517,7 +52628,7 @@ class Test1 : I2
                 var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
                 var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
@@ -51554,19 +52665,23 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_015()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_015(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1
+    " + implModifiers + @"abstract int I1.P1
     {
         get => throw null;
         set => throw null;
@@ -51577,7 +52692,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                     // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
                     //         get => throw null;
                     Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
@@ -51590,29 +52705,33 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_016()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_016(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    extern abstract int I1.P1 {get; set;}
+    " + implModifiers + @"extern abstract int I1.P1 {get; set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_016(source1,
+            ValidatePropertyReAbstraction_016(source1, isStatic,
                 // (9,28): error CS0180: 'I2.I1.P1' cannot be both extern and abstract
                 //     extern abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -51621,14 +52740,19 @@ class Test1 : I2
 
         private static void ValidatePropertyReAbstraction_016(string source1, params DiagnosticDescription[] expected)
         {
+            ValidatePropertyReAbstraction_016(source1, isStatic: false, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_016(string source1, bool isStatic, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -51638,7 +52762,7 @@ class Test1 : I2
                 Assert.True(i2p1.IsAbstract);
                 Assert.False(i2p1.IsVirtual);
                 Assert.True(i2p1.IsSealed);
-                Assert.False(i2p1.IsStatic);
+                Assert.Equal(isStatic, i2p1.IsStatic);
                 Assert.True(i2p1.IsExtern);
                 Assert.False(i2p1.IsOverride);
                 Assert.Equal(Accessibility.Private, i2p1.DeclaredAccessibility);
@@ -51653,7 +52777,7 @@ class Test1 : I2
                     Assert.True(i2p1Get.IsAbstract);
                     Assert.False(i2p1Get.IsVirtual);
                     Assert.True(i2p1Get.IsSealed);
-                    Assert.False(i2p1Get.IsStatic);
+                    Assert.Equal(isStatic, i2p1Get.IsStatic);
                     Assert.True(i2p1Get.IsExtern);
                     Assert.False(i2p1Get.IsAsync);
                     Assert.False(i2p1Get.IsOverride);
@@ -51670,7 +52794,7 @@ class Test1 : I2
                     Assert.True(i2p1Set.IsAbstract);
                     Assert.False(i2p1Set.IsVirtual);
                     Assert.True(i2p1Set.IsSealed);
-                    Assert.False(i2p1Set.IsStatic);
+                    Assert.Equal(isStatic, i2p1Set.IsStatic);
                     Assert.True(i2p1Set.IsExtern);
                     Assert.False(i2p1Set.IsAsync);
                     Assert.False(i2p1Set.IsOverride);
@@ -51706,62 +52830,70 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_017()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_017(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract public int I1.P1 { get; set; }
+    " + implModifiers + @"abstract public int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,28): error CS0106: The modifier 'public' is not valid for this item
                 //     abstract public int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_018()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_018(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public class C2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 ";
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length)
                 );
         }
 
         private static void ValidatePropertyReAbstraction_018(string source1, params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(expected);
@@ -51815,227 +52947,259 @@ public class C2 : I1
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_019()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_019(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public struct C2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 ";
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_020()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_020(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; }
+    " + implModifiers + @"abstract int I1.P1 { get; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.set'
                 //     abstract int I1.P1 { get; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.set").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.set").WithLocation(9, 21 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_021()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_021(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get; set;}
+    " + modifiers + @"int P1 {get; set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { set; }
+    " + implModifiers + @"abstract int I1.P1 { set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.get'
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.get").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.get").WithLocation(9, 21 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_022()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_022(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,31): error CS0550: 'I2.I1.P1.set' adds an accessor not found in interface member 'I1.P1'
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 31),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 31 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_023()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_023(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,26): error CS0550: 'I2.I1.P1.get' adds an accessor not found in interface member 'I1.P1'
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_024()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_024(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get => throw null; private set => throw null;}
+    " + modifiers + @"int P1 {get => throw null; private set => throw null;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,31): error CS0550: 'I2.I1.P1.set' adds an accessor not found in interface member 'I1.P1'
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 31),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 31 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_025()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_025(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {private get => throw null; set => throw null;}
+    " + modifiers + @"int P1 {private get => throw null; set => throw null;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,26): error CS0550: 'I2.I1.P1.get' adds an accessor not found in interface member 'I1.P1'
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_026()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_026(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    internal int P1 {get => throw null; set => throw null;}
+    " + modifiers + @"internal int P1 {get => throw null; set => throw null;}
 }
 ";
             var source2 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_026(source1, source2,
+            ValidatePropertyReAbstraction_026(source1, source2, isStatic,
                 // (4,21): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21 + implModifiers.Length),
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
@@ -52044,23 +53208,28 @@ class Test1 : I2
 
         private static void ValidatePropertyReAbstraction_026(string source1, string source2, params DiagnosticDescription[] expected)
         {
+            ValidatePropertyReAbstraction_026(source1, source2, isStatic: false, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_026(string source1, string source2, bool isStatic, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics();
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
-                                                     parseOptions: TestOptions.Regular,
+                                                     parseOptions: TestOptions.RegularPreview,
                                                      references: new[] { reference },
-                                                     targetFramework: TargetFramework.NetCoreApp);
+                                                     targetFramework: TargetFramework.Net60);
                 validate(compilation2.SourceModule);
                 compilation2.VerifyDiagnostics(expected);
             }
 
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
@@ -52068,7 +53237,7 @@ class Test1 : I2
                 var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
                 var i1p1 = i2p1.ExplicitInterfaceImplementations.Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 Assert.Null(i2.FindImplementationForInterfaceMember(i1p1));
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1p1));
@@ -52097,96 +53266,109 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_027()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_027(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {internal get => throw null; set => throw null;}
+    " + modifiers + @"int P1 {internal get => throw null; set => throw null;}
 }
 ";
             var source2 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_026(source1, source2,
+            ValidatePropertyReAbstraction_026(source1, source2, isStatic,
                 // (4,21): error CS0122: 'I1.P1.get' is inaccessible due to its protection level
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.get").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.get").WithLocation(4, 21 + implModifiers.Length),
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_028()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_028(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get => throw null; internal set => throw null;}
+    " + modifiers + @"int P1 {get => throw null; internal set => throw null;}
 }
 ";
             var source2 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; set; }
+    " + implModifiers + @"abstract int I1.P1 { get; set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_026(source1, source2,
+            ValidatePropertyReAbstraction_026(source1, source2, isStatic,
                 // (4,21): error CS0122: 'I1.P1.set' is inaccessible due to its protection level
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.set").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.set").WithLocation(4, 21 + implModifiers.Length),
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
                 );
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_029()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_029(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
     // Code size       3 (0x3)
@@ -52196,15 +53378,15 @@ class Test1 : I2
   } // end of method I2::I1.get_F1
 
   .method private hidebysig specialname abstract virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
   } // end of method I2::I1.set_F1
 
-  .property instance char I1.F1()
+  .property " + accessorModifiers + @" char I1.F1()
   {
-    .get instance char I2::I1.get_F1()
-    .set instance void I2::I1.set_F1(char)
+    .get " + accessorModifiers + @" char I2::I1.get_F1()
+    .set " + accessorModifiers + @" void I2::I1.set_F1(char)
   } // end of property I2::I1.F1
 } // end of class I2
 ";
@@ -52215,7 +53397,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -52231,49 +53413,53 @@ class Test2 : I2
             Assert.Equal("System.Char I2.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_030()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_030(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname abstract virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname abstract virtual final
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
   } // end of method I2::I1.get_F1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname virtual final
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
     IL_0002:  ret
   } // end of method I2::I1.set_F1
 
-  .property instance char I1.F1()
+  .property " + accessorModifiers + @" char I1.F1()
   {
-    .get instance char I2::I1.get_F1()
-    .set instance void I2::I1.set_F1(char)
+    .get " + accessorModifiers + @" char I2::I1.get_F1()
+    .set " + accessorModifiers + @" void I2::I1.set_F1(char)
   } // end of property I2::I1.F1
 } // end of class I2
 ";
@@ -52284,7 +53470,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -52300,34 +53486,39 @@ class Test2 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_031()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_031(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname virtual final
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
     // Code size       3 (0x3)
@@ -52336,16 +53527,16 @@ class Test2 : I2
     IL_0002:  ret
   } // end of method I2::I1.get_F1
 
-  .method private hidebysig specialname abstract virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname abstract virtual final
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
   } // end of method I2::I1.set_F1
 
-  .property instance char I1.F1()
+  .property " + accessorModifiers + @" char I1.F1()
   {
-    .get instance char I2::I1.get_F1()
-    .set instance void I2::I1.set_F1(char)
+    .get " + accessorModifiers + @" char I2::I1.get_F1()
+    .set " + accessorModifiers + @" void I2::I1.set_F1(char)
   } // end of property I2::I1.F1
 } // end of class I2
 
@@ -52353,22 +53544,22 @@ class Test2 : I2
        implements I1
 {
   .method private hidebysig specialname abstract virtual final 
-          instance char  I1.get_F1() cil managed
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
   } // end of method I3::I1.get_F1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
     IL_0002:  ret
   } // end of method I3::I1.set_F1
 
-  .property instance char I1.F1()
+  .property " + accessorModifiers + @" char I1.F1()
   {
-    .get instance char I3::I1.get_F1()
-    .set instance void I3::I1.set_F1(char)
+    .get " + accessorModifiers + @" char I3::I1.get_F1()
+    .set " + accessorModifiers + @" void I3::I1.set_F1(char)
   } // end of property I3::I1.F1
 } // end of class I3
 ";
@@ -52379,7 +53570,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS8705: Interface member 'I1.F1' does not have a most specific implementation. Neither 'I2.I1.F1', nor 'I3.I1.F1' are most specific.
                 // class Test2 : I2, I3
@@ -52395,34 +53586,39 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_032()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_032(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
     // Code size       3 (0x3)
@@ -52432,7 +53628,7 @@ class Test2 : I2, I3
   } // end of method I2::I1.get_F1
 
   .method private hidebysig specialname abstract virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
   } // end of method I2::I1.set_F1
@@ -52445,7 +53641,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -52461,26 +53657,31 @@ class Test2 : I2
             Assert.Equal("System.Char I2.I1.get_F1()", test2.FindImplementationForInterfaceMember(i1F1.GetMethod).ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_033()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_033(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
@@ -52488,13 +53689,13 @@ class Test2 : I2
        implements I1
 {
   .method private hidebysig specialname abstract virtual final 
-          instance char  I1.get_F1() cil managed
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
   } // end of method I2::I1.get_F1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
     IL_0002:  ret
@@ -52508,7 +53709,7 @@ class Test2 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2
@@ -52524,34 +53725,39 @@ class Test2 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_034()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_034(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
     // Code size       3 (0x3)
@@ -52561,7 +53767,7 @@ class Test2 : I2
   } // end of method I2::I1.get_F1
 
   .method private hidebysig specialname abstract virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
   } // end of method I2::I1.set_F1
@@ -52571,22 +53777,22 @@ class Test2 : I2
        implements I1
 {
   .method private hidebysig specialname abstract virtual final 
-          instance char  I1.get_F1() cil managed
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
   } // end of method I3::I1.get_F1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
     IL_0002:  ret
   } // end of method I3::I1.set_F1
 
-  .property instance char I1.F1()
+  .property " + accessorModifiers + @" char I1.F1()
   {
-    .get instance char I3::I1.get_F1()
-    .set instance void I3::I1.set_F1(char)
+    .get " + accessorModifiers + @" char I3::I1.get_F1()
+    .set " + accessorModifiers + @" void I3::I1.set_F1(char)
   } // end of property I3::I1.F1
 } // end of class I3
 ";
@@ -52597,7 +53803,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2, I3
@@ -52613,34 +53819,39 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_035()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_035(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
     // Code size       3 (0x3)
@@ -52650,15 +53861,15 @@ class Test2 : I2, I3
   } // end of method I2::I1.get_F1
 
   .method private hidebysig specialname abstract virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
   } // end of method I2::I1.set_F1
 
-  .property instance char I1.F1()
+  .property " + accessorModifiers + @" char I1.F1()
   {
-    .get instance char I2::I1.get_F1()
-    .set instance void I2::I1.set_F1(char)
+    .get " + accessorModifiers + @" char I2::I1.get_F1()
+    .set " + accessorModifiers + @" void I2::I1.set_F1(char)
   } // end of property I2::I1.F1
 } // end of class I2
 
@@ -52666,13 +53877,13 @@ class Test2 : I2, I3
        implements I1
 {
   .method private hidebysig specialname abstract virtual final 
-          instance char  I1.get_F1() cil managed
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
   } // end of method I3::I1.get_F1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
     IL_0002:  ret
@@ -52686,7 +53897,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2, I3
@@ -52702,34 +53913,39 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
-        public void PropertyReAbstraction_036()
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
+        public void PropertyReAbstraction_036(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance char  get_F1() cil managed
+          " + modifiers + @" char  get_F1() cil managed
   {
   } // end of method I1::get_F1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_F1(char 'value') cil managed
+          " + modifiers + @" void  set_F1(char 'value') cil managed
   {
   } // end of method I1::set_F1
 
-  .property instance char F1()
+  .property " + accessorModifiers + @" char F1()
   {
-    .get instance char I1::get_F1()
-    .set instance void I1::set_F1(char)
+    .get " + accessorModifiers + @" char I1::get_F1()
+    .set " + accessorModifiers + @" void I1::set_F1(char)
   } // end of property I1::F1
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance char  I1.get_F1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
     // Code size       3 (0x3)
@@ -52739,7 +53955,7 @@ class Test2 : I2, I3
   } // end of method I2::I1.get_F1
 
   .method private hidebysig specialname abstract virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
   } // end of method I2::I1.set_F1
@@ -52749,13 +53965,13 @@ class Test2 : I2, I3
        implements I1
 {
   .method private hidebysig specialname abstract virtual final 
-          instance char  I1.get_F1() cil managed
+          " + modifiers + @" char  I1.get_F1() cil managed
   {
     .override I1::get_F1
   } // end of method I3::I1.get_F1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_F1(char 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_F1(char 'value') cil managed
   {
     .override I1::set_F1
     IL_0002:  ret
@@ -52769,7 +53985,7 @@ class Test2 : I2, I3
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.F1'
                 // class Test2 : I2, I3
@@ -52785,19 +54001,23 @@ class Test2 : I2, I3
             Assert.Null(test2.FindImplementationForInterfaceMember(i1F1.GetMethod));
         }
 
-        [Fact]
-        public void PropertyReAbstraction_037()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_037(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 ";
 
@@ -52807,26 +54027,30 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_001(source1, source2,
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_038()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_038(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 ";
 
@@ -52836,27 +54060,31 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_001(source1, source2,
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_039()
+        public void PropertyReAbstraction_039(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 ";
 
@@ -52864,13 +54092,36 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
     }
 
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -52880,23 +54131,27 @@ class Test1 : I2
     }
 }
 ";
-            ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic, "Test1.get_P1");
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_040()
+        public void PropertyReAbstraction_040(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 ";
 
@@ -52904,13 +54159,36 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
     }
 
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -52920,22 +54198,26 @@ class Test1 : I2
     }
 }
 ";
-            ValidatePropertyReAbstraction_003(source1, source2, "Test1.get_P1");
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic, "Test1.get_P1");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_041()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_041(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I2 {}
@@ -52954,19 +54236,23 @@ class Test1 : I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_042()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_042(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I2 {}
@@ -52985,25 +54271,29 @@ class Test1 : I3
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_043()
+        public void PropertyReAbstraction_043(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I2
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -53018,35 +54308,62 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic, "I3.get_P1");
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_044()
+        public void PropertyReAbstraction_044(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I2
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -53061,34 +54378,61 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_007(source1, source2, "I3.get_P1");
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic, "I3.get_P1");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_045()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_045(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 ";
 
@@ -53105,24 +54449,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_046()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_046(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    int I1.P1 { get => throw null; }
+    " + implModifiers + @"int I1.P1 { get => throw null; }
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 ";
 
@@ -53139,24 +54487,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_047()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_047(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I1
 {
-    int I1.P1 { get => throw null; }
+    " + implModifiers + @"int I1.P1 { get => throw null; }
 }
 ";
 
@@ -53173,24 +54525,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_048()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_048(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I4 : I2, I3 {}
@@ -53209,30 +54565,34 @@ class Test1 : I4
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_049()
+        public void PropertyReAbstraction_049(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { get => throw null; }
+    " + modifiers + @"int P1 { get => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 public interface I4 : I2, I3
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         get
         {
@@ -53247,29 +54607,56 @@ public interface I4 : I2, I3
 @"
 class Test1 : I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         _ = i1.P1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_013(source1, source2, "I4.get_P1");
+            ValidatePropertyReAbstraction_013(source1, source2, isStatic, "I4.get_P1");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_050()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_050(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1
+    " + implModifiers + @"abstract int I1.P1
     {
         get
         {
@@ -53282,7 +54669,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
                 //         get
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
@@ -53292,19 +54679,23 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_051()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_051(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1
+    " + implModifiers + @"abstract int I1.P1
     {
         get => throw null;
     }
@@ -53314,7 +54705,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (11,9): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
                 //         get => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.I1.P1.get").WithLocation(11, 9),
@@ -53324,213 +54715,245 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_052()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_052(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 => throw null;
+    " + implModifiers + @"abstract int I1.P1 => throw null;
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,27): error CS0500: 'I2.I1.P1.get' cannot declare a body because it is marked abstract
                 //     abstract int I1.P1 => throw null;
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "throw null").WithArguments("I2.I1.P1.get").WithLocation(9, 27),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "throw null").WithArguments("I2.I1.P1.get").WithLocation(9, 27 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_053()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_053(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    extern abstract int I1.P1 {get;}
+    " + implModifiers + @"extern abstract int I1.P1 {get;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_016(source1,
+            ValidatePropertyReAbstraction_016(source1, isStatic,
                 // (9,28): error CS0180: 'I2.I1.P1' cannot be both extern and abstract
                 //     extern abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_054()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_054(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract public int I1.P1 { get;}
+    " + implModifiers + @"abstract public int I1.P1 { get;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,28): error CS0106: The modifier 'public' is not valid for this item
                 //     abstract public int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_055()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_055(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public class C2 : I1
 {
-    abstract int I1.P1 { get; }
+    " + implModifiers + @"abstract int I1.P1 { get; }
 }
 ";
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_056()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_056(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public struct C2 : I1
 {
-    abstract int I1.P1 { get; }
+    " + implModifiers + @"abstract int I1.P1 { get; }
 }
 ";
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21)
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_057()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_057(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { get; }
+    " + implModifiers + @"abstract int I1.P1 { get; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.set'
                 //     abstract int I1.P1 { get; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.set").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.set").WithLocation(9, 21 + implModifiers.Length),
                 // (9,26): error CS0550: 'I2.I1.P1.get' adds an accessor not found in interface member 'I1.P1'
                 //     abstract int I1.P1 { get; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I2.I1.P1.get", "I1.P1").WithLocation(9, 26 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_058()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_058(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    internal int P1 {get => throw null;}
+    " + modifiers + @"internal int P1 {get => throw null;}
 }
 ";
             var source2 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 { get;}
+    " + implModifiers + @"abstract int I1.P1 { get;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_026(source1, source2,
+            ValidatePropertyReAbstraction_026(source1, source2, isStatic,
                 // (4,21): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21 + implModifiers.Length),
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_059()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_059(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 ";
 
@@ -53540,26 +54963,30 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_001(source1, source2,
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_060()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_060(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 ";
 
@@ -53569,27 +54996,31 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_001(source1, source2,
+            ValidatePropertyReAbstraction_001(source1, source2, isStatic,
                 // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(2, 15)
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_061()
+        public void PropertyReAbstraction_061(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 ";
 
@@ -53597,13 +55028,36 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 = 1;
     }
 
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         set
         {
@@ -53612,23 +55066,27 @@ class Test1 : I2
     }
 }
 ";
-            ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic, "Test1.set_P1");
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_062()
+        public void PropertyReAbstraction_062(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 ";
 
@@ -53636,13 +55094,36 @@ public interface I2 : I1
 @"
 class Test1 : I2
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 = 1;
     }
 
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         set
         {
@@ -53651,22 +55132,26 @@ class Test1 : I2
     }
 }
 ";
-            ValidatePropertyReAbstraction_003(source1, source2, "Test1.set_P1");
+            ValidatePropertyReAbstraction_003(source1, source2, isStatic, "Test1.set_P1");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_063()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_063(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I2 {}
@@ -53685,19 +55170,23 @@ class Test1 : I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_064()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_064(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I2 {}
@@ -53716,25 +55205,29 @@ class Test1 : I3
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_065()
+        public void PropertyReAbstraction_065(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I2
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         set
         {
@@ -53748,35 +55241,62 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 = 1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic, "I3.set_P1");
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_066()
+        public void PropertyReAbstraction_066(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I2
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         set
         {
@@ -53790,34 +55310,61 @@ public interface I3 : I2
 @"
 class Test1 : I3
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 = 1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_007(source1, source2, "I3.set_P1");
+            ValidatePropertyReAbstraction_007(source1, source2, isStatic, "I3.set_P1");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_067()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_067(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 ";
 
@@ -53834,24 +55381,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_068()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_068(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    int I1.P1 { set => throw null; }
+    " + implModifiers + @"int I1.P1 { set => throw null; }
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 ";
 
@@ -53868,24 +55419,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_069()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_069(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I1
 {
-    int I1.P1 { set => throw null; }
+    " + implModifiers + @"int I1.P1 { set => throw null; }
 }
 ";
 
@@ -53902,24 +55457,28 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_070()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_070(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I4 : I2, I3 {}
@@ -53938,30 +55497,34 @@ class Test1 : I4
                 );
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(35769, "https://github.com/dotnet/roslyn/issues/35769")]
-        public void PropertyReAbstraction_071()
+        public void PropertyReAbstraction_071(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 { set => throw null; }
+    " + modifiers + @"int P1 { set => throw null; }
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I3 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 public interface I4 : I2, I3
 {
-    int I1.P1
+    " + implModifiers + @"int I1.P1
     {
         set
         {
@@ -53975,29 +55538,56 @@ public interface I4 : I2, I3
 @"
 class Test1 : I4
 {
+";
+            if (!isStatic)
+            {
+                source2 +=
+@"
     static void Main()
     {
         I1 i1 = new Test1();
+";
+            }
+            else
+            {
+                source2 +=
+@"
+    static void Main()
+    {
+        Test<Test1>();
+    }
+
+    static void Test<i1>() where i1 : I1
+    {
+";
+            }
+
+            source2 +=
+@"
         i1.P1 = 1;
     }
 }
 ";
-            ValidatePropertyReAbstraction_013(source1, source2, "I4.set_P1");
+            ValidatePropertyReAbstraction_013(source1, source2, isStatic, "I4.set_P1");
         }
 
-        [Fact]
-        public void PropertyReAbstraction_072()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_072(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1
+    " + implModifiers + @"abstract int I1.P1
     {
         set
         {
@@ -54010,7 +55600,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (11,9): error CS0500: 'I2.I1.P1.set' cannot declare a body because it is marked abstract
                 //         set
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.P1.set").WithLocation(11, 9),
@@ -54020,19 +55610,23 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_073()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_073(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1
+    " + implModifiers + @"abstract int I1.P1
     {
         set => throw null;
     }
@@ -54042,7 +55636,7 @@ class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (11,9): error CS0500: 'I2.I1.P1.set' cannot declare a body because it is marked abstract
                 //         set => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.I1.P1.set").WithLocation(11, 9),
@@ -54052,171 +55646,195 @@ class Test1 : I2
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_074()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_074(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    extern abstract int I1.P1 {set;}
+    " + implModifiers + @"extern abstract int I1.P1 {set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_016(source1,
+            ValidatePropertyReAbstraction_016(source1, isStatic,
                 // (9,28): error CS0180: 'I2.I1.P1' cannot be both extern and abstract
                 //     extern abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_075()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_075(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public interface I2 : I1
 {
-    abstract public int I1.P1 { set;}
+    " + implModifiers + @"abstract public int I1.P1 { set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,28): error CS0106: The modifier 'public' is not valid for this item
                 //     abstract public int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("public").WithLocation(9, 28 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_076()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_076(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public class C2 : I1
 {
-    abstract int I1.P1 { set; }
+    " + implModifiers + @"abstract int I1.P1 { set; }
 }
 ";
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_077()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_077(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {set;}
+    " + modifiers + @"int P1 {set;}
 }
 
 public struct C2 : I1
 {
-    abstract int I1.P1 { set; }
+    " + implModifiers + @"abstract int I1.P1 { set; }
 }
 ";
             ValidatePropertyReAbstraction_018(source1,
                 // (9,21): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_078()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_078(bool isStatic)
         {
+            string modifiers = isStatic ? "static abstract " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    int P1 {get;}
+    " + modifiers + @"int P1 {get;}
 }
 
 public interface I2 : I1
 {
-    abstract int I1.P1 { set; }
+    " + implModifiers + @"abstract int I1.P1 { set; }
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_014(source1,
+            ValidatePropertyReAbstraction_014(source1, isStatic,
                 // (9,21): error CS0551: Explicit interface implementation 'I2.I1.P1' is missing accessor 'I1.P1.get'
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.get").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "P1").WithArguments("I2.I1.P1", "I1.P1.get").WithLocation(9, 21 + implModifiers.Length),
                 // (9,26): error CS0550: 'I2.I1.P1.set' adds an accessor not found in interface member 'I1.P1'
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 26),
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I2.I1.P1.set", "I1.P1").WithLocation(9, 26 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_079()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_079(bool isStatic)
         {
+            string modifiers = isStatic ? "static virtual " : "";
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
 {
-    internal int P1 {set => throw null;}
+    " + modifiers + @"internal int P1 {set => throw null;}
 }
 ";
             var source2 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 { set;}
+    " + implModifiers + @"abstract int I1.P1 { set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_026(source1, source2,
+            ValidatePropertyReAbstraction_026(source1, source2, isStatic,
                 // (4,21): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     abstract int I1.P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(4, 21 + implModifiers.Length),
                 // (7,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(7, 15)
@@ -54253,6 +55871,35 @@ class Test1 : I2
         }
 
         [Fact]
+        public void PropertyReAbstraction_Static_080()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    static abstract int I1.P1 { get; set; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1, isStatic: true,
+                // (9,28): error CS8050: Only auto-implemented properties can have initializers.
+                //     static abstract int I1.P1 { get; set; } = 0;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
         public void PropertyReAbstraction_081()
         {
             var source1 =
@@ -54275,6 +55922,35 @@ class Test1 : I2
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; } = 0;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_Static_081()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    static abstract int I1.P1 { get; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1, isStatic: true,
+                // (9,28): error CS8050: Only auto-implemented properties can have initializers.
+                //     static abstract int I1.P1 { get; } = 0;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -54311,8 +55987,40 @@ class Test1 : I2
         }
 
         [Fact]
-        public void PropertyReAbstraction_083()
+        public void PropertyReAbstraction_Static_082()
         {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    static abstract int I1.P1 { set; } = 0;
+}
+
+class Test1 : I2
+{
+}
+";
+            ValidatePropertyReAbstraction_014(source1, isStatic: true,
+                // (9,28): error CS8050: Only auto-implemented properties can have initializers.
+                //     static abstract int I1.P1 { set; } = 0;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_083(bool isStatic)
+        {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
@@ -54321,36 +56029,41 @@ public interface I1
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_083(source1,
+            ValidatePropertyReAbstraction_083(source1, isStatic,
                 // (8,21): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21 + implModifiers.Length)
                 );
         }
 
         private static void ValidatePropertyReAbstraction_083(string source1, params DiagnosticDescription[] expected)
         {
+            ValidatePropertyReAbstraction_083(source1, isStatic: false, expected);
+        }
+
+        private static void ValidatePropertyReAbstraction_083(string source1, bool isStatic, params DiagnosticDescription[] expected)
+        {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetCoreApp);
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
             compilation1.VerifyDiagnostics(expected);
 
-            static void validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
                 var i2p1 = i2.GetMembers().OfType<PropertySymbol>().Single();
 
-                ValidateReabstraction(i2p1);
+                ValidateReabstraction(i2p1, isStatic);
 
                 Assert.Empty(i2p1.ExplicitInterfaceImplementations);
                 if (i2p1.GetMethod is object)
@@ -54365,36 +56078,42 @@ class Test1 : I2
             }
         }
 
-        [Fact]
-        public void PropertyReAbstraction_084()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_084(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 {get; set;}
+    " + implModifiers + @"abstract int I1.P1 {get; set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_083(source1,
+            ValidatePropertyReAbstraction_083(source1, isStatic,
                 // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 // public interface I2 : I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
                 // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18 + implModifiers.Length),
                 // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
                 //     abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_085()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_085(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
@@ -54403,50 +56122,56 @@ public interface I1
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_083(source1,
+            ValidatePropertyReAbstraction_083(source1, isStatic,
                 // (8,21): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_086()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_086(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 {get;}
+    " + implModifiers + @"abstract int I1.P1 {get;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_083(source1,
+            ValidatePropertyReAbstraction_083(source1, isStatic,
                 // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 // public interface I2 : I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
                 // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     abstract int I1.P1 {get;}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18 + implModifiers.Length),
                 // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
                 //     abstract int I1.P1 {get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_087()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_087(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I1
@@ -54455,44 +56180,47 @@ public interface I1
 
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_083(source1,
+            ValidatePropertyReAbstraction_083(source1, isStatic,
                 // (8,21): error CS0539: 'I2.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     abstract int I1.P1 {get; set;}
-                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21)
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("I2.P1").WithLocation(8, 21 + implModifiers.Length)
                 );
         }
 
-        [Fact]
-        public void PropertyReAbstraction_088()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyReAbstraction_088(bool isStatic)
         {
+            string implModifiers = isStatic ? "static " : "";
+
             var source1 =
 @"
 public interface I2 : I1
 {
-    abstract int I1.P1 {set;}
+    " + implModifiers + @"abstract int I1.P1 {set;}
 }
 
 class Test1 : I2
 {
 }
 ";
-            ValidatePropertyReAbstraction_083(source1,
+            ValidatePropertyReAbstraction_083(source1, isStatic,
                 // (2,23): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 // public interface I2 : I1
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(2, 23),
                 // (4,18): error CS0246: The type or namespace name 'I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     abstract int I1.P1 {set;}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I1").WithArguments("I1").WithLocation(4, 18 + implModifiers.Length),
                 // (4,18): error CS0538: 'I1' in explicit interface declaration is not an interface
                 //     abstract int I1.P1 {set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18)
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I1").WithArguments("I1").WithLocation(4, 18 + implModifiers.Length)
                 );
         }
 
@@ -54538,6 +56266,50 @@ public interface I2 : I1
         }
 
         [Fact]
+        public void PropertyReAbstraction_Static_089()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int P1 {get; set;}
+}
+
+public interface I2 : I1
+{
+    static abstract int I1.P1 {get; set;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 25),
+                // (9,28): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "10.0", "preview").WithLocation(9, 28)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net50);
+            compilation2.VerifyDiagnostics(
+                // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 29),
+                // (4,34): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 34),
+                // (9,28): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int I1.P1 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P1").WithLocation(9, 28)
+                );
+        }
+
+        [Fact]
         public void PropertyReAbstraction_090()
         {
             var source1 =
@@ -54573,6 +56345,47 @@ public interface I2 : I1
         }
 
         [Fact]
+        public void PropertyReAbstraction_Static_090()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int P1 {get;}
+}
+
+public interface I2 : I1
+{
+    static abstract int I1.P1 {get;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int P1 {get;}
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 25),
+                // (9,28): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int I1.P1 {get;}
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "10.0", "preview").WithLocation(9, 28)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net50);
+            compilation2.VerifyDiagnostics(
+                // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int P1 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "get").WithLocation(4, 29),
+                // (9,28): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int I1.P1 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P1").WithLocation(9, 28)
+                );
+        }
+
+        [Fact]
         public void PropertyReAbstraction_091()
         {
             var source1 =
@@ -54604,6 +56417,47 @@ public interface I2 : I1
                 // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.P1 {set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(9, 25)
+                );
+        }
+
+        [Fact]
+        public void PropertyReAbstraction_Static_091()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static abstract int P1 {set;}
+}
+
+public interface I2 : I1
+{
+    static abstract int I1.P1 {set;}
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular10,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation1.VerifyDiagnostics(
+                // (4,25): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int P1 {set;}
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("abstract", "10.0", "preview").WithLocation(4, 25),
+                // (9,28): error CS8703: The modifier 'static' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                //     static abstract int I1.P1 {set;}
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "10.0", "preview").WithLocation(9, 28)
+                );
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net50);
+            compilation2.VerifyDiagnostics(
+                // (4,29): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int P1 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "set").WithLocation(4, 29),
+                // (9,28): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                //     static abstract int I1.P1 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, "P1").WithLocation(9, 28)
                 );
         }
 
@@ -59786,17 +61640,21 @@ public class C0 : I1
             }
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(36532, "https://github.com/dotnet/roslyn/issues/36532")]
-        public void WindowsRuntimeEvent_01()
+        public void WindowsRuntimeEvent_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+
             var windowsRuntimeRef = CompilationExtensions.CreateWindowsRuntimeMetadataReference();
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 BuildAssemblyExternClause(windowsRuntimeRef) +
 @"
 .class public auto ansi sealed Event
-       extends [System.Runtime]System.MulticastDelegate
+       extends [mscorlib]System.MulticastDelegate
 {
   .method private hidebysig specialname rtspecialname 
           instance void  .ctor(object 'object',
@@ -59814,36 +61672,36 @@ BuildAssemblyExternClause(windowsRuntimeRef) +
 .class interface public abstract auto ansi Interface`1<T>
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_Normal(class Event 'value') cil managed
+          " + modifiers + @" void  add_Normal(class Event 'value') cil managed
   {
   }
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_Normal(class Event 'value') cil managed
+          " + modifiers + @" void  remove_Normal(class Event 'value') cil managed
   {
   }
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 
+          " + modifiers + @" valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 
           add_WinRT([in] class Event 'value') cil managed
   {
   }
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_WinRT([in] valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value') cil managed
+          " + modifiers + @" void  remove_WinRT([in] valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken 'value') cil managed
   {
   }
 
   .event Event Normal
   {
-    .addon instance void Interface`1::add_Normal(class Event)
-    .removeon instance void Interface`1::remove_Normal(class Event)
+    .addon " + accessorModifiers + @" void Interface`1::add_Normal(class Event)
+    .removeon " + accessorModifiers + @" void Interface`1::remove_Normal(class Event)
   } // end of event I`1::Normal
 
   .event Event WinRT
   {
-    .addon instance valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Interface`1::add_WinRT(class Event)
-    .removeon instance void Interface`1::remove_WinRT(valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
+    .addon " + accessorModifiers + @" valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Interface`1::add_WinRT(class Event)
+    .removeon " + accessorModifiers + @" void Interface`1::remove_WinRT(valuetype [System.Runtime.InteropServices.WindowsRuntime]System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)
   }
 } // end of class Interface
 ";
@@ -59851,13 +61709,13 @@ BuildAssemblyExternClause(windowsRuntimeRef) +
             var source = @"
 interface I1 : Interface<int>
 {
-    event Event Interface<int>.Normal 
+    " + implModifiers + @"event Event Interface<int>.Normal 
     { 
         add { throw null; }
         remove { throw null; }
     }
 
-    event Event Interface<int>.WinRT 
+    " + implModifiers + @"event Event Interface<int>.WinRT 
     { 
         add 
         {
@@ -59876,7 +61734,7 @@ class C1 : I1, Interface<int>
 ";
             foreach (var options in new[] { TestOptions.DebugDll, TestOptions.DebugWinMD })
             {
-                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.NetCoreApp, references: new[] { windowsRuntimeRef });
+                var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.Net60, references: new[] { windowsRuntimeRef });
 
                 void Validate(ModuleSymbol m)
                 {
@@ -59920,7 +61778,7 @@ class C1 : I1, Interface<int>
 
                 Validate(comp.SourceModule);
 
-                CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+                CompileAndVerify(comp, verify: Verify(isStatic), symbolValidator: Validate);
             }
         }
 
@@ -60037,71 +61895,76 @@ class C1 : I1, Interface
             CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_01()
+        public void ExplicitlyImplementedViaAccessors_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance int32  get_P1() cil managed
+          " + modifiers + @" int32  get_P1() cil managed
   {
   } // end of method I1::get_P1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
   } // end of method I1::set_P2
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_P3(int32 'value') cil managed
+          " + modifiers + @" void  set_P3(int32 'value') cil managed
   {
   } // end of method I1::set_P3
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  add_E1(class [System.Runtime]System.Action 'value') cil managed
+          " + modifiers + @" void  add_E1(class [mscorlib]System.Action 'value') cil managed
   {
   } // end of method I1::add_E1
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  remove_E1(class [System.Runtime]System.Action 'value') cil managed
+          " + modifiers + @" void  remove_E1(class [mscorlib]System.Action 'value') cil managed
   {
   } // end of method I1::remove_E1
 
-  .event [System.Runtime]System.Action E1
+  .event [mscorlib]System.Action E1
   {
-    .addon instance void I1::add_E1(class [System.Runtime]System.Action)
-    .removeon instance void I1::remove_E1(class [System.Runtime]System.Action)
+    .addon " + accessorModifiers + @" void I1::add_E1(class [mscorlib]System.Action)
+    .removeon " + accessorModifiers + @" void I1::remove_E1(class [mscorlib]System.Action)
   } // end of event I1::E1
-  .property instance int32 P1()
+  .property " + accessorModifiers + @" int32 P1()
   {
-    .get instance int32 I1::get_P1()
+    .get " + accessorModifiers + @" int32 I1::get_P1()
   } // end of property I1::P1
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
-  .property instance int32 P3()
+  .property " + accessorModifiers + @" int32 P3()
   {
-    .set instance void I1::set_P3(int32)
+    .set " + accessorModifiers + @" void I1::set_P3(int32)
   } // end of property I1::P3
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
        implements I1
 {
-  .method private hidebysig newslot specialname virtual final 
-          instance int32  I1.get_P1() cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P1() cil managed
   {
     .override I1::get_P1
     // Code size       2 (0x2)
@@ -60110,8 +61973,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.get_P1
 
-  .method private hidebysig newslot specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60120,8 +61983,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.get_P2
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60130,8 +61993,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.set_P2
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_P3(int32 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P3(int32 'value') cil managed
   {
     .override I1::set_P3
     // Code size       2 (0x2)
@@ -60140,8 +62003,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.set_P3
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.add_E1(class [System.Runtime]System.Action 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.add_E1(class [mscorlib]System.Action 'value') cil managed
   {
     .override I1::add_E1
     // Code size       3 (0x3)
@@ -60151,8 +62014,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0002:  throw
   } // end of method C1::I1.add_E1
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.remove_E1(class [mscorlib]System.Action 'value') cil managed
   {
     .override I1::remove_E1
     // Code size       3 (0x3)
@@ -60168,7 +62031,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
@@ -60177,8 +62040,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P1() cil managed
   {
     .override I1::get_P1
     // Code size       2 (0x2)
@@ -60187,8 +62050,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P1
 
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60197,8 +62060,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60207,8 +62070,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P3(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P3(int32 'value') cil managed
   {
     .override I1::set_P3
     // Code size       2 (0x2)
@@ -60217,8 +62080,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P3
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.add_E1(class [System.Runtime]System.Action 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.add_E1(class [mscorlib]System.Action 'value') cil managed
   {
     .override I1::add_E1
     // Code size       3 (0x3)
@@ -60228,8 +62091,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0002:  throw
   } // end of method I2::I1.add_E1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.remove_E1(class [mscorlib]System.Action 'value') cil managed
   {
     .override I1::remove_E1
     // Code size       3 (0x3)
@@ -60253,19 +62116,19 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P1 {get => throw null;}
-    public long P2 {get => throw null; set => throw null;}
-    public long P3 {set => throw null;}
+    " + implModifiers + @"public long P1 {get => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P3 {set => throw null;}
 }
 
 class Test4 : C1, I1
 {
-    public long P1 {get => throw null;}
-    public long P2 {get => throw null; set => throw null;}
-    public long P3 {set => throw null;}
+    " + implModifiers + @"public long P1 {get => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P3 {set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.E1'
                 // class Test2 : I2, I1
@@ -60367,38 +62230,43 @@ class Test4 : C1, I1
             Assert.Null(test3.FindImplementationForInterfaceMember(i1E1));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_02()
+        public void ExplicitlyImplementedViaAccessors_02(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
        implements I1
 {
-  .method private hidebysig newslot specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60407,8 +62275,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.get_P2
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60423,22 +62291,22 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
 
-  .property instance int32 I1.P2()
+  .property " + accessorModifiers + @" int32 I1.P2()
   {
-    .get instance int32 C1::I1.get_P2()
+    .get " + accessorModifiers + @" int32 C1::I1.get_P2()
   } // end of property C1::I1.P2
 } // end of class C1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60447,8 +62315,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60457,9 +62325,9 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .property instance int32 I1.P2()
+  .property " + accessorModifiers + @" int32 I1.P2()
   {
-    .get instance int32 I2::I1.get_P2()
+    .get " + accessorModifiers + @" int32 I2::I1.get_P2()
   } // end of property I2::I1.P2
 } // end of class I2
 ";
@@ -60476,15 +62344,15 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 
 class Test4 : C1, I1
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -60528,38 +62396,43 @@ class Test4 : C1, I1
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_03()
+        public void ExplicitlyImplementedViaAccessors_03(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
        implements I1
 {
-  .method private hidebysig newslot specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60568,8 +62441,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.get_P2
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60584,22 +62457,22 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
 
-  .property instance int32 I1.P2()
+  .property " + accessorModifiers + @" int32 I1.P2()
   {
-    .set instance void C1::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void C1::I1.set_P2(int32)
   } // end of property C1::I1.P2
 } // end of class C1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60608,8 +62481,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60618,9 +62491,9 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .property instance int32 I1.P2()
+  .property " + accessorModifiers + @" int32 I1.P2()
   {
-    .set instance void I2::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void I2::I1.set_P2(int32)
   } // end of property I2::I1.P2
 } // end of class I2
 ";
@@ -60637,15 +62510,15 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 
 class Test4 : C1, I1
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -60689,38 +62562,43 @@ class Test4 : C1, I1
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_04()
+        public void ExplicitlyImplementedViaAccessors_04(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
        implements I1
 {
-  .method private hidebysig newslot specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60729,8 +62607,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method C1::I1.get_P2
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig newslot specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60745,27 +62623,27 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
 
-  .property instance int32 I1.P21()
+  .property " + accessorModifiers + @" int32 I1.P21()
   {
-    .get instance int32 C1::I1.get_P2()
+    .get " + accessorModifiers + @" int32 C1::I1.get_P2()
   } // end of property C1::I1.P2
 
-  .property instance int32 I1.P22()
+  .property " + accessorModifiers + @" int32 I1.P22()
   {
-    .set instance void C1::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void C1::I1.set_P2(int32)
   } // end of property C1::I1.P2
 } // end of class C1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60774,8 +62652,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60784,14 +62662,14 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .property instance int32 I1.P21()
+  .property " + accessorModifiers + @" int32 I1.P21()
   {
-    .get instance int32 I2::I1.get_P2()
+    .get " + accessorModifiers + @" int32 I2::I1.get_P2()
   } // end of property I2::I1.P2
 
-  .property instance int32 I1.P22()
+  .property " + accessorModifiers + @" int32 I1.P22()
   {
-    .set instance void I2::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void I2::I1.set_P2(int32)
   } // end of property I2::I1.P2
 } // end of class I2
 ";
@@ -60808,15 +62686,15 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 
 class Test4 : C1, I1
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (6,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -60858,27 +62736,31 @@ class Test4 : C1, I1
             Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [Fact]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_05()
+        public void ExplicitlyImplementedViaAccessors_05(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+
             var ilSource = @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname abstract virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
@@ -60886,7 +62768,7 @@ class Test4 : C1, I1
        extends [mscorlib]System.Object
 {
   .method public hidebysig newslot specialname 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -60895,7 +62777,7 @@ class Test4 : C1, I1
   } // end of method C1::get_P2
 
   .method public hidebysig newslot specialname 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -60914,10 +62796,10 @@ class Test4 : C1, I1
     IL_0007:  ret
   } // end of method C1::.ctor
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 C1::get_P2()
-    .set instance void C1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 C1::get_P2()
+    .set " + accessorModifiers + @" void C1::set_P2(int32)
   } // end of property C1::P2
 } // end of class C1
 
@@ -60925,8 +62807,8 @@ class Test4 : C1, I1
        extends C1
        implements I1
 {
-  .method private hidebysig newslot specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + (isStatic ? "" : "newslot virtual final") + @"
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -60935,8 +62817,8 @@ class Test4 : C1, I1
     IL_0001:  ret
   } // end of method C2::I1.get_P2
 
-  .method private hidebysig newslot specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + (isStatic ? "" : "newslot virtual final") + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -60956,14 +62838,14 @@ class Test4 : C1, I1
     IL_0007:  ret
   } // end of method C2::.ctor
 
-  .property instance int32 I1.P21()
+  .property " + accessorModifiers + @" int32 I1.P21()
   {
-    .get instance int32 C2::I1.get_P2()
+    .get " + accessorModifiers + @" int32 C2::I1.get_P2()
   } // end of property C2::I1.P2
 
-  .property instance int32 I1.P22()
+  .property " + accessorModifiers + @" int32 I1.P22()
   {
-    .set instance void C2::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void C2::I1.set_P2(int32)
   } // end of property C2::I1.P2
 } // end of class C2
 ";
@@ -60972,33 +62854,62 @@ class Test4 : C1, I1
 @"
 class C3 : C2, I1
 {
+";
+            if (!isStatic)
+            {
+                source1 +=
+@"
     static void Main()
     {
         I1 x = new C3();
+";
+            }
+            else
+            {
+                source1 +=
+@"
+    static void Main()
+    {
+        Test<C3>();
+    }
+
+#pragma warning disable CS8981 // The type name 'x' only contains lower-cased ascii characters. Such names may become reserved for the language.
+    static void Test<x>() where x : I1
+    {
+";
+            }
+
+            source1 +=
+@"
         System.Console.WriteLine(x.P2);
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net60);
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
             var c3 = compilation1.GetTypeByMetadataName("C3");
             Assert.Null(c3.FindImplementationForInterfaceMember(i1.GetMember<PropertySymbol>("P2")));
 
-            CompileAndVerify(compilation1, expectedOutput: "2");
+            CompileAndVerify(compilation1, verify: Verify(isStatic), expectedOutput: Execute(isStatic) ? "2" : null);
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_06()
+        public void ExplicitlyImplementedViaAccessors_06(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname virtual 
-          instance int32  get_P1() cil managed
+          " + modifiers + @" int32  get_P1() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61007,7 +62918,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::get_P1
 
   .method public hidebysig newslot specialname virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61016,7 +62927,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61025,7 +62936,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::set_P2
 
   .method public hidebysig newslot specialname virtual 
-          instance void  set_P3(int32 'value') cil managed
+          " + modifiers + @" void  set_P3(int32 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61034,7 +62945,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::set_P3
 
   .method public hidebysig newslot specialname virtual 
-          instance void  add_E1(class [System.Runtime]System.Action 'value') cil managed
+          " + modifiers + @" void  add_E1(class [mscorlib]System.Action 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61043,7 +62954,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::add_E1
 
   .method public hidebysig newslot specialname virtual 
-          instance void  remove_E1(class [System.Runtime]System.Action 'value') cil managed
+          " + modifiers + @" void  remove_E1(class [mscorlib]System.Action 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61051,31 +62962,31 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I1::remove_E1
 
-  .event [System.Runtime]System.Action E1
+  .event [mscorlib]System.Action E1
   {
-    .addon instance void I1::add_E1(class [System.Runtime]System.Action)
-    .removeon instance void I1::remove_E1(class [System.Runtime]System.Action)
+    .addon " + accessorModifiers + @" void I1::add_E1(class [mscorlib]System.Action)
+    .removeon " + accessorModifiers + @" void I1::remove_E1(class [mscorlib]System.Action)
   } // end of event I1::E1
-  .property instance int32 P1()
+  .property " + accessorModifiers + @" int32 P1()
   {
-    .get instance int32 I1::get_P1()
+    .get " + accessorModifiers + @" int32 I1::get_P1()
   } // end of property I1::P1
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
-  .property instance int32 P3()
+  .property " + accessorModifiers + @" int32 P3()
   {
-    .set instance void I1::set_P3(int32)
+    .set " + accessorModifiers + @" void I1::set_P3(int32)
   } // end of property I1::P3
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P1() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P1() cil managed
   {
     .override I1::get_P1
     // Code size       2 (0x2)
@@ -61084,8 +62995,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P1
 
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -61094,8 +63005,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @"
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -61104,8 +63015,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P3(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P3(int32 'value') cil managed
   {
     .override I1::set_P3
     // Code size       2 (0x2)
@@ -61114,8 +63025,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P3
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.add_E1(class [System.Runtime]System.Action 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @"
+          " + modifiers + @" void  I1.add_E1(class [mscorlib]System.Action 'value') cil managed
   {
     .override I1::add_E1
     // Code size       3 (0x3)
@@ -61125,8 +63036,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0002:  throw
   } // end of method I2::I1.add_E1
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.remove_E1(class [System.Runtime]System.Action 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @"
+          " + modifiers + @" void  I1.remove_E1(class [mscorlib]System.Action 'value') cil managed
   {
     .override I1::remove_E1
     // Code size       3 (0x3)
@@ -61146,16 +63057,16 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P1 {get => throw null;}
-    public long P2 {get => throw null; set => throw null;}
-    public long P3 {set => throw null;}
+    " + implModifiers + @"public long P1 {get => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P3 {set => throw null;}
 }
 
 interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.E1'
                 // class Test2 : I2, I1
@@ -61232,17 +63143,22 @@ interface I3 : I2
             Assert.Null(test3.FindImplementationForInterfaceMember(i1E1));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_07()
+        public void ExplicitlyImplementedViaAccessors_07(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61251,7 +63167,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61259,18 +63175,18 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -61279,8 +63195,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -61289,9 +63205,9 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .property instance int32 I1.P2()
+  .property " + accessorModifiers + @" int32 I1.P2()
   {
-    .get instance int32 I2::I1.get_P2()
+    .get " + accessorModifiers + @" int32 I2::I1.get_P2()
   } // end of property I2::I1.P2
 } // end of class I2
 ";
@@ -61304,14 +63220,14 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 
 interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -61343,17 +63259,22 @@ interface I3 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_08()
+        public void ExplicitlyImplementedViaAccessors_08(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61362,7 +63283,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61370,18 +63291,18 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -61390,8 +63311,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -61400,9 +63321,9 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .property instance int32 I1.P2()
+  .property " + accessorModifiers + @" int32 I1.P2()
   {
-    .set instance void I2::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void I2::I1.set_P2(int32)
   } // end of property I2::I1.P2
 } // end of class I2
 ";
@@ -61415,14 +63336,14 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 
 interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -61454,17 +63375,22 @@ interface I3 : I2
             Assert.Null(test2.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34452, "https://github.com/dotnet/roslyn/issues/34452")]
-        public void ExplicitlyImplementedViaAccessors_09()
+        public void ExplicitlyImplementedViaAccessors_09(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+            string implModifiers = isStatic ? "static " : "";
+            string virtualFinal = isStatic ? "" : "virtual final ";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname virtual 
-          instance int32  get_P2() cil managed
+          " + modifiers + @" int32  get_P2() cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61473,7 +63399,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
   } // end of method I1::get_P2
 
   .method public hidebysig newslot specialname virtual 
-          instance void  set_P2(int32 'value') cil managed
+          " + modifiers + @" void  set_P2(int32 'value') cil managed
   {
     // Code size       2 (0x2)
     .maxstack  8
@@ -61481,18 +63407,18 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I1::set_P2
 
-  .property instance int32 P2()
+  .property " + accessorModifiers + @" int32 P2()
   {
-    .get instance int32 I1::get_P2()
-    .set instance void I1::set_P2(int32)
+    .get " + accessorModifiers + @" int32 I1::get_P2()
+    .set " + accessorModifiers + @" void I1::set_P2(int32)
   } // end of property I1::P2
 } // end of class I1
 
 .class interface public abstract auto ansi I2
        implements I1
 {
-  .method private hidebysig specialname virtual final 
-          instance int32  I1.get_P2() cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" int32  I1.get_P2() cil managed
   {
     .override I1::get_P2
     // Code size       2 (0x2)
@@ -61501,8 +63427,8 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.get_P2
 
-  .method private hidebysig specialname virtual final 
-          instance void  I1.set_P2(int32 'value') cil managed
+  .method private hidebysig specialname " + virtualFinal + @" 
+          " + modifiers + @" void  I1.set_P2(int32 'value') cil managed
   {
     .override I1::set_P2
     // Code size       2 (0x2)
@@ -61511,14 +63437,14 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0001:  throw
   } // end of method I2::I1.set_P2
 
-  .property instance int32 I1.P21()
+  .property " + accessorModifiers + @" int32 I1.P21()
   {
-    .get instance int32 I2::I1.get_P2()
+    .get " + accessorModifiers + @" int32 I2::I1.get_P2()
   } // end of property I2::I1.P2
 
-  .property instance int32 I1.P22()
+  .property " + accessorModifiers + @" int32 I1.P22()
   {
-    .set instance void I2::I1.set_P2(int32)
+    .set " + accessorModifiers + @" void I2::I1.set_P2(int32)
   } // end of property I2::I1.P2
 } // end of class I2
 ";
@@ -61531,14 +63457,14 @@ class Test2 : I2, I1
 
 class Test3 : I2
 {
-    public long P2 {get => throw null; set => throw null;}
+    " + implModifiers + @"public long P2 {get => throw null; set => throw null;}
 }
 
 interface I3 : I2
 {
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,19): error CS0535: 'Test2' does not implement interface member 'I1.P2'
                 // class Test2 : I2, I1
@@ -61569,30 +63495,33 @@ interface I3 : I2
             Assert.Null(test3.FindImplementationForInterfaceMember(i1P2));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
-        public void CheckForImplementationOfCorrespondingPropertyOrEvent_01()
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_01(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance string  get_P1() cil managed
+          " + modifiers + @" string  get_P1() cil managed
   {
   } // end of method I1::get_P1
 
-  .property instance string P1()
+  .property " + accessorModifiers + @" string P1()
   {
-    .get instance string I1::get_P1()
+    .get " + accessorModifiers + @" string I1::get_P1()
   } // end of property I1::P1
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
 {
-  .method public hidebysig specialname virtual instance string 
+  .method public hidebysig specialname " + (isStatic ? "static" : "virtual instance") + @" string 
           get_P1() cil managed
   {
     // Code size       6 (0x6)
@@ -61607,14 +63536,14 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
 
-  .property instance string P2()
+  .property " + accessorModifiers + @" string P2()
   {
-    .get instance string C1::get_P1()
+    .get " + accessorModifiers + @" string C1::get_P1()
   } // end of property C1::P1
 } // end of class C1
 ";
@@ -61623,14 +63552,9 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 class C2 : C1, I1
 {
-    static void Main()
-    {
-        I1 x = new C2();
-        System.Console.WriteLine(x.P1);
-    }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -61644,17 +63568,20 @@ class C2 : C1, I1
             Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
-        public void CheckForImplementationOfCorrespondingPropertyOrEvent_02()
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_02(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname virtual 
-          instance string  get_P1() cil managed
+          " + modifiers + @" string  get_P1() cil managed
   {
     // Code size       6 (0x6)
     .maxstack  8
@@ -61662,16 +63589,16 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0005:  ret
   } // end of method I1::get_P1
 
-  .property instance string P1()
+  .property " + accessorModifiers + @" string P1()
   {
-    .get instance string I1::get_P1()
+    .get " + accessorModifiers + @" string I1::get_P1()
   } // end of property I1::P1
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
 {
-  .method public hidebysig specialname virtual instance string 
+  .method public hidebysig specialname " + (isStatic ? "static" : "virtual instance") + @" string 
           get_P1() cil managed
   {
     // Code size       6 (0x6)
@@ -61686,14 +63613,14 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
 
-  .property instance string P2()
+  .property " + accessorModifiers + @" string P2()
   {
-    .get instance string C1::get_P1()
+    .get " + accessorModifiers + @" string C1::get_P1()
   } // end of property C1::P1
 } // end of class C1
 ";
@@ -61704,12 +63631,10 @@ class C2 : C1, I1
 {
     static void Main()
     {
-        I1 x = new C2();
-        System.Console.WriteLine(x.P1);
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -61723,30 +63648,33 @@ class C2 : C1, I1
             Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
-        public void CheckForImplementationOfCorrespondingPropertyOrEvent_03()
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_03(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname abstract virtual 
-          instance string  get_P1() cil managed
+          " + modifiers + @" string  get_P1() cil managed
   {
   } // end of method I1::get_P1
 
-  .property instance string P1()
+  .property " + accessorModifiers + @" string P1()
   {
-    .get instance string I1::get_P1()
+    .get " + accessorModifiers + @" string I1::get_P1()
   } // end of property I1::P1
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
 {
-  .method public hidebysig specialname virtual instance string 
+  .method public hidebysig specialname " + (isStatic ? "static" : "virtual instance") + @" string 
           get_P1() cil managed
   {
     // Code size       6 (0x6)
@@ -61761,7 +63689,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
@@ -61774,12 +63702,10 @@ class C2 : C1, I1
 {
     static void Main()
     {
-        I1 x = new C2();
-        System.Console.WriteLine(x.P1);
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1
@@ -61797,17 +63723,20 @@ class C2 : C1, I1
             Assert.Null(c2.FindImplementationForInterfaceMember(p1));
         }
 
-        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
+        [ConditionalTheory(typeof(MonoOrCoreClrOnly))]
+        [CombinatorialData]
         [WorkItem(34453, "https://github.com/dotnet/roslyn/issues/34453")]
-        public void CheckForImplementationOfCorrespondingPropertyOrEvent_04()
+        public void CheckForImplementationOfCorrespondingPropertyOrEvent_04(bool isStatic)
         {
+            string modifiers = isStatic ? "static" : "instance";
+            string accessorModifiers = isStatic ? "" : "instance";
+
             var ilSource =
-BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
 @"
 .class interface public abstract auto ansi I1
 {
   .method public hidebysig newslot specialname virtual 
-          instance string  get_P1() cil managed
+          " + modifiers + @" string  get_P1() cil managed
   {
     // Code size       6 (0x6)
     .maxstack  8
@@ -61815,16 +63744,16 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     IL_0005:  ret
   } // end of method I1::get_P1
 
-  .property instance string P1()
+  .property " + accessorModifiers + @" string P1()
   {
-    .get instance string I1::get_P1()
+    .get " + accessorModifiers + @" string I1::get_P1()
   } // end of property I1::P1
 } // end of class I1
 
 .class public auto ansi beforefieldinit C1
-       extends [System.Runtime]System.Object
+       extends [mscorlib]System.Object
 {
-  .method public hidebysig specialname virtual instance string 
+  .method public hidebysig specialname " + (isStatic ? "static" : "virtual instance") + @" string 
           get_P1() cil managed
   {
     // Code size       6 (0x6)
@@ -61839,7 +63768,7 @@ BuildAssemblyExternClause(NetCoreApp.SystemRuntime) +
     // Code size       8 (0x8)
     .maxstack  8
     IL_0000:  ldarg.0
-    IL_0001:  call       instance void [System.Runtime]System.Object::.ctor()
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  nop
     IL_0007:  ret
   } // end of method C1::.ctor
@@ -61852,12 +63781,10 @@ class C2 : C1, I1
 {
     static void Main()
     {
-        I1 x = new C2();
-        System.Console.WriteLine(x.P1);
     }
 }
 ";
-            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetCoreApp);
+            var compilation1 = CreateCompilationWithIL(source1, ilSource, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net60);
             compilation1.VerifyDiagnostics(
                 // (2,16): error CS0535: 'C2' does not implement interface member 'I1.P1'
                 // class C2 : C1, I1

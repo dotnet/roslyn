@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (methodKind == MethodKind.StaticConstructor)
             {
-                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, isExplicitInterfaceImplementation: false, diagnostics);
+                CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
             }
 
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
