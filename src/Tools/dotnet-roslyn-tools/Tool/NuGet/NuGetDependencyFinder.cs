@@ -2,27 +2,38 @@
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
 using NuGetLogger = NuGet.Common.NullLogger;
 
 namespace Microsoft.RoslynTools.NuGet
 {
     internal static class NuGetDependencyFinder
     {
+        internal enum DependencyResult
+        {
+            SiblingPackage,
+            ReleasedPackage,
+            MissingPackage,
+            ReleasePackageUnavailable,
+            ReleasePackageAvailable,
+        }
+
         public static async Task<int> FindDependenciesAsync(string packageFolder, ILogger logger)
         {
             var nugetLogger = NuGetLogger.Instance;
             var cache = new SourceCacheContext();
 
-            var packages = from file in Directory.EnumerateFiles(packageFolder, "*.nupkg")
-                           let fileName = Path.GetFileName(file)
-                           let regex = Regex.Match(fileName, @"^(.*?)\.((?:\.?[0-9]+){3,}(?:[-a-z]+)?)\.nupkg$")
-                           where regex.Success
-                           select regex.Groups[1].Value;
+            var packages = (from file in Directory.EnumerateFiles(packageFolder, "*.nupkg")
+                            let fileName = Path.GetFileName(file)
+                            let regex = Regex.Match(fileName, @"^(.*?)\.((?:\.?[0-9]+){3,}(?:[-a-z0-9]+)?)(\.final)?\.nupkg$")
+                            where regex.Success
+                            select regex.Groups[1].Value).ToImmutableHashSet();
 
             var nugetOrg = Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json");
             var nugetOrgFinder = await nugetOrg.GetResourceAsync<FindPackageByIdResource>().ConfigureAwait(false);
@@ -31,42 +42,101 @@ namespace Microsoft.RoslynTools.NuGet
             {
                 logger.LogInformation("Finding dependencies...");
 
+                var dependencies = new Dictionary<DependencyResult, List<(PackageDependency Dependency, NuGetVersion? DesiredVersion)>>();
+
                 await foreach (var dependency in GetAllDependenciesAsync())
                 {
+                    DependencyResult result;
+                    NuGetVersion? desiredVersion = null;
+
                     if (packages.Contains(dependency.Id))
                     {
-                        logger.LogDebug($"{dependency.Id}, {dependency.VersionRange.MinVersion}: One of our packages, so versioned uniformly.");
-                        continue;
+                        result = DependencyResult.SiblingPackage;
                     }
                     else if (!dependency.VersionRange.MinVersion.IsPrerelease)
                     {
-                        logger.LogDebug($"{dependency.Id}, {dependency.VersionRange.MinVersion}: Already using a released version.");
-                        continue;
+                        result = DependencyResult.ReleasedPackage;
                     }
 
-                    if (!await nugetOrgFinder.DoesPackageExistAsync(dependency.Id, dependency.VersionRange.MinVersion, cache, nugetLogger, CancellationToken.None).ConfigureAwait(false))
+                    else if (!await nugetOrgFinder.DoesPackageExistAsync(dependency.Id, dependency.VersionRange.MinVersion, cache, nugetLogger, CancellationToken.None).ConfigureAwait(false))
                     {
-                        logger.LogError($"{dependency.Id}, {dependency.VersionRange.MinVersion}: Doesn't exist on nuget.org, nothing to do.");
-                        continue;
+                        result = DependencyResult.MissingPackage;
                     }
+                    else
+                    {
+                        var versions = await nugetOrgFinder.GetAllVersionsAsync(dependency.Id, cache, nugetLogger, CancellationToken.None).ConfigureAwait(false);
 
-                    var versions = await nugetOrgFinder.GetAllVersionsAsync(dependency.Id, cache, nugetLogger, CancellationToken.None).ConfigureAwait(false);
-
-                    var desiredVersion = (from v in versions
+                        desiredVersion = (from v in versions
                                           where !v.IsPrerelease
                                           where v.Version > dependency.VersionRange.MinVersion.Version
                                           select v).FirstOrDefault();
 
-                    if (desiredVersion is null)
-                    {
-                        logger.LogWarning($"{dependency.Id}, {dependency.VersionRange.MinVersion}: No released version to upgrade to on nuget.org.");
-                        continue;
+
+                        result = desiredVersion is null
+                            ? DependencyResult.ReleasePackageUnavailable
+                            : DependencyResult.ReleasePackageAvailable;
                     }
 
-                    logger.LogInformation($"{dependency.Id}, {dependency.VersionRange.MinVersion}: Upgrade to {desiredVersion}.");
+                    var list = dependencies.ContainsKey(result)
+                        ? dependencies[result]
+                        : new();
+
+                    list.Add((dependency, desiredVersion));
+
+                    dependencies[result] = list;
                 }
 
                 logger.LogInformation("Dependencies found.");
+
+                if (dependencies.TryGetValue(DependencyResult.SiblingPackage, out var siblingPackages))
+                {
+                    logger.LogTrace("");
+                    logger.LogTrace("Dependencies in this folder:");
+                    foreach (var (dependency, _) in siblingPackages.OrderBy(x => x.Dependency.Id))
+                    {
+                        logger.LogTrace("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
+                    }
+                }
+
+                if (dependencies.TryGetValue(DependencyResult.ReleasedPackage, out var releasedPackages))
+                {
+                    logger.LogDebug("");
+                    logger.LogDebug("Dependencies on a release version:");
+                    foreach (var (dependency, _) in releasedPackages.OrderBy(x => x.Dependency.Id))
+                    {
+                        logger.LogDebug("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
+                    }
+                }
+
+                if (dependencies.TryGetValue(DependencyResult.ReleasePackageAvailable, out var releaseAvailablePackages))
+                {
+                    logger.LogInformation("");
+                    logger.LogInformation("Dependencies where a release version is available:");
+                    foreach (var (dependency, desiredVersion) in releaseAvailablePackages.OrderBy(x => x.Dependency.Id))
+                    {
+                        logger.LogInformation("{DependencyId}, {DependencyMinVersion}: Upgrade to {DesiredVersion}", dependency.Id, dependency.VersionRange.MinVersion, desiredVersion);
+                    }
+                }
+
+                if (dependencies.TryGetValue(DependencyResult.ReleasePackageUnavailable, out var releaseUnavailablePackages))
+                {
+                    logger.LogWarning("");
+                    logger.LogWarning("Dependencies where a release version is unavailable:");
+                    foreach (var (dependency, _) in releaseUnavailablePackages.OrderBy(x => x.Dependency.Id))
+                    {
+                        logger.LogWarning("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
+                    }
+                }
+
+                if (dependencies.TryGetValue(DependencyResult.MissingPackage, out var missingPackages))
+                {
+                    logger.LogError("");
+                    logger.LogError("Dependencies missing from NuGet.org:");
+                    foreach (var (dependency, _) in missingPackages.OrderBy(x => x.Dependency.Id))
+                    {
+                        logger.LogError("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
+                    }
+                }
 
                 return 0;
             }
