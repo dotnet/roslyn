@@ -48,8 +48,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return RemoveLeadingAndTrailingContent(expression, 0, expression.Length, IsWhitespace, ch => ch == ';' || IsWhitespace(ch));
         }
 
-        internal override string GetOriginalLocalVariableName(string name) => GeneratedNameParser.GetOriginalLocalVariableName(name);
-        internal override string GetOriginalFieldName(string name) => GeneratedNameParser.GetOriginalFieldName(name);
+        internal override string GetOriginalLocalVariableName(string name)
+        {
+            if (!GeneratedNameParser.TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
+            {
+                return name;
+            }
+
+            var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+            return result;
+        }
+
+        internal override string GetOriginalFieldName(string name)
+        {
+            if (!GeneratedNameParser.TryParseGeneratedName(name, out _, out var openBracketOffset, out var closeBracketOffset))
+            {
+                return name;
+            }
+
+            var result = name.Substring(openBracketOffset + 1, closeBracketOffset - openBracketOffset - 1);
+            return result;
+        }
 
         private static string RemoveComments(string expression)
         {
