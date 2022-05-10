@@ -4,10 +4,8 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +24,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -113,61 +112,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
             span = hostDocument.SelectedSpans.Single();
             return workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        }
-
-        protected static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
-        {
-            var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
-            if (hostDocument == null)
-            {
-                // If there wasn't a span, see if there was a $$ caret.  we'll create an empty span
-                // there if so.
-                hostDocument = workspace.Documents.FirstOrDefault(d => d.CursorPosition != null);
-                if (hostDocument == null)
-                {
-                    document = null;
-                    span = default;
-                    return false;
-                }
-
-                span = new TextSpan(hostDocument.CursorPosition.Value, 0);
-                document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                return true;
-            }
-
-            span = hostDocument.SelectedSpans.Single();
-            document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-            return true;
-        }
-
-        protected static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
-        {
-            var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
-            Debug.Assert(!annotatedDocuments.IsEmpty(), "No annotated span found");
-            var hostDocument = annotatedDocuments.Single();
-            var annotatedSpan = hostDocument.AnnotatedSpans.Single();
-            annotation = annotatedSpan.Key;
-            span = annotatedSpan.Value.Single();
-            return workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        }
-
-        protected static FixAllScope? GetFixAllScope(string annotation)
-        {
-            if (annotation == null)
-            {
-                return null;
-            }
-
-            return annotation switch
-            {
-                "FixAllInDocument" => FixAllScope.Document,
-                "FixAllInProject" => FixAllScope.Project,
-                "FixAllInSolution" => FixAllScope.Solution,
-                "FixAllInContainingMember" => FixAllScope.ContainingMember,
-                "FixAllInContainingType" => FixAllScope.ContainingType,
-                "FixAllInSelection" => FixAllScope.Custom,
-                _ => throw new InvalidProgramException("Incorrect FixAll annotation in test"),
-            };
         }
 
         internal async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(

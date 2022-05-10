@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider> _analyzerReferenceToRefactoringsMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeRefactoringProvider>.CreateValueCallback _createProjectCodeRefactoringsProvider
             = new(r => new ProjectCodeRefactoringProvider(r));
+        private ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<CodeRefactoringProvider, FixAllProviderInfo?>.Empty;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -132,7 +134,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                             using (addOperationScope(providerName))
                             using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                             {
-                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata, extensionManager, options, cancellationToken);
+                                return GetRefactoringFromProviderAsync(document, state, provider, providerMetadata,
+                                    extensionManager, options, cancellationToken);
                             }
                         },
                         cancellationToken));
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             }
         }
 
-        private static async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
+        private async Task<CodeRefactoring?> GetRefactoringFromProviderAsync(
             Document document,
             TextSpan state,
             CodeRefactoringProvider provider,
@@ -183,11 +186,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
                 await task.ConfigureAwait(false);
 
-                var result = actions.Count > 0
-                    ? new CodeRefactoring(provider, actions.ToImmutable())
-                    : null;
+                if (actions.Count == 0)
+                {
+                    return null;
+                }
 
-                return result;
+                var fixAllProviderInfo = extensionManager.PerformFunction(
+                    provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
+                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
             }
             catch (OperationCanceledException)
             {

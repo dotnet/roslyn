@@ -411,9 +411,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// This should be called only if we're sure the backing field can't become non-null value if it's not already.
         /// </remarks>
-        internal void MarkBackingFieldAsCalculated()
+        internal void MarkBackingFieldAsCalculated(BindingDiagnosticBag? diagnostics)
         {
             Interlocked.CompareExchange(ref _lazyBackingFieldSymbol, null, _lazyBackingFieldSymbolSentinel);
+            if (diagnostics is null || !IsOverride || _lazyBackingFieldSymbol is null)
+            {
+                return;
+            }
+
+            var fieldSymbol = (SynthesizedBackingFieldSymbol)_lazyBackingFieldSymbol;
+            if (fieldSymbol.IsCreatedForFieldKeyword)
+            {
+                // semi auto property should override all accessors.
+                if ((!HasSetAccessor && !this.IsReadOnly) ||
+                    (!HasGetAccessor && !this.IsWriteOnly))
+                {
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                }
+            }
         }
 
         /// <summary>
@@ -449,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // If binding both the getter and setter didn't get a backing field, set it to null so that we don't re-calculate.
-            MarkBackingFieldAsCalculated();
+            MarkBackingFieldAsCalculated(diagnostics: null);
 
             void noteAccessorBinding()
             {

@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -58,15 +58,19 @@ namespace Microsoft.CodeAnalysis.Simplification
             PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration ?? DefaultPreferPredefinedTypeKeyword;
         }
 
-        public CodeStyleOption2<bool> QualifyMemberAccess(SymbolKind symbolKind)
-            => symbolKind switch
+        public bool TryGetQualifyMemberAccessOption(SymbolKind symbolKind, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+        {
+            option = symbolKind switch
             {
                 SymbolKind.Field => QualifyFieldAccess,
                 SymbolKind.Property => QualifyPropertyAccess,
                 SymbolKind.Method => QualifyMethodAccess,
                 SymbolKind.Event => QualifyEventAccess,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbolKind),
+                _ => null,
             };
+
+            return option != null;
+        }
 
 #if !CODE_STYLE
         public static SimplifierOptions GetDefault(HostLanguageServices languageServices)

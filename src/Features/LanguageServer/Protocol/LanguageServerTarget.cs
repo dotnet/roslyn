@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         // Set on first LSP initialize request.
         private ClientCapabilities? _clientCapabilities;
 
-        // Set on initialized.
-        private SemanticTokensRefreshListener? _semanticTokensRefreshListener;
-
         // Fields used during shutdown.
         private bool _shuttingDown;
         private Task? _errorShutdownTask;
@@ -82,7 +79,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 supportedLanguages,
                 serverKind,
                 _requestTelemetryLogger,
-                _lspWorkspaceManager);
+                _lspWorkspaceManager,
+                _notificationManager);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
             var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
@@ -162,12 +160,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public virtual Task InitializedAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_clientCapabilities);
-            if (_clientCapabilities.Workspace is not null && _clientCapabilities.Workspace.SemanticTokens.RefreshSupport)
-            {
-                _semanticTokensRefreshListener = new SemanticTokensRefreshListener(
-                    _lspWorkspaceManager, _notificationManager, _listener, cancellationToken);
-            }
-
             return Task.CompletedTask;
         }
 
@@ -255,7 +247,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // won't cause any problems calling it again
             _queue.Shutdown();
 
-            _semanticTokensRefreshListener?.Dispose();
             _requestTelemetryLogger.Dispose();
             _lspWorkspaceManager.Dispose();
         }
