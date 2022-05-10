@@ -14,6 +14,7 @@ internal static class RootRoslynCommand
         {
             AuthenticateCommand.GetCommand(),
             PRFinderCommand.GetCommand(),
+            NuGetDependenciesCommand.GetCommand(),
             NuGetPrepareCommand.GetCommand(),
             NuGetPublishCommand.GetCommand(),
             CreateReleaseTagsCommand.GetCommand(),

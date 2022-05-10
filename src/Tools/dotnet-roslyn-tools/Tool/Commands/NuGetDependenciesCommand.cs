@@ -10,27 +10,28 @@ namespace Microsoft.RoslynTools.Commands;
 
 using static CommonOptions;
 
-internal class NuGetPrepareCommand
+internal class NuGetDependenciesCommand
 {
-    private static readonly NuGetPrepareCommandDefaultHandler s_nuGetPrepareCommandHandler = new();
+    private static readonly NuGetDependenciesCommandDefaultHandler s_nuGetDependenciesCommandHandler = new();
 
     public static Symbol GetCommand()
     {
-        var command = new Command("nuget-prepare", "Prepares packages built from the Roslyn repo for validation.")
+        var command = new Command("nuget-dependencies", "Lists dependencies that are missing or out of date for a folder of .nupkg files.")
         {
             VerbosityOption
         };
-        command.Handler = s_nuGetPrepareCommandHandler;
+        command.Handler = s_nuGetDependenciesCommandHandler;
         return command;
     }
 
-    private class NuGetPrepareCommandDefaultHandler : ICommandHandler
+    private class NuGetDependenciesCommandDefaultHandler : ICommandHandler
     {
         public Task<int> InvokeAsync(InvocationContext context)
         {
             var logger = context.SetupLogging();
+            var packageFolder = Environment.CurrentDirectory;
 
-            return NuGetPrepare.PrepareAsync(logger);
+            return NuGetDependencyFinder.FindDependenciesAsync(packageFolder, logger);
         }
     }
 }

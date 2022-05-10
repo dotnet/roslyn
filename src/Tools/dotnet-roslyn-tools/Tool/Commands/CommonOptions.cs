@@ -8,7 +8,6 @@ using Microsoft.RoslynTools.Logging;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
-using System.Xml.Schema;
 
 namespace Microsoft.RoslynTools.Commands;
 

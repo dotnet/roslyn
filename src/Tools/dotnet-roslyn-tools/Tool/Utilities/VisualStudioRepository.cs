@@ -3,7 +3,6 @@
 // See the License.txt file in the project root for more information.
 
 using System.Xml.Linq;
-using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using Newtonsoft.Json.Linq;
 

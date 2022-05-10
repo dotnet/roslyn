@@ -37,7 +37,7 @@ namespace Microsoft.RoslynTools.NuGet
                 "Microsoft.VisualStudio.LanguageServices"
             };
 
-        internal static int Prepare(ILogger logger)
+        internal static async Task<int> PrepareAsync(ILogger logger)
         {
             try
             {
@@ -62,7 +62,8 @@ namespace Microsoft.RoslynTools.NuGet
                     Directory.CreateDirectory(NotPublishedDirectoryName);
                 }
 
-                var packageFiles = Directory.GetFiles(Environment.CurrentDirectory, "*.nupkg");
+                var packageFolder = Environment.CurrentDirectory;
+                var packageFiles = Directory.GetFiles(packageFolder, "*.nupkg");
 
                 foreach (var packageFile in packageFiles)
                 {
@@ -75,6 +76,8 @@ namespace Microsoft.RoslynTools.NuGet
                 }
 
                 logger.LogInformation("Packages moved.");
+
+                await NuGetDependencyFinder.FindDependenciesAsync(packageFolder, logger);
             }
             catch (Exception ex)
             {
