@@ -3391,14 +3391,16 @@ class C
         [InlineData("a/proj.csproj", "a/b/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
         [InlineData("a/proj.csproj", "a/.editorconfig", null, "*.cs", true, true)]
         [InlineData("a/proj.csproj", "a/b/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "", "*.cs", false, false)]
         [InlineData(null, "a/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
         [InlineData(null, "a/.editorconfig", null, "*.cs", false, false)]
         [InlineData("a/proj.csproj", "a/.editorconfig", null, "*test.cs", false, true)]
         public async Task EditorConfigOptions(string projectPath, string configPath, string sourcePath, string pattern, bool appliedToEntireProject, bool appliedToDocument)
         {
-            projectPath = (projectPath != null) ? Path.Combine(TempRoot.Root, projectPath) : null;
+            projectPath = string.IsNullOrEmpty(projectPath) ? projectPath : Path.Combine(TempRoot.Root, projectPath);
             configPath = Path.Combine(TempRoot.Root, configPath);
-            sourcePath = (sourcePath != null) ? Path.Combine(TempRoot.Root, sourcePath) : null;
+            sourcePath = string.IsNullOrEmpty(sourcePath) ? sourcePath : Path.Combine(TempRoot.Root, sourcePath);
 
             using var workspace = CreateWorkspace();
             var projectId = ProjectId.CreateNewId();
@@ -3423,8 +3425,12 @@ class C
             var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
             Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
 
+            var syntaxTree = await document.GetSyntaxTreeAsync();
+            var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
+
             var projectOptions = document.Project.GetAnalyzerConfigOptions();
-            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out var value) == true && value == "tab");
+            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out value) == true && value == "tab");
         }
     }
 }

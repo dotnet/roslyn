@@ -314,7 +314,11 @@ namespace Microsoft.CodeAnalysis
                 var cache = GetCache();
                 if (documentId != null && _projectState.DocumentStates.TryGetState(documentId, out var documentState))
                 {
-                    return GetOptions(cache, documentState, tree.FilePath);
+                    var result = GetOptions(cache, documentState);
+                    if (result != null)
+                    {
+                        return result;
+                    }
                 }
 
                 return GetOptionsForSourcePath(cache, tree.FilePath);
@@ -322,40 +326,21 @@ namespace Microsoft.CodeAnalysis
 
             internal async ValueTask<StructuredAnalyzerConfigOptions?> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
             {
-                // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-                // as a part of a code action, but haven't been written to disk yet.
-                var projectFilePath = _projectState.FilePath;
-                string? effectiveFilePath = null;
-
-                if (documentState.FilePath != null)
-                {
-                    effectiveFilePath = documentState.FilePath;
-                }
-                else if (documentState.Name != null && projectFilePath != null)
-                {
-                    var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                    if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                        PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                    {
-                        effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
-                    }
-                }
-
-                if (effectiveFilePath == null)
-                {
-                    return null;
-                }
-
                 var cache = await _projectState._lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                return GetOptions(cache, documentState, effectiveFilePath);
+                return GetOptions(cache, documentState);
             }
 
-            private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState, string filePath)
+            private StructuredAnalyzerConfigOptions? GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState)
             {
                 if (documentState.IsRazorDocument())
                 {
                     return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.WorkspaceServices);
+                }
+
+                var filePath = GetEffectiveFilePath(documentState);
+                if (filePath == null)
+                {
+                    return null;
                 }
 
                 var options = GetOptionsForSourcePath(cache, filePath);
@@ -378,6 +363,32 @@ namespace Microsoft.CodeAnalysis
 
             private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache cache, string path)
                 => cache.GetOptionsForSourcePath(path).ConfigOptions;
+
+            private string? GetEffectiveFilePath(DocumentState documentState)
+            {
+                if (!string.IsNullOrEmpty(documentState.FilePath))
+                {
+                    return documentState.FilePath;
+                }
+
+                // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+                // as a part of a code action, but haven't been written to disk yet.
+
+                var projectFilePath = _projectState.FilePath;
+
+                if (documentState.Name != null && projectFilePath != null)
+                {
+                    var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                    if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                        PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                    {
+                        return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+                    }
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
