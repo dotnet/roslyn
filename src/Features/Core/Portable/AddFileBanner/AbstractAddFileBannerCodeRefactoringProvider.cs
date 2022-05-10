@@ -2,29 +2,35 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddFileBanner
 {
-    internal abstract class AbstractAddFileBannerCodeRefactoringProvider : CodeRefactoringProvider
+    internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
         protected abstract bool IsCommentStartCharacter(char ch);
 
         protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
+
+        protected sealed override ImmutableArray<FixAllScope> SupportedFixAllScopes { get; }
+            = ImmutableArray.Create(FixAllScope.Project, FixAllScope.Solution);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -52,10 +58,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
-            var banner = bannerService.GetFileBanner(root);
-
-            if (banner.Length > 0)
+            if (HasExistingBanner(document, root))
             {
                 // Already has a banner.
                 return;
@@ -85,21 +88,35 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                         CodeAction.Create(
                             CodeFixesResources.Add_file_header,
                             _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
-                            nameof(CodeFixesResources.Add_file_header)),
+                            equivalenceKey: siblingDocument.FilePath),
                         new Text.TextSpan(position, length: 0));
                     return;
                 }
             }
         }
 
+        private static bool HasExistingBanner(Document document, SyntaxNode root)
+        {
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var banner = bannerService.GetFileBanner(root);
+            return banner.Length > 0;
+        }
+
         private Task<Document> AddBannerAsync(
+            Document document, SyntaxNode root,
+            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
+        {
+            var newRoot = GetRootWithAddedBanner(document, root, siblingDocument, banner);
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+        }
+
+        private SyntaxNode GetRootWithAddedBanner(
             Document document, SyntaxNode root,
             Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
         {
             banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
 
-            var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
         }
 
         /// <summary>
@@ -150,6 +167,37 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 
             var token = syntaxFacts.ParseToken(text.ToString());
             return bannerService.GetFileBanner(token);
+        }
+
+        protected sealed override async Task FixAllAsync(
+            Document document,
+            ImmutableArray<TextSpan> fixAllSpans,
+            SyntaxEditor editor,
+            CodeActionOptionsProvider optionsProvider,
+            string? equivalenceKey,
+            CancellationToken cancellationToken)
+        {
+            // Bail out if the document to fix already has an existing banner.
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (HasExistingBanner(document, root))
+                return;
+
+            // Get the source document ID with existing banner.
+            // This banner will be added to the document to be fixed.
+            // Equivalence key is the file path to this source document.
+            var sourceDocumentId = document.Project.Solution.GetDocumentIdsWithFilePath(equivalenceKey).FirstOrDefault();
+            if (sourceDocumentId == null)
+                return;
+
+            // Get the existing banner from the source document.
+            var sourceDocument = document.Project.Solution.GetRequiredDocument(sourceDocumentId);
+            var sourceRoot = await sourceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var banner = await TryGetBannerAsync(sourceDocument, sourceRoot, cancellationToken).ConfigureAwait(false);
+            Debug.Assert(banner.Length > 0);
+
+            // Finally add the banner to the document to be fixed.
+            var newRoot = GetRootWithAddedBanner(document, root, sourceDocument, banner);
+            editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
     }
 }

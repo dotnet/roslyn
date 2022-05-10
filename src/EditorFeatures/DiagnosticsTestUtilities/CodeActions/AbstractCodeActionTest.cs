@@ -66,6 +66,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
                 refactoring.Provider, refactoring.CodeActionOptionsProvider, document, span, fixAllScope.Value).ConfigureAwait(false);
+            if (fixAllCodeAction == null)
+                return (ImmutableArray<CodeAction>.Empty, null);
+
             return (ImmutableArray.Create(fixAllCodeAction), fixAllCodeAction);
         }
 
@@ -78,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             FixAllScope scope)
         {
             var fixAllProvider = provider.GetFixAllProvider();
-            Assert.NotNull(fixAllProvider);
+            if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
+                return null;
 
             var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
             var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
