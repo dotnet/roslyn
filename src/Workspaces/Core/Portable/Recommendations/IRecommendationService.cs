@@ -11,13 +11,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
 {
     internal interface IRecommendationService : ILanguageService
     {
-        RecommendedSymbols GetRecommendedSymbolsAtPosition(
-            Document document,
-            SemanticModel semanticModel,
-            int position,
-            RecommendationServiceOptions options,
-            CancellationToken cancellationToken);
-
         RecommendedSymbols GetRecommendedSymbolsInContext(
             SyntaxContext syntaxContext,
             RecommendationServiceOptions options,

@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private async Task<ImmutableArray<CompletionItem>> RecommendCompletionItemsAsync(Document document, CompletionContext context, CancellationToken cancellationToken)
         {
             var position = context.Position;
-            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false) as TContext;
-            Contract.ThrowIfNull(syntaxContext);
+            var syntaxContext = (TContext)await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
             var keywords = await RecommendKeywordsAsync(document, position, syntaxContext, cancellationToken).ConfigureAwait(false);
             return keywords.SelectAsArray(k => CreateItem(k, syntaxContext, cancellationToken));
         }

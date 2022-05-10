@@ -59,9 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false) as CSharpSyntaxContext;
-                Contract.ThrowIfNull(context);
-
+                var context = (CSharpSyntaxContext)await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
                 if (context.IsInNonUserCode)
                 {
                     return;

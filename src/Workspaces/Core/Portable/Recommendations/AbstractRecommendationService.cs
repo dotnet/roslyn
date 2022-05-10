@@ -17,17 +17,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
     internal abstract partial class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
         where TSyntaxContext : SyntaxContext
     {
-        protected abstract TSyntaxContext CreateContext(
-            Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
-
         protected abstract AbstractRecommendationServiceRunner CreateRunner(
             TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
-
-        public RecommendedSymbols GetRecommendedSymbolsAtPosition(Document document, SemanticModel semanticModel, int position, RecommendationServiceOptions options, CancellationToken cancellationToken)
-        {
-            var context = CreateContext(document, semanticModel, position, cancellationToken);
-            return GetRecommendedSymbolsInContext(context, options, cancellationToken);
-        }
 
         public RecommendedSymbols GetRecommendedSymbolsInContext(SyntaxContext syntaxContext, RecommendationServiceOptions options, CancellationToken cancellationToken)
         {
