@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, this.Location, hasBody: true, IsExplicitInterfaceImplementation, diagnostics: diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, this.Location, hasBody: true, diagnostics: diagnostics);
 
             if (syntax.Body != null || syntax.ExpressionBody != null)
             {
