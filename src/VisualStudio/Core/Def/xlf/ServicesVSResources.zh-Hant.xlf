@@ -242,6 +242,16 @@
         <target state="translated">程式碼分析在解決方案完成前終止。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_on_file_open">
+        <source>Collapse metadata implementations on file open</source>
+        <target state="new">Collapse metadata implementations on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">色彩提示</target>
@@ -445,6 +455,11 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">完成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="new">Fix text pasted into string literals (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -1030,6 +1045,11 @@
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
         <target state="translated">建議在 'GetHashCode' 中使用 'System.HashCode'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_UTF8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="new">Prefer UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">

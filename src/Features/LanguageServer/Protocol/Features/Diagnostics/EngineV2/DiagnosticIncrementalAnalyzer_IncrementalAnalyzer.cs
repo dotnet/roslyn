@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var isActiveDocument = _documentTrackingService.TryGetActiveDocument() == document.Id;
                 var isOpenDocument = document.IsOpen();
-                var isGeneratedRazorDocument = document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
+                var isGeneratedRazorDocument = document.IsRazorDocument();
 
                 // Only analyze open/active documents, unless it is a generated Razor document.
                 if (!isActiveDocument && !isOpenDocument && !isGeneratedRazorDocument)
