@@ -54,17 +54,18 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     [DataMember(Order = BaseMemberCount + 12)] public readonly CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration;
     [DataMember(Order = BaseMemberCount + 13)] public readonly CodeStyleOption2<bool> PreferIndexOperator;
     [DataMember(Order = BaseMemberCount + 14)] public readonly CodeStyleOption2<bool> PreferRangeOperator;
-    [DataMember(Order = BaseMemberCount + 15)] public readonly CodeStyleOption2<string> PreferredModifierOrder;
-    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<bool> PreferSimpleUsingStatement;
-    [DataMember(Order = BaseMemberCount + 17)] public readonly CodeStyleOption2<bool> PreferLocalOverAnonymousFunction;
-    [DataMember(Order = BaseMemberCount + 18)] public readonly CodeStyleOption2<bool> PreferTupleSwap;
-    [DataMember(Order = BaseMemberCount + 29)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
-    [DataMember(Order = BaseMemberCount + 20)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
-    [DataMember(Order = BaseMemberCount + 21)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
+    [DataMember(Order = BaseMemberCount + 15)] public readonly CodeStyleOption2<bool> PreferUtf8StringLiterals;
+    [DataMember(Order = BaseMemberCount + 16)] public readonly CodeStyleOption2<string> PreferredModifierOrder;
+    [DataMember(Order = BaseMemberCount + 17)] public readonly CodeStyleOption2<bool> PreferSimpleUsingStatement;
+    [DataMember(Order = BaseMemberCount + 18)] public readonly CodeStyleOption2<bool> PreferLocalOverAnonymousFunction;
+    [DataMember(Order = BaseMemberCount + 19)] public readonly CodeStyleOption2<bool> PreferTupleSwap;
+    [DataMember(Order = BaseMemberCount + 20)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement;
+    [DataMember(Order = BaseMemberCount + 21)] public readonly CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment;
+    [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<bool> PreferMethodGroupConversion;
 
     // the following are also used in code generation features, consider sharing:
-    [DataMember(Order = BaseMemberCount + 22)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
-    [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
+    [DataMember(Order = BaseMemberCount + 23)] public readonly CodeStyleOption2<bool> PreferStaticLocalFunction;
+    [DataMember(Order = BaseMemberCount + 24)] public readonly CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas;
 
 #pragma warning disable IDE1006 // Record naming style
     public CSharpIdeCodeStyleOptions(
@@ -84,6 +85,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         CodeStyleOption2<bool>? PreferDeconstructedVariableDeclaration = null,
         CodeStyleOption2<bool>? PreferIndexOperator = null,
         CodeStyleOption2<bool>? PreferRangeOperator = null,
+        CodeStyleOption2<bool>? PreferUtf8StringLiterals = null,
         CodeStyleOption2<string>? PreferredModifierOrder = null,
         CodeStyleOption2<bool>? PreferSimpleUsingStatement = null,
         CodeStyleOption2<bool>? PreferLocalOverAnonymousFunction = null,
@@ -111,6 +113,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
         this.PreferDeconstructedVariableDeclaration = PreferDeconstructedVariableDeclaration ?? s_trueWithSuggestionEnforcement;
         this.PreferIndexOperator = PreferIndexOperator ?? s_trueWithSuggestionEnforcement;
         this.PreferRangeOperator = PreferRangeOperator ?? s_trueWithSuggestionEnforcement;
+        this.PreferUtf8StringLiterals = PreferUtf8StringLiterals ?? s_trueWithSuggestionEnforcement;
         this.PreferredModifierOrder = PreferredModifierOrder ?? s_defaultModifierOrder;
         this.PreferSimpleUsingStatement = PreferSimpleUsingStatement ?? s_trueWithSuggestionEnforcement;
         this.PreferLocalOverAnonymousFunction = PreferLocalOverAnonymousFunction ?? s_trueWithSuggestionEnforcement;

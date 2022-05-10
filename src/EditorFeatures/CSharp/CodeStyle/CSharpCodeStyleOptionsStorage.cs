@@ -44,6 +44,7 @@ internal static class CSharpCodeStyleOptionsStorage
             PreferDeconstructedVariableDeclaration: globalOptions.GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration),
             PreferIndexOperator: globalOptions.GetOption(CSharpCodeStyleOptions.PreferIndexOperator),
             PreferRangeOperator: globalOptions.GetOption(CSharpCodeStyleOptions.PreferRangeOperator),
+            PreferUtf8StringLiterals: globalOptions.GetOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals),
             PreferredModifierOrder: globalOptions.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder),
             PreferSimpleUsingStatement: globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement),
             PreferLocalOverAnonymousFunction: globalOptions.GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction),

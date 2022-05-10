@@ -384,8 +384,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_PreferUTF8StringLiterals
         {
-            get { return GetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals); }
-            set { SetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals, value); }
         }
 
         public string Style_PreferredUsingDirectivePlacement

@@ -78,6 +78,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferDeconstructedVariableDeclaration => GetOption(CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration, FallbackCodeStyleOptions.PreferDeconstructedVariableDeclaration);
     public CodeStyleOption2<bool> PreferIndexOperator => GetOption(CSharpCodeStyleOptions.PreferIndexOperator, FallbackCodeStyleOptions.PreferIndexOperator);
     public CodeStyleOption2<bool> PreferRangeOperator => GetOption(CSharpCodeStyleOptions.PreferRangeOperator, FallbackCodeStyleOptions.PreferRangeOperator);
+    public CodeStyleOption2<bool> PreferUtf8StringLiterals => GetOption(CSharpCodeStyleOptions.PreferUtf8StringLiterals, FallbackCodeStyleOptions.PreferUtf8StringLiterals);
     public CodeStyleOption2<string> PreferredModifierOrder => GetOption(CSharpCodeStyleOptions.PreferredModifierOrder, FallbackCodeStyleOptions.PreferredModifierOrder);
     public CodeStyleOption2<bool> PreferSimpleUsingStatement => GetOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, FallbackCodeStyleOptions.PreferSimpleUsingStatement);
     public CodeStyleOption2<bool> PreferLocalOverAnonymousFunction => GetOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, FallbackCodeStyleOptions.PreferLocalOverAnonymousFunction);
