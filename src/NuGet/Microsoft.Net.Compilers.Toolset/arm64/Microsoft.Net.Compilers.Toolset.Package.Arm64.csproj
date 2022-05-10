@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
-    <IsArm64Target>true</IsArm64Target>
+    <RoslynPackageArch>arm64</RoslynPackageArch>
     <IsPackable>true</IsPackable>
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Arm64</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>

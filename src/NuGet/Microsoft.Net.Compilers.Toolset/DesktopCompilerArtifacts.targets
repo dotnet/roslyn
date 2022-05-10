@@ -3,7 +3,7 @@
 <Project>
 
   <PropertyGroup>
-    <_ExeDirSuffix Condition="'$(IsArm64Target)' == 'true'">-arm64</_ExeDirSuffix>
+    <_ExeDirSuffix Condition="'$(RoslynPackageArch)' == 'arm64'">-arm64</_ExeDirSuffix>
   </PropertyGroup>
 
   <!--

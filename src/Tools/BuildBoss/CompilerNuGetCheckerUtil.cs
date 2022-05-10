@@ -162,78 +162,6 @@ namespace BuildBoss
         private string GetProjectPublishDirectory(string projectName, string tfm) =>
             Path.Combine(ArtifactsDirectory, "bin", projectName, Configuration, tfm, "publish");
 
-        /// <summary>
-        /// Verifies the VS.ExternalAPIs.Roslyn package is self consistent. Need to ensure that we insert all of the project dependencies
-        /// that we build into the package. If we miss a dependency then the VS insertion will fail. Big refactorings can often forget to
-        /// properly update this package.
-        /// </summary>
-        /// <param name="textWriter"></param>
-        /// <returns></returns>
-        private bool CheckExternalApis(TextWriter textWriter)
-        {
-            var packageFilePath = FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");
-            var allGood = true;
-
-            // This tracks the packages which are included in separate packages. Hence they don't need to
-            // be included here.
-            var excludedNameSet = new HashSet<string>(PathComparer)
-            {
-                "Microsoft.CodeAnalysis.Elfie"
-            };
-
-            textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
-            textWriter.WriteLine("\tRoot Folder");
-            verifyFolder("");
-            return allGood;
-
-            void verifyFolder(string folderRelativeName)
-            {
-                var foundDllNameSet = new HashSet<string>(PathComparer);
-                var neededDllNameSet = new HashSet<string>(PathComparer);
-                using var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read);
-                foreach (var part in GetPartsInFolder(package, folderRelativeName))
-                {
-                    var name = part.GetName();
-                    if (Path.GetExtension(name) != ".dll")
-                    {
-                        continue;
-                    }
-
-                    foundDllNameSet.Add(Path.GetFileNameWithoutExtension(name));
-                    using var peReader = new PEReader(part.GetStream(FileMode.Open, FileAccess.Read));
-                    var metadataReader = peReader.GetMetadataReader();
-                    foreach (var handle in metadataReader.AssemblyReferences)
-                    {
-                        var assemblyReference = metadataReader.GetAssemblyReference(handle);
-                        var assemblyName = metadataReader.GetString(assemblyReference.Name);
-                        neededDllNameSet.Add(assemblyName);
-                    }
-                }
-
-                if (foundDllNameSet.Count == 0)
-                {
-                    allGood = false;
-                    textWriter.WriteLine($"\t\tFound zero DLLs in {folderRelativeName}");
-                    return;
-                }
-
-                // As a simplification we only validate the assembly names that begin with Microsoft.CodeAnalysis. This is a good 
-                // hueristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
-                // are worth validating here.
-                var neededDllNames = neededDllNameSet
-                    .Where(x => x.StartsWith("Microsoft.CodeAnalysis"))
-                    .OrderBy(x => x, PathComparer);
-                foreach (var name in neededDllNames)
-                {
-                    if (!foundDllNameSet.Contains(name) && !excludedNameSet.Contains(name))
-                    {
-                        textWriter.WriteLine($"\t\tMissing dependency {name}");
-                        allGood = false;
-                    }
-                }
-            }
-        }
-
         private static bool VerifyPackageCore(
             TextWriter textWriter,
             string packageFilePath,
@@ -366,6 +294,79 @@ namespace BuildBoss
                 .Where(x => x.RelativeName.StartsWith(folderRelativePath, PathComparison))
                 .Select(x => x.PackagePart);
         }
+
+        /// <summary>
+        /// Verifies the VS.ExternalAPIs.Roslyn package is self consistent. Need to ensure that we insert all of the project dependencies
+        /// that we build into the package. If we miss a dependency then the VS insertion will fail. Big refactorings can often forget to
+        /// properly update this package.
+        /// </summary>
+        /// <param name="textWriter"></param>
+        /// <returns></returns>
+        private bool CheckExternalApis(TextWriter textWriter)
+        {
+            var packageFilePath = FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");
+            var allGood = true;
+
+            // This tracks the packages which are included in separate packages. Hence they don't need to
+            // be included here.
+            var excludedNameSet = new HashSet<string>(PathComparer)
+            {
+                "Microsoft.CodeAnalysis.Elfie"
+            };
+
+            textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
+            textWriter.WriteLine("\tRoot Folder");
+            verifyFolder("");
+            return allGood;
+
+            void verifyFolder(string folderRelativeName)
+            {
+                var foundDllNameSet = new HashSet<string>(PathComparer);
+                var neededDllNameSet = new HashSet<string>(PathComparer);
+                using var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read);
+                foreach (var part in GetPartsInFolder(package, folderRelativeName))
+                {
+                    var name = part.GetName();
+                    if (Path.GetExtension(name) != ".dll")
+                    {
+                        continue;
+                    }
+
+                    foundDllNameSet.Add(Path.GetFileNameWithoutExtension(name));
+                    using var peReader = new PEReader(part.GetStream(FileMode.Open, FileAccess.Read));
+                    var metadataReader = peReader.GetMetadataReader();
+                    foreach (var handle in metadataReader.AssemblyReferences)
+                    {
+                        var assemblyReference = metadataReader.GetAssemblyReference(handle);
+                        var assemblyName = metadataReader.GetString(assemblyReference.Name);
+                        neededDllNameSet.Add(assemblyName);
+                    }
+                }
+
+                if (foundDllNameSet.Count == 0)
+                {
+                    allGood = false;
+                    textWriter.WriteLine($"\t\tFound zero DLLs in {folderRelativeName}");
+                    return;
+                }
+
+                // As a simplification we only validate the assembly names that begin with Microsoft.CodeAnalysis. This is a good 
+                // hueristic for finding assemblies that we build. Can be expanded in the future if we find more assemblies that
+                // are worth validating here.
+                var neededDllNames = neededDllNameSet
+                    .Where(x => x.StartsWith("Microsoft.CodeAnalysis"))
+                    .OrderBy(x => x, PathComparer);
+                foreach (var name in neededDllNames)
+                {
+                    if (!foundDllNameSet.Contains(name) && !excludedNameSet.Contains(name))
+                    {
+                        textWriter.WriteLine($"\t\tMissing dependency {name}");
+                        allGood = false;
+                    }
+                }
+            }
+        }
+
 
         private string FindNuGetPackage(string directory, string partialName)
         {

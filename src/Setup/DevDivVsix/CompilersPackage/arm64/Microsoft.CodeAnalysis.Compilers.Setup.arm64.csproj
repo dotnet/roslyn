@@ -4,7 +4,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
-    <IsArm64Target>true</IsArm64Target>
     <RoslynPackageArch>arm64</RoslynPackageArch>
 
     <!-- VS Insertion -->
