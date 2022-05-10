@@ -53,14 +53,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var document = completionContext.Document;
                 var cancellationToken = completionContext.CancellationToken;
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
                 if (!completionContext.CompletionOptions.ShowNameSuggestions)
                 {
                     return;
                 }
 
-                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+                var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false) as CSharpSyntaxContext;
+                Contract.ThrowIfNull(context);
+
                 if (context.IsInNonUserCode)
                 {
                     return;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
                 }
 
-                var baseNames = GetBaseNames(semanticModel, nameInfo);
+                var baseNames = GetBaseNames(context.SemanticModel, nameInfo);
                 if (baseNames != default)
                 {
                     await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, result, cancellationToken).ConfigureAwait(false);

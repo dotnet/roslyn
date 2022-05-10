@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
                 return;
 
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
             var isAwaitKeywordContext = IsAwaitKeywordContext(syntaxContext);
             var dotAwaitContext = GetDotAwaitKeywordContext(syntaxContext, cancellationToken);
