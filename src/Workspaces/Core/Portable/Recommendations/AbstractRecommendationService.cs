@@ -26,7 +26,13 @@ namespace Microsoft.CodeAnalysis.Recommendations
         public RecommendedSymbols GetRecommendedSymbolsAtPosition(Document document, SemanticModel semanticModel, int position, RecommendationServiceOptions options, CancellationToken cancellationToken)
         {
             var context = CreateContext(document, semanticModel, position, cancellationToken);
-            var result = CreateRunner(context, options.FilterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
+            return GetRecommendedSymbolsInContext(context, options, cancellationToken);
+        }
+
+        public RecommendedSymbols GetRecommendedSymbolsInContext(SyntaxContext syntaxContext, RecommendationServiceOptions options, CancellationToken cancellationToken)
+        {
+            var semanticModel = syntaxContext.SemanticModel;
+            var result = CreateRunner((TSyntaxContext)syntaxContext, options.FilterOutOfScopeLocals, cancellationToken).GetRecommendedSymbols();
 
             var namedSymbols = result.NamedSymbols;
             var unnamedSymbols = result.UnnamedSymbols;
@@ -34,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             namedSymbols = namedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
             unnamedSymbols = unnamedSymbols.FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
 
-            var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
+            var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(syntaxContext, cancellationToken);
             namedSymbols = namedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
             unnamedSymbols = unnamedSymbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
 

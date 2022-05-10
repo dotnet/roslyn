@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
@@ -14,6 +15,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
             Document document,
             SemanticModel semanticModel,
             int position,
+            RecommendationServiceOptions options,
+            CancellationToken cancellationToken);
+
+        RecommendedSymbols GetRecommendedSymbolsInContext(
+            SyntaxContext syntaxContext,
             RecommendationServiceOptions options,
             CancellationToken cancellationToken);
     }
