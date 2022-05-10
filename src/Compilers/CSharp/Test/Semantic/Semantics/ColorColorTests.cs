@@ -2190,7 +2190,7 @@ class C2
         [InlineData("struct")]
         [InlineData("unmanaged")]
         [InlineData("notnull")]
-        public void WorkItem61171(string constraint)
+        public void WorkItem61171_Constraints(string constraint)
         {
             string constraintLine = $"where TValue : {constraint}";
             if (string.IsNullOrEmpty(constraint))
@@ -2232,7 +2232,40 @@ public sealed class Tree<TValue>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            compilation.VerifyEmitDiagnostics();
+        }
+
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
+        [Theory]
+        [InlineData("dynamic", "object")]
+        [InlineData("(int a, int b)", "(int, int)")]
+        public void WorkItem61171_DynamicObjectTuple(string inheritedArgument, string propertyArgument)
+        {
+            string source = $@"
+public class Tree<TValue>
+{{
+    public enum NodeType
+    {{
+        Parent,
+        Leaf,
+    }}
+}}
+
+public class Tree1 : Tree<{inheritedArgument}>
+{{
+}}
+
+public class Tree2 : Tree1
+{{
+    public sealed class LeafNode
+    {{
+        public Tree<{propertyArgument}>.NodeType NodeType => NodeType.Leaf;
+    }}
+}}
+";
+
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyDiagnostics();
         }
     }
 }
