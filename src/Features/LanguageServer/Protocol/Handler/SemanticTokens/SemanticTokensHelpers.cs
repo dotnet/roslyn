@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -38,6 +39,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             ClassificationTypeNames.ExtensionMethodName,
             ClassificationTypeNames.FieldName,
             ClassificationTypeNames.InterfaceName,
+
+            ClassificationTypeNames.JsonArray,
+            ClassificationTypeNames.JsonComment,
+            ClassificationTypeNames.JsonConstructorName,
+            ClassificationTypeNames.JsonKeyword,
+            ClassificationTypeNames.JsonNumber,
+            ClassificationTypeNames.JsonObject,
+            ClassificationTypeNames.JsonOperator,
+            ClassificationTypeNames.JsonPropertyName,
+            ClassificationTypeNames.JsonPunctuation,
+            ClassificationTypeNames.JsonString,
+            ClassificationTypeNames.JsonText,
+
             ClassificationTypeNames.LabelName,
             ClassificationTypeNames.LocalName,
             ClassificationTypeNames.MethodName,
@@ -302,16 +316,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var lastLineNumber = 0;
             var lastStartCharacter = 0;
 
-            for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
+            try
             {
-                currentClassifiedSpanIndex = ComputeNextToken(
-                    lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
-                    currentClassifiedSpanIndex, tokenTypesToIndex,
-                    out var deltaLine, out var startCharacterDelta, out var tokenLength,
-                    out var tokenType, out var tokenModifiers);
+                for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Length; currentClassifiedSpanIndex++)
+                {
+                    currentClassifiedSpanIndex = ComputeNextToken(
+                        lines, ref lastLineNumber, ref lastStartCharacter, classifiedSpans,
+                        currentClassifiedSpanIndex, tokenTypesToIndex,
+                        out var deltaLine, out var startCharacterDelta, out var tokenLength,
+                        out var tokenType, out var tokenModifiers);
 
-                data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
+                    data.AddRange(deltaLine, startCharacterDelta, tokenLength, tokenType, tokenModifiers);
+                }
             }
+            catch (Exception)
+            {
+
+            }
+
 
             return data.ToArray();
         }
