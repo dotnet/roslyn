@@ -78,11 +78,6 @@ namespace Microsoft.CodeAnalysis.Options
         event EventHandler<OptionChangedEventArgs> OptionChanged;
 
         /// <summary>
-        /// Returns the <see cref="OptionSet"/> that applies to a specific document, given that document and the global options.
-        /// </summary>
-        Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
-
-        /// <summary>
         /// Registers a workspace with the option service.
         /// </summary>
         void RegisterWorkspace(Workspace workspace);
