@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2581,6 +2582,14 @@ namespace TestNs1
             await TestNoRefactoringAsync(initialMarkup, hostServices: FeaturesTestCompositions.Features.GetHostServices()).ConfigureAwait(false);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task NoCodeActionForTopLevelStatement()
+        {
+            var initialMarkup = @"
+var x = 42;[||]";
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
+        }
+
         private class Test : VerifyCS.Test
         {
             public Test(
@@ -2644,6 +2653,10 @@ namespace TestNs1
         {
             await new Test("", ImmutableArray<string>.Empty, hostServices: hostServices)
             {
+                TestState =
+                {
+                    OutputKind = OutputKind.ConsoleApplication
+                },
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,
             }.RunAsync().ConfigureAwait(false);

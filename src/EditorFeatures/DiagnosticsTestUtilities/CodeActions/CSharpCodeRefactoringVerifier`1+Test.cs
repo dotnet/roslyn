@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             /// <summary>
             /// Gets or sets the language version to use for the test. The default value is
-            /// <see cref="LanguageVersion.CSharp8"/>.
+            /// <see cref="LanguageVersion.CSharp9"/>.
             /// </summary>
-            public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp8;
+            public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp9;
 
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;

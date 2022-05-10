@@ -32,6 +32,12 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 return;
             }
 
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts.IsGlobalStatement(memberDeclaration))
+            {
+                return;
+            }
+
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel == null)
             {
@@ -52,8 +58,6 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             {
                 return;
             }
-
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             var action = new MoveStaticMembersWithDialogCodeAction(document, span, service, selectedType, context.Options, selectedMember: selectedMembers[0]);
 
