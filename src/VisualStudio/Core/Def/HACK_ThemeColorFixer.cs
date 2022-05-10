@@ -119,6 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             UpdateForegroundColor(ClassificationTypeNames.TestCode, sourceFormatMap, targetFormatMap);
             UpdateBackgroundColor(ClassificationTypeNames.TestCode, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.TestCodeIdentifier, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.FieldName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.EnumMemberName, sourceFormatMap, targetFormatMap);

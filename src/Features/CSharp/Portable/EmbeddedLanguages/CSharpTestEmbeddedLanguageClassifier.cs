@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
@@ -50,9 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             if (virtualCharsWithMarkup.Any(static vc => vc.Utf16SequenceLength != 1))
                 return;
 
-            var virtualCharsWithoutMarkup = StripMarkupCharacters(context, virtualCharsWithMarkup);
+            using var _ = ArrayBuilder<TextSpan>.GetInstance(out var markdownSpans);
+            var virtualCharsWithoutMarkup = StripMarkupCharacters(virtualCharsWithMarkup, markdownSpans);
 
             cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var span in markdownSpans)
+                context.AddClassification(ClassificationTypeNames.TestCodeMarkdown, span);
 
             var encoding = semanticModel.SyntaxTree.Encoding;
             var testFileSourceText = new VirtualCharSequenceSourceText(virtualCharsWithoutMarkup, encoding);
@@ -89,55 +94,84 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         /// document for classification.
         /// </summary>
         private static VirtualCharSequence StripMarkupCharacters(
-            EmbeddedLanguageClassificationContext context, VirtualCharSequence virtualChars)
+            VirtualCharSequence virtualChars, ArrayBuilder<TextSpan>? markdownSpans)
         {
             var builder = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
+            var nestedAnonymousSpanCount = 0;
+            var nestedNamedSpanCount = 0;
+
             for (int i = 0, n = virtualChars.Length; i < n;)
             {
-                var vc = virtualChars[i];
-                if (i != n - 1)
+                var vc1 = virtualChars[i];
+                var vc2 = i + 1 < n ? virtualChars[i + 1] : default;
+
+                // These casts are safe because we disallowed virtual chars whose Value doesn't fit in a char in
+                // RegisterClassifications.
+                //
+                // TODO: this algorithm is not actually the one used in roslyn or the roslyn-sdk for parsing a
+                // markup file.  for example it will get `[|]` wrong (as that depends on knowing if we're starting
+                // or ending an existing span).  Fix this up to follow the actual algorithm we use.
+                switch (((char)vc1.Value, (char)vc2.Value))
                 {
-                    var next = virtualChars[i + 1];
+                    case ('$', '$'):
+                        markdownSpans.Add(FromBounds(vc1, vc2));
+                        i += 2;
+                        continue;
+                    case ('|', ']'):
+                        nestedAnonymousSpanCount = Math.Max(0, nestedAnonymousSpanCount - 1);
+                        markdownSpans.Add(FromBounds(vc1, vc2));
+                        i += 2;
+                        continue;
+                    case ('|', '}'):
+                        markdownSpans.Add(FromBounds(vc1, vc2));
+                        nestedNamedSpanCount = Math.Max(0, nestedNamedSpanCount - 1);
+                        i += 2;
+                        continue;
 
-                    // These casts are safe because we disallowed virtual chars whose Value doesn't fit in a char in
-                    // RegisterClassifications.
+                    // We have a slight ambiguity with cases like these:
                     //
-                    // TODO: this algorithm is not actually the one used in roslyn or the roslyn-sdk for parsing a
-                    // markup file.  for example it will get `[|]` wrong (as that depends on knowing if we're starting
-                    // or ending an existing span).  Fix this up to follow the actual algorithm we use.
-                    switch (((char)vc.Value, (char)next.Value))
-                    {
-                        case ('$', '$'):
-                        case ('[', '|'):
-                        case ('|', ']'):
-                        case ('|', '}'):
-                            context.AddClassification(ClassificationTypeNames.RegexQuantifier, FromBounds(vc, next));
-                            i += 2;
-                            continue;
+                    // [|]    [|}
+                    //
+                    // Is it starting a new match, or ending an existing match.  As a workaround, we special case
+                    // these and consider it ending a match if we have something on the stack already.
 
-                        case ('{', '|'):
-                            var seekPoint = i;
-                            while (seekPoint < n)
+                    case ('[', '|'):
+                        var vc3 = i + 2 < n ? virtualChars[i + 2] : default;
+                        if ((vc3.Value == ']' && nestedAnonymousSpanCount > 0) ||
+                            (vc3.Value == '}' && nestedNamedSpanCount > 0))
+                        {
+                            // not the start of a span, don't classify this '[' specially.
+                            break;
+                        }
+
+                        nestedAnonymousSpanCount++;
+                        markdownSpans.Add(FromBounds(vc1, vc2));
+                        i += 2;
+                        continue;
+
+                    case ('{', '|'):
+                        var seekPoint = i;
+                        while (seekPoint < n)
+                        {
+                            var colonChar = virtualChars[seekPoint];
+                            if (colonChar.Value == ':')
                             {
-                                var seekChar = virtualChars[seekPoint];
-                                if (seekChar.Value == ':')
-                                {
-                                    context.AddClassification(ClassificationTypeNames.RegexQuantifier, FromBounds(vc, seekChar));
-                                    i = seekPoint + 1;
-                                    continue;
-                                }
-
-                                seekPoint++;
+                                markdownSpans.Add(FromBounds(vc1, colonChar));
+                                nestedAnonymousSpanCount++;
+                                i = seekPoint + 1;
+                                continue;
                             }
 
-                            // didn't find the colon.  don't classify these specially.
-                            break;
-                    }
+                            seekPoint++;
+                        }
+
+                        // didn't find the colon.  don't classify these specially.
+                        break;
                 }
 
                 // Nothing special, add character as is.
-                builder.Add(vc);
+                builder.Add(vc1);
                 i++;
             }
 
@@ -173,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                 }
 
                 context.AddClassification(
-                    classificationType,
+                    classificationType == ClassificationTypeNames.NamespaceName ? ClassificationTypeNames.Punctuation : classificationType,
                     FromBounds(virtualChars[currentStartIndexInclusive], virtualChars[currentEndIndexExclusive - 1]));
                 currentStartIndexInclusive = currentEndIndexExclusive;
             }
@@ -183,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
         /// Trivial implementation of a <see cref="SourceText"/> that directly maps over a <see
         /// cref="VirtualCharSequence"/>.
         /// </summary>
-        private class VirtualCharSequenceSourceText : SourceText
+        private sealed class VirtualCharSequenceSourceText : SourceText
         {
             private readonly VirtualCharSequence _virtualChars;
 
