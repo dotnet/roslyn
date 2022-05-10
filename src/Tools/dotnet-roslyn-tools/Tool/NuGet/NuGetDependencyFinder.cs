@@ -91,7 +91,7 @@ namespace Microsoft.RoslynTools.NuGet
                 if (dependencies.TryGetValue(DependencyResult.SiblingPackage, out var siblingPackages))
                 {
                     logger.LogTrace("");
-                    logger.LogTrace("Packages in this folder:");
+                    logger.LogTrace("Dependencies in this folder:");
                     foreach (var (dependency, _) in siblingPackages.OrderBy(x => x.Dependency.Id))
                     {
                         logger.LogTrace("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
@@ -101,7 +101,7 @@ namespace Microsoft.RoslynTools.NuGet
                 if (dependencies.TryGetValue(DependencyResult.ReleasedPackage, out var releasedPackages))
                 {
                     logger.LogDebug("");
-                    logger.LogDebug("Packages already on a release version:");
+                    logger.LogDebug("Dependencies on a release version:");
                     foreach (var (dependency, _) in releasedPackages.OrderBy(x => x.Dependency.Id))
                     {
                         logger.LogDebug("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
@@ -111,7 +111,7 @@ namespace Microsoft.RoslynTools.NuGet
                 if (dependencies.TryGetValue(DependencyResult.ReleasePackageAvailable, out var releaseAvailablePackages))
                 {
                     logger.LogInformation("");
-                    logger.LogInformation("Packages where a release version is available:");
+                    logger.LogInformation("Dependencies where a release version is available:");
                     foreach (var (dependency, desiredVersion) in releaseAvailablePackages.OrderBy(x => x.Dependency.Id))
                     {
                         logger.LogInformation("{DependencyId}, {DependencyMinVersion}: Upgrade to {DesiredVersion}", dependency.Id, dependency.VersionRange.MinVersion, desiredVersion);
@@ -121,7 +121,7 @@ namespace Microsoft.RoslynTools.NuGet
                 if (dependencies.TryGetValue(DependencyResult.ReleasePackageUnavailable, out var releaseUnavailablePackages))
                 {
                     logger.LogWarning("");
-                    logger.LogWarning("Packages where a release version is unavailable:");
+                    logger.LogWarning("Dependencies where a release version is unavailable:");
                     foreach (var (dependency, _) in releaseUnavailablePackages.OrderBy(x => x.Dependency.Id))
                     {
                         logger.LogWarning("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
@@ -131,7 +131,7 @@ namespace Microsoft.RoslynTools.NuGet
                 if (dependencies.TryGetValue(DependencyResult.MissingPackage, out var missingPackages))
                 {
                     logger.LogError("");
-                    logger.LogError("Packages missing from NuGet.org:");
+                    logger.LogError("Dependencies missing from NuGet.org:");
                     foreach (var (dependency, _) in missingPackages.OrderBy(x => x.Dependency.Id))
                     {
                         logger.LogError("{DependencyId}, {DependencyMinVersion}", dependency.Id, dependency.VersionRange.MinVersion);
