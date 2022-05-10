@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         Project? MapDocument(Document document);
 
         /// <summary>
-        /// Called to determine if the file should be collapsed by default when opened for the files time
+        /// Called to determine if the file should be collapsed by default when opened for the first time
         /// </summary>
         bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions);
     }

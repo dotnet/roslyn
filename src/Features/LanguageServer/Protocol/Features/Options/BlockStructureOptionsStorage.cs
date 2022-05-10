@@ -63,7 +63,7 @@ internal static class BlockStructureOptionsStorage
 
     public static readonly PerLanguageOption2<bool> CollapseMetadataImplementationsWhenFirstOpened = new(
         FeatureName, "CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened"));  
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened"));
     
     public static readonly PerLanguageOption2<bool> CollapseEmptyMetadataImplementationsWhenFirstOpened = new(
         FeatureName, "CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened,
