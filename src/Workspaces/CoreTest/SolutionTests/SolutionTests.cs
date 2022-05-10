@@ -3385,5 +3385,46 @@ class C
 
             GC.KeepAlive(finalSolution);
         }
+
+        [Theory]
+        [InlineData("a/proj.csproj", "a/.editorconfig", "a/b/test.cs", "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*.cs", true, true)]
+        [InlineData("a/proj.csproj", "a/b/.editorconfig", null, "*.cs", false, false)]
+        [InlineData(null, "a/.editorconfig", "a/b/test.cs", "*.cs", false, true)]
+        [InlineData(null, "a/.editorconfig", null, "*.cs", false, false)]
+        [InlineData("a/proj.csproj", "a/.editorconfig", null, "*test.cs", false, true)]
+        public async Task EditorConfigOptions(string projectPath, string configPath, string sourcePath, string pattern, bool appliedToEntireProject, bool appliedToDocument)
+        {
+            projectPath = (projectPath != null) ? Path.Combine(TempRoot.Root, projectPath) : null;
+            configPath = Path.Combine(TempRoot.Root, configPath);
+            sourcePath = (sourcePath != null) ? Path.Combine(TempRoot.Root, sourcePath) : null;
+
+            using var workspace = CreateWorkspace();
+            var projectId = ProjectId.CreateNewId();
+
+            var projectInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Default,
+                name: "proj1",
+                assemblyName: "proj1.dll",
+                language: LanguageNames.CSharp,
+                filePath: projectPath);
+
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(projectInfo)
+                .AddDocument(documentId, "test.cs", SourceText.From("public class C { }"), filePath: sourcePath)
+                .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".editorconfig", SourceText.From($"[{pattern}]\nindent_style = tab"), filePath: configPath);
+
+            var document = solution.GetRequiredDocument(documentId);
+
+            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
+            Assert.Equal(appliedToDocument, documentOptions.GetOption(FormattingOptions2.UseTabs));
+
+            var projectOptions = document.Project.GetAnalyzerConfigOptions();
+            Assert.Equal(appliedToEntireProject, projectOptions?.AnalyzerOptions.TryGetValue("indent_style", out var value) == true && value == "tab");
+        }
     }
 }

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Diagnostics;
+using static Microsoft.CodeAnalysis.ProjectState;
 
 namespace Microsoft.CodeAnalysis.Options.EditorConfig
 {
@@ -22,8 +23,9 @@ namespace Microsoft.CodeAnalysis.Options.EditorConfig
         {
             public async Task<IDocumentOptions?> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
             {
-                var data = await document.GetAnalyzerOptionsAsync(cancellationToken).ConfigureAwait(false);
-                return new DocumentOptions(data?.ConfigOptions);
+                var provider = (ProjectAnalyzerConfigOptionsProvider)document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+                var options = await provider.GetOptionsAsync(document.DocumentState, cancellationToken).ConfigureAwait(false);
+                return new DocumentOptions(options);
             }
 
             private sealed class DocumentOptions : IDocumentOptions

@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class ProjectState
     {
-        private static readonly string s_analyzerConfigDummySourceFileName = Guid.NewGuid().ToString();
-
         private readonly ProjectInfo _projectInfo;
         private readonly HostLanguageServices _languageServices;
         private readonly SolutionServices _solutionServices;
@@ -282,16 +280,15 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            // TODO:
             // We need to find the analyzer config options at the root of the project.
             // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
             // So, we use a dummy language-specific file name appended to the project directory to query analyzer config options.
+            // NIL character is invalid in paths so it will never match any pattern in editorconfig, but editorconfig parsing allows it.
 
             var projectDirectory = PathUtilities.GetDirectoryName(_projectInfo.FilePath);
             Contract.ThrowIfNull(projectDirectory);
 
-            // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
-            var sourceFilePath = PathUtilities.CombineAbsoluteAndRelativePaths(projectDirectory, s_analyzerConfigDummySourceFileName + extension)!;
+            var sourceFilePath = PathUtilities.CombinePathsUnchecked(projectDirectory, "\0" + extension);
 
             return GetAnalyzerOptionsForPath(sourceFilePath, CancellationToken.None);
         }
@@ -313,17 +310,54 @@ namespace Microsoft.CodeAnalysis
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
             {
                 var documentId = DocumentState.GetDocumentIdForTree(tree);
-                if (documentId == null || !_projectState.DocumentStates.TryGetState(documentId, out var documentState))
+                var cache = GetCache();
+                if (documentId != null && _projectState.DocumentStates.TryGetState(documentId, out var documentState))
                 {
-                    return GetOptionsForSourcePath(tree.FilePath);
+                    return GetOptions(cache, documentState, tree.FilePath);
                 }
 
+                return GetOptionsForSourcePath(cache, tree.FilePath);
+            }
+
+            internal async ValueTask<StructuredAnalyzerConfigOptions?> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
+            {
+                // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+                // as a part of a code action, but haven't been written to disk yet.
+                var projectFilePath = _projectState.FilePath;
+                string? effectiveFilePath = null;
+
+                if (documentState.FilePath != null)
+                {
+                    effectiveFilePath = documentState.FilePath;
+                }
+                else if (documentState.Name != null && projectFilePath != null)
+                {
+                    var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                    if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                        PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                    {
+                        effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+                    }
+                }
+
+                if (effectiveFilePath == null)
+                {
+                    return null;
+                }
+
+                var cache = await _projectState._lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                return GetOptions(cache, documentState, effectiveFilePath);
+            }
+
+            private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState, string filePath)
+            {
                 if (documentState.IsRazorDocument())
                 {
                     return _lazyRazorDesignTimeOptions ??= new RazorDesignTimeAnalyzerConfigOptions(_projectState.LanguageServices.WorkspaceServices);
                 }
 
-                var options = GetOptionsForSourcePath(tree.FilePath);
+                var options = GetOptionsForSourcePath(cache, filePath);
                 var workspace = _projectState._solutionServices.Workspace;
 
                 var legacyIndentationService = workspace.Services.GetService<ILegacyIndentationManagerWorkspaceService>();
@@ -332,17 +366,17 @@ namespace Microsoft.CodeAnalysis
                     return options;
                 }
 
-                return new AnalyzerConfigWithInferredIndentationOptions(options, workspace, legacyIndentationService, documentId);
+                return new AnalyzerConfigWithInferredIndentationOptions(options, workspace, legacyIndentationService, documentState.Id);
             }
 
             public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
             {
                 // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
-                return GetOptionsForSourcePath(textFile.Path);
+                return GetOptionsForSourcePath(GetCache(), textFile.Path);
             }
 
-            public StructuredAnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => GetCache().GetOptionsForSourcePath(path).ConfigOptions;
+            private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache cache, string path)
+                => cache.GetOptionsForSourcePath(path).ConfigOptions;
         }
 
         /// <summary>
