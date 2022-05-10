@@ -1960,6 +1960,6 @@ Additional information: {1}</value>
     <value>Collapse empty metadata implementations on file open</value>
   </data>
   <data name="Collapse_metadata_on_file_open" xml:space="preserve">
-    <value>Collapse Source Link, embbeded and decompiled source on file open</value>
+    <value>Collapse Source Link, embedded, and decompiled source on file open</value>
   </data>
 </root>
