@@ -100,17 +100,13 @@ namespace Microsoft.CodeAnalysis.Text
                 return;
 
 #if NETCOREAPP
-            if (span.Start == 0 && span.Length == this.Length)
-            {
-                textWriter.Write(this.Builder);
-                return;
-            }
-
             // Index of the current chunk within the text.
             int chunkOffset = 0;
 
             foreach (var chunk in this.Builder.GetChunks())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // Start index of the span with respect to the current chunk.
                 var startFromChunk = span.Start - chunkOffset;
                 if (startFromChunk < chunk.Length)
@@ -130,8 +126,6 @@ namespace Microsoft.CodeAnalysis.Text
                 chunkOffset += chunk.Length;
             }
 #else
-            // On .NET Standard, passing a StringBuilder to TextWriter.Write might seem to work, but it has no StringBuilder
-            // overload, so it would call the object one, which would be slower than the base implementation.
             base.Write(textWriter, span, cancellationToken);
 #endif
         }
