@@ -207,6 +207,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Collapse_metadata_on_file_open
             => ServicesVSResources.Collapse_metadata_on_file_open;
 
+        public static string Option_Collapse_empty_metadata_on_file_open
+            => ServicesVSResources.Collapse_empty_metadata_on_file_open;
+
         public static string Option_Show_outlining_for_declaration_level_constructs
             => ServicesVSResources.Show_outlining_for_declaration_level_constructs;
 

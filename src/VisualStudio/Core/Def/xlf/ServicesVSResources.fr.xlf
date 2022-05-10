@@ -242,9 +242,14 @@
         <target state="translated">L'analyse du code s'est terminée avant la fin de la solution.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_empty_metadata_on_file_open">
+        <source>Collapse empty metadata implementations on file open</source>
+        <target state="new">Collapse empty metadata implementations on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_metadata_on_file_open">
-        <source>Collapse metadata implementations on file open</source>
-        <target state="new">Collapse metadata implementations on file open</target>
+        <source>Collapse Source Link, embbeded and decompiled source on file open</source>
+        <target state="new">Collapse Source Link, embbeded and decompiled source on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">

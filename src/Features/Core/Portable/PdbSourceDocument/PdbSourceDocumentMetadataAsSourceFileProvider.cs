@@ -15,9 +15,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -241,6 +243,16 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             }
 
             return documents.ToImmutable();
+        }
+
+        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions)
+        {
+            if (_fileToDocumentInfoMap.TryGetValue(filePath, out _))
+            {
+                return blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
+            }
+
+            return false;
         }
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)

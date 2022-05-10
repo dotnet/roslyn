@@ -130,6 +130,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Collapse_metadata_on_file_open As String =
             ServicesVSResources.Collapse_metadata_on_file_open
 
+        Public ReadOnly Property Option_Collapse_empty_metadata_on_file_open As String =
+            ServicesVSResources.Collapse_empty_metadata_on_file_open
+
         Public ReadOnly Property Option_ExtractMethod As String =
             BasicVSResources.Extract_Method
 
