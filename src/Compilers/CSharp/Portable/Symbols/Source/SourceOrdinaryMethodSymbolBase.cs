@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _typeParameters = MakeTypeParameters(syntax, diagnostics);
 
-            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, isExplicitInterfaceImplementation, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
 
             if (hasBody)
             {
