@@ -3,16 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ConvertToInterpolatedString;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
     {
+        private readonly IRoslynLSPSnippetExpander _roslynLSPSnippetExpander;
+
+        public AbstractSnippetCompletionProvider(IRoslynLSPSnippetExpander roslynLSPSnippetExpander)
+        {
+            _roslynLSPSnippetExpander = roslynLSPSnippetExpander;
+        }
+
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             // This retrieves the document without the text used to invoke completion
@@ -35,34 +47,43 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var allTextChanges = await allChangesDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
 
             var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
-            return CompletionChange.Create(change, allTextChanges.AsImmutable(), newPosition: snippet.CursorPosition, includesCommitCharacter: true);
+
+            // Converts the snippet to an LSP formatted snippet string.
+            var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change, cancellationToken).ConfigureAwait(false);
+            var props = ImmutableDictionary<string, string>.Empty
+                .Add(SnippetCompletionItem.LSPSnippetKey, lspSnippet);
+
+            return CompletionChange.Create(change, allTextChanges.AsImmutable(), properties: props, snippet.CursorPosition, includesCommitCharacter: true);
         }
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var position = context.Position;
-            var service = document.GetLanguageService<ISnippetService>();
-
-            if (service == null)
+            if (_roslynLSPSnippetExpander.CanExpandSnippet())
             {
-                return;
-            }
+                var document = context.Document;
+                var cancellationToken = context.CancellationToken;
+                var position = context.Position;
+                var service = document.GetLanguageService<ISnippetService>();
 
-            var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (service == null)
+                {
+                    return;
+                }
 
-            var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
+                var (strippedDocument, newPosition) = await GetDocumentWithoutInvokingTextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            foreach (var snippetData in snippets)
-            {
-                var completionItem = SnippetCompletionItem.Create(
-                    displayText: snippetData.DisplayName,
-                    displayTextSuffix: "",
-                    position: position,
-                    snippetIdentifier: snippetData.SnippetIdentifier,
-                    glyph: Glyph.Snippet);
-                context.AddItem(completionItem);
+                var snippets = await service.GetSnippetsAsync(strippedDocument, newPosition, cancellationToken).ConfigureAwait(false);
+
+                foreach (var snippetData in snippets)
+                {
+                    var completionItem = SnippetCompletionItem.Create(
+                        displayText: snippetData.DisplayName,
+                        displayTextSuffix: "",
+                        position: position,
+                        snippetIdentifier: snippetData.SnippetIdentifier,
+                        glyph: Glyph.Snippet);
+                    context.AddItem(completionItem);
+                }
             }
         }
 

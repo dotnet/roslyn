@@ -291,6 +291,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string RemoveUnnecessaryLineContinuation = nameof(RemoveUnnecessaryLineContinuation);
             public const string Rename = nameof(Rename);
             public const string RenameTracking = nameof(RenameTracking);
+            public const string RoslynLSPSnippetConverter = nameof(RoslynLSPSnippetConverter);
             public const string SignatureHelp = nameof(SignatureHelp);
             public const string Simplification = nameof(Simplification);
             public const string SmartIndent = nameof(SmartIndent);

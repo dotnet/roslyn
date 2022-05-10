@@ -1927,7 +1927,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
             Return initializer.Initializer.Initializers
         End Function
-
 #End Region
     End Class
 End Namespace

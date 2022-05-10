@@ -9,13 +9,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -38,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
+        private readonly RoslynLSPSnippetExpander _roslynLSPSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -59,12 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             ITextView textView,
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
-            IThreadingContext threadingContext)
+            IThreadingContext threadingContext,
+            RoslynLSPSnippetExpander roslynLSPSnippetExpander)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
+            _roslynLSPSnippetExpander = roslynLSPSnippetExpander;
         }
 
         /// <summary>
@@ -234,6 +238,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (provider is ICustomCommitCompletionProvider customCommitProvider)
             {
                 customCommitProvider.Commit(roslynItem, view, subjectBuffer, triggerSnapshot, commitCharacter);
+                return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
+            }
+
+            // Specifically for snippets, we use reflection to try and invoke the LanguageServerSnippetExpander's
+            // TryExpand method and determine if it succeeded or not.
+            if (SnippetCompletionItem.IsSnippet(roslynItem))
+            {
+                var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
+
+                _roslynLSPSnippetExpander.Expand(change.TextChange.Span, lspSnippetText, _textView, triggerSnapshot);
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 

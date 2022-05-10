@@ -3,96 +3,66 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
+using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+    public class CSharpIfSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
     {
-        protected override string ItemToCommit => FeaturesResources.Write_to_the_console;
+        protected override string ItemToCommit => FeaturesResources.Insert_an_if_statement;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetInMethodTest()
+        public async Task InsertIfSnippetInMethodTest()
         {
             var markupBeforeCommit =
 @"class Program
 {
     public void Method()
     {
-        Wr$$
+        Ins$$
     }
 }";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-class Program
+@"class Program
 {
     public void Method()
     {
-        Console.WriteLine($$);
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertAsyncConsoleSnippetTest()
+        public async Task InsertIfSnippetInGlobalContextTest()
         {
             var markupBeforeCommit =
-@"class Program
-{
-    public async Task MethodAsync()
-    {
-        Wr$$
-    }
-}";
+@"Ins$$
+";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-class Program
-{
-    public async Task MethodAsync()
-    {
-        await Console.Out.WriteLineAsync($$);
-    }
-}";
+@"if (true)
+{$$
+}
+";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetGlobalTest()
-        {
-            var markupBeforeCommit =
-@"$$
-class Program
-{
-    public async Task MethodAsync()
-    {
-    }
-}";
-
-            var expectedCodeAfterCommit =
-@"using System;
-
-Console.WriteLine($$);
-
-class Program
-{
-    public async Task MethodAsync()
-    {
-    }
-}";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInBlockNamespaceTest()
+        public async Task NoIfSnippetInBlockNamespaceTest()
         {
             var markupBeforeCommit =
 @"
@@ -110,7 +80,7 @@ namespace Namespace
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInFileScopedNamespaceTest()
+        public async Task NoIfSnippetInFileScopedNamespaceTest()
         {
             var markupBeforeCommit =
 @"
@@ -127,7 +97,7 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetInConstructorTest()
+        public async Task InsertIfSnippetInConstructorTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -140,25 +110,21 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-class Program
+@"class Program
 {
     public Program()
     {
         var x = 5;
-        Console.WriteLine($$);
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetInLocalFunctionTest()
+        public async Task InsertIfSnippettInLocalFunctionTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -174,28 +140,24 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-class Program
+@"class Program
 {
     public void Method()
     {
         var x = 5;
         void LocalMethod()
         {
-            global::System.Console.WriteLine($$);
+            if (true)
+            {$$
+            }
         }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetInAnonymousFunctionTest()
+        public async Task InsertIfSnippetInAnonymousFunctionTest()
         {
             var markupBeforeCommit =
 @"public delegate void Print(int value);
@@ -209,49 +171,44 @@ static void Main(string[] args)
 }";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-public delegate void Print(int value);
+@"public delegate void Print(int value);
 
 static void Main(string[] args)
 {
     Print print = delegate(int val) {
-        global::System.Console.WriteLine($$);
+        if (true)
+        {$$
+        }
     };
 
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
-        /// <summary>
-        /// Simplifier does not work as intended, once that changes this outcome
-        /// should be able to simplify the inserted snippet.
-        /// </summary>
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
+        public async Task InsertIfSnippetInParenthesizedLambdaExpressionTest()
         {
             var markupBeforeCommit =
-@"
-Func<int, int, bool> testForEquality = (x, y) =>
+@"Func<int, int, bool> testForEquality = (x, y) =>
 {
     $$
     return x == y;
 };";
 
             var expectedCodeAfterCommit =
-@"
-using System;
-
-Func<int, int, bool> testForEquality = (x, y) =>
+@"Func<int, int, bool> testForEquality = (x, y) =>
 {
-    global::System.Console.WriteLine($$);
+    if (true)
+    {$$
+    }
+
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInSwitchExpression()
+        public async Task NoIfSnippetInSwitchExpression()
         {
             var markupBeforeCommit =
 @"class Program
@@ -274,7 +231,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInSingleLambdaExpression()
+        public async Task NoIfSnippetInSingleLambdaExpression()
         {
             var markupBeforeCommit =
 @"class Program
@@ -288,7 +245,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInStringTest()
+        public async Task NoIfSnippetInStringTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -303,7 +260,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInObjectInitializerTest()
+        public async Task NoIfSnippetInObjectInitializerTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -328,7 +285,7 @@ class Test
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInParameterListTest()
+        public async Task NoIfSnippetInParameterListTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -342,7 +299,7 @@ class Test
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInRecordDeclarationTest()
+        public async Task NoIfSnippetInRecordDeclarationTest()
         {
             var markupBeforeCommit =
 @"public record Person
@@ -356,7 +313,7 @@ class Test
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NoConsoleSnippetInVariableDeclarationTest()
+        public async Task NoIfSnippetInVariableDeclarationTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -371,7 +328,7 @@ class Test
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
+        public async Task InsertIfSnippetWithInvocationBeforeAndAfterCursorTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -383,20 +340,20 @@ class Test
 }";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-class Program
+@"class Program
 {
     public void Method()
     {
-        Console.WriteLine($$);
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
+        public async Task InsertIfSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
         {
             var markupBeforeCommit =
 @"class Program
@@ -408,13 +365,13 @@ class Program
 }";
 
             var expectedCodeAfterCommit =
-@"using System;
-
-class Program
+@"class Program
 {
     public void Method()
     {
-        Console.WriteLine($$);
+        if (true)
+        {$$
+        }
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);

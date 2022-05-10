@@ -26,18 +26,19 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal class CSharpConsoleSnippetProvider : AbstractConsoleSnippetProvider
+    internal class CSharpIfSnippetProvider : AbstractIfSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpConsoleSnippetProvider()
+        public CSharpIfSnippetProvider()
         {
         }
 
-        protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+        protected override void GetIfStatementConditionAndCursorPosition(SyntaxNode node, out SyntaxNode condition, out int cursorPositionNode)
         {
-            var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
-            return node;
+            var ifStatement = (IfStatementSyntax)node;
+            condition = ifStatement.Condition;
+            cursorPositionNode = ifStatement.Statement.SpanStart + 1;
         }
     }
 }
