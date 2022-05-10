@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Snippets
             var extendedSpan = GetUpdatedTextSpan(textChange, placeholders, caretPosition);
             var documentText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newString = documentText.ToString(extendedSpan);
-            var newTextChange = new TextChange(TextSpan.FromBounds(extendedSpan.Start, extendedSpan.End), newString);
+            var newTextChange = new TextChange(extendedSpan, newString);
 
             return newTextChange;
         }
