@@ -7,8 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -41,15 +44,12 @@ namespace Microsoft.CodeAnalysis.Options
             private readonly TaskQueue _taskQueue;
 
             /// <summary>
-            /// Gate guarding <see cref="_eventHandlers"/> and <see cref="_documentOptionsProviders"/>.
+            /// Gate guarding <see cref="_eventHandlers"/>.
             /// </summary>
             private readonly object _gate = new();
 
             private ImmutableArray<EventHandler<OptionChangedEventArgs>> _eventHandlers =
                 ImmutableArray<EventHandler<OptionChangedEventArgs>>.Empty;
-
-            private ImmutableArray<IDocumentOptionsProvider> _documentOptionsProviders =
-                ImmutableArray<IDocumentOptionsProvider>.Empty;
 
             public OptionService(
                 IGlobalOptionService globalOptionService,
@@ -127,59 +127,27 @@ namespace Microsoft.CodeAnalysis.Options
             public void RegisterWorkspace(Workspace workspace) => _globalOptionService.RegisterWorkspace(workspace);
             public void UnregisterWorkspace(Workspace workspace) => _globalOptionService.UnregisterWorkspace(workspace);
 
-            public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
-            {
-                if (documentOptionsProvider == null)
-                {
-                    throw new ArgumentNullException(nameof(documentOptionsProvider));
-                }
-
-                lock (_gate)
-                {
-                    _documentOptionsProviders = _documentOptionsProviders.Add(documentOptionsProvider);
-                }
-            }
-
             public async Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                ImmutableArray<IDocumentOptionsProvider> documentOptionsProviders;
-
-                lock (_gate)
-                {
-                    documentOptionsProviders = _documentOptionsProviders;
-                }
-
-                var realizedDocumentOptions = new List<IDocumentOptions>();
-
-                foreach (var provider in documentOptionsProviders)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var documentOption = await provider.GetOptionsForDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-
-                    if (documentOption != null)
-                    {
-                        realizedDocumentOptions.Add(documentOption);
-                    }
-                }
-
-                return new DocumentSpecificOptionSet(realizedDocumentOptions, optionSet);
+                var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+                var options = await provider.GetOptionsAsync(document.DocumentState, cancellationToken).ConfigureAwait(false);
+                return new DocumentSpecificOptionSet(options, optionSet);
             }
 
-            private class DocumentSpecificOptionSet : OptionSet
+            private sealed class DocumentSpecificOptionSet : OptionSet
             {
                 private readonly OptionSet _underlyingOptions;
-                private readonly List<IDocumentOptions> _documentOptions;
+                private readonly StructuredAnalyzerConfigOptions? _configOptions;
                 private ImmutableDictionary<OptionKey, object?> _values;
 
-                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions)
-                    : this(documentOptions, underlyingOptions, ImmutableDictionary<OptionKey, object?>.Empty)
+                public DocumentSpecificOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions)
+                    : this(configOptions, underlyingOptions, ImmutableDictionary<OptionKey, object?>.Empty)
                 {
                 }
 
-                public DocumentSpecificOptionSet(List<IDocumentOptions> documentOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object?> values)
+                public DocumentSpecificOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions, ImmutableDictionary<OptionKey, object?> values)
                 {
-                    _documentOptions = documentOptions;
+                    _configOptions = configOptions;
                     _underlyingOptions = underlyingOptions;
                     _values = values;
                 }
@@ -193,21 +161,44 @@ namespace Microsoft.CodeAnalysis.Options
                         return value;
                     }
 
-                    foreach (var documentOptionSource in _documentOptions)
+                    if (TryGetAnalyzerConfigOption(optionKey, out value))
                     {
-                        if (documentOptionSource.TryGetDocumentOption(optionKey, out value))
-                        {
-                            // Cache and return
-                            return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
-                        }
+                        // Cache and return
+                        return ImmutableInterlocked.GetOrAdd(ref _values, optionKey, value);
                     }
 
                     // We don't have a document specific value, so forward
                     return _underlyingOptions.GetOption(optionKey);
                 }
 
+                private bool TryGetAnalyzerConfigOption(OptionKey option, out object? value)
+                {
+                    if (_configOptions == null)
+                    {
+                        value = null;
+                        return false;
+                    }
+
+                    var editorConfigPersistence = (IEditorConfigStorageLocation?)option.Option.StorageLocations.SingleOrDefault(static location => location is IEditorConfigStorageLocation);
+                    if (editorConfigPersistence == null)
+                    {
+                        value = null;
+                        return false;
+                    }
+
+                    try
+                    {
+                        return editorConfigPersistence.TryGetOption(_configOptions, option.Option.Type, out value);
+                    }
+                    catch (Exception e) when (FatalError.ReportAndCatch(e))
+                    {
+                        value = null;
+                        return false;
+                    }
+                }
+
                 public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
-                    => new DocumentSpecificOptionSet(_documentOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
+                    => new DocumentSpecificOptionSet(_configOptions, _underlyingOptions, _values.SetItem(optionAndLanguage, value));
 
                 internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
                 {
