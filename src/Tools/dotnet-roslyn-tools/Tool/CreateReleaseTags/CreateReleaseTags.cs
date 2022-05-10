@@ -6,8 +6,6 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;

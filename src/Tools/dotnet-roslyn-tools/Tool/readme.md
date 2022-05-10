@@ -34,6 +34,7 @@ Usage:
 Commands:
   authenticate                       Stores the AzDO and GitHub tokens required for remote operations.
   pr-finder                          Find merged PRs between two commits
+  nuget-dependencies                 Lists dependencies that are missing or out of date for a folder of .nupkg files.
   nuget-prepare                      Prepares packages built from the Roslyn repo for validation.
   nuget-publish <roslyn|roslyn-sdk>  Publishes packages built from a Roslyn repo. [default: roslyn]
   create-release-tags                Generates git tags for VS releases in the Roslyn repo.

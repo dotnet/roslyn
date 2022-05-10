@@ -4,7 +4,6 @@
 
 using System.CommandLine.Invocation;
 using System.CommandLine;
-using Microsoft.RoslynTools.NuGet;
 
 namespace Microsoft.RoslynTools.Commands;
 
