@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Classification
         public void AddEmbeddedLanguageClassifications(
             HostWorkspaceServices workspaceServices, Project? project, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            using var _1 = ArrayBuilder<IEmbeddedLanguageClassifier>.GetInstance(out var classifierBuffer);
+            using var _ = ArrayBuilder<IEmbeddedLanguageClassifier>.GetInstance(out var classifierBuffer);
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             var worker = new Worker(this, workspaceServices, project, semanticModel, textSpan, options, result, classifierBuffer, cancellationToken);
             worker.Recurse(root);

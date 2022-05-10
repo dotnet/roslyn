@@ -151,8 +151,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.StaticSymbol)]
         [Name(ClassificationTypeNames.StaticSymbol)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
-        [Order(After = ClassificationTypeNames.StringLiteral)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class SymbolStaticFormatDefinition : ClassificationFormatDefinition
@@ -522,8 +520,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         [Name(ClassificationTypeNames.NamespaceName)]
         [Order(After = PredefinedClassificationTypeNames.Identifier)]
         [Order(After = PredefinedClassificationTypeNames.Keyword)]
-        [Order(After = PredefinedClassificationTypeNames.String)]
-        [Order(After = ClassificationTypeNames.VerbatimStringLiteral)]
         [UserVisible(true)]
         [ExcludeFromCodeCoverage]
         private class UserMembersNamespaceNameFormatDefinition : ClassificationFormatDefinition
