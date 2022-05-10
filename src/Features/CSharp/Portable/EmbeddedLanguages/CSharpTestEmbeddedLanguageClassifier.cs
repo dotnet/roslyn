@@ -151,20 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
                         continue;
 
                     case ('{', '|'):
-                        var seekPoint = i;
-                        while (seekPoint < n)
-                        {
-                            var colonChar = virtualChars[seekPoint];
-                            if (colonChar.Value == ':')
-                            {
-                                markdownSpans.Add(FromBounds(vc1, colonChar));
-                                nestedAnonymousSpanCount++;
-                                i = seekPoint + 1;
-                                continue;
-                            }
-
-                            seekPoint++;
-                        }
+                        if (TryConsumeNamedSpanStart(ref i, n))
+                            continue;
 
                         // didn't find the colon.  don't classify these specially.
                         break;
@@ -176,6 +164,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
             }
 
             return VirtualCharSequence.Create(builder.ToImmutable());
+
+            bool TryConsumeNamedSpanStart(ref int i, int n)
+            {
+                var start = i;
+                var seekPoint = i;
+                while (seekPoint < n)
+                {
+                    var colonChar = virtualChars[seekPoint];
+                    if (colonChar.Value == ':')
+                    {
+                        markdownSpans.Add(FromBounds(virtualChars[start], colonChar));
+                        nestedNamedSpanCount++;
+                        i = seekPoint + 1;
+                        return true;
+                    }
+
+                    seekPoint++;
+                }
+
+                return false;
+            }
         }
 
         private static void AddClassifications(
