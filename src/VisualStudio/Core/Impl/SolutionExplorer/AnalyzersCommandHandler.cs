@@ -296,7 +296,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions);
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.Result);
                     selectedItemSeverities.Add(severity);
                 }
             }
