@@ -97,28 +97,17 @@ namespace Microsoft.CodeAnalysis.Text
 
             if (span.Start == 0 && span.Length == this.Length)
             {
+                // Even on .NET Core, prefer the string overload of Write, because in case the writer is a custom TextWriter that
+                // doesn't override the ReadOnlySpan<char> overload, it delegates to the array one under the hood.
                 textWriter.Write(this.Source);
                 return;
             }
 
 #if NETCOREAPP
-            var @delegate = (TextWriterWriteReadOnlySpanDelegate)textWriter.Write;
-            if (@delegate.Method.DeclaringType != typeof(TextWriter))
-            {
-                // Use the Write(ReadOnlySpan<char>) overload only if the method is overriden, because if it's not, the base
-                // TextWriter implementation needs to delegate to the array overload and could potentially allocate a really
-                // large array, which would be slower than the buffering base implementation.
-                textWriter.Write(this.Source.AsSpan(span.Start, span.Length));
-            }
-            else
-            {
-                base.Write(textWriter, span, cancellationToken);
-            }
+            textWriter.Write(this.Source.AsSpan(span.Start, span.Length));
 #else
             base.Write(textWriter, span, cancellationToken);
 #endif
         }
-
-        private delegate void TextWriterWriteReadOnlySpanDelegate(ReadOnlySpan<char> buffer);
     }
 }

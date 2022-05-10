@@ -100,12 +100,6 @@ namespace Microsoft.CodeAnalysis.Text
                 return;
 
 #if NETCOREAPP
-            // Unlike in StringText.Write, we use this implementation even if TextWriter's Write(StringBuilder) and
-            // Write(ReadOnlySpan<char>) overloads aren't overriden because StringBuilder is already made up of reasonably sized
-            // chunks, so the TextWriter will never have to allocate an enourmous array and this might still be a bit faster than
-            // the base implementation (likely because this way, we would always copy each chunks directly rather than buffering
-            // across chunk boundaries and the StringBuilder having to find each chunk from an index).
-
             if (span.Start == 0 && span.Length == this.Length)
             {
                 textWriter.Write(this.Builder);
