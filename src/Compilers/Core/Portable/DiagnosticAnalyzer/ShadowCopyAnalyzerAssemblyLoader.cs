@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
 
         private static void CopyFile(string originalPath, string shadowCopyPath)
         {
-            var directory = Path.GetDirectoryName(shadowCopyPath);
+            var directory = Path.GetDirectoryName(shadowCopyPath)!;
             Directory.CreateDirectory(directory);
 
             File.Copy(originalPath, shadowCopyPath);

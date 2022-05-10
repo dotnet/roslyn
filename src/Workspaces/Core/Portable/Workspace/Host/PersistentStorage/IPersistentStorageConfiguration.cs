@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Host
             var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
             s_cacheDirectory = Path.Combine(appDataFolder, "Microsoft", "VisualStudio", "Roslyn", "Cache");
 
-            s_moduleFileName = SafeName(Process.GetCurrentProcess().MainModule.FileName);
+            s_moduleFileName = SafeName(Process.GetCurrentProcess().MainModule?.FileName ?? "Unknown");
         }
 
         [ImportingConstructor]
