@@ -38,13 +38,13 @@ namespace Microsoft.CodeAnalysis.Workspaces
             associatedViewService.SubjectBuffersDisconnected += AssociatedViewService_SubjectBuffersDisconnected;
         }
 
-        private void AssociatedViewService_SubjectBuffersConnected(object sender, SubjectBuffersConnectedEventArgs e)
+        private void AssociatedViewService_SubjectBuffersConnected(object? sender, SubjectBuffersConnectedEventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             UpdateAllAssociatedViews(e.SubjectBuffers);
         }
 
-        private void AssociatedViewService_SubjectBuffersDisconnected(object sender, SubjectBuffersConnectedEventArgs e)
+        private void AssociatedViewService_SubjectBuffersDisconnected(object? sender, SubjectBuffersConnectedEventArgs e)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             UpdateAllAssociatedViews(e.SubjectBuffers);

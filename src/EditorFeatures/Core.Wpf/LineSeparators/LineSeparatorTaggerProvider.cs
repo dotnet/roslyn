@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 
         protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
-        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
+        private void OnFormatMappingChanged(object? sender, FormatItemsEventArgs e)
         {
             lock (_lineSeperatorTagGate)
             {

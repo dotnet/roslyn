@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         private static readonly object s_controllerPropertyKey = new();
 
         private readonly IGlobalOptionService _globalOptions;
-        private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
+        private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>? _signatureHelpPresenter;
         private readonly IAsynchronousOperationListener _listener;
         private readonly IAsyncCompletionBroker _completionBroker;
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;

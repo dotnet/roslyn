@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView.Closed -= OnTextViewClosed;
         }
 
-        private void OnTextViewClosed(object sender, EventArgs e)
+        private void OnTextViewClosed(object? sender, EventArgs e)
             => Dispose();
 
-        private void OnActiveSessionChanged(object sender, EventArgs e)
+        private void OnActiveSessionChanged(object? sender, EventArgs e)
             => UpdateAdornments();
 
         private void UpdateAdornments()

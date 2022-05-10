@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             }
         }
 
-        private void OnPreTranslateMessage(object sender, PreTranslateMessageEventArgs e)
+        private void OnPreTranslateMessage(object? sender, PreTranslateMessageEventArgs e)
         {
             var msg = e.Message;
             if (ComponentDispatcher.RaiseThreadMessage(ref msg) || IsSuppressedMessage(msg))
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             }
         }
 
-        private void OnReplacementTextChanged(object sender, EventArgs e)
+        private void OnReplacementTextChanged(object? sender, EventArgs e)
         {
             NotifyPropertyChanged(nameof(IdentifierText));
         }

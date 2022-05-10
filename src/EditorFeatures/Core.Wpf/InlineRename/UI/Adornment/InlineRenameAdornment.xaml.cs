@@ -46,16 +46,16 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
         public string SubmitText => EditorFeaturesWpfResources.Enter_to_rename_shift_enter_to_preview;
 #pragma warning restore CA1822 // Mark members as static
 
-        private void TextView_CursorChanged(object sender, CaretPositionChangedEventArgs e)
+        private void TextView_CursorChanged(object? sender, CaretPositionChangedEventArgs e)
             => _viewModel.Cancel();
 
-        private void TextView_LostFocus(object sender, EventArgs e)
+        private void TextView_LostFocus(object? sender, EventArgs e)
             => _viewModel.Cancel();
 
-        private void TextView_ViewPortChanged(object sender, EventArgs e)
+        private void TextView_ViewPortChanged(object? sender, EventArgs e)
             => PositionAdornment();
 
-        private void TextView_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+        private void TextView_LayoutChanged(object? sender, TextViewLayoutChangedEventArgs e)
             => PositionAdornment();
 
         private void PositionAdornment()

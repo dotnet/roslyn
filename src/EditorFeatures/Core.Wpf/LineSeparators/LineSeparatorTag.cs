@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             return new GraphicsResult(border,
                 () => view.ViewportWidthChanged -= ViewportWidthChangedHandler);
 
-            void ViewportWidthChangedHandler(object s, EventArgs e)
+            void ViewportWidthChangedHandler(object? s, EventArgs e)
             {
                 border.Width = view.ViewportWidth;
             }

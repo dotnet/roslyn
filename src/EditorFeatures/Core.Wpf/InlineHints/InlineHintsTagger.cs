@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _tagAggregator.TagsChanged += OnTagAggregatorTagsChanged;
         }
 
-        private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
+        private void OnClassificationFormatMappingChanged(object? sender, EventArgs e)
         {
             _taggerProvider.ThreadingContext.ThrowIfNotOnUIThread();
             if (_format != null)
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             }
         }
 
-        private void OnTagAggregatorTagsChanged(object sender, TagsChangedEventArgs e)
+        private void OnTagAggregatorTagsChanged(object? sender, TagsChangedEventArgs e)
         {
             _cache.Clear();
             var spans = e.Span.GetSpans(_buffer);

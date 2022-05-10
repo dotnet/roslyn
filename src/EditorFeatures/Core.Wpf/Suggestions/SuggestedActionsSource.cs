@@ -516,10 +516,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return translatedSpan.Span.ToTextSpan();
             }
 
-            private void OnTextViewClosed(object sender, EventArgs e)
+            private void OnTextViewClosed(object? sender, EventArgs e)
                 => Dispose();
 
-            private void OnWorkspaceChanged(object sender, EventArgs e)
+            private void OnWorkspaceChanged(object? sender, EventArgs e)
             {
                 using var state = _state.TryAddReference();
                 if (state is null)
@@ -553,13 +553,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 state.Target.Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged += OnWorkspaceStatusChanged;
             }
 
-            private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
+            private void OnActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
             {
                 // REVIEW: it would be nice for changed event to pass in both old and new document.
                 OnSuggestedActionsChanged(e.Solution.Workspace, e.NewActiveContextDocumentId, e.Solution.WorkspaceVersion);
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {
                 // document removed case. no reason to raise event
                 if (e.Solution == null)
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 OnSuggestedActionsChanged(e.Workspace, e.DocumentId, e.Solution.WorkspaceVersion);
             }
 
-            private void OnWorkspaceStatusChanged(object sender, EventArgs args)
+            private void OnWorkspaceStatusChanged(object? sender, EventArgs args)
             {
                 using var state = _state.TryAddReference();
                 if (state is null)

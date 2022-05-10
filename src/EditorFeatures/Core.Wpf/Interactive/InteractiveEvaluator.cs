@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// <summary>
         /// Invoked on UI thread when a new language buffer is created and before it is added to the projection.
         /// </summary>
-        private void SubmissionBufferAdded(object sender, SubmissionBufferAddedEventArgs args)
+        private void SubmissionBufferAdded(object? sender, SubmissionBufferAddedEventArgs args)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             _session.AddSubmissionProject(args.NewBuffer);

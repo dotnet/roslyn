@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                     view.LayoutChanged -= View_LayoutChanged;
                 });
 
-            void View_LayoutChanged(object sender, TextViewLayoutChangedEventArgs e)
+            void View_LayoutChanged(object? sender, TextViewLayoutChangedEventArgs e)
             {
                 if (Location is InlineDiagnosticsLocations.PlacedAtEndOfEditor)
                 {

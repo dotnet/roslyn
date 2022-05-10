@@ -149,7 +149,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 CancelAndDispose();
         }
 
-        private void OnToolTipPresenterDismissed(object sender, EventArgs e)
+        private void OnToolTipPresenterDismissed(object? sender, EventArgs e)
             => CancelAndDispose();
 
         public void CancelAndDispose()

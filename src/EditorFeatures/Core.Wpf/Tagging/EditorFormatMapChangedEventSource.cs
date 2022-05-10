@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Tagging
         public override void Disconnect()
             => _editorFormatMap.FormatMappingChanged -= OnEditorFormatMapChanged;
 
-        private void OnEditorFormatMapChanged(object sender, FormatItemsEventArgs e)
+        private void OnEditorFormatMapChanged(object? sender, FormatItemsEventArgs e)
             => this.RaiseChanged();
     }
 }

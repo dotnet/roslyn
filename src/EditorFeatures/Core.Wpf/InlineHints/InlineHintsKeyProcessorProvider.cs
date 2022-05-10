@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             private static bool IsKey(KeyEventArgs args, Key key)
                 => args.SystemKey == key || args.Key == key;
 
-            private void OnViewClosed(object sender, EventArgs e)
+            private void OnViewClosed(object? sender, EventArgs e)
             {
                 // Disconnect our callbacks.
                 _view.Closed -= OnViewClosed;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 ToggleOff();
             }
 
-            private void OnLostFocus(object sender, EventArgs e)
+            private void OnLostFocus(object? sender, EventArgs e)
             {
                 // if focus is lost then go back to normal inline-hint processing.
                 ToggleOff();

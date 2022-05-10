@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// based on if they intersect with any IEndOfLineAdornmentTags after the layout change
         /// has completed.
         /// </summary>
-        private void EndLineTagAggregator_BatchedTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        private void EndLineTagAggregator_BatchedTagsChanged(object? sender, BatchedTagsChangedEventArgs e)
         {
             TextView.QueuePostLayoutAction(() =>
             {
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
         /// Need to remove the tags if they intersect with the editor view, but only if the option
         /// to place the tags at the end of the editor is selected.
         /// </summary>
-        private void TextView_ViewportWidthChanged(object sender, EventArgs e)
+        private void TextView_ViewportWidthChanged(object? sender, EventArgs e)
         {
             // this method should only run on UI thread as we do WPF here.
             Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
             }
         }
 
-        private void OnClassificationFormatMappingChanged(object sender, EventArgs e)
+        private void OnClassificationFormatMappingChanged(object? sender, EventArgs e)
         {
             // this method should only run on UI thread as we do WPF here.
             Contract.ThrowIfFalse(TextView.VisualElement.Dispatcher.CheckAccess());
