@@ -459,6 +459,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Duplication_05(bool firstClassIsFile)
+        {
+            var source1 = $$"""
+                using System;
+
+                {{(firstClassIsFile ? "file " : "")}}partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var main = """
+                using System;
+
+                file partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(2);
+                    }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        C.M();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, main }); // expectedOutput: 2
+            comp.VerifyDiagnostics();
+
+            var cs = comp.GetMembers("C");
+            Assert.Equal(2, cs.Length);
+
+            var c0 = cs[0];
+            Assert.Equal(firstClassIsFile, ((SourceMemberContainerTypeSymbol)c0).IsFile);
+            Assert.Equal(comp.SyntaxTrees[0], c0.DeclaringSyntaxReferences.Single().SyntaxTree);
+
+            var c1 = cs[1];
+            Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
+        }
+
         [Fact]
         public void SignatureUsage_01()
         {
