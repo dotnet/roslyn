@@ -413,10 +413,10 @@ End Class</Test>
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
-                Dim addImportOptions = New AddImportPlacementOptions(
-                    PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                    UsingDirectivePlacement:=AddImportPlacementOptions.Default.UsingDirectivePlacement,
-                    AllowInHiddenRegions:=AddImportPlacementOptions.Default.AllowInHiddenRegions)
+                Dim addImportOptions = New AddImportPlacementOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+                }
 
                 Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
 

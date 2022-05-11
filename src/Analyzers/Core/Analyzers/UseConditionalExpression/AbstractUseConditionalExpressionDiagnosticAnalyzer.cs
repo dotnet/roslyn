@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TIfStatementSyntax : SyntaxNode
     {
-        private readonly PerLanguageOption2<CodeStyleOption2<bool>> _option;
-
         public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -32,7 +30,6 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                    new LocalizableResourceString(nameof(AnalyzersResources.Convert_to_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    message)
         {
-            _option = option;
         }
 
         protected abstract ISyntaxFacts GetSyntaxFacts();

@@ -76,10 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
 
-            var addImportOptions = new AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst: placeSystemNamespaceFirst,
-                UsingDirectivePlacement: new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
-                AllowInHiddenRegions: false);
+            var addImportOptions = new AddImportPlacementOptions()
+            {
+                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
+            };
 
             var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 

@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -18,26 +19,16 @@ internal sealed record class AddImportPlacementOptions
        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 
     [property: DataMember(Order = 0)]
-    public bool PlaceSystemNamespaceFirst { get; init; }
+    public bool PlaceSystemNamespaceFirst { get; init; } = true;
 
     /// <summary>
     /// Where to place C# usings relative to namespace declaration, ignored by VB.
     /// </summary>
     [property: DataMember(Order = 1)]
-    public CodeStyleOption2<AddImportPlacement> UsingDirectivePlacement { get; init; }
+    public CodeStyleOption2<AddImportPlacement> UsingDirectivePlacement { get; init; } = s_outsideNamespacePlacementWithSilentEnforcement;
 
     [property: DataMember(Order = 2)]
-    public bool AllowInHiddenRegions { get; init; }
-
-    public AddImportPlacementOptions(
-        bool PlaceSystemNamespaceFirst = true,
-        CodeStyleOption2<AddImportPlacement>? UsingDirectivePlacement = null,
-        bool AllowInHiddenRegions = false)
-    {
-        this.PlaceSystemNamespaceFirst = PlaceSystemNamespaceFirst;
-        this.UsingDirectivePlacement = UsingDirectivePlacement ?? s_outsideNamespacePlacementWithSilentEnforcement;
-        this.AllowInHiddenRegions = AllowInHiddenRegions;
-    }
+    public bool AllowInHiddenRegions { get; init; } = false;
 
     public bool PlaceImportsInsideNamespaces => UsingDirectivePlacement.Value == AddImportPlacement.InsideNamespace;
 

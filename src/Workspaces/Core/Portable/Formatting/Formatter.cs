@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return document;
             }
 
-            var (syntaxFormattingOptions, lineFormattingOptions) = await GetOptionsAsync(document, options, cancellationToken).ConfigureAwait(false);
+            var (syntaxFormattingOptions, lineFormattingOptions) = await GetFormattingOptionsAsync(document, options, cancellationToken).ConfigureAwait(false);
             return await formattingService.FormatAsync(document, spans, lineFormattingOptions, syntaxFormattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var services = document.Project.Solution.Workspace.Services;
 
             // must have syntax formatting options since we require the document to have a syntax tree:
-            var (formattingOptions, _) = await GetOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
+            var (formattingOptions, _) = await GetFormattingOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(formattingOptions);
 
             return document.WithSyntaxRoot(Format(root, annotation, services, formattingOptions, rules, cancellationToken));
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            var formattingOptions = GetOptions(workspace, options, node.Language);
+            var formattingOptions = GetFormattingOptions(workspace, options, node.Language);
             return languageFormatter.GetFormattingResult(node, spans, formattingOptions, rules, cancellationToken);
         }
 
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return formatter.GetFormattingResult(node, spans, options, rules, cancellationToken).GetTextChanges(cancellationToken);
         }
 
-        internal static SyntaxFormattingOptions GetOptions(Workspace workspace, OptionSet? optionSet, string language)
+        internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
         {
             var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
             var optionService = workspace.Services.GetRequiredService<IOptionService>();
@@ -336,7 +336,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
         }
 
-        internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
+        internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetFormattingOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
             var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
@@ -358,6 +359,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             return (syntaxFormattingOptions, lineFormattingOptions);
         }
+#pragma warning restore
 
         /// <summary>
         /// Organizes the imports in the document.
@@ -373,8 +375,17 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return document;
             }
 
-            var options = await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = await GetOrganizeImportsOptionsAsync(document, cancellationToken).ConfigureAwait(false);
             return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
+
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
+        internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            return OrganizeImportsOptions.Create(configOptionSet, fallbackOptions: null);
+        }
+#pragma warning restore
     }
 }

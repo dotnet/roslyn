@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -103,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         CodeGenerationOptionsProvider,
         CleanCodeGenerationOptionsProvider,
         CodeAndImportGenerationOptionsProvider,
+        OrganizeImportsOptionsProvider,
 #endif
         SyntaxFormattingOptionsProvider,
         SimplifierOptionsProvider,
@@ -130,6 +132,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.AddImportOptions);
+
+        ValueTask<OrganizeImportsOptions> OptionsProvider<OrganizeImportsOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions.GetOrganizeImportsOptions());
 
         ValueTask<CodeCleanupOptions> OptionsProvider<CodeCleanupOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
             => ValueTaskFactory.FromResult(GetOptions(languageServices).CleanupOptions);

@@ -32,24 +32,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public HostWorkspaceServices Services => _solution.Workspace.Services;
 
-        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<OptionSet> GetDocumentOptionSetAsync(SyntaxTree syntaxTree, CancellationToken cancellationToken)
-        {
-            var documentId = _solution.GetDocumentId(syntaxTree);
-            if (documentId == null)
-            {
-                return _solution.Options;
-            }
-
-            var document = _solution.GetDocument(documentId);
-            if (document == null)
-            {
-                return _solution.Options;
-            }
-
-            return await document.GetOptionsAsync(_solution.Options, cancellationToken).ConfigureAwait(false);
-        }
-
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))

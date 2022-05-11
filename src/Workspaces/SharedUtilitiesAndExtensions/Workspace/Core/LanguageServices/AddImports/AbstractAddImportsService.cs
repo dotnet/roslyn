@@ -35,10 +35,12 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             fallbackOptions ??= AddImportPlacementOptions.Default;
 
-            return new(
-                PlaceSystemNamespaceFirst: configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.PlaceSystemNamespaceFirst),
-                UsingDirectivePlacement: GetUsingDirectivePlacementCodeStyleOption(configOptions, fallbackOptions.UsingDirectivePlacement),
-                AllowInHiddenRegions: allowInHiddenRegions);
+            return new()
+            {
+                PlaceSystemNamespaceFirst = configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.PlaceSystemNamespaceFirst),
+                UsingDirectivePlacement = GetUsingDirectivePlacementCodeStyleOption(configOptions, fallbackOptions.UsingDirectivePlacement),
+                AllowInHiddenRegions = allowInHiddenRegions
+            };
         }
 
         public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(AnalyzerConfigOptions configOptions, CodeStyleOption2<AddImportPlacement> fallbackValue);

@@ -41,17 +41,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, NamingStylePreferences? fallbackOptions, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = documentOptions.AsAnalyzerConfigOptions(document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>(), document.Project.Language);
-
+            var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
             return configOptions.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions ?? NamingStylePreferences.Default);
         }
 
         public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, NamingStylePreferencesProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = documentOptions.AsAnalyzerConfigOptions(document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>(), document.Project.Language);
-
+            var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
             if (configOptions.TryGetEditorConfigOption<NamingStylePreferences>(NamingStyleOptions.NamingPreferences, out var value))
             {
                 return value;

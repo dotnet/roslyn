@@ -55,7 +55,6 @@ internal static class IdeAnalyzerOptionsStorage
         "CodeStyleOptions", "PreferCollectionInitializer_FadeOutCode", IdeAnalyzerOptions.DefaultFadeOutComplexCollectionInitialization,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferCollectionInitializer_FadeOutCode"));
 
-
     public static PerLanguageOption2<bool> ReportInvalidPlaceholdersInStringDotFormatCalls =
         new("ValidateFormatStringOption",
             "ReportInvalidPlaceholdersInStringDotFormatCalls",

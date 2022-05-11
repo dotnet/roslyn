@@ -29,13 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-
-            var organizeOptions = new OrganizeImportsOptions(
-                options.AddImportOptions.PlaceSystemNamespaceFirst,
-                options.FormattingOptions.SeparateImportDirectiveGroups,
-                options.FormattingOptions.LineFormatting.NewLine);
-
-            var organizedDocument = await organizeImportsService.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(false);
+            var organizedDocument = await organizeImportsService.OrganizeImportsAsync(document, options.GetOrganizeImportsOptions(), cancellationToken).ConfigureAwait(false);
 
             return await MisplacedUsingDirectivesCodeFixProvider.TransformDocumentIfRequiredAsync(
                 organizedDocument, options.SimplifierOptions, options.AddImportOptions.UsingDirectivePlacement, cancellationToken).ConfigureAwait(false);

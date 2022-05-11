@@ -12,6 +12,10 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
 
+#if !CODE_STYLE
+using Microsoft.CodeAnalysis.OrganizeImports;
+#endif
+
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
 [DataContract]
@@ -28,6 +32,14 @@ internal readonly record struct CodeCleanupOptions(
             SimplifierOptions: SimplifierOptions.GetDefault(languageServices),
             AddImportOptions: AddImportPlacementOptions.Default,
             DocumentFormattingOptions: DocumentFormattingOptions.Default);
+
+    public OrganizeImportsOptions GetOrganizeImportsOptions()
+        => new()
+        {
+            SeparateImportDirectiveGroups = FormattingOptions.SeparateImportDirectiveGroups,
+            PlaceSystemNamespaceFirst = AddImportOptions.PlaceSystemNamespaceFirst,
+            NewLine = FormattingOptions.LineFormatting.NewLine,
+        };
 #endif
 }
 
