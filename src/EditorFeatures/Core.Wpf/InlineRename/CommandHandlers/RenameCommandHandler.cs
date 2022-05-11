@@ -43,9 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
 #if !COCOA
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => GetAdornment(textView) is RenameDashboard dashboard
-            ? dashboard.ShouldReceiveKeyboardNavigation
-            : true; // Always receive keyboard navigation for the inline adornment
+            => GetAdornment(textView) switch
+            {
+                RenameDashboard dashboard => dashboard.ShouldReceiveKeyboardNavigation,
+                RenameFlyout flyout => true, // Always receive keyboard navigation for the inline adornment
+                _ => false
+            };
 
         protected override void SetFocusToTextView(ITextView textView)
         {

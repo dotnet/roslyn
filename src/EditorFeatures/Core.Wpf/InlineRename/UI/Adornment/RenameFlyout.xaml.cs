@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     /// <summary>
     /// Interaction logic for InlineRenameAdornment.xaml
     /// </summary>
-    internal partial class RenameFlyout : UserControl, IDisposable
+    internal partial class RenameFlyout : InlineRenameAdornment
     {
         private readonly RenameFlyoutViewModel _viewModel;
         private readonly ITextView _textView;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Canvas.SetLeft(this, left);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _viewModel.Dispose();
 
