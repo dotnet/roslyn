@@ -31364,5 +31364,276 @@ public class C2 : I1<C2>
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C2.explicit operator int(C2)").WithLocation(14, 37)
                 );
         }
+
+        [Fact]
+        public void OperatorVsMethod_01()
+        {
+            var source1 =
+@"
+public interface I1<T1> where T1 : I1<T1>
+{
+    abstract static T1 operator +(T1 x, T1 y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    abstract static T2 I1<T2>.op_Addition(T2 x, T2 y);
+}
+
+public interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static T3 I1<T3>.op_Addition(T3 x, T3 y) => throw null;
+}
+
+public class C4 : I1<C4>
+{
+    static C4 I1<C4>.op_Addition(C4 x, C4 y) => throw null;
+}
+
+public class C5 : I1<C5>
+{
+    public static C5 op_Addition(C5 x, C5 y) => throw null;
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: _supportingFramework,
+                                                    references: new[] { reference });
+
+                compilation2.VerifyDiagnostics(
+                    // (4,31): error CS0539: 'I2<T2>.op_Addition(T2, T2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     abstract static T2 I1<T2>.op_Addition(T2 x, T2 y);
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Addition").WithArguments("I2<T2>.op_Addition(T2, T2)").WithLocation(4, 31),
+                    // (9,22): error CS0539: 'I3<T3>.op_Addition(T3, T3)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static T3 I1<T3>.op_Addition(T3 x, T3 y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Addition").WithArguments("I3<T3>.op_Addition(T3, T3)").WithLocation(9, 22),
+                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.operator +(C4, C4)'
+                    // public class C4 : I1<C4>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.operator +(C4, C4)").WithLocation(12, 19),
+                    // (14,22): error CS0539: 'C4.op_Addition(C4, C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static C4 I1<C4>.op_Addition(C4 x, C4 y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Addition").WithArguments("C4.op_Addition(C4, C4)").WithLocation(14, 22),
+                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.operator +(C5, C5)'
+                    // public class C5 : I1<C5>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.operator +(C5, C5)").WithLocation(17, 19)
+                    );
+            }
+        }
+
+        [Fact]
+        public void OperatorVsMethod_02()
+        {
+            var source1 =
+@"
+public interface I1<T1> where T1 : I1<T1>
+{
+    abstract static T1 op_Addition(T1 x, T1 y);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    abstract static T2 I1<T2>.operator +(T2 x, T2 y);
+}
+
+public interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static T3 I1<T3>.operator +(T3 x, T3 y) => throw null;
+}
+
+public class C4 : I1<C4>
+{
+    static C4 I1<C4>.operator +(C4 x, C4 y) => throw null;
+}
+
+public class C5 : I1<C5>
+{
+    public static C5 operator +(C5 x, C5 y) => throw null;
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: _supportingFramework,
+                                                    references: new[] { reference });
+
+                compilation2.VerifyDiagnostics(
+                    // (4,40): error CS0539: 'I2<T2>.operator +(T2, T2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     abstract static T2 I1<T2>.operator +(T2 x, T2 y);
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+").WithArguments("I2<T2>.operator +(T2, T2)").WithLocation(4, 40),
+                    // (9,31): error CS0539: 'I3<T3>.operator +(T3, T3)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static T3 I1<T3>.operator +(T3 x, T3 y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+").WithArguments("I3<T3>.operator +(T3, T3)").WithLocation(9, 31),
+                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.op_Addition(C4, C4)'
+                    // public class C4 : I1<C4>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.op_Addition(C4, C4)").WithLocation(12, 19),
+                    // (14,31): error CS0539: 'C4.operator +(C4, C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static C4 I1<C4>.operator +(C4 x, C4 y) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "+").WithArguments("C4.operator +(C4, C4)").WithLocation(14, 31),
+                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.op_Addition(C5, C5)'
+                    // public class C5 : I1<C5>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.op_Addition(C5, C5)").WithLocation(17, 19)
+                    );
+            }
+        }
+
+        [Fact]
+        public void OperatorVsMethod_03()
+        {
+            var source1 =
+@"
+public interface I1<T1> where T1 : I1<T1>
+{
+    abstract static implicit operator int(T1 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    abstract static int I1<T2>.op_Implicit(T2 x);
+}
+
+public interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static int I1<T3>.op_Implicit(T3 x) => throw null;
+}
+
+public class C4 : I1<C4>
+{
+    static int I1<C4>.op_Implicit(C4 x) => throw null;
+}
+
+public class C5 : I1<C5>
+{
+    public static int op_Implicit(C5 x) => throw null;
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: _supportingFramework,
+                                                    references: new[] { reference });
+
+                compilation2.VerifyDiagnostics(
+                    // (4,32): error CS0539: 'I2<T2>.op_Implicit(T2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     abstract static int I1<T2>.op_Implicit(T2 x);
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Implicit").WithArguments("I2<T2>.op_Implicit(T2)").WithLocation(4, 32),
+                    // (9,23): error CS0539: 'I3<T3>.op_Implicit(T3)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static int I1<T3>.op_Implicit(T3 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Implicit").WithArguments("I3<T3>.op_Implicit(T3)").WithLocation(9, 23),
+                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.implicit operator int(C4)'
+                    // public class C4 : I1<C4>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.implicit operator int(C4)").WithLocation(12, 19),
+                    // (14,23): error CS0539: 'C4.op_Implicit(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static int I1<C4>.op_Implicit(C4 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "op_Implicit").WithArguments("C4.op_Implicit(C4)").WithLocation(14, 23),
+                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.implicit operator int(C5)'
+                    // public class C5 : I1<C5>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.implicit operator int(C5)").WithLocation(17, 19)
+                    );
+            }
+        }
+
+        [Fact]
+        public void OperatorVsMethod_04()
+        {
+            var source1 =
+@"
+public interface I1<T1> where T1 : I1<T1>
+{
+    abstract static int op_Implicit(T1 x);
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: _supportingFramework);
+
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+public interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    abstract static implicit I1<T2>.operator int(T2 x);
+}
+
+public interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static implicit I1<T3>.operator int(T3 x) => throw null;
+}
+
+public class C4 : I1<C4>
+{
+    static implicit I1<C4>.operator int(C4 x) => throw null;
+}
+
+public class C5 : I1<C5>
+{
+    public static implicit operator int(C5 x) => throw null;
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.RegularPreview,
+                                                    targetFramework: _supportingFramework,
+                                                    references: new[] { reference });
+
+                compilation2.VerifyDiagnostics(
+                    // (4,46): error CS0539: 'I2<T2>.implicit operator int(T2)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     abstract static implicit I1<T2>.operator int(T2 x);
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I2<T2>.implicit operator int(T2)").WithLocation(4, 46),
+                    // (9,37): error CS0567: Conversion, equality, or inequality operators declared in interfaces must be abstract
+                    //     static implicit I1<T3>.operator int(T3 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(9, 37),
+                    // (9,37): error CS0539: 'I3<T3>.implicit operator int(T3)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static implicit I1<T3>.operator int(T3 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("I3<T3>.implicit operator int(T3)").WithLocation(9, 37),
+                    // (12,19): error CS0535: 'C4' does not implement interface member 'I1<C4>.op_Implicit(C4)'
+                    // public class C4 : I1<C4>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C4>").WithArguments("C4", "I1<C4>.op_Implicit(C4)").WithLocation(12, 19),
+                    // (14,37): error CS0539: 'C4.implicit operator int(C4)' in explicit interface declaration is not found among members of the interface that can be implemented
+                    //     static implicit I1<C4>.operator int(C4 x) => throw null;
+                    Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "int").WithArguments("C4.implicit operator int(C4)").WithLocation(14, 37),
+                    // (17,19): error CS0535: 'C5' does not implement interface member 'I1<C5>.op_Implicit(C5)'
+                    // public class C5 : I1<C5>
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1<C5>").WithArguments("C5", "I1<C5>.op_Implicit(C5)").WithLocation(17, 19)
+                    );
+            }
+        }
     }
 }

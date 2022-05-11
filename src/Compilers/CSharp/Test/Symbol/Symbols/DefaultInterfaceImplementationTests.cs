@@ -31940,6 +31940,11 @@ class Test1 : I1
 }
 ";
 
+            ValidateMethodImplementationInDerived_01(source1, source2, isStatic);
+        }
+
+        private void ValidateMethodImplementationInDerived_01(string source1, string source2, bool isStatic, string name = "M1")
+        {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
@@ -31989,7 +31994,7 @@ I4.M1
 
             void validateMethodImplementationInDerived_01(ModuleSymbol m)
             {
-                ValidateMethodImplementationInDerived_01(m, isStatic: isStatic);
+                ValidateMethodImplementationInDerived_01(m, i4M1IsAbstract: false, isStatic: isStatic, name: name);
             }
         }
 
@@ -31998,17 +32003,16 @@ I4.M1
             ValidateMethodImplementationInDerived_01(m, i4M1IsAbstract: false, isStatic: isStatic);
         }
 
-        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract, bool isStatic)
+        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m, bool i4M1IsAbstract, bool isStatic, string name = "M1")
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
-            var i1i2m1 = i1.GetMember<MethodSymbol>("I2.M1");
-            var i1i4m1 = i1.GetMember<MethodSymbol>("I4.M1");
+            var i1i2m1 = i1.GetMember<MethodSymbol>(i1.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I2").Single().ToDisplayString() + "." + name);
+            var i1i4m1 = i1.GetMember<MethodSymbol>(i1.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I4").Single().ToDisplayString() + "." + name);
             var i2 = i1.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I2").Single();
-            var i2m1 = i2.GetMembers().OfType<MethodSymbol>().Single();
+            var i2m1 = i2.GetMember<MethodSymbol>(name);
             var i4 = i1.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I4").Single();
-            var i4m1 = i4.GetMembers().OfType<MethodSymbol>().Single();
-            var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+            var i4m1 = i4.GetMember<MethodSymbol>(name);
 
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
@@ -32018,19 +32022,28 @@ I4.M1
 
             Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
             Assert.Null(test1.FindImplementationForInterfaceMember(i1i4m1));
-            Assert.Same(i1i2m1, test1.FindImplementationForInterfaceMember(i2m1));
-            Assert.Same(i4M1IsAbstract ? null : i1i4m1, test1.FindImplementationForInterfaceMember(i4m1));
+            Assert.Equal(i1i2m1, test1.FindImplementationForInterfaceMember(i2m1));
+            Assert.Equal(i4M1IsAbstract ? null : i1i4m1, test1.FindImplementationForInterfaceMember(i4m1));
 
             Assert.Null(i1.FindImplementationForInterfaceMember(i1i2m1));
             Assert.Null(i1.FindImplementationForInterfaceMember(i1i4m1));
-            Assert.Same(i1i2m1, i1.FindImplementationForInterfaceMember(i2m1));
-            Assert.Same(i4M1IsAbstract ? null : i1i4m1, i1.FindImplementationForInterfaceMember(i4m1));
+            Assert.Equal(i1i2m1, i1.FindImplementationForInterfaceMember(i2m1));
+            Assert.Equal(i4M1IsAbstract ? null : i1i4m1, i1.FindImplementationForInterfaceMember(i4m1));
 
             Assert.Null(i2.FindImplementationForInterfaceMember(i2m1));
             Assert.Null(i4.FindImplementationForInterfaceMember(i4m1));
 
-            Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
-            Assert.Same(i4M1IsAbstract ? null : i1i4m1, i3.FindImplementationForInterfaceMember(i4m1));
+            var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+            i1 = i3.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
+            i1i2m1 = i1.GetMember<MethodSymbol>(i1.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I2").Single().ToDisplayString() + "." + name);
+            i1i4m1 = i1.GetMember<MethodSymbol>(i1.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I4").Single().ToDisplayString() + "." + name);
+            i2 = i1.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I2").Single();
+            i2m1 = i2.GetMember<MethodSymbol>(name);
+            i4 = i1.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I4").Single();
+            i4m1 = i4.GetMember<MethodSymbol>(name);
+
+            Assert.Equal(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
+            Assert.Equal(i4M1IsAbstract ? null : i1i4m1, i3.FindImplementationForInterfaceMember(i4m1));
         }
 
         private static void ValidateExplicitImplementation(MethodSymbol m1, bool isAbstract = false, bool isStatic = false)
@@ -50083,21 +50096,28 @@ class Test1 : I2
             ValidateMethodReAbstraction_01(source1, source2, isStatic);
         }
 
-        private static void ValidateMethodReAbstraction_01(string source1, string source2, bool isStatic)
+        private static void ValidateMethodReAbstraction_01(string source1, string source2, bool isStatic, string name = "M1")
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             validate(compilation1.SourceModule);
 
-            var expected = new DiagnosticDescription[]
-                {
-                    // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
-                    // class Test1 : I2
-                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(2, 15)
-                };
+            var expected =
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2")
+                ;
 
-            compilation1.VerifyDiagnostics(expected);
+            if (name == "M1")
+            {
+                expected = expected.WithArguments("Test1", "I1.M1()").WithLocation(2, 15);
+                compilation1.VerifyDiagnostics(expected);
+            }
+            else
+            {
+                compilation1.GetDiagnostics().VerifyErrorCodes(expected);
+            }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -50110,7 +50130,15 @@ class Test1 : I2
                                                      parseOptions: TestOptions.RegularPreview,
                                                      targetFramework: TargetFramework.Net60);
                 validate(compilation3.SourceModule);
-                compilation3.VerifyDiagnostics(expected);
+
+                if (name == "M1")
+                {
+                    compilation3.VerifyDiagnostics(expected);
+                }
+                else
+                {
+                    compilation3.GetDiagnostics().VerifyErrorCodes(expected);
+                }
             }
 
             void validate(ModuleSymbol m)
@@ -50118,12 +50146,20 @@ class Test1 : I2
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
                 Assert.Equal("I2", i2.Name);
-                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+                var i2m1 = i2.GetMembers().OfType<MethodSymbol>().Single();
 
                 ValidateReabstraction(i2m1, isStatic: isStatic);
 
                 var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
-                Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+                if (name == "M1")
+                {
+                    Assert.Equal("void I1.M1()", i1m1.ToTestDisplayString());
+                }
+                else
+                {
+                    Assert.Equal(name, i1m1.Name);
+                    Assert.Equal("I1", i1m1.ContainingType.Name);
+                }
 
                 Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
@@ -67289,6 +67325,641 @@ public partial interface I1<T> where T : I1<T>
 ";
 
             ValidateOperatorImplementation_011(source1, "_ = (x " + (op == "true" ? "||" : "&&") + " x);", opName, "System.Boolean {0}." + opName + "({0} x)");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorImplementationInDerived_Binary([CombinatorialValues("+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>", ">>>", "<", ">", "<=", ">=")] string op, bool isChecked)
+        {
+            string opName = GetBinaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
+            string matchingOp = isChecked ? op : MatchingBinaryOperator(op);
+
+            const string signatureTemplate = "{0} {1}operator {2}({0} x, int y)";
+
+            OperatorImplementationInDerived_01(op, opName, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate,
+                accessTemplate: "{0} {1} {2}",
+                extraOpTemplate: null,
+                returnTemplate: "{0}");
+
+            OperatorImplementationInDerived_13(op, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate);
+
+            OperatorReAbstraction_02(op, opName, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate);
+        }
+
+        private void OperatorImplementationInDerived_01(
+            string op, string opName, string checkedKeyword, string matchingOp,
+            string signatureTemplate, string accessTemplate, string extraOpTemplate, string returnTemplate)
+        {
+            /* Build source1 like the following:
+             
+            public partial interface I2<T2> where T2 : I2<T2>
+            {
+                static abstract T2 operator +(T2 x, int y);
+            }
+
+            public partial interface I4<T4> where T4 : I4<T4>
+            {
+                static abstract T4 operator +(T4 x, int y);
+            }
+
+            public interface I5<T5> : I4<T5> where T5 : I5<T5>
+            {
+            }
+
+            public interface I1<T1> : I2<T1>, I5<T1> where T1 : I1<T1>
+            {
+                static T1 I2<T1>.operator +(T1 x, int y)
+                {
+                    System.Console.WriteLine("I2.M1");
+                    return x;
+                }
+                static T1 I4<T1>.operator +(T1 x, int y)
+                {
+                    System.Console.WriteLine("I4.M1");
+                    return x;
+                }
+            }
+
+            public interface I3<T3> : I1<T3> where T3 : I1<T3>
+            {
+            }
+             */
+
+            var source1 =
+@"
+public partial interface I2<T2> where T2 : I2<T2>
+{
+    static abstract " + string.Format(signatureTemplate, "T2", "", checkedKeyword + op) + @";
+}
+
+public partial interface I4<T4> where T4 : I4<T4>
+{
+    static abstract " + string.Format(signatureTemplate, "T4", "", checkedKeyword + op) + @";
+}
+
+public interface I5<T5> : I4<T5> where T5 : I5<T5>
+{
+}
+
+public interface I1<T1> : I2<T1>, I5<T1> where T1 : I1<T1>
+{
+    static " + string.Format(signatureTemplate, "T1", "I2<T1>.", checkedKeyword + op) + @"
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return " + string.Format(returnTemplate, "x") + @";
+    }
+    static " + string.Format(signatureTemplate, "T1", "I4<T1>.", checkedKeyword + op) + @"
+    {
+        System.Console.WriteLine(""I4.M1"");
+        return " + string.Format(returnTemplate, "x") + @";
+    }
+}
+
+public interface I3<T3> : I1<T3> where T3 : I1<T3>
+{
+}
+";
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I2<T2>
+{
+    static virtual " + string.Format(signatureTemplate, "T2", "", matchingOp) + @" => throw null;
+}
+
+public partial interface I4<T4>
+{
+    static virtual " + string.Format(signatureTemplate, "T4", "", matchingOp) + @" => throw null;
+}
+";
+            }
+
+            if (extraOpTemplate is object)
+            {
+                source1 +=
+@"
+public partial interface I2<T2>
+{
+" + string.Format(extraOpTemplate, "T2") + @"
+}
+
+public partial interface I4<T4>
+{
+" + string.Format(extraOpTemplate, "T4") + @"
+}
+";
+            }
+
+            /* Build source2 like the following:
+             
+            class Test1 : I1<Test1>
+            {
+                static void Main()
+                {
+                    Test<Test1, Test1>(new Test1(), new Test1());
+                }
+
+                static void Test<i2, i4>(i2 a, i4 b) where i2 : I2<i2> where i4 : I4<i4>
+                {
+        
+                    {
+                    _ = a + 1;
+                    _ = b + 1;
+                    }
+                }
+            }
+ 
+             */
+            var source2 =
+@"
+class Test1 : I1<Test1>
+{
+    static void Main()
+    {
+        Test<Test1, Test1>(new Test1(), new Test1());
+    }
+
+    static void Test<i2, i4>(i2 a, i4 b) where i2 : I2<i2> where i4 : I4<i4>
+    {
+        " + checkedKeyword + @"
+        {
+        _ = " + string.Format(accessTemplate, "a", op, 1) + @";
+        _ = " + string.Format(accessTemplate, "b", op, 1) + @";
+        }
+    }
+}
+";
+
+            ValidateMethodImplementationInDerived_01(source1, source2, isStatic: true, opName);
+
+            if (checkedKeyword == "" && matchingOp is null && op != ">>>")
+            {
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular10,
+                                                     targetFramework: TargetFramework.Net60);
+
+                compilation1.VerifyDiagnostics(
+                    // (4,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    //     static abstract T2 operator +(T2 x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "10.0", "preview").WithLocation(4, 33),
+                    // (9,33): error CS8703: The modifier 'abstract' is not valid for this item in C# 10.0. Please use language version 'preview' or greater.
+                    //     static abstract T4 operator +(T4 x, int y);
+                    Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, op).WithArguments("abstract", "10.0", "preview").WithLocation(9, 33),
+                    // (18,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static T1 I2<T1>.operator +(T1 x, int y)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I2<T1>.").WithArguments("static abstract members in interfaces").WithLocation(18, 15),
+                    // (23,15): error CS8652: The feature 'static abstract members in interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static T1 I4<T1>.operator +(T1 x, int y)
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "I4<T1>.").WithArguments("static abstract members in interfaces").WithLocation(23, 15)
+                    );
+
+                var source3 = @"
+class Test1 : I1<Test1>
+{}
+";
+
+                var compilation3 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular10,
+                                                     targetFramework: TargetFramework.Net60);
+
+                compilation3.GetDiagnostics().VerifyErrorCodes(
+                    // (6,15): error CS8706: 'I1<Test1>.I2<Test1>.operator +(Test1, int)' cannot implement interface member 'I2<Test1>.operator +(Test1, int)' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    // class Test1 : I1<Test1>
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1<Test1>"),
+                    // (6,15): error CS8706: 'I1<Test1>.I4<Test1>.operator +(Test1, int)' cannot implement interface member 'I4<Test1>.operator +(Test1, int)' in type 'Test1' because feature 'static abstract members in interfaces' is not available in C# 10.0. Please use language version 'preview' or greater.
+                    // class Test1 : I1<Test1>
+                    Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1<Test1>")
+                    );
+
+
+                var source4 = @"
+public interface I3<T3> : I1<T3> where T3 : I1<T3>
+{
+}
+";
+
+                var compilation4 = CreateCompilation(source4, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular10,
+                                                     targetFramework: TargetFramework.Net60);
+
+                compilation4.VerifyDiagnostics();
+
+                compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+
+                compilation1.VerifyDiagnostics(
+                    // (4,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static abstract T2 operator +(T2 x, int y);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(4, 33),
+                    // (9,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static abstract T4 operator +(T4 x, int y);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(9, 33),
+                    // (18,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static T1 I2<T1>.operator +(T1 x, int y)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(18, 31),
+                    // (23,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
+                    //     static T1 I4<T1>.operator +(T1 x, int y)
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, op).WithLocation(23, 31)
+                    );
+
+                compilation3 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() },
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+                compilation3.GetDiagnostics().VerifyErrorCodes(
+                    // (2,15): error CS8929: 'I1<Test1>.I2<Test1>.operator +(Test1, int)' cannot implement interface member 'I2<Test1>.operator +(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                    // class Test1 : I1<Test1>
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>"),
+                    // (2,15): error CS8929: 'I1<Test1>.I4<Test1>.operator +(Test1, int)' cannot implement interface member 'I4<Test1>.operator +(Test1, int)' in type 'Test1' because the target runtime doesn't support static abstract members in interfaces.
+                    // class Test1 : I1<Test1>
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember, "I1<Test1>")
+                    );
+
+                compilation4 = CreateCompilation(source4, new[] { compilation1.ToMetadataReference() },
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Net50,
+                                                 parseOptions: TestOptions.RegularPreview);
+
+                compilation4.VerifyDiagnostics();
+            }
+        }
+
+        private void OperatorImplementationInDerived_13(
+            string op, string checkedKeyword, string matchingOp, string signatureTemplate)
+        {
+            /* Build source1 like the following:
+            
+            public partial interface I1<T1> where T1 : I1<T1>
+            {
+                static abstract T1 operator +(T1 x, int y);
+            }
+
+            public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
+            {
+                static T2 I1<T2>.operator +(T2 x, int y)
+                {
+                    throw null;
+                }
+            }
+
+            public partial interface I3<T3> : I1<T3> where T3 : I3<T3>
+            {
+                static T3 I1<T3>.operator +(T3 x, int y)
+                {
+                    throw null;
+                }
+            }
+
+             */
+
+            var source1 =
+@"
+public partial interface I1<T1> where T1 : I1<T1>
+{
+    static abstract " + string.Format(signatureTemplate, "T1", "", checkedKeyword + op) + @";
+}
+
+public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    static " + string.Format(signatureTemplate, "T2", "I1<T2>.", checkedKeyword + op) + @"
+    {
+        throw null;
+    }
+}
+
+public partial interface I3<T3> : I1<T3> where T3 : I3<T3>
+{
+    static " + string.Format(signatureTemplate, "T3", "I1<T3>.", checkedKeyword + op) + @"
+    {
+        throw null;
+    }
+}
+";
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T1>
+{
+    static virtual " + string.Format(signatureTemplate, "T1", "", matchingOp) + @" => throw null;
+}
+";
+            }
+
+            var source2 =
+@"
+class Test1 : I2<Test1>, I3<Test1>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.GetDiagnostics().VerifyErrorCodes(
+                // (2,15): error CS8705: Interface member 'I1<Test1>.operator +(Test1, int)' does not have a most specific implementation. Neither 'I2<Test1>.I1<Test1>.operator +(Test1, int)', nor 'I3<Test1>.I1<Test1>.operator +(Test1, int)' are most specific.
+                // class Test1 : I2<Test1>, I3<Test1>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2<Test1>")
+                );
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation3.GetDiagnostics().VerifyErrorCodes(
+                // (2,15): error CS8705: Interface member 'I1<Test1>.operator +(Test1, int)' does not have a most specific implementation. Neither 'I2<Test1>.I1<Test1>.operator +(Test1, int)', nor 'I3<Test1>.I1<Test1>.operator +(Test1, int)' are most specific.
+                // class Test1 : I2<Test1>, I3<Test1>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2<Test1>")
+                );
+        }
+
+        private void OperatorReAbstraction_02(
+            string op, string opName, string checkedKeyword, string matchingOp, string signatureTemplate)
+        {
+            /* Build source1 like the following:
+            
+            public partial interface I1<T1> where T1 : I1<T1>
+            {
+                static virtual T1 operator *(T1 x, int y)
+                {
+                    throw null;
+                }
+            }
+
+            public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
+            {
+                static abstract T2 I1<T2>.operator *(T2 x, int y);
+            }
+
+             */
+
+            var source1 =
+@"
+public partial interface I1<T1> where T1 : I1<T1>
+{
+    static virtual " + string.Format(signatureTemplate, "T1", "", checkedKeyword + op) + @" => throw null;
+}
+
+public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    static abstract " + string.Format(signatureTemplate, "T2", "I1<T2>.", checkedKeyword + op) + @";
+}
+";
+            if (matchingOp is object)
+            {
+                source1 +=
+@"
+public partial interface I1<T1>
+{
+    static virtual " + string.Format(signatureTemplate, "T1", "", matchingOp) + @" => throw null;
+}
+";
+            }
+
+            var source2 =
+@"
+class Test1 : I2<Test1>
+{
+}
+";
+
+            ValidateMethodReAbstraction_01(source1, source2, isStatic: true, opName);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorImplementationInDerived_Unary([CombinatorialValues("+", "-", "!", "~", "++", "--")] string op, bool isChecked)
+        {
+            string opName = GetUnaryOperatorName(op, isChecked, out string checkedKeyword);
+
+            if (opName is null)
+            {
+                return;
+            }
+
+            string matchingOp = isChecked ? op : null;
+
+            const string signatureTemplate = "{0} {1}operator {2}({0} x)";
+
+            OperatorImplementationInDerived_01(op, opName, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate,
+                accessTemplate: "{1} {0}",
+                extraOpTemplate: null,
+                returnTemplate: "{0}");
+
+            OperatorImplementationInDerived_13(op, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate);
+
+            OperatorReAbstraction_02(op, opName, checkedKeyword, matchingOp,
+                signatureTemplate: signatureTemplate);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void OperatorImplementationInDerived_TrueFalse([CombinatorialValues("true", "false")] string op)
+        {
+            string opName = GetUnaryOperatorName(op, isChecked: false, out _);
+            string matchingOp = op switch { "true" => "false", "false" => "true", _ => null };
+
+            const string signatureTemplate = "bool {1}operator {2}({0} x)";
+
+            OperatorImplementationInDerived_01(op, opName, checkedKeyword: "", matchingOp,
+                signatureTemplate: signatureTemplate,
+                accessTemplate: "{0} " + (op == "true" ? "||" : "&&") + " {0}",
+                extraOpTemplate: @"
+    virtual static {0} operator |({0} x, {0} y) => y;
+    virtual static {0} operator &({0} x, {0} y) => y;
+",
+                returnTemplate: "false");
+
+            OperatorImplementationInDerived_13(op, checkedKeyword: "", matchingOp,
+                signatureTemplate: signatureTemplate);
+
+            OperatorReAbstraction_02(op, opName, checkedKeyword: "", matchingOp,
+                signatureTemplate: signatureTemplate);
+        }
+
+        [Fact]
+        public void OperatorImplementationInDerived_Equality()
+        {
+            var source1 =
+@"
+public partial interface I1<T1> where T1 : I1<T1>
+{
+    static abstract bool operator ==(T1 x, int y);
+
+    static abstract bool operator !=(T1 x, int y);
+}
+
+public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    static abstract bool I1<T2>.operator ==(T2 x, int y);
+    static abstract bool I1<T2>.operator !=(T2 x, int y);
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2<Test1>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            validate(compilation1.SourceModule);
+
+            var expected = new[] {
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1<Test1>.operator ==(Test1, int)'
+                // class Test1 : I2<Test1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<Test1>").WithArguments("Test1", "I1<Test1>.operator ==(Test1, int)").WithLocation(2, 15),
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1<Test1>.operator !=(Test1, int)'
+                // class Test1 : I2<Test1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<Test1>").WithArguments("Test1", "I1<Test1>.operator !=(Test1, int)").WithLocation(2, 15)
+            };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
+                validate(compilation3.SourceModule);
+
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+
+                int count = 0;
+                foreach (var i2m1 in i2.GetMembers().OfType<MethodSymbol>())
+                {
+                    count++;
+                    ValidateReabstraction(i2m1, isStatic: true);
+
+                    var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                    Assert.Equal("I1", i1m1.ContainingType.Name);
+
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+                }
+
+                Assert.Equal(2, count);
+            }
+        }
+
+        [Fact]
+        public void OperatorImplementationInDerived_Conversions()
+        {
+            var source1 =
+@"
+public partial interface I1<T1> where T1 : I1<T1>
+{
+    static abstract implicit operator long(T1 x);
+
+    static abstract explicit operator int(T1 x);
+    static abstract explicit operator checked int(T1 x);
+}
+
+public partial interface I2<T2> : I1<T2> where T2 : I2<T2>
+{
+    static abstract implicit I1<T2>.operator long(T2 x);
+    static abstract explicit I1<T2>.operator int(T2 x);
+    static abstract explicit I1<T2>.operator checked int(T2 x);
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2<Test1>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            validate(compilation1.SourceModule);
+
+            var expected = new[] {
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1<Test1>.implicit operator long(Test1)'
+                // class Test1 : I2<Test1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<Test1>").WithArguments("Test1", "I1<Test1>.implicit operator long(Test1)").WithLocation(2, 15),
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1<Test1>.explicit operator int(Test1)'
+                // class Test1 : I2<Test1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<Test1>").WithArguments("Test1", "I1<Test1>.explicit operator int(Test1)").WithLocation(2, 15),
+                // (2,15): error CS0535: 'Test1' does not implement interface member 'I1<Test1>.explicit operator checked int(Test1)'
+                // class Test1 : I2<Test1>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2<Test1>").WithArguments("Test1", "I1<Test1>.explicit operator checked int(Test1)").WithLocation(2, 15)
+            };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            compilation2.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, options: TestOptions.DebugDll, references: new[] { reference },
+                                                     parseOptions: TestOptions.RegularPreview,
+                                                     targetFramework: TargetFramework.Net60);
+                validate(compilation3.SourceModule);
+
+                compilation3.VerifyDiagnostics(expected);
+            }
+
+            void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i2 = test1.InterfacesNoUseSiteDiagnostics().First();
+                Assert.Equal("I2", i2.Name);
+
+                int count = 0;
+                foreach (var i2m1 in i2.GetMembers().OfType<MethodSymbol>())
+                {
+                    count++;
+                    ValidateReabstraction(i2m1, isStatic: true);
+
+                    var i1m1 = i2m1.ExplicitInterfaceImplementations.Single();
+                    Assert.Equal("I1", i1m1.ContainingType.Name);
+
+                    Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                    Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+                }
+
+                Assert.Equal(3, count);
+            }
         }
     }
 }
