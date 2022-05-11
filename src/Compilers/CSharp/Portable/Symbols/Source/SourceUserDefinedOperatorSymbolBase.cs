@@ -195,6 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (isExplicitInterfaceImplementation)
+            {
+                if ((result & DeclarationModifiers.Abstract) != 0)
+                {
+                    result |= DeclarationModifiers.Sealed;
+                }
+            }
+
             return result;
 
             static void reportModifierIfPresent(DeclarationModifiers result, DeclarationModifiers errorModifier, Location location, BindingDiagnosticBag diagnostics, CSharpRequiredLanguageVersion requiredVersionArgument, string availableVersionArgument)
