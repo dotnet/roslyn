@@ -3936,6 +3936,49 @@ struct S2
             Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
+        [Fact]
+        public void InStruct_NoCycle()
+        {
+            var source1 = @"
+struct S1
+{
+    public S1() { }
+
+    public int P
+    {
+        get
+        {
+            _ = field;
+            var x = new S2();
+            return field;
+        }
+    }
+}";
+
+            var source2 = @"
+struct S2
+{
+    public S2() { }
+
+    public int P
+    {
+        get
+        {
+            _ = field;
+            var x = new S1();
+            return field;
+        }
+    }
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true).Verify();
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true).Verify();
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
         [Theory, CombinatorialData]
         public void InStruct_NoCycleBecauseStatic(bool firstIsSemi, bool secondIsSemi)
         {
