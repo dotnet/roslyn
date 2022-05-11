@@ -12,8 +12,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
+        internal static Task<ImmutableArray<ReferencedSymbol>> FindRenamableReferencesAsync(
+            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        {
+            return FindRenamableReferencesAsync(ImmutableArray.Create(symbol), solution, cancellationToken);
+        }
+
         internal static async Task<ImmutableArray<ReferencedSymbol>> FindRenamableReferencesAsync(
-            ISymbol symbol,
+            ImmutableArray<ISymbol> symbols,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -28,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     streamingProgress,
                     FindReferencesSearchOptions.Default);
 
-                await engine.FindReferencesAsync(symbol, cancellationToken).ConfigureAwait(false);
+                await engine.FindReferencesAsync(symbols, cancellationToken).ConfigureAwait(false);
                 return streamingProgress.GetReferencedSymbols();
             }
         }

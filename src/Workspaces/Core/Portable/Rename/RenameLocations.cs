@@ -199,8 +199,7 @@ namespace Microsoft.CodeAnalysis.Rename
             CancellationToken cancellationToken)
         {
             var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
-            var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(
-                symbol, solution, cancellationToken).ConfigureAwait(false);
+            var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referenceSymbols)
             {

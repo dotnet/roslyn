@@ -63,8 +63,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _scheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler;
         }
 
-        public async Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
+            => FindReferencesAsync(ImmutableArray.Create(symbol), cancellationToken);
+
+        public async Task FindReferencesAsync(
+            ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
+            var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
+            unifiedSymbols.AddRange(symbols);
+
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
             {
@@ -73,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
                 // we'll expand this set as we dicover new symbols to search for in each project.
-                var symbolSet = await SymbolSet.CreateAsync(this, symbol, cancellationToken).ConfigureAwait(false);
+                var symbolSet = await SymbolSet.CreateAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
 
                 // Report the initial set of symbols to the caller.
                 var allSymbols = symbolSet.GetAllSymbols();
