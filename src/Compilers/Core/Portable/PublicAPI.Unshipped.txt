@@ -66,6 +66,7 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName 
 Microsoft.CodeAnalysis.OperationKind.UTF8String = 124 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation
 Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value.get -> string!
+static Microsoft.CodeAnalysis.Text.SourceText.From(System.Text.StringBuilder! stringBuilder, System.Text.Encoding? encoding = null, Microsoft.CodeAnalysis.Text.SourceHashAlgorithm checksumAlgorithm = Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha1) -> Microsoft.CodeAnalysis.Text.SourceText!
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitUTF8String(Microsoft.CodeAnalysis.Operations.IUTF8StringOperation! operation, TArgument argument) -> TResult?
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultVisit(Microsoft.CodeAnalysis.ISymbol! symbol, TArgument argument) -> TResult
@@ -89,5 +90,4 @@ virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitPointerTyp
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitProperty(Microsoft.CodeAnalysis.IPropertySymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitRangeVariable(Microsoft.CodeAnalysis.IRangeVariableSymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitTypeParameter(Microsoft.CodeAnalysis.ITypeParameterSymbol! symbol, TArgument argument) -> TResult
-
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind

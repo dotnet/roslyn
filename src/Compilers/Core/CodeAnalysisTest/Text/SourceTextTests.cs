@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         public void Empty()
         {
             TestIsEmpty(SourceText.From(string.Empty));
+            TestIsEmpty(SourceText.From(new StringBuilder()));
             TestIsEmpty(SourceText.From(new byte[0], 0));
             TestIsEmpty(SourceText.From(new MemoryStream()));
         }
@@ -45,6 +46,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             Assert.Same(s_utf8, SourceText.From(HelloWorld, s_utf8).Encoding);
             Assert.Same(s_unicode, SourceText.From(HelloWorld, s_unicode).Encoding);
+
+            var stringBuilder = new StringBuilder(HelloWorld);
+            Assert.Same(s_utf8, SourceText.From(stringBuilder, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(stringBuilder, s_unicode).Encoding);
 
             var bytes = s_unicode.GetBytes(HelloWorld);
             Assert.Same(s_unicode, SourceText.From(bytes, bytes.Length, s_unicode).Encoding);
@@ -75,6 +80,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(HelloWorld).ChecksumAlgorithm);
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(HelloWorld, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
             Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(HelloWorld, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
+
+            var stringBuilder = new StringBuilder(HelloWorld);
+            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stringBuilder).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stringBuilder, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From(stringBuilder, checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
 
             var bytes = s_unicode.GetBytes(HelloWorld);
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(bytes, bytes.Length).ChecksumAlgorithm);
@@ -236,6 +246,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         }
 
         [Fact]
+        public void FromStringBuilder()
+        {
+            var expected = "StringBuilder source text test";
+            var expectedSourceText = SourceText.From(expected);
+
+            var actual = new StringBuilder(expected);
+            var actualSourceText = SourceText.From(actual);
+
+            Assert.IsType<StringText>(actualSourceText);
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
+
+            Assert.Same(s_utf8, SourceText.From(actual, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(actual, s_unicode).Encoding);
+            Assert.Null(SourceText.From(actual, encoding: null).Encoding);
+        }
+
+        [Fact]
         public void FromTextReader()
         {
             var expected = "Text reader source text test";
@@ -244,11 +271,29 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             var actual = new StringReader(expected);
             var actualSourceText = SourceText.From(actual, expected.Length);
 
+            Assert.IsType<StringText>(actualSourceText);
             Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
 
             Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
             Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);
             Assert.Null(SourceText.From(actual, expected.Length, null).Encoding);
+        }
+
+        [Fact]
+        public void FromStringBuilder_Large()
+        {
+            var expected = new string('l', SourceText.LargeObjectHeapLimitInChars);
+            var expectedSourceText = SourceText.From(expected);
+
+            var actual = new StringBuilder(expected);
+            var actualSourceText = SourceText.From(actual);
+
+            Assert.IsType<LargeText>(actualSourceText);
+            Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
+
+            Assert.Same(s_utf8, SourceText.From(actual, s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From(actual, s_unicode).Encoding);
+            Assert.Null(SourceText.From(actual, null).Encoding);
         }
 
         [Fact]
@@ -262,8 +307,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             Assert.IsType<LargeText>(actualSourceText);
             Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());
-
-            var utf8NoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
             Assert.Same(s_utf8, SourceText.From(actual, expected.Length, s_utf8).Encoding);
             Assert.Same(s_unicode, SourceText.From(actual, expected.Length, s_unicode).Encoding);

@@ -82,15 +82,15 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="text">Text.</param>
         /// <param name="encoding">
-        /// Encoding of the file that the <paramref name="text"/> was read from or is going to be saved to.
-        /// <c>null</c> if the encoding is unspecified.
-        /// If the encoding is not specified the resulting <see cref="SourceText"/> isn't debuggable.
-        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// Encoding of the file that the text was read from or is going to be saved to.
+        /// <see langword="null"/> if the encoding is unspecified.
+        /// If the encoding is not specified, the resulting <see cref="SourceText"/> isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file, <see cref="Encoding.UTF8"/> shall be used as a default.
         /// </param>
         /// <param name="checksumAlgorithm">
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
         /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="text"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="text"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public static SourceText From(string text, Encoding? encoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
@@ -103,20 +103,55 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Constructs a <see cref="SourceText"/> from text in a string.
+        /// Constructs a <see cref="SourceText"/> from text in a <see cref="StringBuilder"/>.
         /// </summary>
-        /// <param name="reader">TextReader</param>
-        /// <param name="length">length of content from <paramref name="reader"/></param>
+        /// <param name="stringBuilder"><see cref="StringBuilder"/> that contains the text.</param>
         /// <param name="encoding">
-        /// Encoding of the file that the <paramref name="reader"/> was read from or is going to be saved to.
-        /// <c>null</c> if the encoding is unspecified.
-        /// If the encoding is not specified the resulting <see cref="SourceText"/> isn't debuggable.
-        /// If an encoding-less <see cref="SourceText"/> is written to a file a <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// Encoding of the file that the text was read from or is going to be saved to.
+        /// <see langword="null"/> if the encoding is unspecified.
+        /// If the encoding is not specified, the resulting <see cref="SourceText"/> isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file, <see cref="Encoding.UTF8"/> shall be used as a default.
         /// </param>
         /// <param name="checksumAlgorithm">
         /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
         /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="reader"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="stringBuilder"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static SourceText From(
+            StringBuilder stringBuilder,
+            Encoding? encoding = null,
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            if (stringBuilder is null)
+                throw new ArgumentNullException(nameof(stringBuilder));
+
+            // If the resulting string would end up on the large object heap, then use LargeText.
+            if (stringBuilder.Length >= LargeObjectHeapLimitInChars)
+            {
+                using var reader = new StringBuilderReader(stringBuilder);
+                return LargeText.Decode(reader, stringBuilder.Length, encoding, checksumAlgorithm);
+            }
+
+            return From(stringBuilder.ToString(), encoding, checksumAlgorithm);
+        }
+
+        /// <summary>
+        /// Constructs a <see cref="SourceText"/> from text in a string.
+        /// </summary>
+        /// <param name="reader"><see cref="TextReader"/> to read the text from.</param>
+        /// <param name="length">Length of content from <paramref name="reader"/>.</param>
+        /// <param name="encoding">
+        /// Encoding of the file that the text was read from or is going to be saved to.
+        /// <see langword="null"/> if the encoding is unspecified.
+        /// If the encoding is not specified, the resulting <see cref="SourceText"/> isn't debuggable.
+        /// If an encoding-less <see cref="SourceText"/> is written to a file, <see cref="Encoding.UTF8"/> shall be used as a default.
+        /// </param>
+        /// <param name="checksumAlgorithm">
+        /// Hash algorithm to use to calculate checksum of the text that's saved to PDB.
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="reader"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         public static SourceText From(
             TextReader reader,
@@ -158,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <param name="throwIfBinaryDetected">If the decoded text contains at least two consecutive NUL
         /// characters, then an <see cref="InvalidDataException"/> is thrown.</param>
         /// <param name="canBeEmbedded">True if the text can be passed to <see cref="EmbeddedText.FromSource"/> and be embedded in a PDB.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="stream"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="stream"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">
         /// <paramref name="stream"/> doesn't support reading or seeking.
         /// <paramref name="checksumAlgorithm"/> is not supported.
@@ -231,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// characters, then an <see cref="InvalidDataException"/> is thrown.</param>
         /// <returns>The decoded text.</returns>
         /// <param name="canBeEmbedded">True if the text can be passed to <see cref="EmbeddedText.FromSource"/> and be embedded in a PDB.</param>
-        /// <exception cref="ArgumentNullException">The <paramref name="buffer"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">The <paramref name="buffer"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">The <paramref name="length"/> is negative or longer than the <paramref name="buffer"/>.</exception>
         /// <exception cref="ArgumentException"><paramref name="checksumAlgorithm"/> is not supported.</exception>
         /// <exception cref="DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>

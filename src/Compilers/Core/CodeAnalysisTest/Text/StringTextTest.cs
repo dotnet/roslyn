@@ -49,9 +49,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void FromStringBuilder()
+        {
+            var data = SourceText.From(new StringBuilder("goo"), Encoding.UTF8);
+            Assert.Equal(1, data.Lines.Count);
+            Assert.Equal(3, data.Lines[0].Span.Length);
+        }
+
+        [Fact]
         public void FromString_DefaultEncoding()
         {
             var data = SourceText.From("goo");
+            Assert.Null(data.Encoding);
+        }
+
+        [Fact]
+        public void FromStringBuilder_DefaultEncoding()
+        {
+            var data = SourceText.From(new StringBuilder("goo"));
             Assert.Null(data.Encoding);
         }
 
@@ -64,17 +79,37 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void FromStringBuilderEmpty()
+        {
+            var data = SourceText.From(new StringBuilder());
+            Assert.Equal(1, data.Lines.Count);
+            Assert.Equal(0, data.Lines[0].Span.Length);
+        }
+
+        [Fact]
         public void FromString_Errors()
         {
-            Assert.Throws<ArgumentNullException>(() => SourceText.From((string)null, Encoding.UTF8));
+            Assert.Throws<ArgumentNullException>("text", () => SourceText.From((string)null, Encoding.UTF8));
+            Assert.Throws<ArgumentException>("checksumAlgorithm", () => SourceText.From("", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.None));
+            Assert.Throws<ArgumentException>("checksumAlgorithm", () => SourceText.From("", Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256 + 1));
+        }
+
+        [Fact]
+        public void FromStringBuilder_Errors()
+        {
+            Assert.Throws<ArgumentNullException>("stringBuilder", () => SourceText.From((StringBuilder)null, Encoding.UTF8));
+            Assert.Throws<ArgumentException>("checksumAlgorithm", () => SourceText.From(new StringBuilder(), Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.None));
+            Assert.Throws<ArgumentException>("checksumAlgorithm", () => SourceText.From(new StringBuilder(), Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256 + 1));
         }
 
         [Fact]
         public void FromStream_Errors()
         {
-            Assert.Throws<ArgumentNullException>(() => SourceText.From((Stream)null, Encoding.UTF8));
-            Assert.Throws<ArgumentException>(() => SourceText.From(new TestStream(canRead: false, canSeek: true), Encoding.UTF8));
+            Assert.Throws<ArgumentNullException>("stream", () => SourceText.From((Stream)null, Encoding.UTF8));
+            Assert.Throws<ArgumentException>("stream", () => SourceText.From(new TestStream(canRead: false, canSeek: true), Encoding.UTF8));
             Assert.Throws<NotImplementedException>(() => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8));
+            Assert.Throws<ArgumentException>("checksumAlgorithm", () => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.None));
+            Assert.Throws<ArgumentException>("checksumAlgorithm", () => SourceText.From(new TestStream(canRead: true, canSeek: false), Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256 + 1));
         }
 
         [Fact]
