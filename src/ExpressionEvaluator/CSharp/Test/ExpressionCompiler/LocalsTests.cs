@@ -3842,7 +3842,7 @@ class C
             });
         }
 
-        [WorkItem(55606, "[https://github.com/dotnet/roslyn/issues/55606](https://github.com/dotnet/roslyn/issues/55606)")]
+        [WorkItem(55606, "https://github.com/dotnet/roslyn/issues/55606")]
         [Fact]
         public void OrderOfArguments_ArgumentsOnly_Async()
         {
