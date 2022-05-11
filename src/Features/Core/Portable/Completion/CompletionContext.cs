@@ -7,8 +7,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -33,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The caret position when completion was triggered.
         /// </summary>
         public int Position { get; }
+
+        /// <summary>
+        /// By providing this object, we have an opportunity to share requested SyntaxContext among all CompletionProviders
+        /// during a completion session to reduce repeat computation.
+        /// </summary>
+        private SharedSyntaxContextsWithSpeculativeModel? SharedSyntaxContextsWithSpeculativeModel { get; }
 
         /// <summary>
         /// The span of the syntax element at the caret position.
@@ -111,6 +120,7 @@ namespace Microsoft.CodeAnalysis.Completion
             : this(provider ?? throw new ArgumentNullException(nameof(provider)),
                    document ?? throw new ArgumentNullException(nameof(document)),
                    position,
+                   sharedSyntaxContextsWithSpeculativeModel: null,
                    defaultSpan,
                    trigger,
                    // Publicly available options do not affect this API.
@@ -129,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionProvider provider,
             Document document,
             int position,
+            SharedSyntaxContextsWithSpeculativeModel? sharedSyntaxContextsWithSpeculativeModel,
             TextSpan defaultSpan,
             CompletionTrigger trigger,
             in CompletionOptions options,
@@ -141,6 +152,8 @@ namespace Microsoft.CodeAnalysis.Completion
             Trigger = trigger;
             CompletionOptions = options;
             CancellationToken = cancellationToken;
+
+            SharedSyntaxContextsWithSpeculativeModel = sharedSyntaxContextsWithSpeculativeModel;
 
 #pragma warning disable RS0030 // Do not used banned APIs
             Options = OptionValueSet.Empty;
@@ -199,6 +212,14 @@ namespace Microsoft.CodeAnalysis.Completion
 
                 _suggestionModeItem = value;
             }
+        }
+
+        internal Task<SyntaxContext> GetSyntaxContextWithExistingSpeculativeModelAsync(Document document, CancellationToken cancellationToken)
+        {
+            if (SharedSyntaxContextsWithSpeculativeModel is null)
+                return CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(document, Position, cancellationToken);
+
+            return SharedSyntaxContextsWithSpeculativeModel.GetSyntaxContextAsync(document, cancellationToken);
         }
 
         private CompletionItem FixItem(CompletionItem item)
