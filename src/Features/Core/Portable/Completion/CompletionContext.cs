@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionContext
     {
-        private readonly List<CompletionItem> _items;
+        private readonly List<CompletionItem> _items = new();
 
         private CompletionItem? _suggestionModeItem;
         private bool _isExclusive;
@@ -152,7 +152,6 @@ namespace Microsoft.CodeAnalysis.Completion
             Trigger = trigger;
             CompletionOptions = options;
             CancellationToken = cancellationToken;
-            _items = new List<CompletionItem>();
 
             SharedSyntaxContextsWithSpeculativeModel = sharedSyntaxContextsWithSpeculativeModel;
 

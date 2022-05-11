@@ -9,7 +9,7 @@ using Logger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-internal abstract class LspWorkspaceRegistrationService
+internal abstract class LspWorkspaceRegistrationService : IDisposable
 {
     private readonly object _gate = new();
     private ImmutableArray<Workspace> _registrations = ImmutableArray.Create<Workspace>();
@@ -17,7 +17,12 @@ internal abstract class LspWorkspaceRegistrationService
     public abstract string GetHostWorkspaceKind();
 
     public ImmutableArray<Workspace> GetAllRegistrations()
-        => _registrations;
+    {
+        lock (_gate)
+        {
+            return _registrations;
+        }
+    }
 
     public virtual void Register(Workspace workspace)
     {
@@ -34,10 +39,32 @@ internal abstract class LspWorkspaceRegistrationService
             _registrations = _registrations.Add(workspace);
         }
 
-        WorkspaceRegistered?.Invoke(this, new LspWorkspaceRegisteredEventArgs(workspace));
+        // Forward workspace change events for all registered LSP workspaces.
+        workspace.WorkspaceChanged += OnLspWorkspaceChanged;
     }
 
-    public event EventHandler<LspWorkspaceRegisteredEventArgs>? WorkspaceRegistered;
+    private void OnLspWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+    {
+        LspSolutionChanged?.Invoke(this, e);
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            foreach (var workspace in _registrations)
+            {
+                workspace.WorkspaceChanged -= OnLspWorkspaceChanged;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Indicates whether the LSP solution has changed in a non-tracked document context.
+    /// 
+    /// <b>IMPORTANT:</b> Implementations of this event handler should do as little synchronous work as possible since this will block.
+    /// </summary>
+    public EventHandler<WorkspaceChangeEventArgs>? LspSolutionChanged;
 }
 
 internal class LspWorkspaceRegisteredEventArgs : EventArgs

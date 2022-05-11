@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         internal sealed partial class WorkCoordinator
         {
             private readonly Registration _registration;
-            private readonly object _gate;
+            private readonly object _gate = new();
 
-            private readonly LogAggregator _logAggregator;
+            private readonly LogAggregator _logAggregator = new();
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
             private readonly IWorkspaceConfigurationService? _workspaceConfigurationService;
 
-            private readonly CancellationTokenSource _shutdownNotificationSource;
+            private readonly CancellationTokenSource _shutdownNotificationSource = new();
             private readonly CancellationToken _shutdownToken;
             private readonly TaskQueue _eventProcessingQueue;
 
@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                  bool initializeLazily,
                  Registration registration)
             {
-                _logAggregator = new LogAggregator();
-
                 _registration = registration;
-                _gate = new object();
 
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
@@ -55,7 +52,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _workspaceConfigurationService = _registration.Workspace.Services.GetService<IWorkspaceConfigurationService>();
 
                 // event and worker queues
-                _shutdownNotificationSource = new CancellationTokenSource();
                 _shutdownToken = _shutdownNotificationSource.Token;
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);

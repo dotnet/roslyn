@@ -25,15 +25,29 @@ internal readonly record struct CodeCleanupOptions(
             FormattingOptions: SyntaxFormattingOptions.GetDefault(languageServices),
             SimplifierOptions: SimplifierOptions.GetDefault(languageServices),
             AddImportOptions: AddImportPlacementOptions.Default);
-
-    public static ValueTask<CodeCleanupOptions> GetDefaultAsync(HostLanguageServices language, CancellationToken _)
-        => ValueTaskFactory.FromResult(GetDefault(language));
-
-    public static CodeCleanupOptionsProvider CreateProvider(CodeActionOptionsProvider options)
-        => new((languageServices, cancellationToken) => ValueTaskFactory.FromResult(options(languageServices).CleanupOptions ?? GetDefault(languageServices)));
 }
 
-internal delegate ValueTask<CodeCleanupOptions> CodeCleanupOptionsProvider(HostLanguageServices languageServices, CancellationToken cancellationToken);
+internal interface CodeCleanupOptionsProvider :
+    OptionsProvider<CodeCleanupOptions>,
+    SyntaxFormattingOptionsProvider,
+    SimplifierOptionsProvider,
+    AddImportPlacementOptionsProvider
+{
+}
+
+internal abstract class AbstractCodeCleanupOptionsProvider : CodeCleanupOptionsProvider
+{
+    public abstract ValueTask<CodeCleanupOptions> GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken);
+
+    async ValueTask<SyntaxFormattingOptions> OptionsProvider<SyntaxFormattingOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).FormattingOptions;
+
+    async ValueTask<SimplifierOptions> OptionsProvider<SimplifierOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions;
+
+    async ValueTask<AddImportPlacementOptions> OptionsProvider<AddImportPlacementOptions>.GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+        => (await GetOptionsAsync(languageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions;
+}
 
 internal static class CodeCleanupOptionsProviders
 {
@@ -45,10 +59,7 @@ internal static class CodeCleanupOptionsProviders
         return new CodeCleanupOptions(formattingOptions, simplifierOptions, addImportOptions);
     }
 
-    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeCleanupOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions, cancellationToken).ConfigureAwait(false);
-
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        => await GetCodeCleanupOptionsAsync(document, await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        => await document.GetCodeCleanupOptionsAsync(await ((OptionsProvider<CodeCleanupOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 }
 

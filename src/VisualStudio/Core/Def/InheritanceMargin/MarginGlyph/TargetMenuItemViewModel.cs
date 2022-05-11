@@ -22,13 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         /// <summary>
         /// DefinitionItem used for navigation.
         /// </summary>
-        public DefinitionItem.DetachedDefinitionItem DefinitionItem { get; }
+        public DetachedDefinitionItem DefinitionItem { get; }
 
         // Internal for testing purpose
         internal TargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
-            DefinitionItem.DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
+            DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
         {
             DefinitionItem = definitionItem;
         }

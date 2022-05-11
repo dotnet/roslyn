@@ -121,6 +121,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_EnableOutlining As String =
             BasicVSResources.Enter_outlining_mode_when_files_open
 
+        Public ReadOnly Property Option_Collapse_regions_on_file_open As String =
+            ServicesVSResources.Collapse_regions_on_file_open
+
+        Public ReadOnly Property Option_Collapse_imports_on_file_open As String =
+            BasicVSResources.Collapse_imports_on_file_open
+
+        Public ReadOnly Property Option_Collapse_metadata_on_file_open As String =
+            ServicesVSResources.Collapse_metadata_on_file_open
+
         Public ReadOnly Property Option_ExtractMethod As String =
             BasicVSResources.Extract_Method
 
@@ -320,6 +329,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Combine_inheritance_margin_with_indicator_margin As String =
             ServicesVSResources.Combine_inheritance_margin_with_indicator_margin
+
+        Public ReadOnly Property Include_global_imports As String =
+            ServicesVSResources.Include_global_imports
 
         Public ReadOnly Property Inheritance_Margin As String =
             ServicesVSResources.Inheritance_Margin

@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -59,6 +61,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public readonly IGlobalOptionService GlobalOptions;
 
+        public readonly ILanguageServerNotificationManager NotificationManager;
+        public readonly CancellationToken QueueCancellationToken;
+
         /// <summary>
         /// Tracing object that can be used to log information about the status of requests.
         /// </summary>
@@ -73,7 +78,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            ILanguageServerNotificationManager notificationManager,
+            CancellationToken queueCancellationToken)
         {
             Document = document;
             Solution = solution;
@@ -84,18 +91,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _documentChangeTracker = documentChangeTracker;
             _logger = logger;
             _trackedDocuments = trackedDocuments;
+            NotificationManager = notificationManager;
+            QueueCancellationToken = queueCancellationToken;
         }
 
-        public static RequestContext? Create(
+        public static async Task<RequestContext?> CreateAsync(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
             WellKnownLspServerKinds serverKind,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             LspWorkspaceManager lspWorkspaceManager,
+            ILanguageServerNotificationManager notificationManager,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            CancellationToken queueCancellationToken,
+            CancellationToken requestCancellationToken)
         {
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
@@ -107,23 +119,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger, clientCapabilities, serverKind, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(
+                    solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
+                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, globalOptions: globalOptions,
+                    notificationManager: notificationManager, queueCancellationToken: queueCancellationToken);
             }
 
-            // Go through each registered workspace, find the solution that contains the document that
-            // this request is for, and then updates it based on the state of the world as we know it, based on the
-            // text content in the document change tracker.
-
+            Solution? workspaceSolution;
             Document? document = null;
-            var workspaceSolution = lspWorkspaceManager.TryGetHostLspSolution();
             if (textDocument is not null)
             {
-                // we were given a request associated with a document.  Find the corresponding roslyn
-                // document for this.  If we can't, we cannot proceed.
-                document = lspWorkspaceManager.GetLspDocument(textDocument);
-                if (document != null)
-                    workspaceSolution = document.Project.Solution;
+                // we were given a request associated with a document.  Find the corresponding roslyn document for this. 
+                // There are certain cases where we may be asked for a document that does not exist (for example a document is removed)
+                // For example, document pull diagnostics can ask us after removal to clear diagnostics for a document.
+                document = await lspWorkspaceManager.GetLspDocumentAsync(textDocument, requestCancellationToken).ConfigureAwait(false);
             }
+
+            workspaceSolution = document?.Project.Solution ?? await lspWorkspaceManager.TryGetHostLspSolutionAsync(requestCancellationToken).ConfigureAwait(false);
 
             if (workspaceSolution == null)
             {
@@ -140,7 +152,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,
-                globalOptions);
+                globalOptions,
+                notificationManager,
+                queueCancellationToken);
             return context;
         }
 

@@ -159,5 +159,21 @@ $${|hint:using|} {|textspan:|}";
             await VerifyBlockSpansAsync(code,
                 Region("span", "/* / ...", autoCollapse: true));
         }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestUsingsShouldBeCollapsedByDefault(bool collapseUsingsByDefault)
+        {
+            const string code = @"
+$${|hint:using {|textspan:System;
+using System.Core;|}|}";
+
+            var options = GetDefaultOptions() with
+            {
+                CollapseImportsWhenFirstOpened = collapseUsingsByDefault
+            };
+
+            await VerifyBlockSpansAsync(code, options,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true, isDefaultCollapsed: collapseUsingsByDefault));
+        }
     }
 }

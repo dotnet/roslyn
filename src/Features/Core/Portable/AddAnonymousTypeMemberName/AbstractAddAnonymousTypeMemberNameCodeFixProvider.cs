@@ -42,7 +42,12 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
                 return;
             }
 
-            context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    FeaturesResources.Add_member_name,
+                    GetDocumentUpdater(context),
+                    nameof(FeaturesResources.Add_member_name)),
+                context.Diagnostics);
         }
 
         private async Task<TAnonymousObjectMemberDeclaratorSyntax?> GetMemberDeclaratorAsync(
@@ -128,14 +133,6 @@ namespace Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 
                     return WithName(currentDeclarator, nameToken);
                 });
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_member_name, createChangedDocument, nameof(FeaturesResources.Add_member_name))
-            {
-            }
         }
     }
 }

@@ -223,8 +223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUTF8">
-        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="translated">无法将方法组“{0}”转换为委托类型“{0}”(&amp;M)。</target>
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
-        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
+        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1563,8 +1563,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>Utf8 String Literals</source>
-        <target state="new">Utf8 String Literals</target>
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
