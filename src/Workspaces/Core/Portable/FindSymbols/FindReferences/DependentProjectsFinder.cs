@@ -92,6 +92,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var symbol in symbols)
             {
                 var assembly = symbol.OriginalDefinition.ContainingAssembly;
+                if (assembly == null)
+                    continue;
+
                 if (!result.TryGetValue(assembly, out var projectAndVisibility))
                     projectAndVisibility = (solution.GetProject(assembly, cancellationToken), symbol.GetResultantVisibility());
 
