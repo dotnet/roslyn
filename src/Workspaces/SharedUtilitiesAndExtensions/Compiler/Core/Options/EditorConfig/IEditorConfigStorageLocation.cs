@@ -4,15 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     internal interface IEditorConfigStorageLocation
     {
-        bool TryGetOption(StructuredAnalyzerConfigOptions options, Type type, out object? value);
+        bool TryGetOption(IReadOnlyDictionary<string, string?> rawOptions, Type type, out object? value);
     }
 }

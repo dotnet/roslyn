@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     [DataContract]
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class SymbolSpecification : IEquatable<SymbolSpecification>, IObjectWritable
     {
         private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
@@ -57,9 +56,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             ApplicableAccessibilityList = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
             RequiredModifierList = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
         }
-
-        private string GetDebuggerDisplay()
-            => Name;
 
         public static SymbolSpecification CreateDefaultSymbolSpecification()
         {

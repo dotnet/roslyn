@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal AnalyzerConfigData? GetAnalyzerConfigOptions()
+        internal AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
             => _projectState.GetAnalyzerConfigOptions();
 
         private string GetDebuggerDisplay()
