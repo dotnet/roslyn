@@ -511,6 +511,154 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Duplication_06()
+        {
+            var source1 = """
+                using System;
+
+                partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(Number);
+                    }
+                }
+                """;
+
+            var source2 = """
+                using System;
+
+                partial class C
+                {
+                    private static int Number => 1;
+                }
+
+                file class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(2);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, source2 });
+            // PROTOTYPE(ft): should this diagnostic be more specific?
+            // the issue more precisely is that a definition for 'C' already exists in the current file--not that it's already in this namespace.
+            comp.VerifyDiagnostics(
+                // (8,12): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+                // file class C
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(8, 12));
+
+            var cs = comp.GetMembers("C");
+            Assert.Equal(2, cs.Length);
+
+            var c0 = cs[0];
+            Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: false });
+            var syntaxReferences = c0.DeclaringSyntaxReferences;
+            Assert.Equal(2, syntaxReferences.Length);
+            Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
+
+            var c1 = cs[1];
+            Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
+
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics(
+                // (5,24): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     public static void M()
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(5, 24),
+                // (8,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
+                // file class C
+                Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(8, 12));
+
+            var c = comp.GetMember("C");
+            // PROTOTYPE(ft): is it a problem that we consider this symbol a file type in this scenario?
+            Assert.True(c is SourceMemberContainerTypeSymbol { IsFile: true });
+            syntaxReferences = c.DeclaringSyntaxReferences;
+            Assert.Equal(3, syntaxReferences.Length);
+            Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[1].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[2].SyntaxTree);
+        }
+
+        [Fact]
+        public void Duplication_07()
+        {
+            var source1 = """
+                using System;
+
+                file partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var source2 = """
+                using System;
+
+                file partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(Number);
+                    }
+                }
+
+                file class C
+                {
+                    private static int Number => 2;
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics(
+                // (11,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
+                // file class C
+                Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(11, 12));
+
+            var cs = comp.GetMembers("C");
+            Assert.Equal(2, cs.Length);
+
+            var c0 = cs[0];
+            Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.Equal(comp.SyntaxTrees[0], c0.DeclaringSyntaxReferences.Single().SyntaxTree);
+
+            var c1 = cs[1];
+            Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+            var syntaxReferences = c1.DeclaringSyntaxReferences;
+            Assert.Equal(2, syntaxReferences.Length);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[0].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
+
+
+            comp = CreateCompilation(new[] { source2, source1 });
+            comp.VerifyDiagnostics(
+                // (11,12): error CS0260: Missing partial modifier on declaration of type 'C'; another partial declaration of this type exists
+                // file class C
+                Diagnostic(ErrorCode.ERR_MissingPartial, "C").WithArguments("C").WithLocation(11, 12));
+
+            cs = comp.GetMembers("C");
+            Assert.Equal(2, cs.Length);
+
+            c0 = cs[0];
+            Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: true });
+            syntaxReferences = c0.DeclaringSyntaxReferences;
+            Assert.Equal(2, syntaxReferences.Length);
+            Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[1].SyntaxTree);
+
+            c1 = cs[1];
+            Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
+        }
+
+        [Fact]
         public void SignatureUsage_01()
         {
             var source = """
