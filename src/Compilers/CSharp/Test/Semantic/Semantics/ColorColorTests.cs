@@ -2267,5 +2267,74 @@ public class Tree2 : Tree1
 
             compilation.VerifyDiagnostics();
         }
+
+        [WorkItem(61171, "https://github.com/dotnet/roslyn/issues/61171")]
+        [Fact]
+        public void WorkItem61171_ModoptObject()
+        {
+            string genericTreeDefinitionSource = @"
+public class Tree2 : Tree1
+{
+    public sealed class LeafNode
+    {
+        public Tree<dynamic>.NodeType NodeType => NodeType.Leaf;
+    }
+}
+";
+
+            string implementingTreeWithModoptObjectILSource = @"
+.class public auto ansi beforefieldinit Tree`1<class TValue>
+    extends [mscorlib]System.Object
+{
+    // Nested Types
+    .class nested public auto ansi sealed NodeType<class TValue>
+        extends [mscorlib]System.Enum
+    {
+        // Fields
+        .field public specialname rtspecialname int32 value__
+        .field public static literal valuetype Tree`1/NodeType<!TValue> Parent = int32(0)
+        .field public static literal valuetype Tree`1/NodeType<!TValue> Leaf = int32(1)
+
+    } // end of class NodeType
+
+
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method Tree`1::.ctor
+
+} // end of class Tree`1
+
+.class public auto ansi beforefieldinit Tree1
+    extends class Tree`1<object modopt(object)>
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x2058
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void class Tree`1<object>::.ctor()
+        IL_0006: ret
+    } // end of method Tree1::.ctor
+
+} // end of class Tree1
+";
+
+            var compilation = CreateCompilationWithIL(genericTreeDefinitionSource, implementingTreeWithModoptObjectILSource);
+
+            compilation.VerifyDiagnostics();
+        }
     }
 }
