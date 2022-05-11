@@ -580,32 +580,39 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
 
             var syntaxFacts = this.SyntaxFactsService;
+
+            // it is legal to go from expr.X to X if expr is either used for static-lookup (e.g.
+            // `MyNs.MyType.MyStaticMember` -> `MyStaticMember`), or if it's used for instance lookup, but only if expr
+            // is `this` or `base`.  We will ensure that the 'X' binds to the same symbol.  If so, the static case is
+            // fine, as as long as the member is available without issue (e.g. accessibility etc.) then it doesn't
+            // change meaning when switching.  The same holds true for an instance method with this/base as that is
+            // allowed to be implicit if it binds to the same exact member.
+
             if (syntaxFacts.IsSimpleMemberAccessExpression(originalExpression) &&
                 !syntaxFacts.IsSimpleMemberAccessExpression(newExpression))
             {
+                // if we don't even have a name after simplification, this is never ok.
                 if (!syntaxFacts.IsSimpleName(newExpression))
                     return false;
 
+                // The symbols before/after must be exactly the same (this also ensures that a base access of some
+                // overridden method will be preserved as otherwise the symbols are different).
                 if (!SymbolsAreCompatible(originalExpression, newExpression))
                     return false;
 
-                var originalExpressionOfMemberAccess = syntaxFacts.GetExpressionOfMemberAccessExpression(originalExpression);
-                if (originalExpressionOfMemberAccess != null)
+                // When binding expr.A, if we didn't bind 'expr' binding to a type, namespace, or other static
+                // thing, then we bound to an instance symbol. It's then only ok to remove 'expr' if 'expr' is
+                // this/base.
+                var originalSymbol = _semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol;
+                if (originalSymbol != null &&
+                    originalSymbol is not INamespaceOrTypeSymbol &&
+                    !originalSymbol.IsStatic)
                 {
-                    var originalSymbol = _semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol;
-
-                    // When binding expr.A, if we didn't bind 'expr' binding to a type, namespace, or other static
-                    // thing, then we bound to an instance symbol. It's then only ok to remove 'expr' if 'expr' is
-                    // this/base.
-                    if (originalSymbol != null &&
-                        originalSymbol is not INamespaceOrTypeSymbol &&
-                        !originalSymbol.IsStatic)
-                    {
-                        if (!syntaxFacts.IsThisExpression(originalExpressionOfMemberAccess) &&
+                    var originalExpressionOfMemberAccess = syntaxFacts.GetExpressionOfMemberAccessExpression(originalExpression);
+                    if (!syntaxFacts.IsThisExpression(originalExpressionOfMemberAccess) &&
                             !syntaxFacts.IsBaseExpression(originalExpressionOfMemberAccess))
-                        {
-                            return false;
-                        }
+                    {
+                        return false;
                     }
                 }
             }
