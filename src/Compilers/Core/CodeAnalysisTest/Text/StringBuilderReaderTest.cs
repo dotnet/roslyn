@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 #endif
 
         [Fact]
-        public void ReadBufferInvalid()
+        public void ReadToArrayErrors()
         {
             testWithMethod(reader => reader.Read);
             testWithMethod(reader => reader.ReadBlock);
