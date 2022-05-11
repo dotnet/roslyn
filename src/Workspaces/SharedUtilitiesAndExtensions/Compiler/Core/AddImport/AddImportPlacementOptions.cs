@@ -56,9 +56,7 @@ internal static partial class AddImportPlacementOptionsProviders
 {
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
     {
-        var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var services = document.Project.Solution.Workspace.Services;
-        var configOptions = documentOptions.AsAnalyzerConfigOptions(services.GetRequiredService<Options.IOptionService>(), document.Project.Language);
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
 
         // Normally we don't allow generation into a hidden region in the file.  However, if we have a

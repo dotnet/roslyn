@@ -45,13 +45,6 @@ internal abstract class CodeGenerationOptions
     public static CodeGenerationOptions GetDefault(HostLanguageServices languageServices)
         => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
 
-    public static CodeGenerationOptions Create(OptionSet options, CodeGenerationOptions? fallbackOptions, HostLanguageServices languageServices)
-    {
-        var formattingService = languageServices.GetRequiredService<ICodeGenerationService>();
-        var configOptions = options.AsAnalyzerConfigOptions(languageServices.WorkspaceServices.GetRequiredService<IOptionService>(), languageServices.Language);
-        return formattingService.GetCodeGenerationOptions(configOptions, fallbackOptions);
-    }
-
     public abstract CodeGenerationContextInfo GetInfo(CodeGenerationContext context, ParseOptions parseOptions);
 
     public CodeGenerationContextInfo GetInfo(CodeGenerationContext context, Project project)
@@ -118,10 +111,9 @@ internal static class CodeGenerationOptionsProviders
 {
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(document.Project.ParseOptions);
-
-        var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return CodeGenerationOptions.Create(documentOptions, fallbackOptions, document.Project.LanguageServices);
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var formattingService = document.Project.LanguageServices.GetRequiredService<ICodeGenerationService>();
+        return formattingService.GetCodeGenerationOptions(configOptions, fallbackOptions);
     }
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

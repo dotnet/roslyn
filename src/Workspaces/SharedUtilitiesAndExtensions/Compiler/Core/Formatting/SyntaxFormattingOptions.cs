@@ -53,10 +53,8 @@ internal static partial class SyntaxFormattingOptionsProviders
 {
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
-        var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var languageServices = document.Project.LanguageServices;
-        var formattingService = languageServices.GetRequiredService<ISyntaxFormattingService>();
-        var configOptions = documentOptions.AsAnalyzerConfigOptions(languageServices.WorkspaceServices.GetRequiredService<IOptionService>(), languageServices.Language);
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var formattingService = document.Project.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return formattingService.GetFormattingOptions(configOptions, fallbackOptions);
     }
 
