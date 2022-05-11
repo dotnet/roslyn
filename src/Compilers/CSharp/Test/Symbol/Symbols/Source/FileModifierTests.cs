@@ -92,6 +92,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Nested_04()
+        {
+            var source = """
+                file class Outer
+                {
+                    public class C { }
+                }
+
+                class D
+                {
+                    void M(Outer.C c) { } // 1
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,10): error CS9300: File type 'Outer.C' cannot be used in a member signature in non-file type 'D'.
+                //     void M(Outer.C c) { } // 1
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("Outer.C", "D").WithLocation(8, 10));
+        }
+
+        [Fact]
+        public void Nested_05()
+        {
+            var source = """
+                file class Outer
+                {
+                    public class C
+                    {
+                        void M(Outer outer) { } // ok
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void SameFileUse()
         {
             var source = """
@@ -533,6 +572,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void SignatureUsage_09()
+        {
+            var source = """
+                file class C
+                {
+                }
+
+                class D
+                {
+                    public C M(C c1, C c2) => c1; // 1, 2, 3
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+                //     public C M(C c1, C c2) => c1; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14),
+                // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+                //     public C M(C c1, C c2) => c1; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14),
+                // (7,14): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'D'.
+                //     public C M(C c1, C c2) => c1; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("C", "D").WithLocation(7, 14));
+        }
+
+        [Fact]
         public void AccessModifiers_01()
         {
             var source = """
@@ -570,13 +636,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,7): error CS9301: File type 'Base' cannot be used as a base type in non-file type 'Derived1'.
+                // (2,7): error CS9301: File type 'Base' cannot be used as a base type of non-file type 'Derived1'.
                 // class Derived1 : Base { } // 1
                 Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived1").WithArguments("Base", "Derived1").WithLocation(2, 7),
                 // (3,14): error CS0060: Inconsistent accessibility: base class 'Base' is less accessible than class 'Derived2'
                 // public class Derived2 : Base { } // 2, 3
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "Derived2").WithArguments("Derived2", "Base").WithLocation(3, 14),
-                // (3,14): error CS9301: File type 'Base' cannot be used as a base type in non-file type 'Derived2'.
+                // (3,14): error CS9301: File type 'Base' cannot be used as a base type of non-file type 'Derived2'.
                 // public class Derived2 : Base { } // 2, 3
                 Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived2").WithArguments("Base", "Derived2").WithLocation(3, 14));
         }
@@ -596,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,11): error CS9301: File type 'Interface' cannot be used as a base type in non-file type 'Derived3'.
+                // (6,11): error CS9301: File type 'Interface' cannot be used as a base type of non-file type 'Derived3'.
                 // interface Derived3 : Interface { } // 1
                 Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived3").WithArguments("Interface", "Derived3").WithLocation(6, 11));
         }
@@ -644,7 +710,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "C").WithArguments("C", "E.M<T>(T)").WithLocation(10, 30));
         }
 
-        // PROTOTYPE(ft):
-        // ensure nested types within 'file' types are either disallowed or treated as implicitly 'file'
+        [Fact]
+        public void PrimaryConstructor_01()
+        {
+            var source = """
+                file class C { }
+
+                record R1(C c); // 1
+                record struct R2(C c); // 2
+
+                file record R3(C c);
+                file record struct R4(C c);
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics(
+                // (3,8): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R1'.
+                // record R1(C c); // 1
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R1").WithArguments("C", "R1").WithLocation(3, 8),
+                // (3,8): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R1'.
+                // record R1(C c); // 1
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R1").WithArguments("C", "R1").WithLocation(3, 8),
+                // (4,15): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R2'.
+                // record struct R2(C c); // 2
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R2").WithArguments("C", "R2").WithLocation(4, 15),
+                // (4,15): error CS9300: File type 'C' cannot be used in a member signature in non-file type 'R2'.
+                // record struct R2(C c); // 2
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "R2").WithArguments("C", "R2").WithLocation(4, 15)
+                );
+        }
+
+        [Fact]
+        public void Lambda_01()
+        {
+            var source = """
+                file class C { }
+
+                class Program
+                {
+                    void M()
+                    {
+                        var lambda = C (C c) => c; // ok
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunction_01()
+        {
+            var source = """
+                file class C { }
+
+                class Program
+                {
+                    void M()
+                    {
+                        local(null!);
+                        C local(C c) => c; // ok
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyDiagnostics();
+        }
     }
 }

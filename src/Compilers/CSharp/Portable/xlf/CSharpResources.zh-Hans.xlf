@@ -563,8 +563,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeBase">
-        <source>File type '{0}' cannot be used as a base type in non-file type '{1}'.</source>
-        <target state="new">File type '{0}' cannot be used as a base type in non-file type '{1}'.</target>
+        <source>File type '{0}' cannot be used as a base type of non-file type '{1}'.</source>
+        <target state="new">File type '{0}' cannot be used as a base type of non-file type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileTypeDisallowedInSignature">

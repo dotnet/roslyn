@@ -286,7 +286,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (returnType.Type.IsFileTypeOrUsesFileTypes())
             {
                 diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], returnType.Type, ContainingType);
-                return;
             }
 
             foreach (var param in parameters)
@@ -294,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (param.Type.IsFileTypeOrUsesFileTypes())
                 {
                     diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Locations[0], param.Type, ContainingType);
-                    return;
                 }
             }
         }

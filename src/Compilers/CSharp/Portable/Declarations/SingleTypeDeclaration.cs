@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!thisDecl.Location.SourceTree.Equals(otherDecl.Location.SourceTree)
+                if ((object)thisDecl.Location.SourceTree != otherDecl.Location.SourceTree
                     && (thisDecl.Modifiers & DeclarationModifiers.File) != 0
                         || (otherDecl.Modifiers & DeclarationModifiers.File) != 0)
                 {

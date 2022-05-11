@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
 
                         // prototype(ft): better name? better diagnostic?
-                        bool isLeftAFileTypeInSeparateSourceTreeFromRight(SourceNamedTypeSymbol left, SourceNamedTypeSymbol right)
+                        static bool isLeftAFileTypeInSeparateSourceTreeFromRight(SourceNamedTypeSymbol left, SourceNamedTypeSymbol right)
                         {
                             // no, left is not a file type.
                             if (!left.IsFile)
