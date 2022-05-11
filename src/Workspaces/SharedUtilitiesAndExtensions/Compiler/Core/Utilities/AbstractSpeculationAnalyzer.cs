@@ -626,19 +626,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalInvocation is null && newInvocation is null)
                 return true;
 
-            // Invocations must stay invocations after update.
             if (originalInvocation is not null)
             {
                 // Invocations must stay invocations after update.
                 if (newInvocation is null)
-                    return false;
-
-                var originalInvokedExpr = this.SyntaxFactsService.GetExpressionOfInvocationExpression(originalInvocation);
-                var newInvokedExpr = this.SyntaxFactsService.GetExpressionOfInvocationExpression(newInvocation);
-
-                // Ensure we're still calling this off the same symbol.  If instance changed to static or vice/versa
-                // this will fail.
-                if (!SymbolsAreCompatible(originalInvokedExpr, newInvokedExpr, requireNonNullSymbols: false))
                     return false;
 
                 // Add more invocation tests here.
