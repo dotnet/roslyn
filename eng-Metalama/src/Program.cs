@@ -9,7 +9,6 @@ using System.IO;
 var product = new Product( Dependencies.MetalamaCompiler )
 {
     PrivateArtifactsDirectory = "artifacts\\packages\\$(MSSBuildConfiguration)\\Shipping",
-    ProductName = "Metalama.Compiler",
     EngineeringDirectory = "eng-Metalama",
     VersionsFilePath = "eng\\Versions.props",
     GenerateArcadeProperties = true,

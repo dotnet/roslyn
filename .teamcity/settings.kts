@@ -63,7 +63,7 @@ object DebugBuild : BuildType({
 
     }
 
-  dependencies {
+    dependencies {
 
         snapshot(AbsoluteId("Metalama_MetalamaBackstage_DebugBuild")) {
                      onDependencyFailure = FailureAction.FAIL_TO_START
@@ -104,7 +104,7 @@ object ReleaseBuild : BuildType({
         }
     }
 
-  dependencies {
+    dependencies {
 
         snapshot(AbsoluteId("Metalama_MetalamaBackstage_ReleaseBuild")) {
                      onDependencyFailure = FailureAction.FAIL_TO_START
@@ -145,7 +145,7 @@ object PublicBuild : BuildType({
         }
     }
 
-  dependencies {
+    dependencies {
 
         snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicBuild")) {
                      onDependencyFailure = FailureAction.FAIL_TO_START
@@ -186,7 +186,11 @@ object PublicDeployment : BuildType({
         }
     }
 
-  dependencies {
+    dependencies {
+
+        snapshot(AbsoluteId("Metalama_MetalamaBackstage_PublicDeployment")) {
+                     onDependencyFailure = FailureAction.FAIL_TO_START
+                }
 
         dependency(PublicBuild) {
             snapshot {
@@ -232,17 +236,6 @@ object VersionBump : BuildType({
             lockingProcesses = Swabra.LockingProcessPolicy.KILL
             verbose = true
         }
-    }
-
-    triggers {
-
-        finishBuildTrigger {
-            buildType = "Metalama_MetalamaBackstage_VersionBump"
-            // Only successful dependency version bump will trigger version bump of this product.
-            successfulOnly = true
-            branchFilter = "+:<default>"
-        }        
-
     }
 
 })
