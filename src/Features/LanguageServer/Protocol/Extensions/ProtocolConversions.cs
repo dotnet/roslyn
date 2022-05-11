@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
             { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
             { WellKnownTags.Event, LSP.CompletionItemKind.Event },
-            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.Method },
+            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.ExtensionMethod },
             { WellKnownTags.Field, LSP.CompletionItemKind.Field },
             { WellKnownTags.Interface, LSP.CompletionItemKind.Interface },
             { WellKnownTags.Intrinsic, LSP.CompletionItemKind.Text },
