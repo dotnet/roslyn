@@ -46,6 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Sub
 
         Protected Overrides ReadOnly Property SyntaxFactsService As CodeAnalysis.LanguageServices.ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+        Protected Overrides Function CanAccessInstanceMemberThrough(expression As ExpressionSyntax) As Boolean
+            ' vb can reference an instance member by just writing `.X` (when in a 'with' block), or by writing Me.X,
+            ' MyBase.X and MyClass.X (the latter is not just for accessing static members).
+            Return expression Is Nothing OrElse expression.IsKind(SyntaxKind.MeExpression, SyntaxKind.MyBaseExpression, SyntaxKind.MyClassExpression)
+        End Function
 
         Protected Overrides Function GetSemanticRootForSpeculation(expression As ExpressionSyntax) As SyntaxNode
             Debug.Assert(expression IsNot Nothing)

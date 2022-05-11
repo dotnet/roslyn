@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         protected abstract ISyntaxFacts SyntaxFactsService { get; }
+        protected abstract bool CanAccessInstanceMemberThrough(TExpressionSyntax expression);
 
         /// <summary>
         /// Original expression to be replaced.
@@ -609,11 +610,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     !originalSymbol.IsStatic)
                 {
                     var originalExpressionOfMemberAccess = syntaxFacts.GetExpressionOfMemberAccessExpression(originalExpression);
-                    if (!syntaxFacts.IsThisExpression(originalExpressionOfMemberAccess) &&
-                            !syntaxFacts.IsBaseExpression(originalExpressionOfMemberAccess))
-                    {
+                    if (!CanAccessInstanceMemberThrough((TExpressionSyntax?)originalExpressionOfMemberAccess))
                         return false;
-                    }
                 }
             }
 

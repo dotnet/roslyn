@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         protected override CodeAnalysis.LanguageServices.ISyntaxFacts SyntaxFactsService { get; } = CSharpSyntaxFacts.Instance;
 
+        protected override bool CanAccessInstanceMemberThrough(ExpressionSyntax expression)
+            => expression.Kind() is SyntaxKind.ThisExpression or SyntaxKind.BaseExpression;
+
         protected override SyntaxNode GetSemanticRootForSpeculation(ExpressionSyntax expression)
         {
             Debug.Assert(expression != null);
