@@ -112,7 +112,7 @@ partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
         public async Task GoToDefinitionFromMetadataCollapsed()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseEmptyMetadataImplementationsWhenFirstOpened, language: LanguageName), true);
+            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, language: LanguageName), true);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
@@ -129,10 +129,13 @@ class C
             await TestServices.Editor.PlaceCaretAsync("override", charsOffset: -1, HangMitigatingCancellationToken);
 
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
-            Assert.All(actual, s => Assert.True(s.Collapsed));
+            // When collapsing, not everything is collapsed (eg, namespace and class aren't), but most things are
+            Assert.Equal(32, actual.Length);
+            Assert.Equal(8, actual.Count(s => !s.Collapsed));
         }
 
         [IdeFact]
@@ -140,7 +143,7 @@ class C
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseEmptyMetadataImplementationsWhenFirstOpened, language: LanguageName), false);
+            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, language: LanguageName), false);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
@@ -157,6 +160,7 @@ class C
             await TestServices.Editor.PlaceCaretAsync("override", charsOffset: -1, HangMitigatingCancellationToken);
 
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
+            Assert.Equal("Object [decompiled] [Read Only]", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
 
             var actual = await TestServices.Editor.GetOutliningSpansAsync(HangMitigatingCancellationToken);
 
