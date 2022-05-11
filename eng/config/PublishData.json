@@ -50,6 +50,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp": "arcade",
       "Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp": "arcade",
+      "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Razor": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
@@ -123,6 +124,7 @@
       "channels": [],
       "vsBranch": "rel/d17.3",
       "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[d17.3p1]"
     },
     "main": {
@@ -132,7 +134,6 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[d17.3p2]"
     }
   }

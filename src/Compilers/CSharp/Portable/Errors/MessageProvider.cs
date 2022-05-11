@@ -145,6 +145,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                               out hasPragmaSuppression);
         }
 
+#if DEBUG
+        internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode)
+        {
+            return (ErrorCode)errorCode switch
+            {
+                0 => false,
+                ErrorCode.Unknown => false,
+                ErrorCode.Void => false,
+                ErrorCode.ERR_IdentifierExpectedKW => false, // message uses {1} rather than {0}
+                ErrorCode.WRN_XMLParseError => false, // XmlSyntaxDiagnosticInfo.GetMessage() uses distinct error code 
+                _ => true
+            };
+        }
+#endif
+
         public override int ERR_FailedToCreateTempFile => (int)ErrorCode.ERR_CantMakeTempFile;
         public override int ERR_MultipleAnalyzerConfigsInSameDir => (int)ErrorCode.ERR_MultipleAnalyzerConfigsInSameDir;
 

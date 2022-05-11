@@ -335,6 +335,9 @@ namespace Roslyn.Test.Utilities
                     continue;
 
                 solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
+
+                var documentText = await solution.GetRequiredDocument(document.Id).GetTextAsync(CancellationToken.None);
+                solution = solution.WithDocumentText(document.Id, SourceText.From(documentText.ToString(), System.Text.Encoding.UTF8));
             }
 
             workspace.ChangeSolution(solution);
@@ -516,10 +519,6 @@ namespace Roslyn.Test.Utilities
 
                 var workspaceWaiter = GetWorkspaceWaiter(TestWorkspace);
                 Assert.False(workspaceWaiter.HasPendingWork);
-
-                // Clear any LSP solutions that were created when the workspace was initialized.
-                // This ensures that the workspace manager starts with a clean slate.
-                GetManagerAccessor().ResetLspSolutions();
             }
 
             private static JsonMessageFormatter CreateJsonMessageFormatter()

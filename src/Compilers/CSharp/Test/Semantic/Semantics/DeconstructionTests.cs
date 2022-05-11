@@ -3294,10 +3294,10 @@ ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) 
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
                 // CS1003: Syntax error, ',' expected
                 //         var(int x1, x2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",").WithLocation(6, 17),
                 // CS1003: Syntax error, ',' expected
                 //         var(var x3, x4) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",", "").WithLocation(7, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x3").WithArguments(",").WithLocation(7, 17),
                 // CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var(int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(int x1, x2)").WithLocation(6, 9),

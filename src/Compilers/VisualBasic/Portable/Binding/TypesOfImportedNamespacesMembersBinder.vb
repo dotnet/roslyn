@@ -54,6 +54,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
+        Public Function GetImportChainData() As ImmutableArray(Of ImportedNamespaceOrType)
+            Return _importedSymbols.SelectAsArray(Function(n) New ImportedNamespaceOrType(n.NamespaceOrType, n.SyntaxReference))
+        End Function
+
         ''' <summary>
         ''' Collect extension methods with the given name that are in scope in this binder.
         ''' The passed in ArrayBuilder must be empty. Extension methods from the same containing type

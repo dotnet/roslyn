@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -220,5 +221,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
             => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
+
+        public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
     }
 }

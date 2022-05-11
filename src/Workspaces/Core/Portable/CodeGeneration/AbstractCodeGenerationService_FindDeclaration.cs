@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    internal abstract partial class AbstractCodeGenerationService<TCodeGenerationOptions>
+    internal abstract partial class AbstractCodeGenerationService<TCodeGenerationContextInfo>
     {
         protected abstract IList<bool>? GetAvailableInsertionIndices(SyntaxNode destination, CancellationToken cancellationToken);
 
@@ -124,52 +124,53 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public async Task<SyntaxNode?> FindMostRelevantNameSpaceOrTypeDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
-            CodeGenerationContext context,
+            Location? location,
             CancellationToken cancellationToken)
         {
-            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, context, cancellationToken).ConfigureAwait(false);
+            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, location, cancellationToken).ConfigureAwait(false);
             return declaration;
         }
 
         private async Task<(SyntaxNode? declaration, IList<bool>? availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
-            CodeGenerationContext context,
+            Location? location,
             CancellationToken cancellationToken)
         {
             var declaration = (SyntaxNode?)null;
             IList<bool>? availableIndices = null;
 
             var symbol = namespaceOrType;
-            var locationOpt = context.BestLocation;
 
             var declarations = _symbolDeclarationService.GetDeclarations(symbol);
 
             var fallbackDeclaration = (SyntaxNode?)null;
-            if (locationOpt != null && locationOpt.IsInSource)
+            if (location != null && location.IsInSource)
             {
-                var token = locationOpt.FindToken(cancellationToken);
+                var token = location.FindToken(cancellationToken);
 
                 // Prefer a declaration that the context node is contained within. 
                 //
                 // Note: This behavior is slightly suboptimal in some cases.  For example, when the
                 // user has the pattern:
-#if false
-                C.cs
-                partial class C
-                {
-                    // Stuff.
-                }
-
-                C.NestedType.cs
-                partial class C
-                {
-                    class NestedType 
-                    {
-                        // Context location.  
-                    }
-                }
-#endif
+                //
+                // C.cs
+                //
+                //   partial class C
+                //   {
+                //       // Stuff.
+                //   }
+                // 
+                // C.NestedType.cs
+                //
+                //   partial class C
+                //   {
+                //       class NestedType 
+                //       {
+                //           // Context location.  
+                //       }
+                //   }
+                //
                 // If we're at the specified context location, but we're trying to find the most
                 // relevant part for C, then we want to pick the part in C.cs not the one in
                 // C.NestedType.cs that contains the context location.  This is because this
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
 
                 // Then, prefer a declaration from the same file.
-                declaration = await SelectFirstOrDefaultAsync(declarations.Where(r => r.SyntaxTree == locationOpt.SourceTree), node => true, cancellationToken).ConfigureAwait(false);
+                declaration = await SelectFirstOrDefaultAsync(declarations.Where(r => r.SyntaxTree == location.SourceTree), node => true, cancellationToken).ConfigureAwait(false);
                 fallbackDeclaration ??= declaration;
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 {

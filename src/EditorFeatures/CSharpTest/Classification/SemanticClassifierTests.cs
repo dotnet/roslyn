@@ -3238,6 +3238,56 @@ Regex.Comment("(?#comment)"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegex4_utf8_1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */""$\\a(?#comment)"";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape(@"\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegex4_utf8_2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */@""$\a(?#comment)""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegex5(TestHost testHost)
         {
             await TestAsync(
@@ -3397,6 +3447,33 @@ Regex.Text(" # is not end of line comment"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegex10_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        // lang=regex
+        var r = @""$\a(?#comment) # is not end of line comment""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # is not end of line comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegex11(TestHost testHost)
         {
             await TestAsync(
@@ -3450,6 +3527,31 @@ Regex.Comment("(?#comment)"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)""""""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
         {
             await TestAsync(
@@ -3469,14 +3571,37 @@ testHost, Namespace("System"),
 Namespace("Text"),
 Namespace("RegularExpressions"),
 Keyword("var"),
-Regex.Text(@"
-            "),
 Regex.Anchor("$"),
 Regex.OtherEscape("\\"),
 Regex.OtherEscape("a"),
-Regex.Comment("(?#comment)"),
-Regex.Text(@"
-            "));
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """"""u8;
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
         }
 
         [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
@@ -3498,6 +3623,28 @@ Namespace("Text"),
 Namespace("RegularExpressions"),
 Class("Regex"),
 Class("Regex"),
+Regex.Anchor("^"),
+Regex.Text(@" """" "),
+Regex.Anchor("$"));
+        }
+
+        [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
+        [CombinatorialData]
+        public async Task TestRegexWithSpecialCSharpCharLiterals_utf8(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // lang=regex
+    private string myRegex = @""^ """" $""u8;
+}",
+testHost,
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
 Regex.Anchor("^"),
 Regex.Text(@" """" "),
 Regex.Anchor("$"));
@@ -4231,9 +4378,29 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape1_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = ""goo\r\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape2(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape2_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = @""goo\r\nbar""u8;",
                 testHost,
                 Keyword("var"));
         }
@@ -4251,9 +4418,31 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape3_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1}}bar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape4(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape4_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""goo{{1}}bar""u8;",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
@@ -4275,9 +4464,33 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape5_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"{{"),
+                Escape(@"}}"),
+                Escape(@"\n"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape6(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape6_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar""u8;",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
@@ -4297,9 +4510,31 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape7_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestStringEscape8(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape8_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}""u8;",
                 testHost,
                 Keyword("var"),
                 Escape(@"{{"),
@@ -4319,9 +4554,29 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestStringEscape9_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}""u8;",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar""""""u8;",
                 testHost,
                 Keyword("var"));
         }
@@ -4339,6 +4594,17 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $""""""
@@ -4350,9 +4616,29 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = """"""\"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\""""""u8;",
                 testHost,
                 Keyword("var"));
         }
@@ -4370,11 +4656,33 @@ class X
 
         [Theory]
         [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """"""u8;",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
         {
             await TestInMethodAsync(@"var goo = $""""""
     \
     """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6_utf8(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """"""u8;",
                 testHost,
                 Keyword("var"));
         }

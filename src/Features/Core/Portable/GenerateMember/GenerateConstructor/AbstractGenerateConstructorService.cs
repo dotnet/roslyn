@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -75,13 +76,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return true;
         }
 
-        public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeAction>> GenerateConstructorAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateConstructor, cancellationToken))
             {
                 var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+                var state = await State.GenerateAsync((TService)this, semanticDocument, node, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 if (state != null)
                 {
                     Contract.ThrowIfNull(state.TypeToGenerateIn);
@@ -91,23 +92,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                     // If we have any fields we'd like to generate, offer a code action to do that.
                     if (state.ParameterToNewFieldMap.Count > 0)
                     {
-                        result.Add(new MyCodeAction(
+                        result.Add(CodeAction.Create(
                             string.Format(FeaturesResources.Generate_constructor_in_0_with_fields, state.TypeToGenerateIn.Name),
-                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c)));
+                            c => state.GetChangedDocumentAsync(document, withFields: true, withProperties: false, c),
+                            nameof(FeaturesResources.Generate_constructor_in_0_with_fields) + "_" + state.TypeToGenerateIn.Name));
                     }
 
                     // Same with a version that generates properties instead.
                     if (state.ParameterToNewPropertyMap.Count > 0)
                     {
-                        result.Add(new MyCodeAction(
+                        result.Add(CodeAction.Create(
                             string.Format(FeaturesResources.Generate_constructor_in_0_with_properties, state.TypeToGenerateIn.Name),
-                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c)));
+                            c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: true, c),
+                            nameof(FeaturesResources.Generate_constructor_in_0_with_properties) + "_" + state.TypeToGenerateIn.Name));
                     }
 
                     // Always offer to just generate the constructor and nothing else.
-                    result.Add(new MyCodeAction(
+                    result.Add(CodeAction.Create(
                         string.Format(FeaturesResources.Generate_constructor_in_0, state.TypeToGenerateIn.Name),
-                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c)));
+                        c => state.GetChangedDocumentAsync(document, withFields: false, withProperties: false, c),
+                        nameof(FeaturesResources.Generate_constructor_in_0) + "_" + state.TypeToGenerateIn.Name));
 
                     return result.ToImmutable();
                 }
@@ -181,14 +185,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
             return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse: s => !reservedNames.Any(n => comparer.Equals(s, n)))
                 .Select((name, index) => new ParameterName(name, isFixed[index], parameterNamingRule))
                 .Skip(reservedNames.Count).ToImmutableArray();
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

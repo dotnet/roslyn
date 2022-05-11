@@ -6,6 +6,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -71,12 +72,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
 
-            // The formatting and simplification options are only applied within the given document (and all linked documents).
-            // We can therefore fetch all necessary options for the language now rather then lazily,
-            // which would be needed if we had to apply them to documents of different languages.
-            var fallbackOptions = _globalOptions.GetCodeCleanupOptionsProvider();
-
-            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), fallbackOptions, useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), _globalOptions.CreateProvider(), useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
 
             // We are about to show a modal UI dialog so we should take over the command execution
             // wait context. That means the command system won't attempt to show its own wait dialog 

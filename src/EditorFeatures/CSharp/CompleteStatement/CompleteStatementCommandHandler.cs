@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 return true;
             }
 
-            if (currentNode is RecordDeclarationSyntax { OpenBraceToken: { IsMissing: true } })
+            if (currentNode is RecordDeclarationSyntax { OpenBraceToken.IsMissing: true })
             {
                 return true;
             }
