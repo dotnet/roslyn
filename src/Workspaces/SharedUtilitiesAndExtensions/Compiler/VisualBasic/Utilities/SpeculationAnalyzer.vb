@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -22,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             ArgumentSyntax,
             ForEachStatementSyntax,
             ThrowStatementSyntax,
+            InvocationExpressionSyntax,
             Conversion)
 
         ''' <summary>
@@ -42,6 +44,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Public Sub New(expression As ExpressionSyntax, newExpression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken, Optional skipVerificationForReplacedNode As Boolean = False, Optional failOnOverloadResolutionFailuresInOriginalCode As Boolean = False)
             MyBase.New(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFactsService As CodeAnalysis.LanguageServices.ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function GetSemanticRootForSpeculation(expression As ExpressionSyntax) As SyntaxNode
             Debug.Assert(expression IsNot Nothing)
