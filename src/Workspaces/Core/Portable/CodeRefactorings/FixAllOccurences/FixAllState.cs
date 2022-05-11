@@ -36,9 +36,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Document document!!,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
+            CodeActionOptionsProvider optionsProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
-            : this(fixAllProvider, document, document.Project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
+            : this(fixAllProvider, document, document.Project, selectionSpan, codeRefactoringProvider,
+                   optionsProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
         {
         }
 
@@ -47,9 +49,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Project project!!,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
+            CodeActionOptionsProvider optionsProvider,
             FixAllScope fixAllScope,
             CodeAction codeAction)
-            : this(fixAllProvider, document: null, project, selectionSpan, codeRefactoringProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
+            : this(fixAllProvider, document: null, project, selectionSpan, codeRefactoringProvider,
+                   optionsProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
         {
         }
 
@@ -59,10 +63,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             Project project,
             TextSpan selectionSpan,
             CodeRefactoringProvider codeRefactoringProvider,
+            CodeActionOptionsProvider optionsProvider,
             FixAllScope fixAllScope,
             string codeActionTitle,
             string? codeActionEquivalenceKey)
-            : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope, codeActionEquivalenceKey)
+            : base(fixAllProvider, document, project, codeRefactoringProvider, optionsProvider, fixAllScope, codeActionEquivalenceKey)
         {
             _selectionSpan = selectionSpan;
             this.CodeActionTitle = codeActionTitle;
@@ -76,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
                 project,
                 _selectionSpan,
                 this.Provider,
+                this.CodeActionOptionsProvider,
                 scope,
                 this.CodeActionTitle,
                 codeActionEquivalenceKey);

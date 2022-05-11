@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
                 var fixAllProviderInfo = extensionManager.PerformFunction(
                     provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
-                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
+                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
             }
             catch (OperationCanceledException)
             {

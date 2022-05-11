@@ -1171,45 +1171,49 @@ class OtherType2
             var markup = @"
 class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = $$x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = $$""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
             var expectedText = @"
 class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
 
@@ -1230,7 +1234,7 @@ class C2
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Invert conditional",
+                "Convert to raw string",
                 applyFix: true,
                 fixAllScope: FixAllScope.ContainingMember,
                 cancellationToken: HangMitigatingCancellationToken);
@@ -1245,104 +1249,104 @@ class C2
             var markup1 = @"
 partial class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = $$x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = $$""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 partial class C1
 {
-    void M4(bool x, int a, int b)
+    void M4()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
             var expectedText1 = @"
 partial class C1
 {
-    void M(bool x, int a, int b)
+    void M()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 
-    void M2(bool x, int a, int b)
+    void M2()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 }
 
 class C2
 {
-    void M3(bool x, int a, int b)
+    void M3()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 partial class C1
 {
-    void M4(bool x, int a, int b)
+    void M4()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 }";
 
             var markup2 = @"
 partial class C1
 {
-    void M5(bool x, int a, int b)
+    void M5()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }
 
 class C2
 {
-    void M6(bool x, int a, int b)
+    void M6()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
             var expectedText2 = @"
 partial class C1
 {
-    void M5(bool x, int a, int b)
+    void M5()
     {
-        var c = !x ? b : a;
-        var c2 = !x ? b : a;
+        var singleLine1 = """"""a"""""";
+        var singleLine2 = """"""goo""bar"""""";
     }
 }
 
 class C2
 {
-    void M6(bool x, int a, int b)
+    void M6()
     {
-        var c = x ? a : b;
-        var c2 = x ? a : b;
+        var singleLine1 = ""a"";
+        var singleLine2 = @""goo""""bar"";
     }
 }";
 
@@ -1364,7 +1368,7 @@ class C2
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
 
             await TestServices.EditorVerifier.CodeActionAsync(
-                "Invert conditional",
+                "Convert to raw string",
                 applyFix: true,
                 fixAllScope: FixAllScope.ContainingType,
                 cancellationToken: HangMitigatingCancellationToken);

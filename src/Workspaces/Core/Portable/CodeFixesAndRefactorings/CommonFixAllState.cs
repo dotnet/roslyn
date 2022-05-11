@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
@@ -21,12 +22,14 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
         public Solution Solution => Project.Solution;
         public FixAllScope Scope { get; }
         public abstract FixAllKind FixAllKind { get; }
+        public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
         protected CommonFixAllState(
             TFixAllProvider fixAllProvider,
             Document? document,
             Project project,
             TProvider provider,
+            CodeActionOptionsProvider optionsProvider,
             FixAllScope scope,
             string? codeActionEquivalenceKey)
         {
@@ -36,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings
             Document = document;
             Project = project;
             Provider = provider;
+            CodeActionOptionsProvider = optionsProvider;
             Scope = scope;
             CodeActionEquivalenceKey = codeActionEquivalenceKey;
         }
