@@ -238,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if ((object)thisDecl.Location.SourceTree != otherDecl.Location.SourceTree
-                    && (thisDecl.Modifiers & DeclarationModifiers.File) != 0
-                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0)
+                    && ((thisDecl.Modifiers & DeclarationModifiers.File) != 0
+                        || (otherDecl.Modifiers & DeclarationModifiers.File) != 0))
                 {
                     // declarations of 'file' types are only the same type if they are in the same file
                     return false;

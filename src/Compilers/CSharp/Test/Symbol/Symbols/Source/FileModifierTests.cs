@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -123,6 +124,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         void M(Outer outer) { } // ok
                     }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Nested_06()
+        {
+            var source = """
+                class A1
+                {
+                    internal class A2 { }
+                }
+                file class B : A1
+                {
+                }
+                class C : B.A2 // ok: base type is bound as A1.A2
+                {
                 }
                 """;
 
@@ -317,6 +338,125 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
                 Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
             }
+        }
+
+        [Fact]
+        public void Duplication_03()
+        {
+            var source1 = """
+                using System;
+
+                partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var source2 = """
+                partial class C
+                {
+                }
+                """;
+
+            var main = """
+                using System;
+
+                file class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(2);
+                    }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        C.M();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, source2, main }); // expectedOutput: 2
+            comp.VerifyDiagnostics();
+
+            var cs = comp.GetMembers("C");
+            Assert.Equal(2, cs.Length);
+
+            var c0 = cs[0];
+            Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: false });
+
+            var syntaxReferences = c0.DeclaringSyntaxReferences;
+            Assert.Equal(2, syntaxReferences.Length);
+            Assert.Equal(comp.SyntaxTrees[0], syntaxReferences[0].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
+
+            var c1 = cs[1];
+            Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.Equal(comp.SyntaxTrees[2], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
+        }
+
+        [Fact]
+        public void Duplication_04()
+        {
+            var source1 = """
+                using System;
+
+                class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var main = """
+                using System;
+
+                file partial class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(Number);
+                    }
+                }
+
+                file partial class C
+                {
+                    private static int Number => 2;
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        C.M();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, main }); // expectedOutput: 2
+            comp.VerifyDiagnostics();
+
+            var cs = comp.GetMembers("C");
+            Assert.Equal(2, cs.Length);
+
+            var c0 = cs[0];
+            Assert.True(c0 is SourceMemberContainerTypeSymbol { IsFile: false });
+            Assert.Equal(comp.SyntaxTrees[0], c0.DeclaringSyntaxReferences.Single().SyntaxTree);
+
+            var c1 = cs[1];
+            Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
+
+            var syntaxReferences = c1.DeclaringSyntaxReferences;
+            Assert.Equal(2, syntaxReferences.Length);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[0].SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
         }
 
         [Fact]
