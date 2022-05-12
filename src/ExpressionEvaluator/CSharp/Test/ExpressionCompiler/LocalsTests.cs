@@ -3842,6 +3842,43 @@ class C
             });
         }
 
+        [WorkItem(55606, "https://github.com/dotnet/roslyn/issues/55606")]
+        [Fact]
+        public void OrderOfArguments_ArgumentsOnly_Async()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    static async IAsyncEnumerable<object> F(object y, object x)
+    {
+        Task.Yield();
+        yield return x;
+#line 500
+        DummySequencePoint();
+        yield return y;
+    }
+    static void DummySequencePoint()
+    {
+    }
+}";
+            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { TestMetadata.Net461.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
+            var comp = CreateEmptyCompilation(new[] { source, AsyncStreamsTypes }, references: references);
+            WithRuntimeInstance(comp, references, runtime =>
+            {
+                EvaluationContext context;
+                context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
+                string unused;
+                var locals = new ArrayBuilder<LocalAndMethod>();
+                context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
+                var names = locals.Select(l => l.LocalName).ToArray();
+                // The order must confirm the order of the arguments in the method signature.
+                Assert.Equal(names, new[] { "y", "x" });
+                locals.Free();
+            });
+        }
+
         /// <summary>
         /// CompileGetLocals should skip locals with errors.
         /// </summary>
