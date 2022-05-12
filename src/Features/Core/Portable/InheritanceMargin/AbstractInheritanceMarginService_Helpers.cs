@@ -93,7 +93,6 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var solution = project.Solution;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
 
             if (documentForGlobalImports != null)
