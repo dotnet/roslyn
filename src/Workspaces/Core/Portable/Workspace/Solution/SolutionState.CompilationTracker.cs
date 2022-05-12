@@ -1011,22 +1011,20 @@ namespace Microsoft.CodeAnalysis
             {
                 var state = ReadState();
 
-                // get compilation in any state it happens to be in right now.
-                if (state.CompilationWithoutGeneratedDocuments is { } compilation)
+                if (ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
-                    if (ProjectState.LanguageServices == fromProject.LanguageServices)
-                    {
-                        // if we have a compilation and its the correct language, use a simple compilation reference
+                    // if we have a compilation and its the correct language, use a simple compilation reference in any
+                    // state it happens to be in right now
+                    if (state.CompilationWithoutGeneratedDocuments is { } compilation)
                         return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                    }
-                    else
-                    {
-                        // Cross project reference.  We need a skeleton reference.  Skeletons are too expensive to
-                        // generate on demand.  So just try to see if we can grab the last generated skeleton for that
-                        // project.
-                        var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                        this.SkeletonReferenceCache.TryGetAlreadyPresentMetadataReference(properties);
-                    }
+                }
+                else
+                {
+                    // Cross project reference.  We need a skeleton reference.  Skeletons are too expensive to
+                    // generate on demand.  So just try to see if we can grab the last generated skeleton for that
+                    // project.
+                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                    this.SkeletonReferenceCache.TryGetAlreadyPresentMetadataReference(properties);
                 }
 
                 return null;
