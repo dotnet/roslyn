@@ -198,7 +198,8 @@ internal static class SyntaxValueProviderExtensions
     }
 
     /// <summary>
-    /// Simple class just so we have reference equality.
+    /// Simple wrapper class around an immutable array so we can have the value-semantics needed for the incremental
+    /// generator to know when a change actually happened and it should run later transform stages.
     /// </summary>
     private class GlobalAliases : IEquatable<GlobalAliases>
     {
