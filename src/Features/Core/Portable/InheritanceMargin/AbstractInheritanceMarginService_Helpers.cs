@@ -45,6 +45,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
         {
+            // If we're starting from a document, use it to go to a frozen partial version of it to lower the amount of
+            // work we need to do running source generators or producing skeleton references.
+            if (documentForGlobalImports != null)
+            {
+                documentForGlobalImports = documentForGlobalImports.WithFrozenPartialSemantics(cancellationToken);
+                project = documentForGlobalImports.Project;
+            }
+
             var solution = project.Solution;
             var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
