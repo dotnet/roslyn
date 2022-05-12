@@ -248,5 +248,25 @@ public static class Foo
 
             await TestAsync(testCode, fixedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestNoOtherModifiers()
+        {
+            var testCode = @"
+public static class Foo
+{
+    void {|CS0708:Test|}() { }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    static void Test() { }
+}
+";
+
+            await TestAsync(testCode, fixedCode);
+        }
     }
 }
