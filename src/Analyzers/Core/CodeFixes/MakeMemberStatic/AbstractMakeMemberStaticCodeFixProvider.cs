@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
 
             if (!modifierBeforeStaticRawKind.HasValue)
             {
+                // When the static modifier is added at the beginning of the modifiers it needs to
+                // get the leading trivia from the previous first modifier
                 return new SyntaxTokenList(StaticModifier.WithLeadingTrivia(modifiers[0].LeadingTrivia),
                     modifiers[0].WithoutLeadingTrivia()).AddRange(modifiers.Skip(1));
             }
