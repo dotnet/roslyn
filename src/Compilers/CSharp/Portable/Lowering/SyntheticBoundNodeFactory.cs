@@ -1298,6 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif 
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
             Debug.Assert(c.Exists);
+            // The use-site diagnostics should be reported earlier, and we shouldn't get to lowering if they're errors.
             Debug.Assert(!useSiteInfo.HasErrors);
 
             return Convert(type, arg, c);
