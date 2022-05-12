@@ -19,26 +19,49 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 internal static class SyntaxValueProviderExtensions
 {
+    /// <summary>
+    /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
+    /// possibly bind to the provided <paramref name="attributeName"/>. <paramref name="attributeName"/> should be the
+    /// simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
+    /// generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
+    /// cref="System.CLSCompliantAttribute"/>.
+    /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
+    /// references an alias name.  For example, given:
+    /// <code>
+    /// using XAttribute = CLSCompilation;
+    /// [X]
+    /// class C { }
+    /// </code>
+    /// Then
+    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;("CLSCompliant")</c>
+    /// will find the <c>C</c> class.
+    /// </summary>
     public static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(this SyntaxValueProvider provider, string attributeName)
         where T : SyntaxNode
     {
-        var attributeNameWithoutSuffix = attributeName.GetWithoutAttributeSuffix(isCaseSensitive: true);
-
-        var globalAliasesProvider = provider.CreateSyntaxProvider(
+        // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
+        var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
             (n, _) => n is CompilationUnitSyntax,
-            (context, _) => GetGlobalAliasesInCompilationUnit((CompilationUnitSyntax)context.Node))
+            (context, _) => GetGlobalAliasesInCompilationUnit((CompilationUnitSyntax)context.Node));
+
+        // Create an aggregated view of all global aliases across all files.  This should only update when an individual
+        // file changes its global aliases.
+        var allUpGlobalAliasesProvider = individualFileGlobalAliasesProvider
             .Collect().Select((arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()));
 
+        // Create a syntax provider for every compilation unit.
         var compilationUnitProvider = provider.CreateSyntaxProvider(
             (n, _) => n is CompilationUnitSyntax,
             (context, _) => (CompilationUnitSyntax)context.Node);
 
-        var compilationUnitAndGlobalAliasesProvider = compilationUnitProvider.Combine(globalAliasesProvider);
+        // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
+        // particular file when it's compilation unit changes.
+        var compilationUnitAndGlobalAliasesProvider = compilationUnitProvider.Combine(allUpGlobalAliasesProvider);
 
+        // For each pair of compilation unit + global aliases, walk the compilation unit 
         var result = compilationUnitAndGlobalAliasesProvider.SelectMany((globalAliasesAndCompilationUnit, cancellationToken) =>
             GetMatchingNodes<T>(
-                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left,
-                attributeName, attributeNameWithoutSuffix, cancellationToken));
+                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, attributeName, cancellationToken));
 
         return result;
     }
@@ -47,7 +70,6 @@ internal static class SyntaxValueProviderExtensions
         GlobalAliases globalAliases,
         CompilationUnitSyntax compilationUnit,
         string attributeName,
-        string? attributeNameWithoutSuffix,
         CancellationToken cancellationToken) where T : SyntaxNode
     {
         var localAliases = Aliases.GetInstance();
@@ -84,9 +106,17 @@ internal static class SyntaxValueProviderExtensions
                      // no need to examine another attribute on a node if we already added it due to a prior attribute
                      results.LastOrDefault() != parent)
             {
+                seenNames.Clear();
+
                 // attributes can't have attributes inside of them.  so no need to recurse when we're done.
-                if (matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText))
+                //
+                // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
+                // e.g. if there is [X] then we have to lookup with X and with XAttribute.
+                if (matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText) ||
+                    matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText + "Attribute"))
+                {
                     results.Add(parent);
+                }
             }
             else
             {
@@ -109,18 +139,6 @@ internal static class SyntaxValueProviderExtensions
 
         bool matchesAttributeName(string currentAttributeName)
         {
-            seenNames.Clear();
-            if (matchesAttributeNameWorker(currentAttributeName, attributeName))
-                return true;
-
-            if (attributeNameWithoutSuffix != null && matchesAttributeNameWorker(currentAttributeName, attributeNameWithoutSuffix))
-                return true;
-
-            return false;
-        }
-
-        bool matchesAttributeNameWorker(string currentAttributeName, string attributeName)
-        {
             // If the names match, we're done.
             if (StringOrdinalComparer.Equals(currentAttributeName, attributeName))
                 return true;
@@ -135,7 +153,7 @@ internal static class SyntaxValueProviderExtensions
                     // ... name portion to see if it might bind to the attr name the caller is searching for.
                     if (StringOrdinalComparer.Equals(currentAttributeName, aliasName))
                     {
-                        if (matchesAttributeNameWorker(symbolName, attributeName))
+                        if (matchesAttributeName(symbolName))
                             return true;
                     }
                 }
@@ -144,7 +162,7 @@ internal static class SyntaxValueProviderExtensions
                 {
                     if (StringOrdinalComparer.Equals(currentAttributeName, aliasName))
                     {
-                        if (matchesAttributeNameWorker(symbolName, attributeName))
+                        if (matchesAttributeName(symbolName))
                             return true;
                     }
                 }
