@@ -146,7 +146,7 @@ public static class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-        public async Task TestModifierOrder_DefaultOrder()
+        public async Task TestDefaultOrder()
         {
             var testCode = @"
 public static class Foo
@@ -166,7 +166,7 @@ public static class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-        public async Task TestModifierOrder_CustomOrder1()
+        public async Task TestCustomOrderStart()
         {
             var testCode = @"
 public static class Foo
@@ -188,7 +188,7 @@ public static class Foo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
-        public async Task TestModifierOrder_CustomOrder2()
+        public async Task TestCustomOrderEnd()
         {
             var testCode = @"
 public static class Foo
@@ -207,6 +207,46 @@ public static class Foo
                 "sealed, override, readonly, unsafe, volatile, async, static";
 
             await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestWrongInitialOrder()
+        {
+            var testCode = @"
+public static class Foo
+{
+    async public System.Threading.Tasks.Task {|CS0708:Test|}() { }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    async public static System.Threading.Tasks.Task Test() { }
+}
+";
+
+            await TestAsync(testCode, fixedCode);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestTriviaBetweenModifiers()
+        {
+            var testCode = @"
+public static class Foo
+{
+    public /* trivia */ async System.Threading.Tasks.Task {|CS0708:Test|}() { }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    public /* trivia */ static async System.Threading.Tasks.Task Test() { }
+}
+";
+
+            await TestAsync(testCode, fixedCode);
         }
     }
 }
