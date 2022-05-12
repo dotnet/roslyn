@@ -47,7 +47,7 @@ static class Program
     {
         [|5.Vain()|];
     }
-}           ", "Vain(5)", false);
+}           ", "Vain(5)", semanticChanges: true);
         }
 
         [Fact]

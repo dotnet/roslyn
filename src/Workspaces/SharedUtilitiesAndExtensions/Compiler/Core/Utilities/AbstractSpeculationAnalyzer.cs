@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         protected abstract ISyntaxFacts SyntaxFactsService { get; }
-        protected abstract bool CanAccessInstanceMemberThrough(TExpressionSyntax expression);
+        protected abstract bool CanAccessInstanceMemberThrough(TExpressionSyntax? expression);
 
         /// <summary>
         /// Original expression to be replaced.
@@ -513,9 +513,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             Debug.Assert(previousOriginalNode == null || previousOriginalNode.Parent == currentOriginalNode);
             Debug.Assert(previousReplacedNode == null || previousReplacedNode.Parent == currentReplacedNode);
 
-            if (!MemberAccessesAreCompatible(currentOriginalNode as TExpressionSyntax, currentReplacedNode as TExpressionSyntax))
-                return true;
-
             if (!InvocationsAreCompatible(currentOriginalNode as TInvocationExpressionSyntax, currentReplacedNode as TInvocationExpressionSyntax))
                 return true;
 
@@ -601,13 +598,20 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (!SymbolsAreCompatible(originalExpression, newExpression))
                     return false;
 
+                // If static became instance or instance became static, consider that a change in semantics.  Note: this
+                // does mean a change from extension->instance call (or vice versa) will be seen as a change in
+                // semantics.  We could potentially support this, but we'd have to do the analysis the instance invoked
+                // on and the instance passed as the first parameter are identical.
+
+                var originalIsStaticAccess = IsStaticAccess(_semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol);
+                var replacedIsStaticAccess = IsStaticAccess(this.SpeculativeSemanticModel.GetSymbolInfo(newExpression, CancellationToken).Symbol);
+                if (originalIsStaticAccess != replacedIsStaticAccess)
+                    return false;
+
                 // When binding expr.A, if we didn't bind 'expr' binding to a type, namespace, or other static
                 // thing, then we bound to an instance symbol. It's then only ok to remove 'expr' if 'expr' is
                 // this/base.
-                var originalSymbol = _semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol;
-                if (originalSymbol != null &&
-                    originalSymbol is not INamespaceOrTypeSymbol &&
-                    !originalSymbol.IsStatic)
+                if (!originalIsStaticAccess)
                 {
                     var originalExpressionOfMemberAccess = syntaxFacts.GetExpressionOfMemberAccessExpression(originalExpression);
                     if (!CanAccessInstanceMemberThrough((TExpressionSyntax?)originalExpressionOfMemberAccess))
@@ -618,17 +622,29 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
+        private static bool IsStaticAccess(ISymbol symbol)
+            => symbol is INamespaceOrTypeSymbol or { IsStatic: true };
+
         private bool InvocationsAreCompatible(TInvocationExpressionSyntax? originalInvocation, TInvocationExpressionSyntax? newInvocation)
         {
             // If not invocations, nothing to do here.
             if (originalInvocation is null && newInvocation is null)
                 return true;
 
+
             if (originalInvocation is not null)
             {
                 // Invocations must stay invocations after update.
                 if (newInvocation is null)
                     return false;
+
+                var syntaxFacts = this.SyntaxFactsService;
+                if (!MemberAccessesAreCompatible(
+                        syntaxFacts.GetExpressionOfInvocationExpression(originalInvocation) as TExpressionSyntax,
+                        syntaxFacts.GetExpressionOfInvocationExpression(newInvocation) as TExpressionSyntax))
+                {
+                    return false;
+                }
 
                 // Add more invocation tests here.
             }
