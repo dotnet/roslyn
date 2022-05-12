@@ -782,5 +782,33 @@ namespace Microsoft.CodeAnalysis
 
         internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
             => Solution.State.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+        /// <summary>
+        /// Creates a branched version of this project that has its compilation frozen in whatever state it is available
+        /// at the time, assuming a background process is constructing the semantics asynchronously. Repeated calls to
+        /// this method may return projects with increasingly more complete semantics.
+        ///
+        /// Use this method to gain access to potentially incomplete semantics quickly.
+        /// </summary>
+        internal virtual Project WithFrozenPartialSemantics(CancellationToken cancellationToken)
+        {
+            var solution = this.Solution;
+            var workspace = solution.Workspace;
+
+            // only produce doc with frozen semantics if this workspace has support for that, as without
+            // background compilation the semantics won't be moving toward completeness.  Also,
+            // ensure that the project that this document is part of actually supports compilations,
+            // as partial semantics don't make sense otherwise.
+            if (workspace.PartialSemanticsEnabled &&
+                this.SupportsCompilation)
+            {
+                var newSolution = this.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, documentId: null, cancellationToken);
+                return newSolution.GetRequiredProject(this.Id)!;
+            }
+            else
+            {
+                return this;
+            }
+        }
     }
 }

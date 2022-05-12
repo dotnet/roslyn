@@ -81,8 +81,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
         {
+            if (documentForGlobalImports != null)
+            {
+                documentForGlobalImports = documentForGlobalImports.WithFrozenPartialSemantics(cancellationToken);
+                project = documentForGlobalImports.Project;
+            }
+            else
+            {
+                project = project.WithFrozenPartialSemantics(cancellationToken);
+            }
+
             var solution = project.Solution;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
 
             if (documentForGlobalImports != null)

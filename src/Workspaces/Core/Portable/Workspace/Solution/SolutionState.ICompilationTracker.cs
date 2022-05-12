@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis
             /// </remarks>
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
             ICompilationTracker Fork(SolutionServices solutionServices, ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default);
-            ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
+            ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState? docState, SyntaxTree? tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken);
 
             Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
 
-            CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
+            MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
             ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken);
             ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionState solution, CancellationToken cancellationToken);
 

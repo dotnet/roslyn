@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis
             if (workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
-                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
+                var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id.ProjectId, this.Id, cancellationToken);
                 return newSolution.GetDocument(this.Id)!;
             }
             else

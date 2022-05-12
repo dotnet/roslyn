@@ -174,30 +174,34 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken)
+            public ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState? docState, SyntaxTree? tree, CancellationToken cancellationToken)
             {
                 GetPartialCompilationState(
-                    solution, docState.Id,
+                    solution, docState?.Id,
                     out var inProgressProject,
                     out var compilationPair,
                     out var generatorInfo,
                     out var metadataReferenceToProjectId,
                     cancellationToken);
 
-                // Ensure we actually have the tree we need in there
-                if (!compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.Contains(tree))
+                if (docState != null)
                 {
-                    var existingTree = compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
-                    if (existingTree != null)
+                    Contract.ThrowIfNull(tree);
+                    // Ensure we actually have the tree we need in there
+                    if (!compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.Contains(tree))
                     {
-                        compilationPair = compilationPair.ReplaceSyntaxTree(existingTree, tree);
-                        inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
-                    }
-                    else
-                    {
-                        compilationPair = compilationPair.AddSyntaxTree(tree);
-                        Debug.Assert(!inProgressProject.DocumentStates.Contains(docState.Id));
-                        inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
+                        var existingTree = compilationPair.CompilationWithoutGeneratedDocuments.SyntaxTrees.FirstOrDefault(t => t.FilePath == tree.FilePath);
+                        if (existingTree != null)
+                        {
+                            compilationPair = compilationPair.ReplaceSyntaxTree(existingTree, tree);
+                            inProgressProject = inProgressProject.UpdateDocument(docState, textChanged: false, recalculateDependentVersions: false);
+                        }
+                        else
+                        {
+                            compilationPair = compilationPair.AddSyntaxTree(tree);
+                            Debug.Assert(!inProgressProject.DocumentStates.Contains(docState.Id));
+                            inProgressProject = inProgressProject.AddDocuments(ImmutableArray.Create(docState));
+                        }
                     }
                 }
 
@@ -217,17 +221,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// Tries to get the latest snapshot of the compilation without waiting for it to be
-            /// fully built. This method takes advantage of the progress side-effect produced during
-            /// <see cref="BuildCompilationInfoAsync(SolutionState, CancellationToken)"/>.
-            /// It will either return the already built compilation, any
-            /// in-progress compilation or any known old compilation in that order of preference.
-            /// The compilation state that is returned will have a compilation that is retained so
-            /// that it cannot disappear.
+            /// Tries to get the latest snapshot of the compilation without waiting for it to be fully built. This
+            /// method takes advantage of the progress side-effect produced during <see
+            /// cref="BuildCompilationInfoAsync(SolutionState, CancellationToken)"/>. It will either return the already
+            /// built compilation, any in-progress compilation or any known old compilation in that order of preference.
+            /// The compilation state that is returned will have a compilation that is retained so that it cannot
+            /// disappear.
             /// </summary>
             private void GetPartialCompilationState(
                 SolutionState solution,
-                DocumentId id,
+                DocumentId? documentId,
                 out ProjectState inProgressProject,
                 out CompilationPair compilations,
                 out CompilationTrackerGeneratorInfo generatorInfo,
@@ -245,22 +248,24 @@ namespace Microsoft.CodeAnalysis
                 // all changes left for this document is modifying the given document.
                 // we can use current state as it is since we will replace the document with latest document anyway.
                 if (inProgressState != null &&
-                    compilationWithoutGeneratedDocuments != null &&
-                    inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, id)))
+                    compilationWithoutGeneratedDocuments != null)
                 {
-                    inProgressProject = ProjectState;
+                    if (documentId == null || inProgressState.IntermediateProjects.All(t => IsTouchDocumentActionForDocument(t.action, documentId)))
+                    {
+                        inProgressProject = ProjectState;
 
-                    // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
-                    // being made to the project, but it's the best we have so we'll use it.
-                    compilations = new CompilationPair(
-                        compilationWithoutGeneratedDocuments,
-                        compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
+                        // We'll add in whatever generated documents we do have; these may be from a prior run prior to some changes
+                        // being made to the project, but it's the best we have so we'll use it.
+                        compilations = new CompilationPair(
+                            compilationWithoutGeneratedDocuments,
+                            compilationWithoutGeneratedDocuments.AddSyntaxTrees(generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
 
-                    // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
-                    // properly record assembly symbols for.
-                    metadataReferenceToProjectId = null;
-                    SolutionLogger.UseExistingPartialProjectState();
-                    return;
+                        // This is likely a bug.  It seems possible to pass out a partial compilation state that we don't
+                        // properly record assembly symbols for.
+                        metadataReferenceToProjectId = null;
+                        SolutionLogger.UseExistingPartialProjectState();
+                        return;
+                    }
                 }
 
                 inProgressProject = inProgressState != null ? inProgressState.IntermediateProjects.First().oldState : this.ProjectState;
@@ -1002,16 +1007,26 @@ namespace Microsoft.CodeAnalysis
             /// compilation. Only actual compilation references are returned. Could potentially 
             /// return null if nothing can be provided.
             /// </summary>
-            public CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
+            public MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference)
             {
                 var state = ReadState();
 
                 // get compilation in any state it happens to be in right now.
-                if (state.CompilationWithoutGeneratedDocuments is { } compilationOpt &&
-                    ProjectState.LanguageServices == fromProject.LanguageServices)
+                if (state.CompilationWithoutGeneratedDocuments is { } compilation)
                 {
-                    // if we have a compilation and its the correct language, use a simple compilation reference
-                    return compilationOpt.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    if (ProjectState.LanguageServices == fromProject.LanguageServices)
+                    {
+                        // if we have a compilation and its the correct language, use a simple compilation reference
+                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    }
+                    else
+                    {
+                        // Cross project reference.  We need a skeleton reference.  Skeletons are too expensive to
+                        // generate on demand.  So just try to see if we can grab the last generated skeleton for that
+                        // project.
+                        var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                        this.SkeletonReferenceCache.TryGetAlreadyPresentMetadataReference(properties);
+                    }
                 }
 
                 return null;

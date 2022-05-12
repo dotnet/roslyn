@@ -1640,16 +1640,16 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time, assuming a background compiler is
-        /// busy building this compilations.
-        /// 
-        /// A compilation for the project containing the specified document id will be guaranteed to exist with at least the syntax tree for the document.
-        /// 
+        /// Creates a branch of the solution that has its compilations frozen in whatever state they are in at the time,
+        /// assuming a background compiler is busy building this compilations.
+        /// <para/> If <paramref name="documentId"/> is provided, a compilation for the project containing the specified
+        /// document id will be guaranteed to exist with at least the syntax tree for the document.
+        /// <para/>
         /// This not intended to be the public API, use Document.WithFrozenPartialSemantics() instead.
         /// </summary>
-        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(DocumentId documentId, CancellationToken cancellationToken)
+        internal Solution WithFrozenPartialCompilationIncludingSpecificDocument(ProjectId projectId, DocumentId? documentId, CancellationToken cancellationToken)
         {
-            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(documentId, cancellationToken);
+            var newState = _state.WithFrozenPartialCompilationIncludingSpecificDocument(projectId, documentId, cancellationToken);
             return new Solution(newState);
         }
 
