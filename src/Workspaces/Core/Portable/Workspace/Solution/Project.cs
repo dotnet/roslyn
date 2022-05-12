@@ -793,13 +793,12 @@ namespace Microsoft.CodeAnalysis
         internal virtual Project WithFrozenPartialSemantics(CancellationToken cancellationToken)
         {
             var solution = this.Solution;
-            var workspace = solution.Workspace;
 
             // only produce doc with frozen semantics if this workspace has support for that, as without
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
-            if (workspace.PartialSemanticsEnabled &&
+            if (solution.Workspace.PartialSemanticsEnabled &&
                 this.SupportsCompilation)
             {
                 var newSolution = this.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, documentId: null, cancellationToken);
