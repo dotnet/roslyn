@@ -268,5 +268,28 @@ public static class Foo
 
             await TestAsync(testCode, fixedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestNoStaticDefined()
+        {
+            var testCode = @"
+public static class Foo
+{
+    public async System.Threading.Tasks.Task {|CS0708:Test|}() { }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    public async static System.Threading.Tasks.Task Test() { }
+}
+";
+
+            var customModifierOrder = "public, private, protected, internal, extern, new, virtual, abstract, " +
+                "sealed, override, readonly, unsafe, volatile, async";
+
+            await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
     }
 }
