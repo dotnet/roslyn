@@ -105,7 +105,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Constructs a <see cref="SourceText"/> from text in a <see cref="StringBuilder"/>.
         /// </summary>
-        /// <param name="stringBuilder"><see cref="StringBuilder"/> that contains the text.</param>
+        /// <param name="stringBuilder">
+        /// <see cref="StringBuilder"/> to read the text from. The entire text will be read from the <see cref="StringBuilder"/>
+        /// in advance, so it's safe to modify it later and the <see cref="SourceText"/> won't be affected.
+        /// </param>
         /// <param name="encoding">
         /// Encoding of the file that the text was read from or is going to be saved to.
         /// <see langword="null"/> if the encoding is unspecified.
@@ -127,6 +130,9 @@ namespace Microsoft.CodeAnalysis.Text
             if (stringBuilder is null)
                 throw new ArgumentNullException(nameof(stringBuilder));
 
+            // We do not use StringBuilderText because SourceText objects need to be immutable and the StringBuilder we are given could
+            // potentially later be modified by the caller. That's why we need to copy the data into our own storage.
+
             // If the resulting string would end up on the large object heap, then use LargeText.
             if (stringBuilder.Length >= LargeObjectHeapLimitInChars)
             {
@@ -138,9 +144,12 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Constructs a <see cref="SourceText"/> from text in a string.
+        /// Constructs a <see cref="SourceText"/> from text in a <see cref="TextReader"/>.
         /// </summary>
-        /// <param name="reader"><see cref="TextReader"/> to read the text from.</param>
+        /// <param name="reader">
+        /// <see cref="TextReader"/> to read the text from. The entire text will be read from the <see cref="TextReader"/> in
+        /// advance, so it's safe to modify or dispose it later and the <see cref="SourceText"/> won't be affected.
+        /// </param>
         /// <param name="length">Length of content from <paramref name="reader"/>.</param>
         /// <param name="encoding">
         /// Encoding of the file that the text was read from or is going to be saved to.
@@ -182,7 +191,11 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Constructs a <see cref="SourceText"/> from stream content.
         /// </summary>
-        /// <param name="stream">Stream. The stream must be seekable.</param>
+        /// <param name="stream">
+        /// <see cref="Stream"/> to read the text from. Must be seekable. The entire text will be read from the
+        /// <see cref="Stream"/> in advance, so it's safe to modify or dispose it later and the <see cref="SourceText"/> won't be
+        /// affected.
+        /// </param>
         /// <param name="encoding">
         /// Data encoding to use if the stream doesn't start with Byte Order Mark specifying the encoding.
         /// <see cref="Encoding.UTF8"/> if not specified.
@@ -253,7 +266,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Constructs a <see cref="SourceText"/> from a byte array.
         /// </summary>
-        /// <param name="buffer">The encoded source buffer.</param>
+        /// <param name="buffer">
+        /// The encoded source buffer to read the text from. The entire text will be read from the buffer in advance, so it's
+        /// safe to modify it later and the <see cref="SourceText"/> won't be affected.
+        /// </param>
         /// <param name="length">The number of bytes to read from the buffer.</param>
         /// <param name="encoding">
         /// Data encoding to use if the encoded buffer doesn't start with Byte Order Mark.
