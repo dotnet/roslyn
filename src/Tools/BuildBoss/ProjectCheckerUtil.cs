@@ -133,7 +133,7 @@ namespace BuildBoss
                 if (!allowedPackageVersions.Contains(packageRef.Version))
                 {
                     textWriter.WriteLine($"PackageReference {packageRef.Name} has incorrect version {packageRef.Version}");
-                    textWriter.WriteLine($"Allowed values are " + string.Join(" or ", allowedPackageVersions));
+                    textWriter.WriteLine($"Allowed values are " + string.Join(" or", allowedPackageVersions));
                     allGood = false;
                 }
             }
@@ -158,13 +158,6 @@ namespace BuildBoss
                 yield return $"$({name}Version)";
                 yield return $"$({name}FixedVersion)";
                 yield return $"$(RefOnly{name}Version)";
-
-                // These two projects have a direct or indirect dependency on both MSBuild and MS.VS.Shell.15.0. Our normal MSBuild
-                // version is 16.5.0, but MS.VS.Shell has a dependency on 17.1.0. For these projects, we allow an additional version.
-                if (name.StartsWith("MicrosoftBuild") && (ProjectFilePath.Contains("Roslyn.Compilers.Extension.csproj") || ProjectFilePath.Contains("IdeBenchmarks.csproj")))
-                {
-                    yield return $"$(RefOnly{name}Version_WithShellDependency)";
-                }
             }
         }
 
