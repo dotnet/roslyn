@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private static bool IsStaticAccess(ISymbol symbol)
+        private static bool IsStaticAccess(ISymbol? symbol)
             => symbol is INamespaceOrTypeSymbol or { IsStatic: true };
 
         private bool InvocationsAreCompatible(TInvocationExpressionSyntax? originalInvocation, TInvocationExpressionSyntax? newInvocation)
