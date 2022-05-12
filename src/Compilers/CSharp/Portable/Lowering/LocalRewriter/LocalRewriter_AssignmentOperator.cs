@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
                     break;
 
-                case BoundKind.IndexOrRangePatternIndexerAccess:
-                    loweredLeft = VisitIndexOrRangePatternIndexerAccess(
-                        (BoundIndexOrRangePatternIndexerAccess)left,
+                case BoundKind.ImplicitIndexerAccess:
+                    loweredLeft = VisitImplicitIndexerAccess(
+                        (BoundImplicitIndexerAccess)left,
                         isLeftOfAssignment: true);
                     break;
 
@@ -65,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // dyn[args] = expr
                         var indexerAccess = (BoundDynamicIndexerAccess)left;
                         var loweredReceiver = VisitExpression(indexerAccess.Receiver);
+                        // Dynamic can't have created handler conversions because we don't know target types.
+                        AssertNoImplicitInterpolatedStringHandlerConversions(indexerAccess.Arguments);
                         var loweredArguments = VisitList(indexerAccess.Arguments);
                         return MakeDynamicSetIndex(
                             indexerAccess,
@@ -203,14 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!isRef);
                         BoundIndexerAccess indexerAccess = (BoundIndexerAccess)rewrittenLeft;
                         BoundExpression? rewrittenReceiver = indexerAccess.ReceiverOpt;
-                        ImmutableArray<BoundExpression> rewrittenArguments = indexerAccess.Arguments;
+                        ImmutableArray<BoundExpression> arguments = indexerAccess.Arguments;
                         PropertySymbol indexer = indexerAccess.Indexer;
                         Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
                         return MakePropertyAssignment(
                             syntax,
                             rewrittenReceiver,
                             indexer,
-                            rewrittenArguments,
+                            arguments,
                             indexerAccess.ArgumentRefKindsOpt,
                             indexerAccess.Expanded,
                             indexerAccess.ArgsToParamsOpt,
@@ -247,7 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Sequence:
-                    // An Index or Range pattern-based indexer produces a sequence with a nested
+                    // An Index or Range pattern-based indexer, or an interpolated string handler conversion
+                    // that uses an indexer argument, produces a sequence with a nested
                     // BoundIndexerAccess. We need to lower the final expression and produce an
                     // update sequence
                     var sequence = (BoundSequence)rewrittenLeft;
@@ -285,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression? rewrittenReceiver,
             PropertySymbol property,
-            ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
@@ -309,19 +311,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            ImmutableArray<LocalSymbol> argTemps;
-            rewrittenArguments = MakeArguments(
+            arguments = VisitArguments(
+                arguments,
+                property,
+                argsToParamsOpt,
+                argumentRefKindsOpt,
+                ref rewrittenReceiver,
+                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+
+            arguments = MakeArguments(
                 syntax,
-                rewrittenArguments,
+                arguments,
                 property,
                 expanded,
                 argsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out argTemps,
-                invokedAsExtensionMethod: false,
-                enableCallerInfo: ThreeState.True);
+                ref argTempsBuilder,
+                invokedAsExtensionMethod: false);
+
+            var argTemps = argTempsBuilder.ToImmutableAndFree();
 
             if (used)
             {
@@ -345,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rhsAssignment));
+                    AppendToPossibleNull(arguments, rhsAssignment));
 
                 return new BoundSequence(
                     syntax,
@@ -360,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     rewrittenReceiver,
                     setMethod,
-                    AppendToPossibleNull(rewrittenArguments, rewrittenRight));
+                    AppendToPossibleNull(arguments, rewrittenRight));
 
                 if (argTemps.IsDefaultOrEmpty)
                 {

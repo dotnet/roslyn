@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -28,6 +30,11 @@ namespace Microsoft.CodeAnalysis
             /// Used in C# for spans inside of <c>#line linenumber</c> directive
             /// </summary>
             Remapped,
+
+            /// <summary>
+            /// Used in C# for spans inside of <c>#line (startLine, startChar) - (endLine, endChar) charOffset</c> directive
+            /// </summary>
+            RemappedSpan,
 
             /// <summary>
             /// Used in VB for spans inside of a <c>#ExternalSource</c> directive that followed an unknown span
@@ -56,6 +63,12 @@ namespace Microsoft.CodeAnalysis
             // 0-based line it maps to.
             public readonly int MappedLine;
 
+            // 0-based mapped span from enhanced #line directive.
+            public readonly LinePositionSpan MappedSpan;
+
+            // optional 0-based character offset from enhanced #line directive.
+            public readonly int? UnmappedCharacterOffset;
+
             // raw value from #line or #ExternalDirective, may be null
             public readonly string? MappedPathOpt;
 
@@ -66,6 +79,8 @@ namespace Microsoft.CodeAnalysis
             {
                 this.UnmappedLine = unmappedLine;
                 this.MappedLine = unmappedLine;
+                this.MappedSpan = default;
+                this.UnmappedCharacterOffset = null;
                 this.MappedPathOpt = null;
                 this.State = PositionState.Unmapped;
             }
@@ -76,10 +91,28 @@ namespace Microsoft.CodeAnalysis
                 string? mappedPathOpt,
                 PositionState state)
             {
+                Debug.Assert(state != PositionState.RemappedSpan);
+
                 this.UnmappedLine = unmappedLine;
                 this.MappedLine = mappedLine;
+                this.MappedSpan = default;
+                this.UnmappedCharacterOffset = null;
                 this.MappedPathOpt = mappedPathOpt;
                 this.State = state;
+            }
+
+            public LineMappingEntry(
+                int unmappedLine,
+                LinePositionSpan mappedSpan,
+                int? unmappedCharacterOffset,
+                string? mappedPathOpt)
+            {
+                this.UnmappedLine = unmappedLine;
+                this.MappedLine = -1;
+                this.MappedSpan = mappedSpan;
+                this.UnmappedCharacterOffset = unmappedCharacterOffset;
+                this.MappedPathOpt = mappedPathOpt;
+                this.State = PositionState.RemappedSpan;
             }
 
             public int CompareTo(LineMappingEntry other)

@@ -784,5 +784,72 @@ class C
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
+
+        [Theory]
+        [InlineData("1$$", 0, 0)]
+        [InlineData("1$$, ", 0, 0)]
+        [InlineData("1, $$", 1, 0)]
+        [InlineData("s: $$", 1, 0)]
+        [InlineData("s: string.Empty$$", 1, 0)]
+        [InlineData("s: string.Empty$$, ", 1, 0)]
+        [InlineData("s: string.Empty, $$", 0, 0)]
+        [InlineData("string.Empty$$", 0, 1)]
+        [InlineData("string.Empty$$, ", 0, 1)]
+        [InlineData("string.Empty,$$", 1, 1)]
+        [InlineData("$$, ", 0, 0)]
+        [InlineData(",$$", 1, 0)]
+        [InlineData("$$, s: string.Empty", 0, 0)]
+        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
+        {
+            var markup = @"
+class Program
+{
+    static void M()
+    {
+        [|new Program(ARGUMENTS|]);
+    }
+    Program(int i, string s) { }
+    Program(string s, string s2) { }
+}";
+
+            var index = 0;
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Program(int i, string s)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
+                new SignatureHelpTestItem("Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
+            };
+
+            await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
+        }
+
+        [Theory]
+        [InlineData("s2: $$", 1)]
+        [InlineData("s2: string.Empty$$", 1)]
+        [InlineData("s2: string.Empty$$,", 1)]
+        [InlineData("s2: string.Empty,$$", 0)]
+        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        public async Task PickCorrectOverload_Incomplete_WithNames(string arguments, int expectedParameterIndex)
+        {
+            var markup = @"
+class Program
+{
+    void M()
+    {
+        [|new Program(ARGUMENTS|]);
+    }
+    Program(int i, string s) { }
+    Program(string s, string s2) { }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem($"Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: true),
+            };
+
+            await TestAsync(markup.Replace("ARGUMENTS", arguments), expectedOrderedItems);
+        }
     }
 }

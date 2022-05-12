@@ -20,7 +20,7 @@ namespace BuildBoss
     /// <summary>
     /// Verifies the contents of our toolset NuPkg and SWR files are correct.
     /// 
-    /// The compiler toolset is a particularly difficult package to get correct. In essense it is 
+    /// The compiler toolset is a particularly difficult package to get correct. In essence it is 
     /// merging the output of three different exes into a single directory. That causes a number 
     /// of issues during pack time:
     /// 
@@ -80,7 +80,6 @@ namespace BuildBoss
 
                 var allGood = true;
                 allGood &= CheckDesktop(textWriter, filter(isDesktop: true));
-                allGood &= CheckCoreClr(textWriter, filter(isDesktop: false));
                 allGood &= CheckCombined(textWriter, packageAssets);
                 allGood &= CheckExternalApis(textWriter);
                 return allGood;
@@ -99,31 +98,10 @@ namespace BuildBoss
         /// </summary>
         private bool CheckDesktop(TextWriter textWriter, IEnumerable<string> assetRelativeNames)
         {
-            var allGood = true;
-            allGood &= VerifyNuPackage(
-                        textWriter,
-                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.Net.Compilers"),
-                        @"tools",
-                        assetRelativeNames);
-
-            allGood &= VerifyNuPackage(
+            return VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.Tools.Roslyn"),
                         string.Empty,
-                        assetRelativeNames);
-
-            return allGood;
-        }
-
-        /// <summary>
-        /// Verify the contents of our desktop targeting compiler packages are correct.
-        /// </summary>
-        private bool CheckCoreClr(TextWriter textWriter, IEnumerable<string> assetRelativeNames)
-        {
-            return VerifyNuPackage(
-                        textWriter,
-                        FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.NETCore.Compilers"),
-                        @"tools",
                         assetRelativeNames);
         }
 
@@ -135,9 +113,7 @@ namespace BuildBoss
             var list = new List<string>();
             foreach (var asset in packageAssets)
             {
-                var folder = asset.IsDesktop
-                    ? @"net472"
-                    : @"netcoreapp3.1";
+                var folder = asset.IsDesktop ? "net472" : "net6.0";
                 var fileRelativeName = Path.Combine(folder, asset.FileRelativeName);
                 list.Add(fileRelativeName);
             }
@@ -171,10 +147,6 @@ namespace BuildBoss
             textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
             textWriter.WriteLine("\tRoot Folder");
             verifyFolder("");
-            textWriter.WriteLine("\tRemote Debugger net20");
-            verifyFolder(@"RemoteDebugger\net20");
-            textWriter.WriteLine("\tRemote Debugger net50");
-            verifyFolder(@"RemoteDebugger\net45");
             return allGood;
 
             void verifyFolder(string folderRelativeName)
@@ -244,15 +216,15 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"csc\{Configuration}\netcoreapp3.1\publish",
-                $@"vbc\{Configuration}\netcoreapp3.1\publish",
-                $@"VBCSCompiler\{Configuration}\netcoreapp3.1\publish");
+                $@"csc\{Configuration}\net6.0\publish",
+                $@"vbc\{Configuration}\net6.0\publish",
+                $@"VBCSCompiler\{Configuration}\net6.0\publish");
 
             // The native DLLs ship inside the runtime specific directories but build deploys it at the 
             // root as well. That copy is unnecessary.
             coreClrAssets.RemoveAll(asset =>
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.amd64.dll", asset.FileRelativeName) ||
-                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm.dll", asset.FileRelativeName) ||
+                PathComparer.Equals("Microsoft.DiaSymReader.Native.arm64.dll", asset.FileRelativeName) ||
                 PathComparer.Equals("Microsoft.DiaSymReader.Native.x86.dll", asset.FileRelativeName));
 
             // Move all of the assets into bincore as that is where the non-MSBuild task assets will go
@@ -262,7 +234,7 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\netcoreapp3.1\publish");
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\net6.0\publish");
 
             packageAssets.AddRange(desktopAssets);
             packageAssets.AddRange(coreClrAssets);
@@ -275,7 +247,7 @@ namespace BuildBoss
         /// </summary>
         private bool GetPackageAssetsCore(TextWriter textWriter, bool isDesktop, List<PackageAsset> packageAssets, params string[] directoryPaths)
         {
-            var relativeNameMap = new Dictionary<string, PackageAsset>(PathComparer);
+            var relativeNameMap = new Dictionary<string, (PackageAsset PackageAsset, string OriginalFilePath)>(PathComparer);
             var allGood = true;
 
             IEnumerable<string> enumerateAssets(string directory, SearchOption searchOption = SearchOption.TopDirectoryOnly)
@@ -320,16 +292,18 @@ namespace BuildBoss
                         var assetRelativeName = getRelativeName(assetFilePath);
                         var hash = md5.ComputeHash(stream);
                         var hashString = BitConverter.ToString(hash);
-                        if (relativeNameMap.TryGetValue(assetRelativeName, out PackageAsset existingAsset))
+                        if (relativeNameMap.TryGetValue(assetRelativeName, out var tuple))
                         {
                             // Make sure that all copies of the DLL have the same contents. The DLLs are being merged into
                             // a single directory in the resulting NuGet. If the contents are different then our merge is 
                             // invalid.
-                            if (existingAsset.Checksum != hashString)
+                            if (tuple.PackageAsset.Checksum != hashString)
                             {
                                 textWriter.WriteLine($"Asset {assetRelativeName} exists at two different versions");
-                                textWriter.WriteLine($"\tHash 1: {hashString}");
-                                textWriter.WriteLine($"\tHash 2: {existingAsset.Checksum}");
+                                textWriter.WriteLine($"\tFile Path 1: {tuple.OriginalFilePath}");
+                                textWriter.WriteLine($"\tHash 1: {tuple.PackageAsset.Checksum}");
+                                textWriter.WriteLine($"\tFile Path 2: {assetFilePath}");
+                                textWriter.WriteLine($"\tHash 2: {hashString}");
                                 allGood = false;
                             }
                         }
@@ -337,7 +311,7 @@ namespace BuildBoss
                         {
                             var packageAsset = new PackageAsset(assetRelativeName, hashString, isDesktop);
                             packageAssets.Add(packageAsset);
-                            relativeNameMap[assetRelativeName] = packageAsset;
+                            relativeNameMap[assetRelativeName] = (packageAsset, assetFilePath);
                         }
                     }
                 }

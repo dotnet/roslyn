@@ -24,11 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion request.
     /// </summary>
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(Methods.TextDocumentCompletionName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(CompletionHandler)), Shared]
+    [Method(Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
-        public override string Method => Methods.TextDocumentCompletionName;
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
         private static readonly Command s_retriggerCompletionCommand = new Command()
@@ -50,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public override async Task<CompletionList?> HandleRequestAsync(CompletionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            if (request.Context is VSCompletionContext completionContext && completionContext.InvokeKind == VSCompletionInvokeKind.Deletion)
+            if (request.Context is VSInternalCompletionContext completionContext && completionContext.InvokeKind == VSInternalCompletionInvokeKind.Deletion)
             {
                 // Don't trigger completions on backspace.
                 return null;
@@ -71,17 +70,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return null;
             }
 
-            var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>>();
-            return new VSCompletionList
+            var commitCharactersCache = new Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>>();
+            return new VSInternalCompletionList
             {
                 Items = completionResult.Completions.Select(c => CreateCompletionItem(c, document.Id, text, request.Position, request.TextDocument, commitCharactersCache)).ToArray(),
                 SuggestionMode = false,
             };
         }
 
-        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument, Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>> commitCharactersCach)
+        private static CompletionItem CreateCompletionItem(XamlCompletionItem xamlCompletion, DocumentId documentId, SourceText text, Position position, TextDocumentIdentifier textDocument, Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>> commitCharactersCach)
         {
-            var item = new VSCompletionItem
+            var item = new VSInternalCompletionItem
             {
                 Label = xamlCompletion.DisplayText,
                 VsCommitCharacters = GetCommitCharacters(xamlCompletion, commitCharactersCach),
@@ -124,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             return item;
         }
 
-        private static SumType<string[], CommitCharacter[]> GetCommitCharacters(XamlCompletionItem completionItem, Dictionary<XamlCompletionKind, ImmutableArray<CommitCharacter>> commitCharactersCache)
+        private static SumType<string[], VSInternalCommitCharacter[]> GetCommitCharacters(XamlCompletionItem completionItem, Dictionary<XamlCompletionKind, ImmutableArray<VSInternalCommitCharacter>> commitCharactersCache)
         {
             if (!completionItem.XamlCommitCharacters.HasValue)
             {
@@ -139,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             var xamlCommitCharacters = completionItem.XamlCommitCharacters.Value;
 
-            var commitCharacters = xamlCommitCharacters.Characters.Select(c => new CommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) }).ToImmutableArray();
+            var commitCharacters = xamlCommitCharacters.Characters.Select(c => new VSInternalCommitCharacter { Character = c.ToString(), Insert = !xamlCommitCharacters.NonInsertCharacters.Contains(c) }).ToImmutableArray();
             commitCharactersCache.Add(completionItem.Kind, commitCharacters);
             return commitCharacters.ToArray();
         }

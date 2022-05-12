@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         }
 
         public Task PerformWriteAsync(Action action, CancellationToken cancellationToken)
-            => PerformWriteAsync(vt =>
+            => PerformWriteAsync(static vt =>
             {
                 vt.Item1();
                 return true;

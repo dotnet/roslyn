@@ -15,6 +15,8 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
+using MessagePack.Formatters;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -28,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
     {
         public static IEnumerable<object[]> AllServiceDescriptors
             => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor32, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC });
+                .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptor64, descriptor.Value.descriptor64ServerGC, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
 
         private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
         {
             var interfaces = new List<Type>();
 
-            foreach (var (serviceType, (descriptor, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
+            foreach (var (serviceType, (descriptor, _, _, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
             {
                 interfaces.Add(serviceType);
                 if (descriptor.ClientInterface != null)
@@ -126,6 +128,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         [Fact]
+        public void OptionsAreMessagePackSerializable()
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+
+            foreach (var original in new[] { NamingStylePreferences.Default })
+            {
+                using var stream = new MemoryStream();
+                MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+                stream.Position = 0;
+                Assert.Equal(original, MessagePackSerializer.Deserialize(original.GetType(), stream, messagePackOptions));
+            }
+        }
+
+        [Fact]
         public void TypesUsedInRemoteApisMustBeMessagePackSerializable()
         {
             var types = GetAllParameterTypesOfRemoteApis();
@@ -153,6 +169,19 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     {
                         errors.Add($"{type} referenced by {declaringMember} is an internal enum and needs a custom formatter");
                     }
+                    else if (type.IsAbstract)
+                    {
+                        // custom abstract types must be explicitly listed in MessagePackFormatters.AbstractTypeFormatters
+                        if (!MessagePackFormatters.Formatters.Any(
+                            formatter => formatter.GetType() is { IsGenericType: true } and var formatterType &&
+                                         formatterType.GetGenericTypeDefinition() == typeof(ForceTypelessFormatter<>) &&
+                                         formatterType.GenericTypeArguments[0] == type))
+                        {
+                            errors.Add($"{type} referenced by {declaringMember} is abstract but ForceTypelessFormatter<{type}> is not listed in {nameof(MessagePackFormatters)}.{nameof(MessagePackFormatters.Formatters)}");
+                        }
+
+                        continue;
+                    }
                     else
                     {
                         errors.Add($"{type} referenced by {declaringMember} failed to serialize with exception: {e}");
@@ -165,17 +194,23 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         [Theory]
         [MemberData(nameof(AllServiceDescriptors))]
-        internal void GetFeatureDisplayName(Type serviceInterface, ServiceDescriptor descriptor32, ServiceDescriptor descriptor64, ServiceDescriptor descriptor64ServerGC)
+        internal void GetFeatureDisplayName(
+            Type serviceInterface,
+            ServiceDescriptor descriptor64,
+            ServiceDescriptor descriptor64ServerGC,
+            ServiceDescriptor descriptorCoreClr64,
+            ServiceDescriptor descriptorCoreClr64ServerGC)
         {
             Assert.NotNull(serviceInterface);
 
-            var expectedName = descriptor32.GetFeatureDisplayName();
+            var expectedName = descriptor64.GetFeatureDisplayName();
 
             // The service name couldn't be found. It may need to be added to RemoteWorkspacesResources.resx as FeatureName_{name}
             Assert.False(string.IsNullOrEmpty(expectedName), $"Service name for '{serviceInterface.GetType()}' not available.");
 
-            Assert.Equal(expectedName, descriptor64.GetFeatureDisplayName());
             Assert.Equal(expectedName, descriptor64ServerGC.GetFeatureDisplayName());
+            Assert.Equal(expectedName, descriptorCoreClr64.GetFeatureDisplayName());
+            Assert.Equal(expectedName, descriptorCoreClr64ServerGC.GetFeatureDisplayName());
         }
 
         [Fact]
@@ -185,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
 
             var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-                .Where(d => d.Value.descriptor32.ClientInterface != null).Select(d => d.Key);
+                .Where(d => d.Value.descriptor64.ClientInterface != null).Select(d => d.Key);
 
             var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
             AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);

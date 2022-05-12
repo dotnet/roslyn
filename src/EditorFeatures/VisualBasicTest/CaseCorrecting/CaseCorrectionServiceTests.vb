@@ -4,7 +4,6 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
@@ -34,9 +33,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
 
+            Dim options = Await document.GetCodeCleanupOptionsAsync(fallbackOptions:=Nothing, CancellationToken.None)
+
             Dim service = document.GetLanguageService(Of ICodeCleanerService)
             Dim newDocument = Await service.CleanupAsync(
-                document, ImmutableArray.Create(span),
+                document, ImmutableArray.Create(span), options,
                 ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()),
                 CancellationToken.None)
 

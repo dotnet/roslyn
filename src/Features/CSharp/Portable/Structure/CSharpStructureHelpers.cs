@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
 
             var nextToken = lastToken.GetNextToken(includeSkipped: true);
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
+            if (nextToken.Kind() is not SyntaxKind.None and SyntaxKind.SemicolonToken)
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)
@@ -244,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         public static void CollectCommentBlockSpans(
             SyntaxNode node,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider)
+            in BlockStructureOptions options)
         {
             if (node == null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (optionProvider.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
+            if (options.IsMetadataAsSource && TryGetLeadingCollapsibleSpan(node, out var span))
             {
                 spans.Add(span);
             }
@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return false;
                 }
 
-                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
-                var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;
+                var startPosition = firstComment.HasValue ? firstComment.Value.FullSpan.Start : startToken.SpanStart;
                 var endPosition = endToken.SpanStart;
 
                 // TODO (tomescht): Mark the regions to be collapsed by default.
@@ -388,13 +388,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             string type, bool isCollapsible)
         {
             return CreateBlockSpan(
-                textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible);
+                textSpan, textSpan, bannerText, autoCollapse, type, isCollapsible, isDefaultCollapsed: false);
         }
 
         private static BlockSpan CreateBlockSpan(
             TextSpan textSpan, TextSpan hintSpan,
             string bannerText, bool autoCollapse,
-            string type, bool isCollapsible)
+            string type, bool isCollapsible, bool isDefaultCollapsed)
         {
             return new BlockSpan(
                 textSpan: textSpan,
@@ -402,7 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText: bannerText,
                 autoCollapse: autoCollapse,
                 type: type,
-                isCollapsible: isCollapsible);
+                isCollapsible: isCollapsible,
+                isDefaultCollapsed: isDefaultCollapsed);
         }
 
         public static BlockSpan CreateBlockSpan(
@@ -451,7 +452,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText,
                 autoCollapse,
                 type,
-                isCollapsible);
+                isCollapsible,
+                isDefaultCollapsed: false);
         }
 
         private static TextSpan GetHintSpan(SyntaxNode node, int endPos)
@@ -526,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         // node in the list.
         public static BlockSpan? CreateBlockSpan(
             IEnumerable<SyntaxNode> syntaxList, bool compressEmptyLines, bool autoCollapse,
-            string type, bool isCollapsible)
+            string type, bool isCollapsible, bool isDefaultCollapsed)
         {
             if (syntaxList.IsEmpty())
             {
@@ -551,7 +553,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 bannerText: Ellipsis,
                 autoCollapse: autoCollapse,
                 type: type,
-                isCollapsible: isCollapsible);
+                isCollapsible: isCollapsible,
+                isDefaultCollapsed: isDefaultCollapsed);
         }
     }
 }

@@ -1251,6 +1251,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return LexicalSortKey.Compare(first, second, Me)
         End Function
 
+        ''' <summary>
+        ''' Compare two source locations, using their containing trees, and then by Span.First within a tree. 
+        ''' Can be used to get a total ordering on declarations, for example.
+        ''' </summary>
+        Friend Overrides Function CompareSourceLocations(first As SyntaxNode, second As SyntaxNode) As Integer
+            Return LexicalSortKey.Compare(first, second, Me)
+        End Function
+
         Friend Overrides Function GetSyntaxTreeOrdinal(tree As SyntaxTree) As Integer
             Debug.Assert(Me.ContainsSyntaxTree(tree))
             Return _syntaxTreeOrdinalMap(tree)
@@ -2495,14 +2503,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+        Friend Overrides Function GenerateResources(
             moduleBuilder As CommonPEModuleBuilder,
-            xmlDocStream As Stream,
             win32Resources As Stream,
             useRawWin32Resources As Boolean,
-            outputNameOverride As String,
             diagnostics As DiagnosticBag,
             cancellationToken As CancellationToken) As Boolean
+
+            cancellationToken.ThrowIfCancellationRequested()
 
             ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             Dim resourceDiagnostics = DiagnosticBag.GetInstance()
@@ -2516,9 +2524,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics)
 
-            If Not FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken) Then
-                Return False
-            End If
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, resourceDiagnostics, cancellationToken)
+        End Function
+
+        Friend Overrides Function GenerateDocumentationComments(
+            xmlDocStream As Stream,
+            outputNameOverride As String,
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As Boolean
 
             cancellationToken.ThrowIfCancellationRequested()
 

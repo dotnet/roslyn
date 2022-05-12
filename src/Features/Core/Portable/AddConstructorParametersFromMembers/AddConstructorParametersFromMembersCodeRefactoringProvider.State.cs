@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
                 if (constructorParams.Length == 2)
                 {
-                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
                     var deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
                     if (deserializationConstructorCheck.IsDeserializationConstructor(constructor))
                     {

@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // since the ContainingSymbol needs to be set to the accessor.
             foreach (SourceParameterSymbol propertyParam in propertyParameters)
             {
-                parameters.Add(new SourceClonedParameterSymbol(propertyParam, this, propertyParam.Ordinal, suppressOptional: false));
+                parameters.Add(new SourcePropertyClonedParameterSymbolForAccessors(propertyParam, this));
             }
 
             if (!isGetMethod)
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 

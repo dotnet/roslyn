@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -27,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             {
                 return
                     IsConstructorInitializerContext(context) ||
-                    IsInstanceExpressionOrStatement(context);
+                    IsInstanceExpressionOrStatement(context) ||
+                    context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
             }
 
             return false;
@@ -55,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 token.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration) &&
                 token.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
             {
-                var constructor = token.GetAncestor<ConstructorDeclarationSyntax>();
+                var constructor = token.GetRequiredAncestor<ConstructorDeclarationSyntax>();
                 if (constructor.Modifiers.Any(SyntaxKind.StaticKeyword))
                 {
                     return false;

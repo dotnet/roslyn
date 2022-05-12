@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = GetMethod(compilation, moduleVersionId, methodHandle);
             var metadataDecoder = new MetadataDecoder((PEModuleSymbol)method.ContainingModule);
             var containingType = method.ContainingType;
-            string sourceMethodName;
-            if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(containingType.Name, GeneratedNameKind.StateMachineType, out sourceMethodName))
+            if (GeneratedNameParser.TryParseSourceMethodNameFromGeneratedName(containingType.Name, GeneratedNameKind.StateMachineType, out var sourceMethodName))
             {
                 foreach (var member in containingType.ContainingType.GetMembers(sourceMethodName))
                 {
@@ -45,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         methodHandle = candidateMethod.Handle;
                         string stateMachineTypeName;
                         if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
-                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName))
+                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName) ||
+                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncIteratorStateMachineAttribute, out stateMachineTypeName))
                         {
                             if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
                             {

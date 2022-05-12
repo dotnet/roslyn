@@ -1899,7 +1899,7 @@ End Module
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod() As Task
+        Public Async Function TestAddImportForAddExtensionMethod() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections
@@ -1942,7 +1942,7 @@ parseOptions:=Nothing)
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod2() As Task
+        Public Async Function TestAddImportForAddExtensionMethod2() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections
@@ -1985,7 +1985,7 @@ parseOptions:=Nothing)
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod3() As Task
+        Public Async Function TestAddImportForAddExtensionMethod3() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections
@@ -2028,7 +2028,7 @@ parseOptions:=Nothing)
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod4() As Task
+        Public Async Function TestAddImportForAddExtensionMethod4() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections
@@ -2071,7 +2071,7 @@ parseOptions:=Nothing)
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod5() As Task
+        Public Async Function TestAddImportForAddExtensionMethod5() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections
@@ -2114,7 +2114,7 @@ parseOptions:=Nothing)
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod6() As Task
+        Public Async Function TestAddImportForAddExtensionMethod6() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections
@@ -2171,7 +2171,7 @@ parseOptions:=Nothing)
 
         <WorkItem(269, "https://github.com/dotnet/roslyn/issues/269")>
         <Fact>
-        Public Async Function TestAddImportForAddExtentionMethod7() As Task
+        Public Async Function TestAddImportForAddExtensionMethod7() As Task
             Await TestAsync(
 "Imports System
 Imports System.Collections

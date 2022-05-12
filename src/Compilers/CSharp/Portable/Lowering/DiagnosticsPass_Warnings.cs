@@ -249,11 +249,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.MethodOpt is MethodSymbol method)
+            if (node.Method is MethodSymbol method)
             {
-                if (_inExpressionLambda && method.IsAbstract && method.IsStatic)
+                if (_inExpressionLambda)
                 {
-                    Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    if (method.Name == WellKnownMemberNames.CheckedDivisionOperatorName)
+                    {
+                        Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
+                    }
+                    else if (method.IsAbstract && method.IsStatic)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    }
                 }
             }
             else
@@ -267,16 +274,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+
+            if (_inExpressionLambda && node.OperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, ">>>");
+            }
         }
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             BoundExpression left = node.Left;
 
-            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            if (!node.Operator.Kind.IsDynamic() && node.LeftConversion is BoundConversion { Conversion: { IsIdentity: false, Exists: true } conversion })
             {
                 // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
-                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                left = new BoundConversion(left.Syntax, left, conversion, node.Operator.Kind.IsChecked(),
                                            explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
             }
 

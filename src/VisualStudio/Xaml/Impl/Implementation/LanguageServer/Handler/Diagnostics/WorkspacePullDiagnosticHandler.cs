@@ -14,13 +14,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
+using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(MSLSPMethods.WorkspacePullDiagnosticName)]
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<WorkspaceDocumentDiagnosticsParams, WorkspaceDiagnosticReport>
+    [ExportXamlLspRequestHandlerProvider(typeof(WorkspacePullDiagnosticHandler)), Shared]
+    [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -29,12 +30,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             : base(xamlPullDiagnosticService)
         { }
 
-        public override string Method => MSLSPMethods.WorkspacePullDiagnosticName;
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request) => null;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(WorkspaceDocumentDiagnosticsParams request) => null;
-
-        protected override WorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
-            => new WorkspaceDiagnosticReport { TextDocument = identifier, Diagnostics = diagnostics, ResultId = resultId };
+        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+            => new VSInternalWorkspaceDiagnosticReport { TextDocument = identifier, Diagnostics = diagnostics, ResultId = resultId };
 
         /// <summary>
         /// Collect all the opened documents from solution. 
@@ -55,10 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             return result.Distinct().ToImmutableArray();
         }
 
-        protected override DiagnosticParams[]? GetPreviousResults(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
+        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PreviousResults;
 
-        protected override IProgress<WorkspaceDiagnosticReport[]>? GetProgress(WorkspaceDocumentDiagnosticsParams diagnosticsParams)
+        protected override IProgress<VSInternalWorkspaceDiagnosticReport[]>? GetProgress(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
             => diagnosticsParams.PartialResultToken;
     }
 }

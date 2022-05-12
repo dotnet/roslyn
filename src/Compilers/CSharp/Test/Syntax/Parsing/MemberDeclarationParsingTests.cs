@@ -428,6 +428,306 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UnsignedRightShiftOperator_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator >>>(C x, C y) => x;", options: options);
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftOperator_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator > >>(C x, C y) => x;", options: options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 14),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
+                    // (1,30): error CS1003: Syntax error, ',' expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
+                    // (1,31): error CS1001: Identifier expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
+                    // (1,31): error CS1026: ) expected
+                    // C operator > >>(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftOperator_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator >> >(C x, C y) => x;", options: options,
+                    // (1,15): error CS1003: Syntax error, '(' expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">").WithArguments("(").WithLocation(1, 15),
+                    // (1,15): error CS1001: Identifier expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">").WithLocation(1, 15),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
+                    // (1,30): error CS1003: Syntax error, ',' expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
+                    // (1,31): error CS1001: Identifier expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
+                    // (1,31): error CS1026: ) expected
+                    // C operator >> >(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftOperator_04()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingDeclaration("C operator >>>=(C x, C y) => x;", options: options,
+                    // (1,14): error CS1003: Syntax error, '(' expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ">=").WithArguments("(").WithLocation(1, 14),
+                    // (1,14): error CS1001: Identifier expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ">=").WithLocation(1, 14),
+                    // (1,27): error CS1001: Identifier expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 27),
+                    // (1,27): error CS1003: Syntax error, ',' expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 27),
+                    // (1,30): error CS1003: Syntax error, ',' expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 30),
+                    // (1,31): error CS1001: Identifier expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 31),
+                    // (1,31): error CS1026: ) expected
+                    // C operator >>>=(C x, C y) => x;
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31)
+                    );
+
+                N(SyntaxKind.OperatorDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "C");
+                    }
+                    N(SyntaxKind.OperatorKeyword);
+                    N(SyntaxKind.GreaterThanGreaterThanToken);
+                    N(SyntaxKind.ParameterList);
+                    {
+                        M(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.TupleElement);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "C");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "y");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         [WorkItem(367, "https://github.com/dotnet/roslyn/issues/367")]
         public void TrashAfterDeclaration()
         {
@@ -486,10 +786,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
                     // (1,35): error CS1003: Syntax error, ',' expected
                     // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 35),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",").WithLocation(1, 35),
                     // (1,41): error CS1003: Syntax error, '>' expected
                     // async Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 41)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 41)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -537,10 +837,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace.SomeType Method").WithArguments("(").WithLocation(1, 1),
                     // (1,36): error CS1003: Syntax error, ',' expected
                     // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",", "").WithLocation(1, 36),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "Method").WithArguments(",").WithLocation(1, 36),
                     // (1,42): error CS1003: Syntax error, '>' expected
                     // public Task<SomeNamespace.SomeType Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 42)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 42)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -588,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "async Task<SomeNamespace. Method").WithArguments("(").WithLocation(1, 1),
                     // (1,33): error CS1003: Syntax error, '>' expected
                     // async Task<SomeNamespace. Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 33)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 33)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -631,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "public Task<SomeNamespace. Method").WithArguments("(").WithLocation(1, 1),
                     // (1,34): error CS1003: Syntax error, '>' expected
                     // public Task<SomeNamespace. Method();
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">", "(").WithLocation(1, 34)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(">").WithLocation(1, 34)
                     );
                 N(SyntaxKind.IncompleteMember);
                 {
@@ -1000,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
@@ -1081,7 +1381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 16)
@@ -1159,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,16): error CS1003: Syntax error, '.' expected
                 // public int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 16)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -1234,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // public int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -1710,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 16)
@@ -1795,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 8),
                 // (1,16): error CS1003: Syntax error, 'operator' expected
                 // public int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 16),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // public int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 16)
@@ -1877,7 +2177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,16): error CS1003: Syntax error, '.' expected
                 // public int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 16)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 16)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -1956,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // public int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2577,7 +2877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,9): error CS1019: Overloadable unary operator expected
                 // int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 9)
@@ -2657,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,16): error CS1019: Overloadable unary operator expected
                 // int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 9)
@@ -2734,7 +3034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,9): error CS1003: Syntax error, '.' expected
                 // int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 9)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 9)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -2808,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,7): error CS1003: Syntax error, '.' expected
                 // int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 7)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -3277,7 +3577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.implicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,9): error CS1019: Overloadable unary operator expected
                 // int N.I.implicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(1, 9)
@@ -3361,7 +3661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(1, 1),
                 // (1,9): error CS1003: Syntax error, 'operator' expected
                 // int N.I.explicit (int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(1, 9),
                 // (1,9): error CS1019: Overloadable unary operator expected
                 // int N.I.explicit (int x) => x;
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(1, 9)
@@ -3442,7 +3742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,9): error CS1003: Syntax error, '.' expected
                 // int N.I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 9)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 9)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -3520,7 +3820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,7): error CS1003: Syntax error, '.' expected
                 // int I operator +(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 7)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4296,7 +4596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,1): error CS1003: Syntax error, 'explicit' expected
                 // N.I.operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit", "").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "N").WithArguments("explicit").WithLocation(1, 1)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4370,7 +4670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,1): error CS1003: Syntax error, 'explicit' expected
                 // operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit", "operator").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit").WithLocation(1, 1)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4421,7 +4721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4495,7 +4795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,12): error CS1003: Syntax error, '.' expected
                 // explicit I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 12)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -4927,10 +5227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".", "int").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(".").WithLocation(1, 14),
                 // (1,14): error CS1003: Syntax error, 'operator' expected
                 // implicit N.I int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator", "int").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5008,7 +5308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,15): error CS1003: Syntax error, 'operator' expected
                 // explicit N.I. int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator", "int").WithLocation(1, 15)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("operator").WithLocation(1, 15)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5086,7 +5386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,14): error CS1003: Syntax error, '.' expected
                 // implicit N.I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 14)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5164,7 +5464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = new[] {
                 // (1,12): error CS1003: Syntax error, '.' expected
                 // explicit I operator int(int x) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".", "operator").WithLocation(1, 12)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments(".").WithLocation(1, 12)
                 };
 
             foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
@@ -5675,10 +5975,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I T(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,12): error CS1003: Syntax error, '.' expected
                     // explicit I T(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments(".", "").WithLocation(1, 12),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments(".").WithLocation(1, 12),
                     // (1,12): error CS1003: Syntax error, 'operator' expected
                     // explicit I T(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator", "").WithLocation(1, 12)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator").WithLocation(1, 12)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -5732,7 +6032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I.T(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,12): error CS1003: Syntax error, 'operator' expected
                     // explicit I.T(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator", "").WithLocation(1, 12)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T").WithArguments("operator").WithLocation(1, 12)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -5945,10 +6245,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I.T1 T2(int x) => x;", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,15): error CS1003: Syntax error, '.' expected
                     // explicit I.T1 T2(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments(".", "").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments(".").WithLocation(1, 15),
                     // (1,15): error CS1003: Syntax error, 'operator' expected
                     // explicit I.T1 T2(int x) => x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments("operator", "").WithLocation(1, 15)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "T2").WithArguments("operator").WithLocation(1, 15)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -6062,7 +6362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 29),
                     // (1,30): error CS1003: Syntax error, '(' expected
                     // explicit I.operator (int x, );
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(1, 30),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(1, 30),
                     // (1,30): error CS1026: ) expected
                     // explicit I.operator (int x, );
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 30)
@@ -6120,7 +6420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("explicit I.operator (int x, int y);", options: options.WithLanguageVersion(LanguageVersion.Preview),
                     // (1,35): error CS1003: Syntax error, '(' expected
                     // explicit I.operator (int x, int y);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(", ";").WithLocation(1, 35),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(1, 35),
                     // (1,35): error CS1026: ) expected
                     // explicit I.operator (int x, int y);
                     Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 35)
@@ -6228,7 +6528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 21),
                     // (1,28): error CS1003: Syntax error, ',' expected
                     // explicit I.operator (int x int y);
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(1, 28)
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 28)
                     );
 
                 N(SyntaxKind.ConversionOperatorDeclaration);
@@ -6351,7 +6651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var error = new[] {
                 // (2,9): error CS1003: Syntax error, 'operator' expected
                 // explicit
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator", "").WithLocation(2, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("operator").WithLocation(2, 9),
                 // (2,9): error CS1001: Identifier expected
                 // explicit
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(2, 9)
@@ -6602,6 +6902,1114 @@ Func<int, int> f1 = (param1) => 10;
                         N(SyntaxKind.PredefinedType);
                         {
                             N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        public void MisplacedColonColon_01()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("int N::I::M1() => 0;", options: options,
+                    // (1,9): error CS7000: Unexpected use of an aliased name
+                    // int N::I::M1() => 0;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 9)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "N");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M1");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        public void MisplacedColonColon_02()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("int N1::N2::I.M1() => 0;", options: options,
+                    // (1,11): error CS7000: Unexpected use of an aliased name
+                    // int N1::N2::I.M1() => 0;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 11)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.AliasQualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N1");
+                                }
+                                N(SyntaxKind.ColonColonToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N2");
+                                }
+                            }
+                            M(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M1");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        public void MisplacedColonColon_03()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("int N1::N2.I::M1() => 0;", options: options,
+                    // (1,13): error CS7000: Unexpected use of an aliased name
+                    // int N1::N2.I::M1() => 0;
+                    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(1, 13)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.AliasQualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N1");
+                                }
+                                N(SyntaxKind.ColonColonToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "N2");
+                                }
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M1");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        public void MisplacedColonColon_04()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("int I::M1() => 0;", options: options,
+                    // (1,6): error CS0687: The namespace alias qualifier '::' always resolves to a type or namespace so is illegal here. Consider using '.' instead.
+                    // int I::M1() => 0;
+                    Diagnostic(ErrorCode.ERR_AliasQualAsExpression, "::").WithLocation(1, 6)
+                    );
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                        }
+                        M(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M1");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        [WorkItem(53021, "https://github.com/dotnet/roslyn/issues/53021")]
+        public void MisplacedColonColon_05()
+        {
+            foreach (var options in new[] { TestOptions.Script, TestOptions.Regular })
+            {
+                UsingDeclaration("int N1::I.M1() => 0;", options: options);
+
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.ExplicitInterfaceSpecifier);
+                    {
+                        N(SyntaxKind.AliasQualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "N1");
+                            }
+                            N(SyntaxKind.ColonColonToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                        N(SyntaxKind.DotToken);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M1");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void EnumConstraint_OnMethod()
+        {
+            UsingNode(@"
+class C
+{
+    void M<T>() where T : /*comment*/ enum /*comment*/ { }
+}
+", options: TestOptions.Regular,
+                // (4,39): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
+                //     void M<T>() where T : /*comment*/ enum /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(4, 39)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.TypeParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TypeParameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.TypeParameterConstraintClause);
+                        {
+                            N(SyntaxKind.WhereKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            M(SyntaxKind.TypeConstraint);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void EnumConstraint_OnType()
+        {
+            UsingNode(@"
+interface I<T> where T : /*comment*/ enum /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,38): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
+                // interface I<T> where T : /*comment*/ enum /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(2, 38)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "I");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void EnumConstraint_OnDelegate()
+        {
+            UsingNode(@"
+class C
+{
+    delegate void D<T>() where T : /*comment*/ enum /*comment*/;
+}
+", options: TestOptions.Regular,
+                // (4,48): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
+                //     delegate void D<T>() where T : /*comment*/ enum /*comment*/;
+                Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(4, 48)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.DelegateDeclaration);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "D");
+                        N(SyntaxKind.TypeParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.TypeParameter);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.TypeParameterConstraintClause);
+                        {
+                            N(SyntaxKind.WhereKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            M(SyntaxKind.TypeConstraint);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void EnumConstraint_OnLocalFunction()
+        {
+            UsingNode(@"
+class C
+{
+    void M()
+    {
+        void local<T>() where T : /*comment*/ enum /*comment*/ { }
+    }
+}
+", options: TestOptions.Regular,
+                // (6,47): error CS9010: Keyword 'enum' cannot be used as a constraint. Did you mean 'struct, System.Enum'?
+                //         void local<T>() where T : /*comment*/ enum /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoEnumConstraint, "enum").WithLocation(6, 47)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalFunctionStatement);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "local");
+                                N(SyntaxKind.TypeParameterList);
+                                {
+                                    N(SyntaxKind.LessThanToken);
+                                    N(SyntaxKind.TypeParameter);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "T");
+                                    }
+                                    N(SyntaxKind.GreaterThanToken);
+                                }
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.TypeParameterConstraintClause);
+                                {
+                                    N(SyntaxKind.WhereKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "T");
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                    M(SyntaxKind.TypeConstraint);
+                                    {
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_First()
+        {
+            UsingNode(@"
+class C<T> where T : /*comment*/ delegate /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,34): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // class C<T> where T : /*comment*/ delegate /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(2, 34)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_AfterClass()
+        {
+            UsingNode(@"
+class C<T> where T : class, /*comment*/ delegate /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,41): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // class C<T> where T : class, /*comment*/ delegate /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(2, 41)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_AfterType()
+        {
+            UsingNode(@"
+class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,40): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(2, 40)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_AtEOF()
+        {
+            UsingNode(@"record R<T> where T : delegate", options: TestOptions.Regular,
+                // (1,23): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // record R<T> where T : delegate
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(1, 23),
+                // (1,31): error CS1514: { expected
+                // record R<T> where T : delegate
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 31),
+                // (1,31): error CS1513: } expected
+                // record R<T> where T : delegate
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 31)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.RecordDeclaration);
+                {
+                    N(SyntaxKind.RecordKeyword);
+                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("!", SyntaxKind.ExclamationToken)]
+        [InlineData("~", SyntaxKind.TildeToken)]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        [InlineData("true", SyntaxKind.TrueKeyword)]
+        [InlineData("false", SyntaxKind.FalseKeyword)]
+        public void CheckedOperatorDeclaration_01(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C operator checked " + op + "(C x) => x;");
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("!", SyntaxKind.ExclamationToken)]
+        [InlineData("~", SyntaxKind.TildeToken)]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        [InlineData("true", SyntaxKind.TrueKeyword)]
+        [InlineData("false", SyntaxKind.FalseKeyword)]
+        public void CheckedOperatorDeclaration_02(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C I.operator checked " + op + "(C x) => x;", options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ExplicitInterfaceSpecifier);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "I");
+                    }
+                    N(SyntaxKind.DotToken);
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("*", SyntaxKind.AsteriskToken)]
+        [InlineData("/", SyntaxKind.SlashToken)]
+        [InlineData("%", SyntaxKind.PercentToken)]
+        [InlineData("&", SyntaxKind.AmpersandToken)]
+        [InlineData("|", SyntaxKind.BarToken)]
+        [InlineData("^", SyntaxKind.CaretToken)]
+        [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
+        [InlineData(">>", SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData(">>>", SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
+        [InlineData("==", SyntaxKind.EqualsEqualsToken)]
+        [InlineData("!=", SyntaxKind.ExclamationEqualsToken)]
+        [InlineData(">", SyntaxKind.GreaterThanToken)]
+        [InlineData("<", SyntaxKind.LessThanToken)]
+        [InlineData(">=", SyntaxKind.GreaterThanEqualsToken)]
+        [InlineData("<=", SyntaxKind.LessThanEqualsToken)]
+        public void CheckedOperatorDeclaration_03(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C operator checked " + op + "(C x, C y) => x;");
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("*", SyntaxKind.AsteriskToken)]
+        [InlineData("/", SyntaxKind.SlashToken)]
+        [InlineData("%", SyntaxKind.PercentToken)]
+        [InlineData("&", SyntaxKind.AmpersandToken)]
+        [InlineData("|", SyntaxKind.BarToken)]
+        [InlineData("^", SyntaxKind.CaretToken)]
+        [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
+        [InlineData(">>", SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData(">>>", SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
+        [InlineData("==", SyntaxKind.EqualsEqualsToken)]
+        [InlineData("!=", SyntaxKind.ExclamationEqualsToken)]
+        [InlineData(">", SyntaxKind.GreaterThanToken)]
+        [InlineData("<", SyntaxKind.LessThanToken)]
+        [InlineData(">=", SyntaxKind.GreaterThanEqualsToken)]
+        [InlineData("<=", SyntaxKind.LessThanEqualsToken)]
+        public void CheckedOperatorDeclaration_04(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C I.operator checked " + op + "(C x, C y) => x;", options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ExplicitInterfaceSpecifier);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "I");
+                    }
+                    N(SyntaxKind.DotToken);
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
+        [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
+        public void CheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration(op + " operator checked D(C x) => x;");
+
+            N(SyntaxKind.ConversionOperatorDeclaration);
+            {
+                N(opToken);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "D");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
+        [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
+        public void CheckedOperatorDeclaration_06(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration(op + " I.operator checked D(C x) => x;", options: TestOptions.RegularPreview);
+
+            N(SyntaxKind.ConversionOperatorDeclaration);
+            {
+                N(opToken);
+                N(SyntaxKind.ExplicitInterfaceSpecifier);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "I");
+                    }
+                    N(SyntaxKind.DotToken);
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.CheckedKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "D");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
                         }
                         N(SyntaxKind.IdentifierToken, "x");
                     }

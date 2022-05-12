@@ -6,11 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -109,6 +109,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
             AssertEx.Equal(Array.Empty(Of SyntaxKind)(), unhandledKinds)
         End Sub
+
+        Private Shared Async Function AnalyzeDocumentAsync(oldProject As Project, newDocument As Document, Optional activeStatementMap As ActiveStatementsMap = Nothing) As Task(Of DocumentAnalysisResults)
+            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
+            Dim baseActiveStatements = AsyncLazy.Create(If(activeStatementMap, ActiveStatementsMap.Empty))
+            Dim capabilities = AsyncLazy.Create(EditAndContinueTestHelpers.Net5RuntimeCapabilities)
+            Return Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of LinePositionSpan).Empty, capabilities, CancellationToken.None)
+        End Function
 #End Region
 
         <Fact>
@@ -123,14 +130,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 End Namespace
 
 <A, B>
-<span>Structure S(Of T As {New, Class, I})</span>
+Structure S(Of <span>T</span> As {New, Class, I})
     Inherits B
 End Structure
 
-Structure S(Of T <span>As {New, Class, I}</span>)
+Structure S(Of <span>T</span> As {New, Class, I})
 End Structure
 
-Structure S(Of T As {<span>New</span>, <span>Class</span>, <span>I</span>})
+Structure S(Of <span>T</span> As {New, Class, I})
 End Structure
 
 <A, B>
@@ -471,15 +478,13 @@ End Class
                         KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                             New ActiveStatement(
                                 ordinal:=0,
-                                ActiveStatementFlags.IsLeafFrame,
+                                ActiveStatementFlags.LeafFrame,
                                 New SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                                 instructionId:=Nothing)))
                     }),
                     ActiveStatementsMap.Empty.InstructionMap)
 
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim result = Await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements)
 
                 Assert.True(result.HasChanges)
                 Dim syntaxMap = result.SemanticEdits(0).SyntaxMap
@@ -507,9 +512,8 @@ End Class
             Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
-                Dim baseActiveStatements = ActiveStatementsMap.Empty
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+
+                Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -540,10 +544,8 @@ End Class
                 Dim documentId = oldDocument.Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-                Dim baseActiveStatements = ActiveStatementsMap.Empty
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -565,9 +567,8 @@ End Class
             Using workspace = TestWorkspace.CreateVisualBasic(source, composition:=s_composition)
                 Dim oldProject = workspace.CurrentSolution.Projects.Single()
                 Dim oldDocument = oldProject.Documents.Single()
-                Dim baseActiveStatements = ActiveStatementsMap.Empty
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, oldDocument, ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+
+                Dim result = Await AnalyzeDocumentAsync(oldProject, oldDocument)
 
                 Assert.False(result.HasChanges)
                 Assert.False(result.HasChangesAndErrors)
@@ -600,10 +601,8 @@ End Class
                 Dim documentId = oldDocument.Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-                Dim baseActiveStatements = ActiveStatementsMap.Empty
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 ' no declaration errors (error in method body is only reported when emitting)
                 Assert.False(result.HasChangesAndErrors)
@@ -633,10 +632,7 @@ End Class
                 Dim oldProject = oldSolution.Projects.Single()
                 Dim documentId = oldProject.Documents.Single().Id
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-
-                Dim baseActiveStatements = ActiveStatementsMap.Empty
-                Dim result = Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newSolution.GetDocument(documentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None)
+                Dim result = Await AnalyzeDocumentAsync(oldProject, newSolution.GetDocument(documentId))
 
                 Assert.True(result.HasChanges)
 
@@ -680,10 +676,8 @@ End Class
                 Dim changedDocuments = changes.GetChangedDocuments().Concat(changes.GetAddedDocuments())
 
                 Dim result = New List(Of DocumentAnalysisResults)()
-                Dim baseActiveStatements = ActiveStatementsMap.Empty
-                Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
                 For Each changedDocumentId In changedDocuments
-                    result.Add(Await analyzer.AnalyzeDocumentAsync(oldProject, baseActiveStatements, newProject.GetDocument(changedDocumentId), ImmutableArray(Of LinePositionSpan).Empty, EditAndContinueTestHelpers.Net5RuntimeCapabilities, CancellationToken.None))
+                    result.Add(Await AnalyzeDocumentAsync(oldProject, newProject.GetDocument(changedDocumentId)))
                 Next
 
                 Assert.True(result.IsSingle())

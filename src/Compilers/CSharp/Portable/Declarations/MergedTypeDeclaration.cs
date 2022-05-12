@@ -46,13 +46,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        /// <summary>
+        /// Returns the original syntax nodes for this type declaration across all its parts.  If
+        /// <paramref name="quickAttributes"/> is provided, attributes will not be returned if it
+        /// is certain there are none that could match the request.  This prevents going back to 
+        /// source unnecessarily.
+        /// </summary>
+        public ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations(QuickAttributes? quickAttributes)
         {
             var attributeSyntaxListBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
             foreach (var decl in _declarations)
             {
                 if (!decl.HasAnyAttributes)
+                {
+                    continue;
+                }
+
+                if (quickAttributes != null && (decl.QuickAttributes & quickAttributes.Value) == 0)
                 {
                     continue;
                 }

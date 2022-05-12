@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -55,7 +56,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
+                        (service, solutionInfo, callbackId, cancellationToken) => service.ResolveConflictsAsync(solutionInfo, callbackId, serializableLocationSet, replacementText, nonConflictSymbolIds, cancellationToken),
+                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Workspace.Services, renameLocationSet.FallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
             if (symbol.IsAnonymousType())
             {
                 return symbol.ToDisplayParts(s_metadataSymbolDisplayFormat)
-                    .WhereAsArray(p => p.Kind != SymbolDisplayPartKind.PropertyName && p.Kind != SymbolDisplayPartKind.FieldName)
+                    .WhereAsArray(p => p.Kind is not SymbolDisplayPartKind.PropertyName and not SymbolDisplayPartKind.FieldName)
                     .ToDisplayString();
             }
             else

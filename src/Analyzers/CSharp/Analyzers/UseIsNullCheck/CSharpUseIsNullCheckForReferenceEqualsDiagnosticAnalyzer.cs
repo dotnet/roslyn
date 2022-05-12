@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -18,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         }
 
         protected override bool IsLanguageVersionSupported(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp7;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp7;
 
         protected override bool IsUnconstrainedGenericSupported(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp8;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp8;
 
         protected override ISyntaxFacts GetSyntaxFacts()
             => CSharpSyntaxFacts.Instance;

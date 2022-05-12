@@ -1,10 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VBResources.resx">
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
         <target state="translated">初期化専用プロパティ '{0}' は、オブジェクト メンバー初期化子を使用する場合か、インスタンス コンストラクター内の 'Me'、'MyClass'、'MyBase' でのみ割り当てることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">共有された抽象インターフェイスメンバーにアクセスできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -57,9 +62,19 @@
         <target state="translated">共有された WithEvents 変数のイベントを、別の種類のメソッドで処理することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}' には、共有された抽象 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' 属性はサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">呼び出し元の引数式</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -501,6 +516,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">読み込まれたアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">パラメーター '{0}' に適用された CallerArgumentExpressionAttribute は、無効なパラメーター名で適用されているため無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">パラメーターに適用された CallerArgumentExpressionAttribute は、無効なパラメーター名で適用されているため無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">パラメーター '{0}' に適用された CallerArgumentExpressionAttribute は自己参照であるため、無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">パラメーターに適用された CallerArgumentExpressionAttribute は自己参照であるため、無効となります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

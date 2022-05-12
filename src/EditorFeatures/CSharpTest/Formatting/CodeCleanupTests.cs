@@ -5,20 +5,25 @@
 #nullable disable
 
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -80,7 +85,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        List<int> list = new List<int>();
+        List<int> list = new();
         Console.WriteLine(list.Count);
     }
 }
@@ -103,6 +108,7 @@ class Program
         Barrier b = new Barrier(0);
         var list = new List<int>();
         Console.WriteLine(list.Count);
+        b.Dispose();
     }
 }
 ";
@@ -116,9 +122,10 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        Barrier b = new Barrier(0);
-        List<int> list = new List<int>();
+        Barrier b = new(0);
+        List<int> list = new();
         Console.WriteLine(list.Count);
+        b.Dispose();
     }
 }
 ";
@@ -158,7 +165,7 @@ internal class Program
     {
         Console.WriteLine(""Hello World!"");
 
-        new Goo();
+        _ = new Goo();
     }
 }
 
@@ -203,7 +210,7 @@ internal class Program
     {
         Console.WriteLine(""Hello World!"");
 
-        new Goo();
+        _ = new Goo();
     }
 }
 
@@ -221,23 +228,27 @@ namespace M
         {
             var code = @"class Program
 {
-    void Method()
+    int Method()
     {
         int a = 0;
         if (a > 0)
             a ++;
+
+        return a;
     }
 }
 ";
             var expected = @"internal class Program
 {
-    private void Method()
+    private int Method()
     {
         int a = 0;
         if (a > 0)
         {
             a++;
         }
+
+        return a;
     }
 }
 ";
@@ -420,6 +431,7 @@ namespace A
         {
             Console.WriteLine();
             List<int> list = new List<int>();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -435,7 +447,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -459,7 +472,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -476,7 +490,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -500,7 +515,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -526,7 +542,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -535,6 +552,51 @@ namespace A
             var expected = code;
 
             return AssertCodeCleanupResult(expected, code, OutsidePreferPreservationOption);
+        }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [InlineData(LanguageNames.CSharp, 35)]
+        [InlineData(LanguageNames.VisualBasic, 71)]
+        public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
+        {
+            var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
+
+            // No Duplicates
+            Assert.Equal(supportedDiagnostics, supportedDiagnostics.Distinct());
+
+            // Exact Number of Unsupported Diagnostic Ids
+            var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
+            var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
+            Assert.Equal(expectedNumberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
+        }
+
+        private static string[] GetSupportedDiagnosticIdsForCodeCleanupService(string language)
+        {
+            using var workspace = GetTestWorkspaceForLanguage(language);
+            var hostdoc = workspace.Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+
+            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+            var supportedDiagnostics = enabledDiagnostics.Diagnostics.SelectMany(x => x.DiagnosticIds).ToArray();
+            return supportedDiagnostics;
+
+            TestWorkspace GetTestWorkspaceForLanguage(string language)
+            {
+                if (language == LanguageNames.CSharp)
+                {
+                    return TestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                }
+
+                if (language == LanguageNames.VisualBasic)
+                {
+                    return TestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
@@ -585,8 +647,14 @@ namespace A
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
+            var fallbackOptions = new CodeActionOptions(
+                CleanupOptions: CodeCleanupOptions.GetDefault(document.Project.LanguageServices) with
+                {
+                    FormattingOptions = new CSharpSyntaxFormattingOptions(separateImportDirectiveGroups: separateUsingGroups)
+                });
+
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), fallbackOptions.CreateProvider(), CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

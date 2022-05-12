@@ -23,5 +23,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public const string SemanticChanged = nameof(SemanticChanged);
 
         public const string Reanalyze = nameof(Reanalyze);
+        public const string ActiveDocumentSwitched = nameof(ActiveDocumentSwitched);
     }
 }

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
@@ -17,16 +18,19 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
     {
         private readonly ISolutionCrawlerRegistrationService _registrationService;
         private readonly ISolutionCrawlerService _solutionCrawlerService;
+        private readonly IGlobalOptionService _globalOptions;
 
         private UnitTestingIncrementalAnalyzerProvider _analyzerProvider;
 
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public UnitTestingSolutionCrawlerServiceAccessor(
             ISolutionCrawlerRegistrationService registrationService,
-            ISolutionCrawlerService solutionCrawlerService)
+            ISolutionCrawlerService solutionCrawlerService,
+            IGlobalOptionService globalOptions)
         {
             _registrationService = registrationService;
             _solutionCrawlerService = solutionCrawlerService;
+            _globalOptions = globalOptions;
         }
 
         public void AddAnalyzerProvider(IUnitTestingIncrementalAnalyzerProviderImplementation provider, UnitTestingIncrementalAnalyzerProviderMetadataWrapper metadata)
@@ -56,6 +60,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         }
 
         public void Register(Workspace workspace)
-            => _registrationService.Register(workspace);
+        {
+            if (_globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+            {
+                _registrationService.Register(workspace);
+            }
+        }
     }
 }

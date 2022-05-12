@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.Serialization
                 modules = assemblyMetadata.GetModules();
                 return true;
             }
-            catch (Exception ex) when (ex is BadImageFormatException ||
-                                       ex is IOException ||
-                                       ex is ObjectDisposedException)
+            catch (Exception ex) when (ex is BadImageFormatException or
+                                       IOException or
+                                       ObjectDisposedException)
             {
                 modules = default;
                 return false;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var kind = (SerializationKinds)reader.ReadInt32();
-            if (kind == SerializationKinds.Bits || kind == SerializationKinds.MemoryMapFile)
+            if (kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile)
             {
                 var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
 
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                 => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
 
             public IEnumerable<ITemporaryStreamStorage>? GetStorages()
-                => _storagesOpt.IsDefault ? (IEnumerable<ITemporaryStreamStorage>?)null : _storagesOpt;
+                => _storagesOpt.IsDefault ? null : _storagesOpt;
         }
     }
 }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
-            this._refKind = refKind;
+            _refKind = refKind;
             this.IsIndexer = isIndexer;
             this.Parameters = parametersOpt.NullToEmpty();
             this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -69,17 +69,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
             => visitor.VisitProperty(this);
 
+        public override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+            => visitor.VisitProperty(this, argument);
+
         public bool IsReadOnly => this.GetMethod != null && this.SetMethod == null;
 
         public bool IsWriteOnly => this.GetMethod == null && this.SetMethod != null;
 
         public new IPropertySymbol OriginalDefinition => this;
 
-        public RefKind RefKind => this._refKind;
+        public RefKind RefKind => _refKind;
 
-        public bool ReturnsByRef => this._refKind == RefKind.Ref;
+        public bool ReturnsByRef => _refKind == RefKind.Ref;
 
-        public bool ReturnsByRefReadonly => this._refKind == RefKind.RefReadOnly;
+        public bool ReturnsByRefReadonly => _refKind == RefKind.RefReadOnly;
 
         public IPropertySymbol OverriddenProperty => null;
 

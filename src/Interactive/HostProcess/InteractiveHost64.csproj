@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net5.0-windows7.0</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0-windows7.0</TargetFrameworks>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
@@ -21,10 +21,6 @@
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformAttributes.cs" Link="Utilities\PlatformAttributes.cs" />
   </ItemGroup>
 
   <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">

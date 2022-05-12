@@ -255,7 +255,7 @@ End Namespace
         End Sub
 
         <Fact>
-        Public Sub Does_Not_Enable_Incremental_Generators()
+        Public Sub Enable_Incremental_Generators()
 
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -269,11 +269,11 @@ End Namespace
 
             Assert.Equal(1, outputCompilation.SyntaxTrees.Count())
             Assert.Equal(compilation, compilation)
-            Assert.False(testGenerator._initialized)
+            Assert.True(testGenerator._initialized)
         End Sub
 
         <Fact>
-        Public Sub Does_Not_Prefer_Incremental_Generators()
+        Public Sub Prefer_Incremental_Generators()
 
             Dim parseOptions = TestOptions.Regular
             Dim compilation As Compilation = GetCompilation(parseOptions)
@@ -287,9 +287,9 @@ End Namespace
 
             Assert.Equal(1, outputCompilation.SyntaxTrees.Count())
             Assert.Equal(compilation, compilation)
-            Assert.False(testGenerator._initialized)
-            Assert.True(testGenerator._sourceInitialized)
-            Assert.True(testGenerator._sourceExecuted)
+            Assert.True(testGenerator._initialized)
+            Assert.False(testGenerator._sourceInitialized)
+            Assert.False(testGenerator._sourceExecuted)
         End Sub
 
         Shared Function GetCompilation(parseOptions As VisualBasicParseOptions, Optional source As String = "") As Compilation

@@ -6,21 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -28,22 +21,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// <summary>
     /// Implements core of Edit and Continue orchestration: management of edit sessions and connecting EnC related services.
     /// </summary>
+    [ExportWorkspaceService(typeof(IEditAndContinueWorkspaceService)), Shared]
     internal sealed class EditAndContinueWorkspaceService : IEditAndContinueWorkspaceService
     {
-        [ExportWorkspaceServiceFactory(typeof(IEditAndContinueWorkspaceService)), Shared]
-        private sealed class Factory : IWorkspaceServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
-
-            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-            public IWorkspaceService? CreateService(HostWorkspaceServices workspaceServices)
-                => new EditAndContinueWorkspaceService();
-        }
-
         internal static readonly TraceLog Log = new(2048, "EnC");
 
         private Func<Project, CompilationOutputs> _compilationOutputsProvider;
@@ -54,7 +34,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private readonly List<DebuggingSession> _debuggingSessions = new();
         private static int s_debuggingSessionId;
 
-        internal EditAndContinueWorkspaceService()
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public EditAndContinueWorkspaceService()
         {
             _compilationOutputsProvider = GetCompilationOutputs;
         }
@@ -97,28 +79,37 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             foreach (var debuggingSession in GetActiveDebuggingSessions())
             {
                 // fire and forget
-                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document));
+                _ = Task.Run(() => debuggingSession.OnSourceFileUpdatedAsync(document)).ReportNonFatalErrorAsync();
             }
         }
 
-        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(Solution solution, IManagedEditAndContinueDebuggerService debuggerService, bool captureMatchingDocuments, bool reportDiagnostics, CancellationToken cancellationToken)
+        public async ValueTask<DebuggingSessionId> StartDebuggingSessionAsync(
+            Solution solution,
+            IManagedHotReloadService debuggerService,
+            ImmutableArray<DocumentId> captureMatchingDocuments,
+            bool captureAllMatchingDocuments,
+            bool reportDiagnostics,
+            CancellationToken cancellationToken)
         {
-            var initialDocumentStates =
-                captureMatchingDocuments ? await CommittedSolution.GetMatchingDocumentsAsync(solution, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false) :
-                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
+            Contract.ThrowIfTrue(captureAllMatchingDocuments && !captureMatchingDocuments.IsEmpty);
 
-            var runtimeCapabilities = await debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates;
 
-            var capabilities = ParseCapabilities(runtimeCapabilities);
-
-            // For now, runtimes aren't returning capabilities, we just fall back to a known set.
-            if (capabilities == EditAndContinueCapabilities.None)
+            if (captureAllMatchingDocuments || !captureMatchingDocuments.IsEmpty)
             {
-                capabilities = EditAndContinueCapabilities.Baseline | EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.NewTypeDefinition;
+                var documentsByProject = captureAllMatchingDocuments ?
+                    solution.Projects.Select(project => (project, project.State.DocumentStates.States.Values)) :
+                    GetDocumentStatesGroupedByProject(solution, captureMatchingDocuments);
+
+                initialDocumentStates = await CommittedSolution.GetMatchingDocumentsAsync(documentsByProject, _compilationOutputsProvider, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                initialDocumentStates = SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>();
             }
 
             var sessionId = new DebuggingSessionId(Interlocked.Increment(ref s_debuggingSessionId));
-            var session = new DebuggingSession(sessionId, solution, debuggerService, capabilities, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
+            var session = new DebuggingSession(sessionId, solution, debuggerService, _compilationOutputsProvider, initialDocumentStates, reportDiagnostics);
 
             lock (_debuggingSessions)
             {
@@ -128,31 +119,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             return sessionId;
         }
 
-        // internal for testing
-        internal static EditAndContinueCapabilities ParseCapabilities(ImmutableArray<string> capabilities)
-        {
-            var caps = EditAndContinueCapabilities.None;
-
-            foreach (var capability in capabilities)
-            {
-                caps |= capability switch
-                {
-                    "Baseline" => EditAndContinueCapabilities.Baseline,
-                    "AddMethodToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType,
-                    "AddStaticFieldToExistingType" => EditAndContinueCapabilities.AddStaticFieldToExistingType,
-                    "AddInstanceFieldToExistingType" => EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-                    "NewTypeDefinition" => EditAndContinueCapabilities.NewTypeDefinition,
-                    "ChangeCustomAttributes" => EditAndContinueCapabilities.ChangeCustomAttributes,
-
-                    // To make it eaiser for  runtimes to specify more broad capabilities
-                    "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-
-                    _ => EditAndContinueCapabilities.None
-                };
-            }
-
-            return caps;
-        }
+        private static IEnumerable<(Project, IEnumerable<DocumentState>)> GetDocumentStatesGroupedByProject(Solution solution, ImmutableArray<DocumentId> documentIds)
+            => from documentId in documentIds
+               where solution.ContainsDocument(documentId)
+               group documentId by documentId.ProjectId into projectDocumentIds
+               let project = solution.GetRequiredProject(projectDocumentIds.Key)
+               select (project, from documentId in projectDocumentIds select project.State.DocumentStates.GetState(documentId));
 
         public void EndDebuggingSession(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
@@ -167,11 +139,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             debuggingSession.EndSession(out documentsToReanalyze, out var telemetryData);
         }
 
-        public void BreakStateEntered(DebuggingSessionId sessionId, out ImmutableArray<DocumentId> documentsToReanalyze)
+        public void BreakStateOrCapabilitiesChanged(DebuggingSessionId sessionId, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
         {
             var debuggingSession = TryGetDebuggingSession(sessionId);
             Contract.ThrowIfNull(debuggingSession);
-            debuggingSession.BreakStateEntered(out documentsToReanalyze);
+            debuggingSession.BreakStateOrCapabilitiesChanged(inBreakState, out documentsToReanalyze);
         }
 
         public ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
@@ -183,18 +155,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
-        /// Determine whether the updates made to projects containing the specified file (or all projects that are built,
-        /// if <paramref name="sourceFilePath"/> is null) are ready to be applied and the debugger should attempt to apply
-        /// them on "continue".
+        /// Determine whether updates have been made to projects containing the specified file (or all projects that are built,
+        /// if <paramref name="sourceFilePath"/> is null).
         /// </summary>
-        /// <returns>
-        /// Returns <see cref="ManagedModuleUpdateStatus.Blocked"/> if there are rude edits or other errors
-        /// that block the application of the updates. Might return <see cref="ManagedModuleUpdateStatus.Ready"/> even if there are
-        /// errors in the code that will block the application of the updates. E.g. emit diagnostics can't be determined until
-        /// emit is actually performed. Therefore, this method only serves as an optimization to avoid unnecessary emit attempts,
-        /// but does not provide a definitive answer. Only <see cref="EmitSolutionUpdateAsync"/> can definitively determine whether
-        /// the update is valid or not.
-        /// </returns>
         public ValueTask<bool> HasChangesAsync(
             DebuggingSessionId sessionId,
             Solution solution,

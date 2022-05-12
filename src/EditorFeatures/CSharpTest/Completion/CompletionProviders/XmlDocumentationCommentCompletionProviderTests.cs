@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
             string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, bool skipSpeculation = false)
         {
             // We don't need to try writing comments in from of items in doc comments.
             await VerifyAtPositionAsync(
@@ -1011,6 +1011,28 @@ class C
 }";
             await VerifyItemExistsAsync(text, "term");
             await VerifyItemExistsAsync(text, "description");
+        }
+
+        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordParam()
+        {
+            await VerifyItemsExistAsync(@"
+/// $$
+public record Goo<T>(string MyParameter);
+", "param name=\"MyParameter\"", "typeparam name=\"T\"");
+        }
+
+        [WorkItem(52738, "https://github.com/dotnet/roslyn/issues/52738")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task RecordParamRef()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// $$
+/// <summary>
+public record Goo<T>(string MyParameter);
+", "paramref name=\"MyParameter\"", "typeparamref name=\"T\"");
         }
     }
 }

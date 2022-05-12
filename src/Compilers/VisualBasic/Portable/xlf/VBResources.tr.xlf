@@ -1,10 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../VBResources.resx">
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
         <target state="translated">'{0}' init-only özelliği yalnızca nesne üyesi başlatıcısı tarafından veya örnek oluşturucudaki 'Me', 'MyClass' veya 'MyBase' üzerinde atanabilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">Paylaşılan bir soyut arabirim üyesine erişilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -57,9 +62,19 @@
         <target state="translated">Paylaşılan WithEvents değişkenlerinin olayları farklı türdeki metotlar tarafından işlenemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} “{1}”,”{3}'” arabirimini uygulayamıyor, çünkü paylaşılan özet “{2}” içeriyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">'UnmanagedCallersOnly' özniteliği desteklenmez.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">çağıran bağımsız değişken ifadesi</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -501,6 +516,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">Yüklenen bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">'{0}' parametresine uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz. Geçersiz bir parametre adıyla uygulanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Parametreye uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz. Geçersiz bir parametre adıyla uygulanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">Parametre kendini işaret ettiğinden, '{0}' parametresine uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">Parametre kendini işaret ettiğinden, parametreye uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
@@ -5084,7 +5119,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnknownOperator">
         <source>Operator declaration must be one of:  +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</source>
-        <target state="translated">İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</target>
+        <target state="translated">İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;,&gt;&gt;, =, &lt;&gt;, &lt;, &lt;=,&gt;,&gt;=, CType, IsTrue, IsFalse.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateConversionCategoryUsed">
@@ -5094,7 +5129,7 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorNotOverloadable">
         <source>Operator is not overloadable. Operator declaration must be one of:  +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</source>
-        <target state="translated">İşleç aşırı yüklenebilir değil. İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</target>
+        <target state="translated">İşleç aşırı yüklenebilir değil. İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;,&gt;&gt;, =, &lt;&gt;, &lt;, &lt;=,&gt;,&gt;=, CType, IsTrue, IsFalse.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHandles">

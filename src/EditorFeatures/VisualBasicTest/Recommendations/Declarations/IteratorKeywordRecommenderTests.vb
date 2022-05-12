@@ -4,6 +4,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class IteratorKeywordRecommenderTests
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Sub KeywordsAfterIteratorTest()

@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<ImmutableArray<TypeWithAnnotations>> MakeTypeParameterConstraintTypes(
             this MethodSymbol containingSymbol,
-            Binder binder,
+            Binder withTypeParametersBinder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
-            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
+            Debug.Assert(!withTypeParametersBinder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+            withTypeParametersBinder = withTypeParametersBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
             ImmutableArray<TypeParameterConstraintClause> clauses;
-            clauses = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
+            clauses = withTypeParametersBinder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                                 diagnostics, performOnlyCycleSafeValidation: false);
 
             if (clauses.All(clause => clause.ConstraintTypes.IsEmpty))
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<TypeParameterConstraintKind> MakeTypeParameterConstraintKinds(
             this MethodSymbol containingSymbol,
-            Binder binder,
+            Binder withTypeParametersBinder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             TypeParameterListSyntax typeParameterList,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
@@ -358,18 +358,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (constraintClauses.Count == 0)
             {
-                clauses = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
+                clauses = withTypeParametersBinder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
             }
             else
             {
                 // Wrap binder from factory in a generic constraints specific binder
                 // Also, suppress type argument binding in constraint types, this helps to avoid cycles while we figure out constraint kinds. 
                 // to avoid checking constraints when binding type names.
-                Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-                binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
+                Debug.Assert(!withTypeParametersBinder.Flags.Includes(BinderFlags.GenericConstraintsClause));
+                withTypeParametersBinder = withTypeParametersBinder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressTypeArgumentBinding);
 
                 // We will recompute this diagnostics more accurately later, when binding without BinderFlags.SuppressTypeArgumentBinding  
-                clauses = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
+                clauses = withTypeParametersBinder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, typeParameterList, constraintClauses,
                                                                     BindingDiagnosticBag.Discarded, performOnlyCycleSafeValidation: true);
 
                 clauses = AdjustConstraintKindsBasedOnConstraintTypes(containingSymbol, typeParameters, clauses);
@@ -1347,12 +1347,14 @@ hasRelatedInterfaces:
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
+
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
                     return true;
 
                 case TypeKind.Class:
-                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument) && !typeArgument.IsAbstract;
+                    return HasPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false) && !typeArgument.IsAbstract;
 
                 case TypeKind.TypeParameter:
                     {
@@ -1370,11 +1372,11 @@ hasRelatedInterfaces:
         }
 
         /// <summary>
-        /// Return true if the class type has a public parameterless constructor.
+        /// Return true if the type has a public parameterless constructor.
         /// </summary>
-        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type)
+        private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
-            Debug.Assert(type.TypeKind == TypeKind.Class);
+            Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
@@ -1382,7 +1384,7 @@ hasRelatedInterfaces:
                     return constructor.DeclaredAccessibility == Accessibility.Public;
                 }
             }
-            return false;
+            return synthesizedIfMissing;
         }
 
         /// <summary>

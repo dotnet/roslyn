@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
         /// with the given cardinality. 
         /// </summary>
-        public bool IsTupleTypeOfCardinality(int targetCardinality)
+        internal bool IsTupleTypeOfCardinality(int targetCardinality)
         {
             if (IsTupleType)
             {
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (interfaceMember.Kind == SymbolKind.Method &&
                             (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
                         {
-                            LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMemebers.RequiredVersion();
+                            LanguageVersion requiredVersion = MessageID.IDS_FeatureImplicitImplementationOfNonPublicMembers.RequiredVersion();
                             LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
                             if (requiredVersion > availableVersion)
                             {
@@ -2317,7 +2317,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static bool Equals(TypeSymbol left, TypeSymbol right, TypeCompareKind comparison)
+#nullable enable
+        public static bool Equals(TypeSymbol? left, TypeSymbol? right, TypeCompareKind comparison)
         {
             if (left is null)
             {
@@ -2326,6 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return left.Equals(right, comparison);
         }
+#nullable disable
 
         [Obsolete("Use 'TypeSymbol.Equals(TypeSymbol, TypeSymbol, TypeCompareKind)' method.", true)]
         public static bool operator ==(TypeSymbol left, TypeSymbol right)

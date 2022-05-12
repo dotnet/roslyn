@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -676,18 +677,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<SemanticModelAnalyzerAction> semanticModelActions,
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
-            CompilationEvent compilationUnitCompletedEvent,
+            CompilationUnitCompletedEvent compilationUnitCompletedEvent,
             AnalysisScope analysisScope,
             AnalysisState? analysisState,
             bool isGeneratedCode)
         {
+            Debug.Assert(!compilationUnitCompletedEvent.FilterSpan.HasValue || _isCompilerAnalyzer!(analyzer), "Only compiler analyzer supports span-based semantic model action callbacks");
+
             AnalyzerStateData? analyzerState = null;
 
             try
             {
                 if (TryStartProcessingEvent(compilationUnitCompletedEvent, analyzer, analysisScope, analysisState, out analyzerState))
                 {
-                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, isGeneratedCode);
+                    ExecuteSemanticModelActionsCore(semanticModelActions, analyzer, semanticModel, analyzerState, analysisScope, isGeneratedCode);
                     analysisState?.MarkEventComplete(compilationUnitCompletedEvent, analyzer);
                     return true;
                 }
@@ -705,6 +708,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             DiagnosticAnalyzer analyzer,
             SemanticModel semanticModel,
             AnalyzerStateData? analyzerState,
+            AnalysisScope analysisScope,
             bool isGeneratedCode)
         {
             if (isGeneratedCode && _shouldSkipAnalysisOnGeneratedCode(analyzer) ||
@@ -724,7 +728,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var context = new SemanticModelAnalysisContext(semanticModel, AnalyzerOptions, diagReporter.AddDiagnosticAction,
-                        isSupportedDiagnostic, _cancellationToken);
+                        isSupportedDiagnostic, analysisScope.FilterSpanOpt, _cancellationToken);
 
                     // Catch Exception from action.
                     ExecuteAndCatchIfThrows(
@@ -1556,18 +1560,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SharedStopwatch timer = default;
             if (_analyzerExecutionTimeMap != null)
             {
-                _ = SharedStopwatch.StartNew();
-
-                // This call to StartNew isn't required by the API, but is included to avoid measurement errors
-                // which can occur during periods of high allocation activity. In some cases, calls to Stopwatch
-                // operations can block at their return point on the completion of a background GC operation. When
-                // this occurs, the GC wait time ends up included in the measured time span. In the event the first
-                // call to StartNew blocked on a GC operation, this call to StartNew will most likely occur when the
-                // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
-                // timing data was observed.
-                //
-                // Note that the call to SharedStopwatch.Elapsed is not affected, because the GC wait will occur
-                // after the timer has already recorded its stop time.
                 timer = SharedStopwatch.StartNew();
             }
 
@@ -1637,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerName = analyzer.ToString();
             var title = CodeAnalysisResources.CompilerAnalyzerFailure;
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
-            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer)).Trim();
+            var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer, analyzerName)).Trim();
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
             var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
             var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
@@ -1655,19 +1647,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 string.Format(CodeAnalysisResources.ExceptionContext, info?.GetContext()), e.CreateDiagnosticDescription());
         }
 
-        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer)
+        private static string CreateDisablingMessage(DiagnosticAnalyzer analyzer, string analyzerName)
         {
             var diagnosticIds = ImmutableSortedSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
             try
             {
                 foreach (var diagnostic in analyzer.SupportedDiagnostics)
                 {
-                    diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                    // If a null diagnostic is returned, we would have already reported that to the user earlier; we can just skip this.
+                    if (diagnostic != null)
+                    {
+                        diagnosticIds = diagnosticIds.Add(diagnostic.Id);
+                    }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception ex)
             {
-                // Intentionally empty
+                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, ex.CreateDiagnosticDescription());
             }
 
             if (diagnosticIds.IsEmpty)
@@ -1714,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (diagnostic.Id == AnalyzerExceptionDiagnosticId || diagnostic.Id == AnalyzerDriverExceptionDiagnosticId)
             {
-                foreach (var tag in diagnostic.Descriptor.CustomTags)
+                foreach (var tag in diagnostic.Descriptor.ImmutableCustomTags)
                 {
                     if (tag == WellKnownDiagnosticTags.AnalyzerException)
                     {

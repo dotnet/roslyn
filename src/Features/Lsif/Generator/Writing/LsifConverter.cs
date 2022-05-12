@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
                    objectType == typeof(Uri);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             switch (value)
             {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
                     break;
 
                 case Uri uri:
-                    writer.WriteValue(uri.AbsoluteUri);
+                    writer.WriteValue(uri.ToString());
                     break;
 
                 default:

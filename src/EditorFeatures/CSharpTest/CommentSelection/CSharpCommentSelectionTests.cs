@@ -7,7 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -117,8 +117,10 @@ class C
             SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
             var commandHandler = new CommentUncommentSelectionCommandHandler(
-                workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
-                workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
+                workspace.GetService<ITextUndoHistoryRegistry>(),
+                workspace.GetService<IEditorOperationsFactoryService>(),
+                workspace.GlobalOptions);
+
             var textView = doc.GetTextView();
             var textBuffer = doc.GetTextBuffer();
             commandHandler.ExecuteCommand(textView, textBuffer, Operation.Uncomment, TestCommandExecutionContext.Create());

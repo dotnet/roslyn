@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected sealed override bool CanFind(TSymbol symbol)
             => true;
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             TSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
             IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
@@ -47,8 +48,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return Task.FromResult(ImmutableArray.Create(document));
         }
 
-        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             TSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,
@@ -117,8 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInTokensWithSymbolNameAsync(
-                symbol, document, semanticModel, tokens,
-                findParentNode: null, cancellationToken: cancellationToken);
+                symbol, document, semanticModel, tokens, findParentNode: null, cancellationToken);
         }
 
         protected static ValueTask<ImmutableArray<FinderLocation>> FindReferencesInTokensWithSymbolNameAsync(
@@ -150,8 +151,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             return FindReferencesInContainerAsync(
-                symbol, container, document, semanticModel,
-                findParentNode: null, cancellationToken: cancellationToken);
+                symbol, container, document, semanticModel, findParentNode: null, cancellationToken);
         }
 
         private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(

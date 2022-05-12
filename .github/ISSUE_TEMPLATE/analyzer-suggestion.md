@@ -1,12 +1,15 @@
 ---
 name: Analyzer suggestion
-about: Suggest a Roslyn analyzer related to code style. Semantic/code quality analyzers are developed in roslyn-analyzers repository.
+about: Suggest a Roslyn analyzer related to code style.
 labels: [Area-IDE, Feature Request]
 ---
 
+<!-- This issue template is **only** for analyzers related to code style. -->
+<!-- To propose a semantic/code quality analyzer, please follow the guidelines at https://github.com/dotnet/roslyn-analyzers/blob/main/GuidelinesForNewRules.md. -->
+
 **Brief description:**
 
-Describe your suggestion here.
+Describe your **code style** rule here.
 
 **Languages applicable:**
 

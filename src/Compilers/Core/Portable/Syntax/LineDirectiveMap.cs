@@ -55,18 +55,49 @@ namespace Microsoft.CodeAnalysis
             return TranslateSpan(entry, treeFilePath, unmappedStartPos, unmappedEndPos);
         }
 
-        protected FileLinePositionSpan TranslateSpan(LineMappingEntry entry, string treeFilePath, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
+        protected FileLinePositionSpan TranslateSpan(in LineMappingEntry entry, string treeFilePath, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
         {
             string path = entry.MappedPathOpt ?? treeFilePath;
-            int mappedStartLine = unmappedStartPos.Line - entry.UnmappedLine + entry.MappedLine;
-            int mappedEndLine = unmappedEndPos.Line - entry.UnmappedLine + entry.MappedLine;
+            var span = entry.State == PositionState.RemappedSpan ?
+                TranslateEnhancedLineDirectiveSpan(entry, unmappedStartPos, unmappedEndPos) :
+                TranslateLineDirectiveSpan(entry, unmappedStartPos, unmappedEndPos);
+            return new FileLinePositionSpan(path, span, hasMappedPath: entry.MappedPathOpt != null);
+        }
 
-            return new FileLinePositionSpan(
-                path,
-                new LinePositionSpan(
-                    (mappedStartLine == -1) ? new LinePosition(unmappedStartPos.Character) : new LinePosition(mappedStartLine, unmappedStartPos.Character),
-                    (mappedEndLine == -1) ? new LinePosition(unmappedEndPos.Character) : new LinePosition(mappedEndLine, unmappedEndPos.Character)),
-                hasMappedPath: entry.MappedPathOpt != null);
+        private static LinePositionSpan TranslateLineDirectiveSpan(in LineMappingEntry entry, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
+        {
+            return new LinePositionSpan(translatePosition(entry, unmappedStartPos), translatePosition(entry, unmappedEndPos));
+
+            static LinePosition translatePosition(in LineMappingEntry entry, LinePosition unmapped)
+            {
+                int mappedLine = unmapped.Line - entry.UnmappedLine + entry.MappedLine;
+                return (mappedLine == -1) ? new LinePosition(unmapped.Character) : new LinePosition(mappedLine, unmapped.Character);
+            }
+        }
+
+        private static LinePositionSpan TranslateEnhancedLineDirectiveSpan(in LineMappingEntry entry, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
+        {
+            // A span starting on the first line, at or before 'UnmappedCharacterOffset' is
+            // mapped to the entire 'MappedSpan', regardless of the size of the unmapped span,
+            // even if the unmapped span ends before 'UnmappedCharacterOffset'.
+            if (unmappedStartPos.Line == entry.UnmappedLine &&
+                unmappedStartPos.Character <= entry.UnmappedCharacterOffset.GetValueOrDefault())
+            {
+                return entry.MappedSpan;
+            }
+
+            // A span starting on the first line after 'UnmappedCharacterOffset', or starting on
+            // a subsequent line, is mapped to a span of corresponding size.
+            return new LinePositionSpan(translatePosition(entry, unmappedStartPos), translatePosition(entry, unmappedEndPos));
+
+            static LinePosition translatePosition(in LineMappingEntry entry, LinePosition unmapped)
+            {
+                return new LinePosition(
+                    unmapped.Line - entry.UnmappedLine + entry.MappedSpan.Start.Line,
+                    unmapped.Line == entry.UnmappedLine ?
+                        entry.MappedSpan.Start.Character + unmapped.Character - entry.UnmappedCharacterOffset.GetValueOrDefault() :
+                        unmapped.Character);
+            }
         }
 
         /// <summary>
@@ -151,26 +182,6 @@ namespace Microsoft.CodeAnalysis
                 current.MappedLine == 0 &&
                 current.MappedPathOpt == null);
 
-            LineMapping CreateCurrentEntryMapping(in LineMappingEntry entry, int unmappedEndLine, int lineLength, int currentIndex)
-            {
-                var unmapped = new LinePositionSpan(
-                    new LinePosition(entry.UnmappedLine, character: 0),
-                    new LinePosition(unmappedEndLine, lineLength));
-
-                var isHidden =
-                    entry.State == PositionState.Hidden ||
-                    entry.State == PositionState.Unknown && GetUnknownStateVisibility(currentIndex) == LineVisibility.Hidden;
-
-                var mapped = isHidden ? default : new FileLinePositionSpan(
-                    entry.MappedPathOpt ?? string.Empty,
-                    new LinePositionSpan(
-                        new LinePosition(entry.MappedLine, character: 0),
-                        new LinePosition(entry.MappedLine + unmappedEndLine - entry.UnmappedLine, lineLength)),
-                    hasMappedPath: entry.MappedPathOpt != null);
-
-                return new LineMapping(unmapped, mapped);
-            }
-
             for (int i = 1; i < Entries.Length; i++)
             {
                 var next = Entries[i];
@@ -197,7 +208,7 @@ namespace Microsoft.CodeAnalysis
                     var endLine = lines[unmappedEndLine];
                     int lineLength = endLine.EndIncludingLineBreak - endLine.Start;
 
-                    yield return CreateCurrentEntryMapping(current, unmappedEndLine, lineLength, currentIndex: i - 1);
+                    yield return CreateLineMapping(current, unmappedEndLine, lineLength, currentIndex: i - 1);
                 }
 
                 current = next;
@@ -218,8 +229,38 @@ namespace Microsoft.CodeAnalysis
                 int lineLength = lastLine.EndIncludingLineBreak - lastLine.Start;
                 int unmappedEndLine = lastLine.LineNumber;
 
-                yield return CreateCurrentEntryMapping(current, unmappedEndLine, lineLength, currentIndex: Entries.Length - 1);
+                yield return CreateLineMapping(current, unmappedEndLine, lineLength, currentIndex: Entries.Length - 1);
             }
+        }
+
+        private LineMapping CreateLineMapping(in LineMappingEntry entry, int unmappedEndLine, int lineLength, int currentIndex)
+        {
+            var unmapped = new LinePositionSpan(
+                new LinePosition(entry.UnmappedLine, character: 0),
+                new LinePosition(unmappedEndLine, lineLength));
+
+            if (entry.State == PositionState.Hidden ||
+                entry.State == PositionState.Unknown && GetUnknownStateVisibility(currentIndex) == LineVisibility.Hidden)
+            {
+                return new LineMapping(unmapped, characterOffset: null, mappedSpan: default);
+            }
+
+            string path = entry.MappedPathOpt ?? string.Empty;
+            bool hasMappedPath = entry.MappedPathOpt != null;
+
+            if (entry.State == PositionState.RemappedSpan)
+            {
+                return new LineMapping(
+                    unmapped,
+                    characterOffset: entry.UnmappedCharacterOffset,
+                    new FileLinePositionSpan(path, entry.MappedSpan, hasMappedPath));
+            }
+
+            var mappedSpan = new LinePositionSpan(
+                new LinePosition(entry.MappedLine, character: 0),
+                new LinePosition(entry.MappedLine + unmappedEndLine - entry.UnmappedLine, lineLength));
+            var mapped = new FileLinePositionSpan(path, mappedSpan, hasMappedPath);
+            return new LineMapping(unmapped, characterOffset: null, mapped);
         }
     }
 }

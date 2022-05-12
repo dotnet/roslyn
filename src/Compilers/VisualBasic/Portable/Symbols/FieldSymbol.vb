@@ -428,6 +428,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
+            Get
+                Return 0
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_Type As ITypeSymbol Implements IFieldSymbol.Type
             Get
                 Return Me.Type
@@ -482,6 +488,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitField(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitField(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

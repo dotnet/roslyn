@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -13,29 +15,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class RequestHandlerProviderMetadataView
     {
-        public string? LanguageName { get; set; }
-
-        public string[] Methods { get; set; }
+        public ImmutableArray<Type> HandlerTypes { get; set; }
 
         public RequestHandlerProviderMetadataView(IDictionary<string, object> metadata)
         {
-            var methodMetadata = metadata["Method"];
-
-            // When multiple of the same attribute are defined on a class, the metadata
-            // is aggregated into an array.  However, when just one of the same attribute is defined,
-            // the metadata is not aggregated and is just a string.
-            // MEF cannot construct the metadata object when it sees just the string type with AllowMultiple = true,
-            // so we override and construct it ourselves here.
-            if (methodMetadata is string[] methodNames)
-            {
-                Methods = methodNames;
-            }
-            else
-            {
-                Methods = new string[] { (string)methodMetadata };
-            }
-
-            LanguageName = metadata["LanguageName"] as string;
+            var handlerMetadata = (Type[])metadata[nameof(ExportLspRequestHandlerProviderAttribute.HandlerTypes)];
+            HandlerTypes = handlerMetadata.ToImmutableArray();
         }
     }
 }

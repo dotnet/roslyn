@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VisualBasicAnalyzersResources.resx">
     <body>
@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Object_creation_can_be_simplified">
         <source>Object creation can be simplified</source>
-        <target state="translated">オブジェクト作成を簡略化できます</target>
+        <target state="translated">オブジェクト作成を簡素化できます</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_ByVal">

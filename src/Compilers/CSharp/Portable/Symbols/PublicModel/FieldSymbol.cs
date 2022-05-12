@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
 
+        int IFieldSymbol.FixedSize => _underlying.FixedSize;
+
         bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
 
         object IFieldSymbol.ConstantValue => _underlying.ConstantValue;
@@ -97,6 +99,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitField(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitField(this, argument);
         }
 
         #endregion

@@ -23,11 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string CSharpReplPackageIdString = "c5edd1ee-c43b-4360-9ce4-6b993ca12897";
 
         /// <summary>
-        /// <see cref="UIContext"/> that indicates <see cref="VisualStudioWorkspace"/> contains a project that supports Edit and Continue.
-        /// </summary>
-        public const string EncCapableProjectExistsInWorkspaceUIContextString = "0C89AE24-6D19-474C-A3AA-DC3B66FDBB5F";
-
-        /// <summary>
         /// A <see cref="UIContext"/> that is set if there is a C# project in the <see cref="VisualStudioWorkspace"/>.
         /// </summary>
         public const string CSharpProjectExistsInWorkspaceUIContextString = "CA719A03-D55C-48F9-85DE-D934346E7F70";
@@ -119,7 +114,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
         public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
         public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
-        public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
         public static readonly Guid RoslynPackageId = new(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new(RoslynCommandSetIdString);
@@ -127,6 +121,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public const string ValueTrackingToolWindowIdString = "60a19d42-2dd7-43f3-be90-c7a9cb7d28f4";
         public static readonly Guid ValueTrackingToolWindowId = new(ValueTrackingToolWindowIdString);
+
+        public const string StackTraceExplorerToolWindowIdString = "7FF2AB69-0A20-4BF5-BAEF-24D9EB6969E1";
+        public static readonly Guid StackTraceExplorerToolWindowId = new(StackTraceExplorerToolWindowIdString);
+        public const string StackTraceExplorerCommandIdString = "FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA";
+        public static readonly Guid StackTraceExplorerCommandId = new(StackTraceExplorerCommandIdString);
 
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids

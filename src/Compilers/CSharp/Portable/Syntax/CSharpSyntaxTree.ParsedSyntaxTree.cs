@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceText? textOpt,
                 Encoding? encodingOpt,
                 SourceHashAlgorithm checksumAlgorithm,
-                string path,
+                string? path,
                 CSharpParseOptions options,
                 CSharpSyntaxNode root,
                 Syntax.InternalSyntax.DirectiveStack directives,

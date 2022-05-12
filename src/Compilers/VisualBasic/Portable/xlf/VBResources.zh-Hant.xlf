@@ -1,10 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../VBResources.resx">
     <body>
       <trans-unit id="ERR_AssignmentInitOnly">
         <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
         <target state="translated">只有物件成員初始設定式，或在執行個體建構函式中的 'Me'、'MyClass' 或 'MyBase'，才可指派僅限初始化的屬性 '{0}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">無法存取共用摘要介面成員。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -57,9 +62,19 @@
         <target state="translated">無法使用其他類型的方法，處理共用 WithEvents 變數的事件。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}' 無法實作介面 '{3}' 因為其包含共用摘要 '{2}'。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
         <source>'UnmanagedCallersOnly' attribute is not supported.</source>
         <target state="translated">不支援 'UnmanagedCallersOnly' 屬性。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">呼叫者引數運算式</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
@@ -501,6 +516,26 @@
       <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
         <source>The loaded assembly references .NET Framework, which is not supported.</source>
         <target state="translated">載入的組件參考了 .NET Framework，此情形不受支援。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">套用到參數 '{0}' 的 CallerArgumentExpressionAttribute 將沒有效果。它套用了不正確的參數名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">套用至參數的 CallerArgumentExpressionAttribute 將沒有效果。它套用了不正確的參數名稱。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">套用到參數 '{0}' 的 CallerArgumentExpressionAttribute 將沒有效果，因為它是自我參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">套用到參數的 CallerArgumentExpressionAttribute 將沒有效果，因為它是自我參考。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">

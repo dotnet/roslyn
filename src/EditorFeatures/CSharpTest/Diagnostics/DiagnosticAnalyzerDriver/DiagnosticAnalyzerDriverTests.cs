@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -169,7 +171,7 @@ class C
 
             workspace.TryApplyChanges(workspace.CurrentSolution
                 .WithAnalyzerReferences(new[] { analyzerReference })
-                .AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()));
+                .AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()!));
 
             var sourceDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
             await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, sourceDocument, new TextSpan(0, sourceDocument.GetTextAsync().Result.Length));
@@ -184,7 +186,9 @@ class C
 
         private class ThrowingDoNotCatchDiagnosticAnalyzer<TLanguageKindEnum> : ThrowingDiagnosticAnalyzer<TLanguageKindEnum>, IBuiltInAnalyzer where TLanguageKindEnum : struct
         {
-            public bool OpenFileOnly(OptionSet options) => false;
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+
+            public bool OpenFileOnly(SimplifierOptions? options) => false;
 
             public DiagnosticAnalyzerCategory GetAnalyzerCategory()
                 => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
@@ -338,7 +342,7 @@ class C
             var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None));
 
             var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
-            AssertEx.Any(diagnostics, d => d.Id == AnalyzerHelper.AnalyzerExceptionDiagnosticId);
+            AssertEx.Any(diagnostics, d => d.Id == DocumentAnalysisExecutor.AnalyzerExceptionDiagnosticId);
         }
 
         private class InvalidSpanAnalyzer : DiagnosticAnalyzer

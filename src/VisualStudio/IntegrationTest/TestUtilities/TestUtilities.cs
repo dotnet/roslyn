@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var shouldThrow = false;
             var sb = new StringBuilder();
-            sb.Append("The following expected item(s) not found:\r\n");
+            sb.AppendLine("The following expected item(s) not found:");
 
             foreach (var item in expected)
             {
@@ -39,6 +39,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             if (shouldThrow)
             {
+                sb.AppendLine("Actual items:");
+                foreach (var item in actual)
+                    sb.AppendLine(item.ToString());
+
                 throw new Exception(sb.ToString());
             }
         }
