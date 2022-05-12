@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return this.CreateProjectFile(project, buildManager, log);
         }
 
-        public static IProjectFileLoader? GetLoaderForProjectFileExtension(HostWorkspaceServices workspaceServices, string extension)
+        public static IProjectFileLoader GetLoaderForProjectFileExtension(HostWorkspaceServices workspaceServices, string extension)
         {
             return workspaceServices.FindLanguageServices<IProjectFileLoader>(
                 d => d.GetEnumerableMetadata<string>("ProjectFileExtension").Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))

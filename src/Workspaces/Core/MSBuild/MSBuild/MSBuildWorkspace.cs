@@ -473,7 +473,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             try
             {
                 var dir = Path.GetDirectoryName(fullPath);
-                Debug.Assert(dir != null);
                 if (!Directory.Exists(dir))
                 {
                     Directory.CreateDirectory(dir);
