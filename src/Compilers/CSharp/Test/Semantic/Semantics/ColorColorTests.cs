@@ -2302,13 +2302,9 @@ public class Tree2 : Tree1
     .method public hidebysig specialname rtspecialname 
         instance void .ctor () cil managed 
     {
-        // Method begins at RVA 0x2050
-        // Code size 7 (0x7)
-        .maxstack 8
-
-        IL_0000: ldarg.0
-        IL_0001: call instance void [mscorlib]System.Object::.ctor()
-        IL_0006: ret
+        ldarg.0
+        call instance void [mscorlib]System.Object::.ctor()
+        ret
     } // end of method Tree`1::.ctor
 
 } // end of class Tree`1
@@ -2320,13 +2316,9 @@ public class Tree2 : Tree1
     .method public hidebysig specialname rtspecialname 
         instance void .ctor () cil managed 
     {
-        // Method begins at RVA 0x2058
-        // Code size 7 (0x7)
-        .maxstack 8
-
-        IL_0000: ldarg.0
-        IL_0001: call instance void class Tree`1<object>::.ctor()
-        IL_0006: ret
+        ldarg.0
+        call instance void class Tree`1<object>::.ctor()
+        ret
     } // end of method Tree1::.ctor
 
 } // end of class Tree1
