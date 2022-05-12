@@ -631,7 +631,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (originalInvocation is null && newInvocation is null)
                 return true;
 
-
             if (originalInvocation is not null)
             {
                 // Invocations must stay invocations after update.
