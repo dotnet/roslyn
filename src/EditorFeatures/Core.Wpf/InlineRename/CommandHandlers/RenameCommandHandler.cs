@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => GetAdornment(textView) switch
             {
                 RenameDashboard dashboard => dashboard.ShouldReceiveKeyboardNavigation,
-                RenameFlyout flyout => true, // Always receive keyboard navigation for the inline adornment
+                RenameFlyout => true, // Always receive keyboard navigation for the inline adornment
                 _ => false
             };
 
