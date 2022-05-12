@@ -8,6 +8,9 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MakeMemberStatic;
@@ -20,8 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpMakeMemberStaticCodeFixProvider()
+            : base(CSharpSyntaxFacts.Instance, CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
         {
         }
+
+        protected override SyntaxToken StaticModifier => SyntaxFactory.Token(SyntaxKind.StaticKeyword);
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(
