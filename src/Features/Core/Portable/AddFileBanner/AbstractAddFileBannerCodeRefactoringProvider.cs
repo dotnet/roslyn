@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
 {
     internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
     {
+        private const string BannerFileNamePlaceholder = "{filename}";
+
         protected abstract bool IsCommentStartCharacter(char ch);
 
         protected abstract SyntaxTrivia CreateTrivia(SyntaxTrivia trivia, string text);
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                         CodeAction.Create(
                             CodeFixesResources.Add_file_header,
                             _ => AddBannerAsync(document, root, siblingDocument, siblingBanner),
-                            equivalenceKey: siblingDocument.FilePath),
+                            equivalenceKey: GetEquivalenceKey(siblingDocument, siblingBanner)),
                         new Text.TextSpan(position, length: 0));
                     return;
                 }
@@ -102,21 +105,38 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             return banner.Length > 0;
         }
 
-        private Task<Document> AddBannerAsync(
-            Document document, SyntaxNode root,
-            Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
+        private static string GetEquivalenceKey(Document document, ImmutableArray<SyntaxTrivia> banner)
         {
-            var newRoot = GetRootWithAddedBanner(document, root, siblingDocument, banner);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            var bannerText = banner.Select(trivia => trivia.ToFullString()).Join(string.Empty);
+
+            var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
+            if (!string.IsNullOrEmpty(fileName))
+                bannerText = bannerText.Replace(fileName, BannerFileNamePlaceholder);
+
+            return bannerText;
         }
 
-        private SyntaxNode GetRootWithAddedBanner(
+        private static ImmutableArray<SyntaxTrivia> GetBannerFromEquivalenceKey(string equivalenceKey, Document document)
+        {
+            var fileName = IOUtilities.PerformIO(() => Path.GetFileName(document.FilePath));
+            if (!string.IsNullOrEmpty(fileName))
+                equivalenceKey = equivalenceKey.Replace(BannerFileNamePlaceholder, fileName);
+
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var token = syntaxFacts.ParseToken(equivalenceKey);
+
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            return bannerService.GetFileBanner(token);
+        }
+
+        private Task<Document> AddBannerAsync(
             Document document, SyntaxNode root,
             Document siblingDocument, ImmutableArray<SyntaxTrivia> banner)
         {
             banner = UpdateEmbeddedFileNames(siblingDocument, document, banner);
 
-            return root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
+            var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
 
         /// <summary>
@@ -177,26 +197,19 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             string? equivalenceKey,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(equivalenceKey != null);
+
             // Bail out if the document to fix already has an existing banner.
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (HasExistingBanner(document, root))
                 return;
 
-            // Get the source document ID with existing banner.
-            // This banner will be added to the document to be fixed.
-            // Equivalence key is the file path to this source document.
-            var sourceDocumentId = document.Project.Solution.GetDocumentIdsWithFilePath(equivalenceKey).FirstOrDefault();
-            if (sourceDocumentId == null)
-                return;
-
-            // Get the existing banner from the source document.
-            var sourceDocument = document.Project.Solution.GetRequiredDocument(sourceDocumentId);
-            var sourceRoot = await sourceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var banner = await TryGetBannerAsync(sourceDocument, sourceRoot, cancellationToken).ConfigureAwait(false);
+            // Get banner from the equivalence key.
+            var banner = GetBannerFromEquivalenceKey(equivalenceKey, document);
             Debug.Assert(banner.Length > 0);
 
             // Finally add the banner to the document to be fixed.
-            var newRoot = GetRootWithAddedBanner(document, root, sourceDocument, banner);
+            var newRoot = root.WithPrependedLeadingTrivia(new SyntaxTriviaList(banner));
             editor.ReplaceNode(editor.OriginalRoot, newRoot);
         }
     }
