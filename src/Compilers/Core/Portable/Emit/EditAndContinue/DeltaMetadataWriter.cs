@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var methodDef in _changes.GetDeletedMethods(typeDef))
             {
                 var oldMethodDef = (IMethodDefinition)methodDef.GetCciAdapter();
-                var newMethodDef = new DeletedMethodDefinition(oldMethodDef, methodDef);
+                var newMethodDef = new DeletedMethodDefinition(oldMethodDef, typeDef);
                 _methodDefs.AddUpdated(newMethodDef);
 
                 EmitMethod(newMethodDef, SymbolChange.Updated);

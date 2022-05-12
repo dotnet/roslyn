@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Roslyn.Test.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests.EditAndContinueTestBase;
 
@@ -94,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(expected, _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
             }
 
-            internal void VerifyIL(string qualifiedMethodName, string expectedIL)
+            internal void VerifyIL(string expectedIL)
             {
-                _generationInfo.CompilationDifference.VerifyIL(qualifiedMethodName, expectedIL);
+                _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
             }
         }
     }

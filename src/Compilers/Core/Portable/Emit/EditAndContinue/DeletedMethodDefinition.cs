@@ -14,13 +14,13 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     internal sealed partial class DeletedMethodDefinition : IMethodDefinition
     {
-        private IMethodSymbolInternal _methodDef;
-        private IMethodDefinition _oldMethod;
+        private readonly ITypeDefinition _containingTypeDef;
+        private readonly IMethodDefinition _oldMethod;
 
-        public DeletedMethodDefinition(IMethodDefinition oldMethod, IMethodSymbolInternal methodDef)
+        public DeletedMethodDefinition(IMethodDefinition oldMethod, ITypeDefinition containingTypeDef)
         {
             _oldMethod = oldMethod;
-            _methodDef = methodDef;
+            _containingTypeDef = containingTypeDef;
         }
 
         public IEnumerable<IGenericMethodParameter> GenericParameters => _oldMethod.GenericParameters;
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public INamespace ContainingNamespace => _oldMethod.ContainingNamespace;
 
-        public ITypeDefinition ContainingTypeDefinition => _oldMethod.ContainingTypeDefinition;
+        public ITypeDefinition ContainingTypeDefinition => _containingTypeDef;
 
         public TypeMemberVisibility Visibility => _oldMethod.Visibility;
 
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ITypeReference GetContainingType(EmitContext context)
         {
-            return _oldMethod.GetContainingType(context);
+            return _containingTypeDef;
         }
 
         public MethodImplAttributes GetImplementationAttributes(EmitContext context)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public IMethodDefinition GetResolvedMethod(EmitContext context)
         {
-            return _oldMethod.GetResolvedMethod(context);
+            return this;
         }
 
         public IEnumerable<ICustomAttribute> GetReturnValueAttributes(EmitContext context)
