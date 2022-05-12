@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MakeMemberStatic;
@@ -23,11 +22,17 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpMakeMemberStaticCodeFixProvider()
-            : base(CSharpSyntaxFacts.Instance, CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
+            : base(CSharpSyntaxFacts.Instance, CSharpCodeStyleOptions.PreferredModifierOrder)
         {
         }
 
         protected override SyntaxToken StaticModifier => SyntaxFactory.Token(SyntaxKind.StaticKeyword);
+
+        protected override int GetKeywordRawKind(string trimmed)
+        {
+            var kind = SyntaxFacts.GetKeywordKind(trimmed);
+            return (int)(kind == SyntaxKind.None ? SyntaxFacts.GetContextualKeywordKind(trimmed) : kind);
+        }
 
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -15,9 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.OrderModifiers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MakeMemberStatic
 {
@@ -25,19 +24,18 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
     {
         private readonly ISyntaxFacts _syntaxFacts;
         private readonly Option2<CodeStyleOption2<string>> _option;
-        private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractMakeMemberStaticCodeFixProvider(
             ISyntaxFacts syntaxFacts,
-            Option2<CodeStyleOption2<string>> option,
-            AbstractOrderModifiersHelpers helpers)
+            Option2<CodeStyleOption2<string>> option)
         {
             _syntaxFacts = syntaxFacts;
             _option = option;
-            _helpers = helpers;
         }
 
         protected abstract SyntaxToken StaticModifier { get; }
+
+        protected abstract int GetKeywordRawKind(string trimmed);
 
         protected abstract bool TryGetMemberDeclaration(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? memberDeclaration);
 
@@ -52,16 +50,73 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             return Task.CompletedTask;
         }
 
+        private static bool TryGetIndexOfRawKind(SyntaxTokenList modifiers, int rawKind, out int index)
+        {
+            for (var i = 0; i < modifiers.Count; i++)
+            {
+                if (modifiers[i].RawKind == rawKind)
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            index = -1;
+            return false;
+        }
+
+        private SyntaxTokenList InsertStaticModifier(SyntaxTokenList modifiers, string preferredOrder)
+        {
+            if (modifiers.Count == 0)
+            {
+                return new SyntaxTokenList(StaticModifier);
+            }
+
+            var order = preferredOrder.Split(',').Select(m => m.Trim()).ToArray();
+            var staticIndex = Array.IndexOf(order, "static");
+
+            if (staticIndex == -1)
+            {
+                return modifiers.Add(StaticModifier);
+            }
+
+            int? modifierBeforeStaticRawKind = null;
+            for (var i = staticIndex - 1; i >= 0; i--)
+            {
+                var rawKind = GetKeywordRawKind(order[i]);
+                if (TryGetIndexOfRawKind(modifiers, rawKind, out var index))
+                {
+                    modifierBeforeStaticRawKind = rawKind;
+                    break;
+                }
+            }
+
+            if (!modifierBeforeStaticRawKind.HasValue)
+            {
+                return new SyntaxTokenList(StaticModifier.WithLeadingTrivia(modifiers[0].LeadingTrivia),
+                    modifiers[0].WithoutLeadingTrivia()).AddRange(modifiers.Skip(1));
+            }
+
+            var keywords = new Collection<SyntaxToken>();
+
+            for (var i = 0; i < modifiers.Count; i++)
+            {
+                keywords.Add(modifiers[i]);
+
+                if (modifiers[i].RawKind == modifierBeforeStaticRawKind.Value)
+                {
+                    keywords.Add(StaticModifier);
+                }
+            }
+
+            return new SyntaxTokenList(keywords);
+        }
+
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
             CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var option = document.Project.AnalyzerOptions.GetOption(_option, tree, cancellationToken);
-
-            if (!_helpers.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
-            {
-                return;
-            }
 
             for (var i = 0; i < diagnostics.Length; i++)
             {
@@ -69,27 +124,14 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
 
                 if (TryGetMemberDeclaration(declaration, out var memberDeclaration))
                 {
-                    var modifiers = _syntaxFacts.GetModifiers(memberDeclaration).Add(StaticModifier);
-                    if (!AbstractOrderModifiersHelpers.IsOrdered(preferredOrder, modifiers))
-                    {
-                        modifiers = new SyntaxTokenList(modifiers.OrderBy(CompareModifiers)
-                            .Select((token, index) => token.WithTriviaFrom(modifiers[index])));
-                    }
+                    var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
+
+                    modifiers = InsertStaticModifier(modifiers, option.Value);
 
                     var newNode = _syntaxFacts.WithModifiers(memberDeclaration, modifiers);
                     editor.ReplaceNode(declaration, newNode);
                 }
             }
-
-            return;
-
-            // Local functions
-
-            int CompareModifiers(SyntaxToken t1, SyntaxToken t2)
-                => GetOrder(t1) - GetOrder(t2);
-
-            int GetOrder(SyntaxToken token)
-                => preferredOrder.TryGetValue(token.RawKind, out var value) ? value : int.MaxValue;
         }
     }
 }
