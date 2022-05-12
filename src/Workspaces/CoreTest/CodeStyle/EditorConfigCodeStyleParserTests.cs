@@ -3,16 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
@@ -67,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             var storageLocation = CodeStyleOptions2.RequireAccessibilityModifiers.StorageLocations
                 .OfType<EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>>()
                 .Single();
-            var allRawConventions = new StructuredAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, args));
+            var allRawConventions = new Dictionary<string, string?> { { storageLocation.KeyName, args } };
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption2<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
             var codeStyleOption = (CodeStyleOption2<AccessibilityModifiersRequired>)parsedCodeStyleOption!;
@@ -89,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             var storageLocation = FormattingOptions.NewLine.StorageLocations
                 .OfType<EditorConfigStorageLocation<string>>()
                 .Single();
-            var allRawConventions = new StructuredAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, configurationString));
+            var allRawConventions = new Dictionary<string, string?> { { storageLocation.KeyName, configurationString } };
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(string), out var parsedNewLine));
             Assert.Equal(newLine, (string?)parsedNewLine);

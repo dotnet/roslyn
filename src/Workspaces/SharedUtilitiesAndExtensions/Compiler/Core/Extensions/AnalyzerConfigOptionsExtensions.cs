@@ -84,8 +84,7 @@ namespace Microsoft.CodeAnalysis
                 // This option has .editorconfig storage defined, even if the current configuration does not provide a
                 // value for it.
                 hasEditorConfigStorage = true;
-                if (StructuredAnalyzerConfigOptions.TryGetStructuredOptions(analyzerConfigOptions, out var structuredOptions) &&
-                    configStorageLocation.TryGetOption(structuredOptions, option.Type, out var objectValue))
+                if (configStorageLocation.TryGetOption(analyzerConfigOptions, option.Type, out var objectValue))
                 {
                     value = (T?)objectValue;
                     return true;

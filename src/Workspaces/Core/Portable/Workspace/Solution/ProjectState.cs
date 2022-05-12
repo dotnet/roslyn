@@ -248,13 +248,15 @@ namespace Microsoft.CodeAnalysis
                 additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
 
-        public async Task<AnalyzerConfigData> GetAnalyzerOptionsForPathAsync(string path, CancellationToken cancellationToken)
+        public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsForPathAsync(
+            string path,
+            CancellationToken cancellationToken)
         {
-            var cache = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return cache.GetOptionsForSourcePath(path);
+            var configSet = await _lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return configSet.GetOptionsForSourcePath(path).AnalyzerOptions;
         }
 
-        public AnalyzerConfigData? GetAnalyzerConfigOptions()
+        public AnalyzerConfigOptionsResult? GetAnalyzerConfigOptions()
         {
             // We need to find the analyzer config options at the root of the project.
             // Currently, there is no compiler API to query analyzer config options for a directory in a language agnostic fashion.
@@ -294,11 +296,8 @@ namespace Microsoft.CodeAnalysis
             public ProjectAnalyzerConfigOptionsProvider(ProjectState projectState)
                 => _projectState = projectState;
 
-            private AnalyzerConfigOptionsCache GetCache()
-                => _projectState._lazyAnalyzerConfigOptions.GetValue(CancellationToken.None);
-
             public override AnalyzerConfigOptions GlobalOptions
-                => GetCache().GlobalConfigOptions.AnalyzerConfigOptions;
+                => GetOptionsForSourcePath(string.Empty);
 
             public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
                 => GetOptionsForSourcePath(tree.FilePath);
@@ -310,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public AnalyzerConfigOptions GetOptionsForSourcePath(string path)
-                => GetCache().GetOptionsForSourcePath(path).AnalyzerConfigOptions;
+                => new DictionaryAnalyzerConfigOptions(_projectState._lazyAnalyzerConfigOptions.GetValue(CancellationToken.None).GetOptionsForSourcePath(path).AnalyzerOptions);
         }
 
         private sealed class ProjectSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
@@ -372,20 +371,20 @@ namespace Microsoft.CodeAnalysis
 
         private readonly struct AnalyzerConfigOptionsCache
         {
-            private readonly ConcurrentDictionary<string, AnalyzerConfigData> _sourcePathToResult = new();
-            private readonly Func<string, AnalyzerConfigData> _computeFunction;
-            private readonly Lazy<AnalyzerConfigData> _global;
+            private readonly ConcurrentDictionary<string, AnalyzerConfigOptionsResult> _sourcePathToResult = new();
+            private readonly Func<string, AnalyzerConfigOptionsResult> _computeFunction;
+            private readonly AnalyzerConfigSet _configSet;
 
             public AnalyzerConfigOptionsCache(AnalyzerConfigSet configSet)
             {
-                _global = new Lazy<AnalyzerConfigData>(() => new AnalyzerConfigData(configSet.GlobalConfigOptions));
-                _computeFunction = path => new AnalyzerConfigData(configSet.GetOptionsForSourcePath(path));
+                _configSet = configSet;
+                _computeFunction = _configSet.GetOptionsForSourcePath;
             }
 
-            public AnalyzerConfigData GlobalConfigOptions
-                => _global.Value;
+            public AnalyzerConfigOptionsResult GlobalConfigOptions
+                => _configSet.GlobalConfigOptions;
 
-            public AnalyzerConfigData GetOptionsForSourcePath(string sourcePath)
+            public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
                 => _sourcePathToResult.GetOrAdd(sourcePath, _computeFunction);
         }
 

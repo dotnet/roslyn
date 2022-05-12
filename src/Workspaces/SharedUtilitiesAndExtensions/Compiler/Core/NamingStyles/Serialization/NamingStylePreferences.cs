@@ -56,12 +56,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         }
 
         public static NamingStylePreferences Default => FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-        public static NamingStylePreferences Empty => new(ImmutableArray<SymbolSpecification>.Empty, ImmutableArray<NamingStyle>.Empty, ImmutableArray<SerializableNamingRule>.Empty);
 
         public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
-
-        public bool IsEmpty
-            => SymbolSpecifications.IsEmpty && NamingStyles.IsEmpty && NamingRules.IsEmpty;
 
         internal NamingStyle GetNamingStyle(Guid namingStyleID)
             => NamingStyles.Single(s => s.ID == namingStyleID);

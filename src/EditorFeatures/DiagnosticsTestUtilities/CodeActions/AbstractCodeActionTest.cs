@@ -65,13 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 return (actions, actionToInvoke);
 
             var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-                refactoring.Provider, document, span, fixAllScope.Value).ConfigureAwait(false);
+                refactoring.Provider, refactoring.CodeActionOptionsProvider, document, span, fixAllScope.Value).ConfigureAwait(false);
             return (ImmutableArray.Create(fixAllCodeAction), fixAllCodeAction);
         }
 
         private static async Task<CodeAction> GetFixAllFixAsync(
             CodeAction originalCodeAction,
             CodeRefactoringProvider provider,
+            CodeActionOptionsProvider optionsProvider,
             Document document,
             TextSpan selectionSpan,
             FixAllScope scope)
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var fixAllProvider = provider.GetFixAllProvider();
             Assert.NotNull(fixAllProvider);
 
-            var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
+            var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, optionsProvider, scope, originalCodeAction);
             var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
             return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
         }
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             var context = new CodeRefactoringContext(document, selectedOrAnnotatedSpan, (a, t) => actions.Add((a, t)), codeActionOptionsProvider, isBlocking: false, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
-            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider)) : null;
+            var result = actions.Count > 0 ? new CodeRefactoring(provider, actions.ToImmutable(), FixAllProviderInfo.Create(provider), codeActionOptionsProvider) : null;
             actions.Free();
             return result;
         }
