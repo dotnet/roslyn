@@ -28,8 +28,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
         <Extension>
         Public Function GetVisualBasicSimplifierOptions(globalOptions As IGlobalOptionService) As VisualBasicSimplifierOptions
-            Return New VisualBasicSimplifierOptions(
-                common:=globalOptions.GetCommonSimplifierOptions(LanguageNames.VisualBasic))
+            Return New VisualBasicSimplifierOptions() With
+            {
+                .Common = globalOptions.GetCommonSimplifierOptions(LanguageNames.VisualBasic)
+            }
         End Function
     End Module
 End Namespace

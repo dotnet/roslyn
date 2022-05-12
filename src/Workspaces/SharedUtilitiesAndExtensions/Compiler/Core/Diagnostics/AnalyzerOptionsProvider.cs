@@ -51,10 +51,13 @@ internal readonly struct AnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInMemberAccess);
     public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration => GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, FallbackSimplifierOptions.PreferPredefinedTypeKeywordInDeclaration);
 
+    public SimplifierOptions GetSimplifierOptions(ISimplification simplification)
+        => simplification.GetSimplifierOptions(_options, _fallbackOptions.CleanupOptions?.SimplifierOptions);
+
     // SyntaxFormattingOptions
 
     public SyntaxFormattingOptions GetSyntaxFormattingOptions(ISyntaxFormatting formatting)
-        => formatting.GetFormattingOptions(_options, _fallbackOptions.CleanCodeGenerationOptions?.CleanupOptions.FormattingOptions);
+        => formatting.GetFormattingOptions(_options, _fallbackOptions.CleanupOptions?.FormattingOptions);
 
     // CodeGenerationOptions
 

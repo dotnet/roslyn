@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNotExpression
             End If
 
             ' Bail immediately if the user has disabled this feature.
-            Dim styleOption = syntaxContext.GetVisualBasicCodeStyleOptions().PreferIsNotExpression
+            Dim styleOption = syntaxContext.GetVisualBasicAnalyzerOptions().PreferIsNotExpression
             If Not styleOption.Value Then
                 Return
             End If

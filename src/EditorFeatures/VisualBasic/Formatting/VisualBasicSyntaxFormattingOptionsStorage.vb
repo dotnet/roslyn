@@ -33,9 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Function GetVisualBasicSyntaxFormattingOptions(globalOptions As IGlobalOptionService) As VisualBasicSyntaxFormattingOptions
             Return New VisualBasicSyntaxFormattingOptions() With
             {
-                .LineFormatting = globalOptions.GetLineFormattingOptions(LanguageNames.VisualBasic),
-                .SeparateImportDirectiveGroups = globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic),
-                .AccessibilityModifiersRequired = globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, LanguageNames.VisualBasic).Value
+                .Common = globalOptions.GetCommonSyntaxFormattingOptions(LanguageNames.VisualBasic)
             }
         End Function
     End Module

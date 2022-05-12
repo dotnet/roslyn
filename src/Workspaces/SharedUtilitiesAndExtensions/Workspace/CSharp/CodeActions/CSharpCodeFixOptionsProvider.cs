@@ -58,7 +58,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<bool> VarElsewhere => GetOption(CSharpCodeStyleOptions.VarElsewhere, FallbackSimplifierOptions.VarElsewhere);
 
     public SimplifierOptions GetSimplifierOptions()
-        => CSharpSimplifierOptions.Create(_options, FallbackSimplifierOptions);
+        => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);
 
     // FormattingOptions
 
@@ -66,7 +66,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     public CodeStyleOption2<bool> PreferTopLevelStatements => GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements, FallbackSyntaxFormattingOptions.PreferTopLevelStatements);
 
     internal SyntaxFormattingOptions GetFormattingOptions()
-        => CSharpSyntaxFormattingOptions.Create(_options, FallbackSyntaxFormattingOptions);
+        => _options.GetCSharpSyntaxFormattingOptions(FallbackSyntaxFormattingOptions);
 
     // AddImportPlacementOptions
 

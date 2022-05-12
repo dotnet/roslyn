@@ -18,10 +18,12 @@ internal static class LineFormattingOptionsStorage
         => document.GetLineFormattingOptionsAsync(globalOptions.GetLineFormattingOptions(document.Project.Language), cancellationToken);
 
     public static LineFormattingOptions GetLineFormattingOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
-            UseTabs: globalOptions.GetOption(FormattingOptions2.UseTabs, language),
-            TabSize: globalOptions.GetOption(FormattingOptions2.TabSize, language),
-            IndentationSize: globalOptions.GetOption(FormattingOptions2.IndentationSize, language),
-            NewLine: globalOptions.GetOption(FormattingOptions2.NewLine, language));
+        => new()
+        {
+            UseTabs = globalOptions.GetOption(FormattingOptions2.UseTabs, language),
+            TabSize = globalOptions.GetOption(FormattingOptions2.TabSize, language),
+            IndentationSize = globalOptions.GetOption(FormattingOptions2.IndentationSize, language),
+            NewLine = globalOptions.GetOption(FormattingOptions2.NewLine, language)
+        };
 }
 

@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             else
             {
                 syntaxFormattingOptions = null;
-                lineFormattingOptions = LineFormattingOptions.Create(configOptionSet, fallbackOptions: null);
+                lineFormattingOptions = configOptionSet.GetLineFormattingOptions(fallbackOptions: null);
             }
 
             return (syntaxFormattingOptions, lineFormattingOptions);
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
             var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
-            return OrganizeImportsOptions.Create(configOptionSet, fallbackOptions: null);
+            return configOptionSet.GetOrganizeImportsOptions(fallbackOptions: null);
         }
 #pragma warning restore
     }

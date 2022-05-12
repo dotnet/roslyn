@@ -20,18 +20,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Return New VisualBasicSyntaxFormattingOptions() With
             {
-                .LineFormatting = LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
-                .SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
-                .AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers, fallbackOptions.AccessibilityModifiersRequired)
+                .Common = options.GetCommonSyntaxFormattingOptions(fallbackOptions.Common)
             }
         End Function
 
         Public Overrides Function [With](lineFormatting As LineFormattingOptions) As SyntaxFormattingOptions
             Return New VisualBasicSyntaxFormattingOptions() With
             {
-                .LineFormatting = lineFormatting,
-                .SeparateImportDirectiveGroups = SeparateImportDirectiveGroups,
-                .AccessibilityModifiersRequired = AccessibilityModifiersRequired
+                .Common = New CommonOptions() With
+                {
+                    .LineFormatting = lineFormatting,
+                    .SeparateImportDirectiveGroups = SeparateImportDirectiveGroups,
+                    .AccessibilityModifiersRequired = AccessibilityModifiersRequired
+                }
             }
         End Function
     End Class

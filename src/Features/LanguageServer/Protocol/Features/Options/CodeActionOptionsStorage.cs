@@ -24,15 +24,17 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
             => new(
-                CleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
-                CodeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
-                CodeStyleOptions: globalOptions.GetCodeStyleOptions(languageServices),
-                SearchOptions: globalOptions.GetSymbolSearchOptions(languageServices.Language),
-                ImplementTypeOptions: globalOptions.GetImplementTypeOptions(languageServices.Language),
-                ExtractMethodOptions: globalOptions.GetExtractMethodOptions(languageServices.Language),
-                HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
-                WrappingColumn: globalOptions.GetOption(WrappingColumn, languageServices.Language),
-                ConditionalExpressionWrappingLength: globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language));
+                cleanupOptions: globalOptions.GetCodeCleanupOptions(languageServices),
+                codeGenerationOptions: globalOptions.GetCodeGenerationOptions(languageServices),
+                codeStyleOptions: globalOptions.GetCodeStyleOptions(languageServices))
+            {
+                SearchOptions = globalOptions.GetSymbolSearchOptions(languageServices.Language),
+                ImplementTypeOptions = globalOptions.GetImplementTypeOptions(languageServices.Language),
+                ExtractMethodOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
+                HideAdvancedMembers = globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, languageServices.Language),
+                WrappingColumn = globalOptions.GetOption(WrappingColumn, languageServices.Language),
+                ConditionalExpressionWrappingLength = globalOptions.GetOption(ConditionalExpressionWrappingLength, languageServices.Language)
+            };
 
         internal static CodeActionOptionsProvider GetCodeActionOptionsProvider(this IGlobalOptionService globalOptions)
         {

@@ -61,15 +61,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
             Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
-            var ideOptions = new IdeAnalyzerOptions(
-                CleanCodeGenerationOptions: new CleanCodeGenerationOptions(
+            var ideOptions = new IdeAnalyzerOptions()
+            {
+                CleanCodeGenerationOptions = new CleanCodeGenerationOptions(
                     CSharpCodeGenerationOptions.Default,
                     new CodeCleanupOptions(
                         FormattingOptions: CSharpSyntaxFormattingOptions.Default,
-                        SimplifierOptions: new CSharpSimplifierOptions(
-                            varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)),
-                        AddImportOptions: AddImportPlacementOptions.Default,
-                        DocumentFormattingOptions: DocumentFormattingOptions.Default)));
+                        SimplifierOptions: new CSharpSimplifierOptions()
+                        {
+                            VarWhenTypeIsApparent = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)
+                        }))
+            };
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
 

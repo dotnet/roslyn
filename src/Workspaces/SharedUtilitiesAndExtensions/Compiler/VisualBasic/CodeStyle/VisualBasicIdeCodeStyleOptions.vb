@@ -58,8 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             Optional UnusedValueAssignment As CodeStyleOption2(Of UnusedValuePreference) = Nothing)
 #Enable Warning
 
-            MyBase.New(Common)
-
+            Me.Common = Common
             Me.PreferredModifierOrder = If(PreferredModifierOrder, s_defaultModifierOrder)
             Me.PreferIsNotExpression = If(PreferIsNotExpression, s_trueWithSuggestionEnforcement)
             Me.PreferSimplifiedObjectCreation = If(PreferSimplifiedObjectCreation, s_trueWithSuggestionEnforcement)

@@ -28,14 +28,16 @@ internal static class CSharpSimplifierOptionsStorage
     }
 
     public static CSharpSimplifierOptions GetCSharpSimplifierOptions(this IGlobalOptionService globalOptions)
-        => new(
-            common: globalOptions.GetCommonSimplifierOptions(LanguageNames.CSharp),
-            varForBuiltInTypes: globalOptions.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes),
-            varWhenTypeIsApparent: globalOptions.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent),
-            varElsewhere: globalOptions.GetOption(CSharpCodeStyleOptions.VarElsewhere),
-            preferSimpleDefaultExpression: globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression),
-            preferParameterNullChecking: globalOptions.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking),
-            allowEmbeddedStatementsOnSameLine: globalOptions.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine),
-            preferBraces: globalOptions.GetOption(CSharpCodeStyleOptions.PreferBraces),
-            preferThrowExpression: globalOptions.GetOption(CSharpCodeStyleOptions.PreferThrowExpression));
+        => new()
+        {
+            Common = globalOptions.GetCommonSimplifierOptions(LanguageNames.CSharp),
+            VarForBuiltInTypes = globalOptions.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes),
+            VarWhenTypeIsApparent = globalOptions.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent),
+            VarElsewhere = globalOptions.GetOption(CSharpCodeStyleOptions.VarElsewhere),
+            PreferSimpleDefaultExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression),
+            PreferParameterNullChecking = globalOptions.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking),
+            AllowEmbeddedStatementsOnSameLine = globalOptions.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine),
+            PreferBraces = globalOptions.GetOption(CSharpCodeStyleOptions.PreferBraces),
+            PreferThrowExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferThrowExpression),
+        };
 }

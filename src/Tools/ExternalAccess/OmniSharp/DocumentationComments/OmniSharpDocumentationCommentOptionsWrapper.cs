@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             int tabSize,
             bool useTabs,
             string newLine)
-            : this(new(new LineFormattingOptions(useTabs, tabSize, tabSize, newLine), autoXmlDocCommentGeneration))
+            : this(new(new LineFormattingOptions() { UseTabs = useTabs, TabSize = tabSize, IndentationSize = tabSize, NewLine = newLine }, autoXmlDocCommentGeneration))
         {
         }
 

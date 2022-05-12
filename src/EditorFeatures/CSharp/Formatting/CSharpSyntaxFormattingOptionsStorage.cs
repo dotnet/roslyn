@@ -32,9 +32,7 @@ internal static class CSharpSyntaxFormattingOptionsStorage
     public static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(this IGlobalOptionService globalOptions)
         => new()
         {
-            LineFormatting = globalOptions.GetLineFormattingOptions(LanguageNames.CSharp),
-            SeparateImportDirectiveGroups = globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp),
-            AccessibilityModifiersRequired = globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, LanguageNames.CSharp).Value,
+            Common = globalOptions.GetCommonSyntaxFormattingOptions(LanguageNames.CSharp),
             Spacing =
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
                 (globalOptions.GetOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName) ? SpacePlacement.AfterMethodDeclarationName : 0) |

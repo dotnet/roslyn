@@ -24,11 +24,13 @@ internal static class SimplifierOptionsStorage
         => languageServices.GetRequiredService<ISimplifierOptionsStorage>().GetOptions(globalOptions);
 
     public static SimplifierOptions.CommonOptions GetCommonSimplifierOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
-            QualifyFieldAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyFieldAccess, language),
-            QualifyPropertyAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language),
-            QualifyMethodAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyMethodAccess, language),
-            QualifyEventAccess: globalOptions.GetOption(CodeStyleOptions2.QualifyEventAccess, language),
-            PreferPredefinedTypeKeywordInMemberAccess: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language),
-            PreferPredefinedTypeKeywordInDeclaration: globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language));
+        => new()
+        {
+            QualifyFieldAccess = globalOptions.GetOption(CodeStyleOptions2.QualifyFieldAccess, language),
+            QualifyPropertyAccess = globalOptions.GetOption(CodeStyleOptions2.QualifyPropertyAccess, language),
+            QualifyMethodAccess = globalOptions.GetOption(CodeStyleOptions2.QualifyMethodAccess, language),
+            QualifyEventAccess = globalOptions.GetOption(CodeStyleOptions2.QualifyEventAccess, language),
+            PreferPredefinedTypeKeywordInMemberAccess = globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, language),
+            PreferPredefinedTypeKeywordInDeclaration = globalOptions.GetOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language)
+        };
 }

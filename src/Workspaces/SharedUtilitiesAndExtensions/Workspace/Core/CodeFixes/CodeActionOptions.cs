@@ -48,48 +48,31 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const int DefaultConditionalExpressionWrappingLength = 120;
 
 #if !CODE_STYLE
-        [DataMember(Order = 0)] public SymbolSearchOptions SearchOptions { get; init; }
-        [DataMember(Order = 1)] public ImplementTypeOptions ImplementTypeOptions { get; init; }
-        [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; }
+        [DataMember(Order = 0)] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
+        [DataMember(Order = 1)] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
+        [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
         [DataMember(Order = 3)] public CodeCleanupOptions CleanupOptions { get; init; }
         [DataMember(Order = 4)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
         [DataMember(Order = 5)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
-        [DataMember(Order = 6)] public bool HideAdvancedMembers { get; init; }
-        [DataMember(Order = 7)] public int WrappingColumn { get; init; }
-        [DataMember(Order = 8)] public int ConditionalExpressionWrappingLength { get; init; }
+        [DataMember(Order = 6)] public bool HideAdvancedMembers { get; init; } = false;
+        [DataMember(Order = 7)] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
+        [DataMember(Order = 8)] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
 
-#pragma warning disable IDE1006 // Record-style parameter naming
         public CodeActionOptions(
-            CodeCleanupOptions CleanupOptions,
-            CodeGenerationOptions CodeGenerationOptions,
-            IdeCodeStyleOptions CodeStyleOptions,
-            SymbolSearchOptions? SearchOptions = null,
-            ImplementTypeOptions? ImplementTypeOptions = null,
-            ExtractMethodOptions? ExtractMethodOptions = null,
-            bool HideAdvancedMembers = false,
-            int WrappingColumn = DefaultWrappingColumn,
-            int ConditionalExpressionWrappingLength = DefaultConditionalExpressionWrappingLength)
-#pragma warning restore
+            CodeCleanupOptions cleanupOptions,
+            CodeGenerationOptions codeGenerationOptions,
+            IdeCodeStyleOptions codeStyleOptions)
         {
-            this.CleanupOptions = CleanupOptions;
-            this.CodeGenerationOptions = CodeGenerationOptions;
-            this.CodeStyleOptions = CodeStyleOptions;
-            this.SearchOptions = SearchOptions ?? SymbolSearchOptions.Default;
-            this.ImplementTypeOptions = ImplementTypeOptions ?? ImplementType.ImplementTypeOptions.Default;
-            this.ExtractMethodOptions = ExtractMethodOptions ?? ExtractMethod.ExtractMethodOptions.Default;
-            this.HideAdvancedMembers = HideAdvancedMembers;
-            this.WrappingColumn = WrappingColumn;
-            this.ConditionalExpressionWrappingLength = ConditionalExpressionWrappingLength;
+            CleanupOptions = cleanupOptions;
+            CodeGenerationOptions = codeGenerationOptions;
+            CodeStyleOptions = codeStyleOptions;
         }
 
         public static CodeActionOptions GetDefault(HostLanguageServices languageServices)
             => new(
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),
-                IdeCodeStyleOptions.GetDefault(languageServices),
-                SymbolSearchOptions.Default,
-                ImplementTypeOptions.Default,
-                ExtractMethodOptions.Default);
+                IdeCodeStyleOptions.GetDefault(languageServices));
 #else
         public static CodeActionOptions GetDefault(HostLanguageServices languageServices)
             => new();

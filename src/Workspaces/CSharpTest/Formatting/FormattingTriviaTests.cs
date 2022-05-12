@@ -1754,7 +1754,7 @@ class Program
 
             var options = new CSharpSyntaxFormattingOptions()
             {
-                LineFormatting = new LineFormattingOptions(NewLine: "\n")
+                Common = new SyntaxFormattingOptions.CommonOptions { LineFormatting = new LineFormattingOptions { NewLine = "\n" } }
             };
 
             var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);
@@ -1802,7 +1802,10 @@ class F
 
             var options = new CSharpSyntaxFormattingOptions()
             {
-                LineFormatting = new LineFormattingOptions(UseTabs: true)
+                Common = new SyntaxFormattingOptions.CommonOptions
+                {
+                    LineFormatting = new LineFormattingOptions { UseTabs = true }
+                }
             };
 
             var formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None);

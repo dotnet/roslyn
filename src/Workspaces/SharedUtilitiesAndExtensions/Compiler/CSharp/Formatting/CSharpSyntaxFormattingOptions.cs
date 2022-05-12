@@ -138,15 +138,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         [DataMember(Order = BaseMemberCount + 8)]
         public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
 
-        public static CSharpSyntaxFormattingOptions Create(AnalyzerConfigOptions options, CSharpSyntaxFormattingOptions? fallbackOptions)
+        public override SyntaxFormattingOptions With(LineFormattingOptions lineFormatting)
+            => new CSharpSyntaxFormattingOptions()
+            {
+                Common = Common with { LineFormatting = lineFormatting },
+                Spacing = Spacing,
+                SpacingAroundBinaryOperator = SpacingAroundBinaryOperator,
+                NewLines = NewLines,
+                LabelPositioning = LabelPositioning,
+                Indentation = Indentation,
+                WrappingKeepStatementsOnSingleLine = WrappingKeepStatementsOnSingleLine,
+                WrappingPreserveSingleLine = WrappingPreserveSingleLine,
+                NamespaceDeclarations = NamespaceDeclarations,
+                PreferTopLevelStatements = PreferTopLevelStatements
+            };
+    }
+
+    internal static class CSharpSyntaxFormattingOptionsProviders
+    {
+        public static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(this AnalyzerConfigOptions options, CSharpSyntaxFormattingOptions? fallbackOptions)
         {
-            fallbackOptions ??= Default;
+            fallbackOptions ??= CSharpSyntaxFormattingOptions.Default;
 
             return new()
             {
-                LineFormatting = LineFormattingOptions.Create(options, fallbackOptions.LineFormatting),
-                SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
-                AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers, fallbackOptions.AccessibilityModifiersRequired),
+                Common = options.GetCommonSyntaxFormattingOptions(fallbackOptions.Common),
                 Spacing =
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpacesIgnoreAroundVariableDeclaration, fallbackOptions.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration)) ? SpacePlacement.IgnoreAroundVariableDeclaration : 0) |
                     (options.GetEditorConfigOption(CSharpFormattingOptions2.SpacingAfterMethodDeclarationName, fallbackOptions.Spacing.HasFlag(SpacePlacement.AfterMethodDeclarationName)) ? SpacePlacement.AfterMethodDeclarationName : 0) |
@@ -201,22 +217,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 PreferTopLevelStatements = options.GetEditorConfigOption(CSharpCodeStyleOptions.PreferTopLevelStatements, fallbackOptions.PreferTopLevelStatements)
             };
         }
-
-        public override SyntaxFormattingOptions With(LineFormattingOptions lineFormatting)
-            => new CSharpSyntaxFormattingOptions()
-            {
-                LineFormatting = lineFormatting,
-                SeparateImportDirectiveGroups = SeparateImportDirectiveGroups,
-                AccessibilityModifiersRequired = AccessibilityModifiersRequired,
-                Spacing = Spacing,
-                SpacingAroundBinaryOperator = SpacingAroundBinaryOperator,
-                NewLines = NewLines,
-                LabelPositioning = LabelPositioning,
-                Indentation = Indentation,
-                WrappingKeepStatementsOnSingleLine = WrappingKeepStatementsOnSingleLine,
-                WrappingPreserveSingleLine = WrappingPreserveSingleLine,
-                NamespaceDeclarations = NamespaceDeclarations,
-                PreferTopLevelStatements = PreferTopLevelStatements
-            };
     }
 }

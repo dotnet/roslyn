@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         End Sub
 
         Protected Overrides Function GetPreferredOrderStyle(context As SyntaxTreeAnalysisContext) As CodeStyleOption2(Of String)
-            Return context.GetVisualBasicCodeStyleOptions().PreferredModifierOrder
+            Return context.GetVisualBasicAnalyzerOptions().PreferredModifierOrder
         End Function
 
         Protected Overrides Sub Recurse(

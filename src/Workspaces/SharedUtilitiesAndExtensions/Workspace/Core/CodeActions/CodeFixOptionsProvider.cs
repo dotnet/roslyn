@@ -49,7 +49,7 @@ internal readonly struct CodeFixOptionsProvider
     public string NewLine => GetOption(FormattingOptions2.NewLine, FallbackLineFormattingOptions.NewLine);
 
     public LineFormattingOptions GetLineFormattingOptions()
-        => LineFormattingOptions.Create(_options, FallbackLineFormattingOptions);
+        => _options.GetLineFormattingOptions(FallbackLineFormattingOptions);
 
     // SyntaxFormattingOptions
 
@@ -62,7 +62,7 @@ internal readonly struct CodeFixOptionsProvider
 
     public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers,
 #if CODE_STYLE
-        SyntaxFormattingOptions.DefaultAccessibilityModifiersRequired);
+        SyntaxFormattingOptions.CommonOptions.Default.AccessibilityModifiersRequired);
 #else
         FallbackSyntaxFormattingOptions.AccessibilityModifiersRequired);
 #endif

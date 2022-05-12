@@ -25,42 +25,22 @@ namespace Microsoft.CodeAnalysis.Simplification
         public static readonly CodeStyleOption2<bool> DefaultPreferPredefinedTypeKeyword = new(value: true, notification: NotificationOption2.Silent);
 
         [DataContract]
-        internal sealed record class CommonOptions(
-            CodeStyleOption2<bool>? QualifyFieldAccess = null,
-            CodeStyleOption2<bool>? QualifyPropertyAccess = null,
-            CodeStyleOption2<bool>? QualifyMethodAccess = null,
-            CodeStyleOption2<bool>? QualifyEventAccess = null,
-            CodeStyleOption2<bool>? PreferPredefinedTypeKeywordInMemberAccess = null,
-            CodeStyleOption2<bool>? PreferPredefinedTypeKeywordInDeclaration = null)
+        internal sealed record class CommonOptions
         {
-            [property: DataMember(Order = 0)] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = QualifyFieldAccess ?? DefaultQualifyAccess;
-            [property: DataMember(Order = 1)] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = QualifyPropertyAccess ?? DefaultQualifyAccess;
-            [property: DataMember(Order = 2)] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = QualifyMethodAccess ?? DefaultQualifyAccess;
-            [property: DataMember(Order = 3)] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = QualifyEventAccess ?? DefaultQualifyAccess;
-            [property: DataMember(Order = 4)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = PreferPredefinedTypeKeywordInMemberAccess ?? DefaultPreferPredefinedTypeKeyword;
-            [property: DataMember(Order = 5)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = PreferPredefinedTypeKeywordInDeclaration ?? DefaultPreferPredefinedTypeKeyword;
-
-            internal static CommonOptions Create(AnalyzerConfigOptions options, CommonOptions fallbackOptions)
-                => new(
-                    QualifyFieldAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
-                    QualifyPropertyAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
-                    QualifyMethodAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
-                    QualifyEventAccess: options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
-                    PreferPredefinedTypeKeywordInMemberAccess: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
-                    PreferPredefinedTypeKeywordInDeclaration: options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration));
-
             public static readonly CommonOptions Default = new();
+
+            [DataMember(Order = 0)] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember(Order = 1)] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember(Order = 2)] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember(Order = 3)] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember(Order = 4)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = DefaultPreferPredefinedTypeKeyword;
+            [DataMember(Order = 5)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = DefaultPreferPredefinedTypeKeyword;
         }
 
         [DataMember(Order = 0)]
-        public readonly CommonOptions Common;
+        public CommonOptions Common { get; init; } = CommonOptions.Default;
 
         protected const int BaseMemberCount = 1;
-
-        protected SimplifierOptions(CommonOptions? common = null)
-        {
-            Common = common ?? CommonOptions.Default;
-        }
 
         public CodeStyleOption2<bool> QualifyFieldAccess => Common.QualifyFieldAccess;
         public CodeStyleOption2<bool> QualifyPropertyAccess => Common.QualifyPropertyAccess;
@@ -96,9 +76,23 @@ namespace Microsoft.CodeAnalysis.Simplification
     {
     }
 
-#if !CODE_STYLE
     internal static partial class SimplifierOptionsProviders
     {
+        internal static SimplifierOptions.CommonOptions GetCommonSimplifierOptions(this AnalyzerConfigOptions options, SimplifierOptions.CommonOptions? fallbackOptions)
+        {
+            fallbackOptions ??= SimplifierOptions.CommonOptions.Default;
+            return new()
+            {
+                QualifyFieldAccess = options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
+                QualifyPropertyAccess = options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
+                QualifyMethodAccess = options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
+                QualifyEventAccess = options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
+                PreferPredefinedTypeKeywordInMemberAccess = options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
+                PreferPredefinedTypeKeywordInDeclaration = options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration),
+            };
+        }
+
+#if !CODE_STYLE
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
             var simplificationService = document.Project.LanguageServices.GetRequiredService<ISimplificationService>();
@@ -108,6 +102,6 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
             => await document.GetSimplifierOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-    }
 #endif
+    }
 }

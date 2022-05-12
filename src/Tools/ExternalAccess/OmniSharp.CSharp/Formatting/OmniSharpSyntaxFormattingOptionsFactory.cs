@@ -81,12 +81,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             => new(new(
                 FormattingOptions: new CSharpSyntaxFormattingOptions()
                 {
-                    LineFormatting = new LineFormattingOptions(
-                        UseTabs: useTabs,
-                        TabSize: tabSize,
-                        IndentationSize: indentationSize,
-                        NewLine: newLine),
-                    SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+                    Common = new SyntaxFormattingOptions.CommonOptions()
+                    {
+                        LineFormatting = new LineFormattingOptions()
+                        {
+                            UseTabs = useTabs,
+                            TabSize = tabSize,
+                            IndentationSize = indentationSize,
+                            NewLine = newLine
+                        },
+                        SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+                    },
                     Spacing =
                         (spacingAfterMethodDeclarationName ? SpacePlacement.AfterMethodDeclarationName : 0) |
                         (spaceBetweenEmptyMethodDeclarationParentheses ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
@@ -137,8 +142,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                     WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine,
                     WrappingPreserveSingleLine = wrappingPreserveSingleLine
                 },
-                SimplifierOptions: CSharpSimplifierOptions.Default,
-                AddImportOptions: AddImportPlacementOptions.Default,
-                DocumentFormattingOptions: DocumentFormattingOptions.Default));
+                SimplifierOptions: CSharpSimplifierOptions.Default));
     }
 }

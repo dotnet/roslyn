@@ -363,8 +363,11 @@ End Class
                 Dim options = VisualBasicCodeActionOptions.Default.With(
                     New VisualBasicSyntaxFormattingOptions() With
                     {
-                        .LineFormatting = LineFormattingOptions.Default,
-                        .SeparateImportDirectiveGroups = separateImportsGroups
+                        .Common = New SyntaxFormattingOptions.CommonOptions() With
+                        {
+                            .LineFormatting = LineFormattingOptions.Default,
+                            .SeparateImportDirectiveGroups = separateImportsGroups
+                        }
                     })
 
                 Dim newDoc = Await codeCleanupService.CleanupAsync(

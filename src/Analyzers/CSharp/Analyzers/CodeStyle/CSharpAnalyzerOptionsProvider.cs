@@ -52,6 +52,9 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferThrowExpression => GetOption(CSharpCodeStyleOptions.PreferThrowExpression, FallbackSimplifierOptions.PreferThrowExpression);
     public CodeStyleOption2<PreferBracesPreference> PreferBraces => GetOption(CSharpCodeStyleOptions.PreferBraces, FallbackSimplifierOptions.PreferBraces);
 
+    internal CSharpSimplifierOptions GetSimplifierOptions()
+        => _options.GetCSharpSimplifierOptions(FallbackSimplifierOptions);
+
     // SyntaxFormattingOptions
 
     public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations => GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, FallbackSyntaxFormattingOptions.NamespaceDeclarations);
@@ -90,7 +93,7 @@ internal readonly struct CSharpAnalyzerOptionsProvider
     // CodeGenerationOptions
 
     internal CSharpCodeGenerationOptions GetCodeGenerationOptions()
-        => CSharpCodeGenerationOptions.Create(_options, FallbackCodeGenerationOptions);
+        => _options.GetCSharpCodeGenerationOptions(FallbackCodeGenerationOptions);
 
     public CodeStyleOption2<ExpressionBodyPreference> PreferExpressionBodiedLambdas => GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, FallbackCodeStyleOptions.PreferExpressionBodiedLambdas);
     public CodeStyleOption2<bool> PreferStaticLocalFunction => GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, FallbackCodeStyleOptions.PreferStaticLocalFunction);
@@ -130,6 +133,9 @@ internal static class CSharpAnalyzerOptionsProviders
 
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this SyntaxTreeAnalysisContext context)
         => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Tree), context.Options);
+
+    public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this CodeBlockAnalysisContext context)
+        => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.SemanticModel.SyntaxTree), context.Options);
 
     public static CSharpAnalyzerOptionsProvider GetCSharpAnalyzerOptions(this OperationAnalysisContext context)
         => new(context.Options.AnalyzerConfigOptionsProvider.GetOptions(context.Operation.Syntax.SyntaxTree), context.Options);

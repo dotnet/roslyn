@@ -23,9 +23,7 @@ internal static class CSharpCodeActionOptions
     public static CodeActionOptions Default = new(
         new CodeCleanupOptions(
             CSharpSyntaxFormattingOptions.Default,
-            CSharpSimplifierOptions.Default,
-            AddImportPlacementOptions.Default,
-            DocumentFormattingOptions.Default),
+            CSharpSimplifierOptions.Default),
         CSharpCodeGenerationOptions.Default,
         CSharpIdeCodeStyleOptions.Default);
 }

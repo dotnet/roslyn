@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 var helper = CSharpUseImplicitTypeHelper.Instance;
                 if (helper.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken))
                 {
-                    var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
+                    var simplifierOptions = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
 
                     if (helper.AnalyzeTypeName(typeNode, semanticModel, simplifierOptions, cancellationToken).IsStylePreferred)
                     {

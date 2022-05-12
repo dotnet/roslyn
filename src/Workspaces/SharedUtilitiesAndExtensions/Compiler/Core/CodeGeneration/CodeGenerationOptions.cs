@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -23,23 +24,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration;
 /// </summary>
 internal abstract class CodeGenerationOptions
 {
-    [DataMember(Order = 0)]
-    public readonly NamingStylePreferences NamingStyle;
+    [DataContract]
+    internal sealed record class CommonOptions
+    {
+        public static readonly CommonOptions Default = new();
 
-    [DataMember(Order = 1)]
-    public readonly bool AddNullChecksToConstructorsGeneratedFromMembers;
+        [DataMember(Order = 0)] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+        [DataMember(Order = 1)] public bool AddNullChecksToConstructorsGeneratedFromMembers { get; init; } = false;
+    }
+
+    [DataMember(Order = 0)]
+    public CommonOptions Common { get; init; } = CommonOptions.Default;
 
     protected const int BaseMemberCount = 1;
 
-    public CodeGenerationOptions(
-        NamingStylePreferences? namingStyle,
-        bool addNullChecksToConstructorsGeneratedFromMembers)
-    {
-        AddNullChecksToConstructorsGeneratedFromMembers = addNullChecksToConstructorsGeneratedFromMembers;
-        NamingStyle = namingStyle ?? NamingStylePreferences.Default;
-    }
-
-    public const bool DefaultAddNullChecksToConstructorsGeneratedFromMembers = false;
+    public NamingStylePreferences NamingStyle => Common.NamingStyle;
+    public bool AddNullChecksToConstructorsGeneratedFromMembers => Common.AddNullChecksToConstructorsGeneratedFromMembers;
 
 #if !CODE_STYLE
     public static CodeGenerationOptions GetDefault(HostLanguageServices languageServices)
@@ -106,9 +106,20 @@ internal interface CodeAndImportGenerationOptionsProvider :
 {
 }
 
-#if !CODE_STYLE
 internal static class CodeGenerationOptionsProviders
 {
+    public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this AnalyzerConfigOptions options, CodeGenerationOptions.CommonOptions? fallbackOptions)
+    {
+        fallbackOptions ??= CodeGenerationOptions.CommonOptions.Default;
+
+        return new()
+        {
+            NamingStyle = options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle),
+            AddNullChecksToConstructorsGeneratedFromMembers = fallbackOptions.AddNullChecksToConstructorsGeneratedFromMembers, // not stored in editorconfig
+        };
+    }
+
+#if !CODE_STYLE
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -118,5 +129,5 @@ internal static class CodeGenerationOptionsProviders
 
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CodeGenerationOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetCodeGenerationOptionsAsync(document, await ((OptionsProvider<CodeGenerationOptions>)fallbackOptionsProvider).GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-}
 #endif
+}

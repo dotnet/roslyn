@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
 
                 Dim formattingOptions = New VisualBasicSyntaxFormattingOptions() With
                 {
-                    .SeparateImportDirectiveGroups = separateImportGroups
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With {.SeparateImportDirectiveGroups = separateImportGroups}
                 }
 
                 Dim organizeOptions = New OrganizeImportsOptions() With

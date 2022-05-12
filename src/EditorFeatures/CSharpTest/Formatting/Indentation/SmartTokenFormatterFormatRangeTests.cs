@@ -3588,7 +3588,7 @@ class Program{
             Assert.Equal(tokenKind, endToken.Kind());
 
             var options = new IndentationOptions(
-                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions(UseTabs: useTabs)),
+                CSharpSyntaxFormattingOptions.Default.With(new LineFormattingOptions { UseTabs = useTabs }),
                 AutoFormattingOptions.Default);
 
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);

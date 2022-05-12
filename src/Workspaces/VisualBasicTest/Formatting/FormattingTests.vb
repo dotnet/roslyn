@@ -4735,7 +4735,13 @@ End Class
 
                 Dim options = New VisualBasicSyntaxFormattingOptions() With
                 {
-                    .LineFormatting = New LineFormattingOptions(NewLine:=vbLf)
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With
+                    {
+                        .LineFormatting = New LineFormattingOptions() With
+                        {
+                            .NewLine = vbLf
+                        }
+                    }
                 }
 
                 Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)

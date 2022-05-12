@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.CompilerServices
 Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
@@ -16,27 +17,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend NotInheritable Class VisualBasicCodeGenerationOptions
         Inherits CodeGenerationOptions
 
-        Public Sub New(
-                Optional addNullChecksToConstructorsGeneratedFromMembers As Boolean = DefaultAddNullChecksToConstructorsGeneratedFromMembers,
-                Optional namingStyle As NamingStylePreferences = Nothing)
-            MyBase.New(
-                namingStyle,
-                addNullChecksToConstructorsGeneratedFromMembers)
-        End Sub
-
         Public Shared ReadOnly [Default] As New VisualBasicCodeGenerationOptions()
 
 #If Not CODE_STYLE Then
-        Public Overloads Shared Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerationOptions
-            ' Not stored in editorconfig
-            Return New VisualBasicCodeGenerationOptions(
-                addNullChecksToConstructorsGeneratedFromMembers:=fallbackOptions.AddNullChecksToConstructorsGeneratedFromMembers,
-                namingStyle:=options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle))
-        End Function
-
         Public Overrides Function GetInfo(context As CodeGenerationContext, parseOptions As ParseOptions) As CodeGenerationContextInfo
             Return New VisualBasicCodeGenerationContextInfo(context, Me)
         End Function
 #End If
     End Class
+
+    Friend Module VisualBasicCodeGenerationOptionsProviders
+        <Extension>
+        Public Function GetVisualBasicCodeGenerationOptions(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicCodeGenerationOptions) As VisualBasicCodeGenerationOptions
+            Return New VisualBasicCodeGenerationOptions() With
+            {
+                .Common = options.GetCommonCodeGenerationOptions(fallbackOptions.Common)
+            }
+        End Function
+    End Module
 End Namespace

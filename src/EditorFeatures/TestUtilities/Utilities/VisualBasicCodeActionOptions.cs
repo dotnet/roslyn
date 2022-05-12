@@ -24,9 +24,7 @@ internal static class VisualBasicCodeActionOptions
     public static CodeActionOptions Default = new(
         new CodeCleanupOptions(
             VisualBasicSyntaxFormattingOptions.Default,
-            VisualBasicSimplifierOptions.Default,
-            AddImportPlacementOptions.Default,
-            DocumentFormattingOptions.Default),
+            VisualBasicSimplifierOptions.Default),
         VisualBasicCodeGenerationOptions.Default,
         VisualBasicIdeCodeStyleOptions.Default);
 

@@ -19,19 +19,18 @@ using Microsoft.CodeAnalysis.OrganizeImports;
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
 [DataContract]
-internal readonly record struct CodeCleanupOptions(
+internal record class CodeCleanupOptions(
     [property: DataMember(Order = 0)] SyntaxFormattingOptions FormattingOptions,
-    [property: DataMember(Order = 1)] SimplifierOptions SimplifierOptions,
-    [property: DataMember(Order = 2)] AddImportPlacementOptions AddImportOptions,
-    [property: DataMember(Order = 3)] DocumentFormattingOptions DocumentFormattingOptions)
+    [property: DataMember(Order = 1)] SimplifierOptions SimplifierOptions)
 {
+    [DataMember(Order = 2)] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
+    [DataMember(Order = 3)] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
+
 #if !CODE_STYLE
     public static CodeCleanupOptions GetDefault(HostLanguageServices languageServices)
         => new(
             FormattingOptions: SyntaxFormattingOptions.GetDefault(languageServices),
-            SimplifierOptions: SimplifierOptions.GetDefault(languageServices),
-            AddImportOptions: AddImportPlacementOptions.Default,
-            DocumentFormattingOptions: DocumentFormattingOptions.Default);
+            SimplifierOptions: SimplifierOptions.GetDefault(languageServices));
 
     public OrganizeImportsOptions GetOrganizeImportsOptions()
         => new()
@@ -88,7 +87,12 @@ internal static class CodeCleanupOptionsProviders
         var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions?.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions?.AddImportOptions, cancellationToken).ConfigureAwait(false);
         var documentFormattingOptions = await document.GetDocumentFormattingOptionsAsync(fallbackOptions?.DocumentFormattingOptions, cancellationToken).ConfigureAwait(false);
-        return new CodeCleanupOptions(formattingOptions, simplifierOptions, addImportOptions, documentFormattingOptions);
+
+        return new CodeCleanupOptions(formattingOptions, simplifierOptions)
+        {
+            AddImportOptions = addImportOptions,
+            DocumentFormattingOptions = documentFormattingOptions
+        };
     }
 
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
