@@ -43,7 +43,7 @@
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <MicrosoftServiceHubVersion>3.1.4097</MicrosoftServiceHubVersion>
-    <MicrosoftVisualStudioThreadingVersion>17.2.32</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingPackagesVersion>17.2.32</MicrosoftVisualStudioThreadingPackagesVersion>
   </PropertyGroup>
   <!--
     Dependency versions
@@ -188,8 +188,8 @@
     <MicrosoftVisualStudioTextUIVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIVersion>
     <MicrosoftVisualStudioTextUIWpfVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIWpfVersion>
     <MicrosoftVisualStudioTextUICocoaVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUICocoaVersion>
-    <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
-    <MicrosoftVisualStudioThreadingVersion>$(MicrosoftVisualStudioThreadingVersion)</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
+    <MicrosoftVisualStudioThreadingVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>17.0.53</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>4.0.0</MicrosoftVisualStudioInteractiveWindowVersion>
