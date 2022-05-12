@@ -102,6 +102,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public TempFile AnalyzerWithNativeDependency { get; }
 
+        public TempFile AnalyzerWithFakeCompilerDependency { get; }
+
+        public TempFile AnalyzerWithLaterFakeCompilerDependency { get; }
+
         public AssemblyLoadTestFixture()
         {
             _temp = new TempRoot();
@@ -385,6 +389,64 @@ public class Class1
 }
 
 ");
+
+
+            var analyzerWithFakeCompilerDependencyDirectory = _directory.CreateDirectory("AnalyzerWithFakeCompilerDependency");
+            var fakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithFakeCompilerDependencyDirectory, @"
+using System;
+using System.Reflection;
+
+[assembly: AssemblyVersionAttribute(""42.42.42.42"")]
+
+namespace Microsoft.CodeAnalysis.Diagnostics
+{
+    public class DiagnosticAnalyzerAttribute : Attribute
+    {
+        public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages) { }
+    }
+
+    public class DiagnosticAnalyzer
+    {
+    }
+}
+");
+            var fakeCompilerReference = MetadataReference.CreateFromFile(fakeCompilerAssembly.Path);
+            AnalyzerWithFakeCompilerDependency = GenerateDll("AnalyzerWithFakeCompilerDependency", analyzerWithFakeCompilerDependencyDirectory, @"
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(""C#"")]
+public class Analyzer : DiagnosticAnalyzer
+{
+}", fakeCompilerReference);
+
+
+            var analyzerWithLaterFakeCompileDirectory = _directory.CreateDirectory("AnalyzerWithLaterFakeCompilerDependency");
+            var laterFakeCompilerAssembly = GenerateDll("Microsoft.CodeAnalysis", analyzerWithLaterFakeCompileDirectory, @"
+using System;
+using System.Reflection;
+
+[assembly: AssemblyVersionAttribute(""100.0.0.0"")]
+
+namespace Microsoft.CodeAnalysis.Diagnostics
+{
+    public class DiagnosticAnalyzerAttribute : Attribute
+    {
+        public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages) { }
+    }
+
+    public class DiagnosticAnalyzer
+    {
+    }
+}
+");
+            var laterCompilerReference = MetadataReference.CreateFromFile(laterFakeCompilerAssembly.Path);
+            AnalyzerWithLaterFakeCompilerDependency = GenerateDll("AnalyzerWithLaterFakeCompilerDependency", analyzerWithLaterFakeCompileDirectory, @"
+using Microsoft.CodeAnalysis.Diagnostics;
+
+[DiagnosticAnalyzer(""C#"")]
+public class Analyzer : DiagnosticAnalyzer
+{
+}", laterCompilerReference);
         }
 
         private static TempFile GenerateDll(string assemblyName, TempDirectory directory, string csSource, params MetadataReference[] additionalReferences)

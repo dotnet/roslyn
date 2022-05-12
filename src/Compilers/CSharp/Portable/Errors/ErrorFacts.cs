@@ -499,6 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
                 case ErrorCode.WRN_UnassignedThisSupportedVersion:
                 case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
+                case ErrorCode.WRN_AnalyzerReferencesNewerCompiler:
                     return 1;
                 default:
                     return 0;
