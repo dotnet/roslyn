@@ -2581,7 +2581,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// A bag in which circular struct diagnostics should be reported.
+        /// </summary>
+        internal BindingDiagnosticBag CircularStructDiagnostics
+        {
+            get
+            {
+                return _circularStructDiagnostics;
+            }
+        }
+
         private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
+        private readonly BindingDiagnosticBag _circularStructDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), new ConcurrentSet<AssemblySymbol>());
 
         internal DeclarationTable Declarations
         {

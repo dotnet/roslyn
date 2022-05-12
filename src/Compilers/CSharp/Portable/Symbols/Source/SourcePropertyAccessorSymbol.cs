@@ -459,6 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is only calculated from syntax, so we don't know if it
         /// will bind to something or will create a backing field.
         /// </remarks>
+        // PROTOTYPE(semi-auto-props): Rename to ContainsFieldKeywordSyntactically or similar.
         internal bool ContainsFieldKeyword => _containsFieldKeyword;
 
         /// <summary>

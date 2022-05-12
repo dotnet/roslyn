@@ -1703,16 +1703,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            // PROTOTYPE(semi-auto-props): TODO: Support assigning semi auto prop from constructors.
-
             return propertySymbol is SourcePropertySymbolBase sourceProperty &&
-                    // PROTOTYPE(semi-auto-props): Consider `public int P { get => field; set; }`
-                    sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
+                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
+                    (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference) &&
                     // To be assigned through backing field, either SetMethod is null, or it's equivalent to backing field write
                     sourceProperty.SetMethod is null or SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.ConsiderEverything2) &&
-                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic) &&
-                    (sourceProperty.IsStatic || receiver.Kind == BoundKind.ThisReference);
+                    (sourceProperty.GetMethod is SourcePropertyAccessorSymbol { IsEquivalentToBackingFieldAccess: true } || sourceProperty.FieldKeywordBackingField is not null);
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)

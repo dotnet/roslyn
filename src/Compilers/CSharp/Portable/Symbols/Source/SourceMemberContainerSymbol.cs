@@ -1617,8 +1617,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckTypeParameterNameConflicts(diagnostics);
             CheckAccessorNameConflicts(diagnostics);
 
-            bool unused = KnownCircularStruct;
-
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
@@ -2133,11 +2131,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else
                     {
                         var diagnostics = BindingDiagnosticBag.GetInstance();
+                        Debug.Assert(diagnostics.DiagnosticBag is not null);
                         var value = (int)CheckStructCircularity(diagnostics).ToThreeState();
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            AddDeclarationDiagnostics(diagnostics);
+                            DeclaringCompilation.CircularStructDiagnostics.AddRange(diagnostics);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);
@@ -2163,16 +2162,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in valuesByName)
                 {
-                    if (member.Kind != SymbolKind.Field)
+                    FieldSymbol field;
+                    if (member is SourcePropertySymbolBase { IsStatic: false, FieldKeywordBackingField: { } fieldKeywordField })
+                    {
+                        field = fieldKeywordField;
+                    }
+                    else if (member.Kind == SymbolKind.Field && !member.IsStatic)
+                    {
+                        field = (FieldSymbol)member;
+                    }
+                    else
                     {
                         // NOTE: don't have to check field-like events, because they can't have struct types.
                         continue;
                     }
-                    var field = (FieldSymbol)member;
-                    if (field.IsStatic)
-                    {
-                        continue;
-                    }
+
+                    Debug.Assert(!field.IsStatic);
                     var type = field.NonPointerType();
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
