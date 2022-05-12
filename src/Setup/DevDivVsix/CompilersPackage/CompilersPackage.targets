@@ -1,28 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <ApplyNgenOptimization>full</ApplyNgenOptimization>
-
-    <!-- VS Insertion -->
-    <TargetVsixContainerName>Microsoft.CodeAnalysis.Compilers.vsix</TargetVsixContainerName>
-    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.Compilers</VisualStudioInsertionComponent>
-  </PropertyGroup>
+<Project>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\CSharp\csc\csc.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\vbc\vbc.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
-    <ProjectReference Include="..\..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\csc\csc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\CSharp\csc-arm64\csc-arm64.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\vbc\vbc.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\VisualBasic\vbc-arm64\vbc-arm64.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
+    <ProjectReference Include="..\..\..\..\Compilers\Server\VBCSCompiler-arm64\VBCSCompiler-arm64.csproj" PrivateAssets="All"/>
   </ItemGroup>
-
-  <Target Name="_SetSwrFilePath">
-    <PropertyGroup>
-      <_SwrFilePath>$(IntermediateOutputPath)Microsoft.CodeAnalysis.Compilers.swr</_SwrFilePath>
-    </PropertyGroup>
-  </Target>
 
   <!--
     Calculates which external dependencies included in the target VSIX need to be updated with optimization data.
@@ -138,7 +127,7 @@
 
 package name=$(VisualStudioInsertionComponent)
         version=$(VsixVersion)
-        vs.package.productArch=neutral
+        vs.package.machineArch=$(RoslynPackageArch)
 
 vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler"
@@ -147,7 +136,7 @@ folder InstallDir:\MSBuild\Current\Bin\Roslyn
   @(_FileEntries, '%0d%0a  ')
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
-  file source="$(MSBuildProjectDirectory)\roslyn.bat"
+  file source="$(MSBuildThisFileDirectory)\roslyn.bat"
 
 folder InstallDir:\MSBuild\Current\Bin\Roslyn\cs
   @(_CsSatellite->'%(_FileEntries)', '%0d%0a  ')
