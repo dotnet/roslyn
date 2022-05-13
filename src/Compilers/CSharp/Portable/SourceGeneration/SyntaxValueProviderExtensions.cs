@@ -19,6 +19,8 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 internal static partial class SyntaxValueProviderExtensions
 {
+    private static readonly ObjectPool<Stack<string>> s_stackPool = new(() => new());
+
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
     /// possibly bind to the provided <paramref name="name"/>. <paramref name="name"/> should be the
@@ -116,7 +118,7 @@ internal static partial class SyntaxValueProviderExtensions
 
         // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
         // don't get into cycles.
-        var seenNames = PooledHashSet<string>.GetInstance();
+        var seenNames = s_stackPool.Allocate();
         var results = ArrayBuilder<T>.GetInstance();
 
         try
@@ -126,7 +128,8 @@ internal static partial class SyntaxValueProviderExtensions
         finally
         {
             localAliases.Free();
-            seenNames.Free();
+            seenNames.Clear();
+            s_stackPool.Free(seenNames);
         }
 
         return results.ToImmutableAndFree();
@@ -162,8 +165,8 @@ internal static partial class SyntaxValueProviderExtensions
                     // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
                     // e.g. if there is [X] then we have to lookup with X and with XAttribute.
                     var simpleAttributeName = attribute.Name.GetUnqualifiedName().Identifier.ValueText;
-                    if (matchesAttributeNameTop(simpleAttributeName, withAttributeSuffix: false) ||
-                        matchesAttributeNameTop(simpleAttributeName, withAttributeSuffix: true))
+                    if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
+                        matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
                         results.Add(parent);
                         return;
@@ -210,13 +213,7 @@ internal static partial class SyntaxValueProviderExtensions
             }
         }
 
-        bool matchesAttributeNameTop(string currentAttributeName, bool withAttributeSuffix)
-        {
-            seenNames.Clear();
-            return matchesAttributeNameRecurse(currentAttributeName, withAttributeSuffix);
-        }
-
-        bool matchesAttributeNameRecurse(string currentAttributeName, bool withAttributeSuffix)
+        bool matchesAttributeName(string currentAttributeName, bool withAttributeSuffix)
         {
             // If the names match, we're done.
             if (withAttributeSuffix)
@@ -238,29 +235,32 @@ internal static partial class SyntaxValueProviderExtensions
             //
             // note: as we recurse up the aliases, we do not want to add the attribute suffix anymore.  aliases must
             // reference the actual real name of the symbol they are aliasing.
-            if (seenNames.Add(currentAttributeName))
-            {
-                foreach (var (aliasName, symbolName) in localAliases)
-                {
-                    // see if user wrote `[SomeAlias]`.  If so, if we find a `using SomeAlias = ...` recurse using the
-                    // ... name portion to see if it might bind to the attr name the caller is searching for.
-                    if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
-                        matchesAttributeNameRecurse(symbolName, withAttributeSuffix: false))
-                    {
-                        return true;
-                    }
-                }
+            if (seenNames.Contains(currentAttributeName))
+                return false;
 
-                foreach (var (aliasName, symbolName) in globalAliases.AliasAndSymbolNames)
+            seenNames.Push(currentAttributeName);
+
+            foreach (var (aliasName, symbolName) in localAliases)
+            {
+                // see if user wrote `[SomeAlias]`.  If so, if we find a `using SomeAlias = ...` recurse using the
+                // ... name portion to see if it might bind to the attr name the caller is searching for.
+                if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
+                    matchesAttributeName(symbolName, withAttributeSuffix: false))
                 {
-                    if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
-                        matchesAttributeNameRecurse(symbolName, withAttributeSuffix: false))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
+            foreach (var (aliasName, symbolName) in globalAliases.AliasAndSymbolNames)
+            {
+                if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
+                    matchesAttributeName(symbolName, withAttributeSuffix: false))
+                {
+                    return true;
+                }
+            }
+
+            seenNames.Pop();
             return false;
         }
     }
