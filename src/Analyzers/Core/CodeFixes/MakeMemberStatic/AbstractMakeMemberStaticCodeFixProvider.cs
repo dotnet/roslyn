@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
     {
         private readonly ISyntaxFacts _syntaxFacts;
         private readonly Option2<CodeStyleOption2<string>> _option;
+        private static Tuple<string, string[]>? s_lastParsed;
 
         protected AbstractMakeMemberStaticCodeFixProvider(
             ISyntaxFacts syntaxFacts,
@@ -51,6 +52,25 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             return Task.CompletedTask;
         }
 
+        private static string[] Parse(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return Array.Empty<string>();
+            }
+
+            var lastParsed = Volatile.Read(ref s_lastParsed);
+            if (lastParsed?.Item1 != value)
+            {
+                var split = value.Split(',').Select(m => m.Trim()).ToArray();
+
+                lastParsed = Tuple.Create(value, split);
+                Volatile.Write(ref s_lastParsed, lastParsed);
+            }
+
+            return lastParsed.Item2;
+        }
+
         private static bool ContainsRawKind(SyntaxTokenList modifiers, int rawKind)
         {
             for (var i = 0; i < modifiers.Count; i++)
@@ -71,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
                 return new SyntaxTokenList(StaticModifier);
             }
 
-            var order = preferredOrder.Split(',').Select(m => m.Trim()).ToArray();
+            var order = Parse(preferredOrder);
             var staticIndex = Array.IndexOf(order, "static");
 
             if (staticIndex == -1)
