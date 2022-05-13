@@ -299,88 +299,19 @@ class C
         [Fact]
         public void TestGetSemanticTokensRange_AssertCustomTokenTypes()
         {
-            Assert.Collection(SemanticTokensHelpers.RoslynCustomTokenTypes,
-                t => Assert.Equal(ClassificationTypeNames.ClassName, t),
-                t => Assert.Equal(ClassificationTypeNames.ConstantName, t),
-                t => Assert.Equal(ClassificationTypeNames.ControlKeyword, t),
-                t => Assert.Equal(ClassificationTypeNames.DelegateName, t),
-                t => Assert.Equal(ClassificationTypeNames.EnumMemberName, t),
-                t => Assert.Equal(ClassificationTypeNames.EnumName, t),
-                t => Assert.Equal(ClassificationTypeNames.EventName, t),
-                t => Assert.Equal(ClassificationTypeNames.ExcludedCode, t),
-                t => Assert.Equal(ClassificationTypeNames.ExtensionMethodName, t),
-                t => Assert.Equal(ClassificationTypeNames.FieldName, t),
-                t => Assert.Equal(ClassificationTypeNames.InterfaceName, t),
+            var fields = typeof(ClassificationTypeNames).GetFields();
+            foreach (var field in fields)
+            {
+                var value = (string?)field.GetValue(null);
+                if (value is null ||
+                    SemanticTokensHelpers.ClassificationTypeToSemanticTokenTypeMap.ContainsKey(value) ||
+                    ClassificationTypeNames.AdditiveTypeNames.Contains(value))
+                {
+                    continue;
+                }
 
-                t => Assert.Equal(ClassificationTypeNames.JsonArray, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonComment, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonConstructorName, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonKeyword, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonNumber, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonObject, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonOperator, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonPropertyName, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonPunctuation, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonString, t),
-                t => Assert.Equal(ClassificationTypeNames.JsonText, t),
-
-                t => Assert.Equal(ClassificationTypeNames.LabelName, t),
-                t => Assert.Equal(ClassificationTypeNames.LocalName, t),
-                t => Assert.Equal(ClassificationTypeNames.MethodName, t),
-                t => Assert.Equal(ClassificationTypeNames.ModuleName, t),
-                t => Assert.Equal(ClassificationTypeNames.NamespaceName, t),
-                t => Assert.Equal(ClassificationTypeNames.OperatorOverloaded, t),
-                t => Assert.Equal(ClassificationTypeNames.ParameterName, t),
-                t => Assert.Equal(ClassificationTypeNames.PropertyName, t),
-
-                // Preprocessor
-                t => Assert.Equal(ClassificationTypeNames.PreprocessorKeyword, t),
-                t => Assert.Equal(ClassificationTypeNames.PreprocessorText, t),
-
-                t => Assert.Equal(ClassificationTypeNames.Punctuation, t),
-                t => Assert.Equal(ClassificationTypeNames.RecordClassName, t),
-                t => Assert.Equal(ClassificationTypeNames.RecordStructName, t),
-
-                // Regex
-                t => Assert.Equal(ClassificationTypeNames.RegexAlternation, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexAnchor, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexCharacterClass, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexComment, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexGrouping, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexOtherEscape, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexQuantifier, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexSelfEscapedCharacter, t),
-                t => Assert.Equal(ClassificationTypeNames.RegexText, t),
-
-                t => Assert.Equal(ClassificationTypeNames.StringEscapeCharacter, t),
-                t => Assert.Equal(ClassificationTypeNames.StructName, t),
-                t => Assert.Equal(ClassificationTypeNames.Text, t),
-                t => Assert.Equal(ClassificationTypeNames.TypeParameterName, t),
-                t => Assert.Equal(ClassificationTypeNames.VerbatimStringLiteral, t),
-                t => Assert.Equal(ClassificationTypeNames.WhiteSpace, t),
-
-                // XML
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentAttributeName, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentAttributeQuotes, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentAttributeValue, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentCDataSection, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentComment, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentDelimiter, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentEntityReference, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentName, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentProcessingInstruction, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlDocCommentText, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralAttributeName, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralAttributeQuotes, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralAttributeValue, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralCDataSection, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralComment, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralDelimiter, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralEmbeddedExpression, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralEntityReference, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralName, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralProcessingInstruction, t),
-                t => Assert.Equal(ClassificationTypeNames.XmlLiteralText, t));
+                Assert.True(SemanticTokensHelpers.RoslynCustomTokenTypes.Contains(value), $"Missing token type {value}.");
+            }
         }
     }
 }

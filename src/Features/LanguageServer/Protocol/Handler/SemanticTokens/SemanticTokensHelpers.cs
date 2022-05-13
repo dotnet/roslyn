@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         // TO-DO: Expand this mapping once support for custom token types is added:
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1085998
-        private static readonly Dictionary<string, string> s_classificationTypeToSemanticTokenTypeMap =
-            new Dictionary<string, string>
+        internal static readonly Dictionary<string, string> ClassificationTypeToSemanticTokenTypeMap =
+            new()
             {
                 [ClassificationTypeNames.Comment] = LSP.SemanticTokenTypes.Comment,
                 [ClassificationTypeNames.Identifier] = LSP.SemanticTokenTypes.Variable,
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private static int GetTokenTypeIndex(string classificationType, Dictionary<string, int> tokenTypesToIndex)
         {
-            if (!s_classificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
+            if (!ClassificationTypeToSemanticTokenTypeMap.TryGetValue(classificationType, out var tokenTypeStr))
             {
                 tokenTypeStr = classificationType;
             }
