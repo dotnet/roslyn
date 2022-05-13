@@ -44,9 +44,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -55,7 +53,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -76,9 +74,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -87,7 +83,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -108,9 +104,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -119,7 +113,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -140,9 +134,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -151,7 +143,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -172,9 +164,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -183,7 +173,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -204,9 +194,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -215,7 +203,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -236,9 +224,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -247,7 +233,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -268,9 +254,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -279,7 +263,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -300,9 +284,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -311,7 +293,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -332,9 +314,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -343,7 +323,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -364,9 +344,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -375,7 +353,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -396,9 +374,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -407,7 +383,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -428,9 +404,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -439,7 +413,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -460,9 +434,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -488,9 +460,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("YAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("YAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -516,9 +486,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<SyntaxNode>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<SyntaxNode>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -527,7 +495,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -550,9 +518,7 @@ class D { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -561,7 +527,7 @@ class D { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -585,9 +551,7 @@ class D { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -596,7 +560,7 @@ class D { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -620,9 +584,7 @@ class D { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -631,7 +593,7 @@ class D { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.False(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -657,9 +619,7 @@ class C
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -668,7 +628,7 @@ class C
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -693,9 +653,7 @@ namespace N
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -704,7 +662,7 @@ namespace N
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
@@ -725,9 +683,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -736,7 +692,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -757,9 +713,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("X")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("X");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -768,7 +722,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -789,9 +743,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -800,7 +752,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -823,9 +775,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -834,7 +784,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -857,9 +807,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -868,7 +816,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -891,9 +839,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -902,7 +848,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -925,9 +871,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -936,7 +880,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -959,9 +903,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -970,7 +912,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -993,9 +935,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1004,7 +944,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1027,9 +967,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1057,9 +995,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1091,9 +1027,7 @@ namespace N
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1102,7 +1036,44 @@ namespace N
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_OuterAliasReferencesInnerAlias()
+        {
+            // note: this is not legal.  it's ok if this ever stops working in the futuer.
+            var source = @"
+using BAttribute = AAttribute;
+namespace N
+{
+    using AAttribute = XAttribute;
+
+    [B]
+    class C { }
+}
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1129,9 +1100,7 @@ namespace N
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1140,7 +1109,7 @@ namespace N
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1167,9 +1136,7 @@ namespace N
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1198,9 +1165,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1229,9 +1194,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1260,9 +1223,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1290,9 +1251,7 @@ using A = XAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1320,9 +1279,7 @@ using AAttribute = XAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1350,9 +1307,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1361,7 +1316,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1384,9 +1339,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1395,7 +1348,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1419,9 +1372,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1430,7 +1381,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1454,9 +1405,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1465,7 +1414,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1488,9 +1437,7 @@ global using A = XAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1499,7 +1446,7 @@ global using A = XAttribute;
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1522,9 +1469,7 @@ global using AAttribute = XAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1533,7 +1478,7 @@ global using AAttribute = XAttribute;
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1557,9 +1502,7 @@ using B = AAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1588,9 +1531,7 @@ global using BAttribute = AAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1619,9 +1560,7 @@ global using AAttribute = XAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1630,7 +1569,7 @@ global using AAttribute = XAttribute;
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1654,9 +1593,7 @@ global using AAttribute = XAttribute;
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1665,7 +1602,7 @@ global using AAttribute = XAttribute;
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1692,9 +1629,7 @@ class C { }
 
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
             {
-                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
-                    .WithTrackingName("FindX");
-
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
@@ -1703,7 +1638,7 @@ class C { }
             var runResult = driver.GetRunResult().Results[0];
             Console.WriteLine(runResult);
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
@@ -1713,26 +1648,18 @@ class C { }
             driver = driver.RunGenerators(compilation);
             runResult = driver.GetRunResult().Results[0];
 
-            Assert.Collection(runResult.TrackedSteps["FindX"],
+            Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
                 step =>
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
                 });
 
-            Assert.Equal(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Unchanged);
-            Assert.Equal(runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
-            Assert.Equal(runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
-            Assert.Equal(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Unchanged);
-            Assert.Equal(runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
-            Assert.Equal(runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
-
-            foreach (var steps in runResult.TrackedSteps.Values)
-            {
-                Assert.Collection(steps, step =>
-                {
-                    Assert.Equal(IncrementalStepRunReason.Unchanged, step.Outputs[0].Reason);
-                });
-            }
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
         }
 
         #endregion
