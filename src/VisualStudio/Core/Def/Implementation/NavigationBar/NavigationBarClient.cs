@@ -12,10 +12,8 @@ using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -211,8 +209,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
 
         int IVsDropdownBarClient.OnComboGetFocus(int iCombo)
         {
-            DropDownFocused?.Invoke(this, EventArgs.Empty);
-
             return VSConstants.S_OK;
         }
 
@@ -346,7 +342,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             _dropdownBar.RefreshCombo((int)NavigationBarDropdownKind.Member, memberIndex);
         }
 
-        public event EventHandler DropDownFocused;
         public event EventHandler<NavigationBarItemSelectedEventArgs> ItemSelected;
 
         public event EventHandler<EventArgs> ViewFocused;

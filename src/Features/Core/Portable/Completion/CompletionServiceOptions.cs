@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// For testing only. Changing the default value in actual product might cause perf issues.
         /// </summary>
-        public static readonly Option2<bool> UsePartialSemanticForImportCompletion
-            = new(nameof(CompletionServiceOptions), nameof(UsePartialSemanticForImportCompletion), defaultValue: true);
+        public static readonly Option2<bool> UsePartialSemanticForCompletion
+            = new(nameof(CompletionServiceOptions), nameof(UsePartialSemanticForCompletion), defaultValue: true);
 
         /// <summary>
         /// Timeout value used for time-boxing completion of unimported extension methods.

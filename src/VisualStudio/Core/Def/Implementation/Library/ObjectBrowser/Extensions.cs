@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public static bool IsVenus(this Project project)
         {
-            if (!(project.Solution.Workspace is VisualStudioWorkspaceImpl workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspaceImpl workspace)
             {
                 return false;
             }
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             var result = project.Name;
 
-            if (!(project.Solution.Workspace is VisualStudioWorkspace workspace))
+            if (project.Solution.Workspace is not VisualStudioWorkspace workspace)
             {
                 return result;
             }
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             {
                 var builder = new StringBuilder(result);
 
-                while (parentHierarchy != null && !(parentHierarchy is IVsSolution))
+                while (parentHierarchy is not null and not IVsSolution)
                 {
                     if (parentHierarchy.TryGetName(out var parentName))
                     {

@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
             If token.Parent.Ancestors().Contains(listSyntax) Then
                 Dim current = token.Parent
                 While current IsNot listSyntax
-                    If VisualBasicSyntaxFacts.Instance.IsAnonymousFunction(current) Then
+                    If VisualBasicSyntaxFacts.Instance.IsAnonymousFunctionExpression(current) Then
                         Return False
                     End If
 

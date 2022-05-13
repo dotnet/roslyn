@@ -117,32 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-        public static BaseParameterListSyntax GetParameterList(this MemberDeclarationSyntax member)
-        {
-            if (member != null)
-            {
-                switch (member.Kind())
-                {
-                    case SyntaxKind.DelegateDeclaration:
-                        return ((DelegateDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.MethodDeclaration:
-                        return ((MethodDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.ConstructorDeclaration:
-                        return ((ConstructorDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.DestructorDeclaration:
-                        return ((DestructorDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.IndexerDeclaration:
-                        return ((IndexerDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.OperatorDeclaration:
-                        return ((OperatorDeclarationSyntax)member).ParameterList;
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)member).ParameterList;
-                }
-            }
-
-            return null;
-        }
-
         public static MemberDeclarationSyntax WithParameterList(
             this MemberDeclarationSyntax member,
             BaseParameterListSyntax parameterList)

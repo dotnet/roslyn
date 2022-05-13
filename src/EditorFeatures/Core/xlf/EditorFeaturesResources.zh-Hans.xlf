@@ -2,16 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="All_methods">
-        <source>All methods</source>
-        <target state="translated">所有方法</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_for_clarity">
-        <source>Always for clarity</source>
-        <target state="translated">为始终保持清楚起见</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">标识符“{0}”的内联重命名会话处于活动状态。再次调用内联重命名以访问其他选项。可随时继续编辑正在重命名的标识符。</target>
@@ -20,11 +10,6 @@
       <trans-unit id="Applying_changes">
         <source>Applying changes</source>
         <target state="translated">应用更改</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Avoid_unused_parameters">
-        <source>Avoid unused parameters</source>
-        <target state="translated">避免未使用的参数</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_configuration">
@@ -77,16 +62,6 @@
         <target state="translated">筛选</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="For_locals_parameters_and_members">
-        <source>For locals, parameters and members</source>
-        <target state="translated">针对局部变量、参数和成员</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="For_member_access_expressions">
-        <source>For member access expressions</source>
-        <target state="translated">针对成员访问表达式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Format_document_performed_additional_cleanup">
         <source>Format Document performed additional cleanup</source>
         <target state="translated">格式文档执行了额外的清理</target>
@@ -125,11 +100,6 @@
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators</source>
         <target state="translated">在其他二进制运算符中</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="In_other_operators">
-        <source>In other operators</source>
-        <target state="translated">在其他运算符中</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -172,11 +142,6 @@
         <target state="translated">正在查找基...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Never_if_unnecessary">
-        <source>Never if unnecessary</source>
-        <target state="translated">从不(若无必要)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_Line">
         <source>New Line</source>
         <target state="translated">新行</target>
@@ -185,11 +150,6 @@
       <trans-unit id="No">
         <source>No</source>
         <target state="translated">否</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Non_public_methods">
-        <source>Non-public methods</source>
-        <target state="translated">非公共成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -202,84 +162,9 @@
         <target state="translated">粘贴跟踪信息</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
-        <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
-        <target state="translated">在 "GetHashCode" 中首选 "System.HashCode"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_coalesce_expression">
-        <source>Prefer coalesce expression</source>
-        <target state="translated">首选联合表达式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_collection_initializer">
-        <source>Prefer collection initializer</source>
-        <target state="translated">首选集合初始值设定项</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_compound_assignments">
-        <source>Prefer compound assignments</source>
-        <target state="translated">首选复合赋值</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
-        <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="translated">首选条件表达式而非赋值的“if”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
-        <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="translated">首选条件表达式而非带有返回结果的“if”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_explicit_tuple_name">
-        <source>Prefer explicit tuple name</source>
-        <target state="translated">首选显式元组名称</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_framework_type">
-        <source>Prefer framework type</source>
-        <target state="translated">首选框架类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_anonymous_type_member_names">
-        <source>Prefer inferred anonymous type member names</source>
-        <target state="translated">首选推断匿名类型成员名称</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_inferred_tuple_names">
-        <source>Prefer inferred tuple element names</source>
-        <target state="translated">首选推断元组元素名称</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
         <target state="translated">引用相等检查偏好 “is null”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_propagation">
-        <source>Prefer null propagation</source>
-        <target state="translated">首选 null 传播</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_object_initializer">
-        <source>Prefer object initializer</source>
-        <target state="translated">首选对象初始值设定项</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_predefined_type">
-        <source>Prefer predefined type</source>
-        <target state="translated">首选预定义类型</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_readonly_fields">
-        <source>Prefer readonly fields</source>
-        <target state="translated">首选只读字段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_simplified_boolean_expressions">
-        <source>Prefer simplified boolean expressions</source>
-        <target state="translated">首选简化的布尔表达式</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
@@ -315,6 +200,11 @@
       <trans-unit id="Qualify_property_access_with_this_or_Me">
         <source>Qualify property access with 'this' or 'Me'</source>
         <target state="translated">使用 "this" 或 "Me" 限定属性访问</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="translated">重新分配的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -837,11 +727,6 @@
         <target state="translated">已使用等价键跟踪文档</target>
         <note />
       </trans-unit>
-      <trans-unit id="analyzer_Prefer_auto_properties">
-        <source>Prefer auto properties</source>
-        <target state="translated">首选自动属性</target>
-        <note />
-      </trans-unit>
       <trans-unit id="document_is_not_currently_being_tracked">
         <source>document is not currently being tracked</source>
         <target state="translated">当前未跟踪文档</target>
@@ -965,11 +850,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">设置标记的格式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">智能缩进</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -1577,6 +1457,51 @@ Do you want to proceed?</source>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">大纲</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">正则表达式 - 注释</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">正则表达式 - 字符类</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">正则表达式 - 交替</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">正则表达式 - 定位标记</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">正则表达式 - 限定符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">正则表达式 - 自转义字符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">正则表达式 - 分组</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">正则表达式 - 文本</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">正则表达式 - 其他转义</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

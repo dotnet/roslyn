@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
-                while (operation.Parent is IBinaryPatternOperation ||
-                       operation.Parent is INegatedPatternOperation ||
-                       operation.Parent is IRelationalPatternOperation)
+                while (operation.Parent is IBinaryPatternOperation or
+                       INegatedPatternOperation or
+                       IRelationalPatternOperation)
                 {
                     operation = operation.Parent;
                 }
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis
                 return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
                     ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
-            else if (operation.Parent is INameOfOperation ||
-                     operation.Parent is ITypeOfOperation ||
-                     operation.Parent is ISizeOfOperation)
+            else if (operation.Parent is INameOfOperation or
+                     ITypeOfOperation or
+                     ISizeOfOperation)
             {
                 return ValueUsageInfo.Name;
             }

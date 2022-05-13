@@ -18,34 +18,48 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         None = 0,
 
         /// <summary>
-        /// Indicate the target is implementing the member. It would be shown as I↑.
+        /// Implented interfaces for class or struct. Shown as I↑
         /// </summary>
-        Implementing = 1,
+        ImplementedInterface = 1,
 
         /// <summary>
-        /// Indicate the target is implemented by the member. It would be shown as I↓.
+        /// Base type for class or struct. Shown as O↑
         /// </summary>
-        Implemented = 2,
+        BaseType = 2,
 
         /// <summary>
-        /// Indicate the target is overriding the member. It would be shown as O↑.
+        /// Derived type for class or struct. Shown as O↓
         /// </summary>
-        Overriding = 4,
+        DerivedType = 4,
 
         /// <summary>
-        /// Indicate the target is overridden by the member. It would be shown as O↓.
+        /// Inherited interface for interface. Shown as I↑
         /// </summary>
-        Overridden = 8,
+        InheritedInterface = 8,
 
         /// <summary>
-        /// A compound value for indicating there are multiple targets both implementing and overriding the member.
+        /// Implementing class, struct and interface for interface. Shown as I↓
         /// </summary>
-        ImplementingOverriding = InheritanceRelationship.Implementing | InheritanceRelationship.Overriding,
+        ImplementingType = 16,
 
         /// <summary>
-        /// A compound value for indicating there are multiple targets both implementing the member and overriden by the member.
+        /// Implemented member for member in class or structure. Shown as I↑
         /// </summary>
-        ImplementingOverridden = InheritanceRelationship.Implementing | InheritanceRelationship.Overridden
+        ImplementedMember = 32,
 
+        /// <summary>
+        /// Overridden member for member in class or structure. Shown as O↑
+        /// </summary>
+        OverriddenMember = 64,
+
+        /// <summary>
+        /// Overrrding member for member in class or structure. Shown as O↓
+        /// </summary>
+        OverridingMember = 128,
+
+        /// <summary>
+        /// Implmenting member for member in interface. Shown as I↓
+        /// </summary>
+        ImplementingMember = 256
     }
 }

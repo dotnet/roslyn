@@ -906,6 +906,56 @@ aeu";
 
         [Theory]
         [CombinatorialData]
+        public async Task PP_LineSpanWithCharacterOffset(TestHost testHost)
+        {
+            var code = @"#line (1, 2) - (3, 4) 5 ""file.txt""";
+
+            await TestAsync(code,
+                testHost,
+                PPKeyword("#"),
+                PPKeyword("line"),
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Number("3"),
+                Punctuation.Comma,
+                Number("4"),
+                Punctuation.CloseParen,
+                Number("5"),
+                String("\"file.txt\""));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task PP_LineSpanWithComment(TestHost testHost)
+        {
+            var code = @"#line (1, 2) - (3, 4) """" //comment";
+
+            await TestAsync(code,
+                testHost,
+                PPKeyword("#"),
+                PPKeyword("line"),
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen,
+                Operators.Minus,
+                Punctuation.OpenParen,
+                Number("3"),
+                Punctuation.Comma,
+                Number("4"),
+                Punctuation.CloseParen,
+                String("\"\""),
+                Comment("//comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task PP_NullableEnable(TestHost testHost)
         {
             var code = @"#nullable enable";

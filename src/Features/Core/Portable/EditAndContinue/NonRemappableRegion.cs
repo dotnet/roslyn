@@ -4,8 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -14,9 +12,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     internal readonly struct NonRemappableRegion : IEquatable<NonRemappableRegion>
     {
         /// <summary>
-        /// Pre-remap span.
+        /// Pre-remap PDB span.
         /// </summary>
-        public readonly LinePositionSpan Span;
+        public readonly SourceFileSpan Span;
 
         /// <summary>
         /// Difference between new span and pre-remap span (new = old + delta).
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </summary>
         public readonly bool IsExceptionRegion;
 
-        public NonRemappableRegion(LinePositionSpan span, int lineDelta, bool isExceptionRegion)
+        public NonRemappableRegion(SourceFileSpan span, int lineDelta, bool isExceptionRegion)
         {
             Span = span;
             LineDelta = lineDelta;

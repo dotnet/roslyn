@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private const string WordClass = "\u0000\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
 
         public static readonly Dictionary<string, (string shortDescription, string longDescription)> EscapeCategories =
-            new Dictionary<string, (string, string)>
+            new()
             {
                 // Others
                 { "Cc", (Regex_other_control, "") },

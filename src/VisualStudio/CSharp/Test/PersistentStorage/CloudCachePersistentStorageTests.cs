@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     public class CloudCachePersistentStorageTests : AbstractPersistentStorageTests
     {
         internal override AbstractPersistentStorageService GetStorageService(
-            OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
+            IMefHostExportProvider exportProvider, IPersistentStorageConfiguration configuration, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
         {
             var threadingContext = exportProvider.GetExports<IThreadingContext>().Single().Value;
             return new MockCloudCachePersistentStorageService(
-                locationService,
+                configuration,
                 relativePathBase,
                 cs =>
                 {

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -56,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
-            var formattingService = document.GetRequiredLanguageService<IEditorFormattingService>();
+            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = CreateEditTransaction(textView, EditorFeaturesResources.Formatting))
             {
                 var changes = formattingService.GetFormattingChangesAsync(
                     document, selectionOpt, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (changes.Count == 0)
+                if (changes.IsEmpty)
                 {
                     return;
                 }
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var service = document.GetLanguageService<IEditorFormattingService>();
+            var service = document.GetLanguageService<IFormattingInteractionService>();
             if (service == null)
             {
                 return;

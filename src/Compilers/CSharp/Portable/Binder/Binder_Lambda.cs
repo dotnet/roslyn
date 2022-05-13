@@ -38,10 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var names = default(ImmutableArray<string>);
-            var refKinds = default(ImmutableArray<RefKind>);
-            var types = default(ImmutableArray<TypeWithAnnotations>);
-            var attributes = default(ImmutableArray<SyntaxList<AttributeListSyntax>>);
+            ImmutableArray<string> names = default;
+            ImmutableArray<RefKind> refKinds = default;
+            ImmutableArray<TypeWithAnnotations> types = default;
+            RefKind returnRefKind = RefKind.None;
+            TypeWithAnnotations returnType = default;
+            ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes = default;
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
             ImmutableArray<bool> discardsOpt = default;
@@ -67,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (x, y) => ...
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
+                    if (paren.ReturnType is { } returnTypeSyntax)
+                    {
+                        (returnRefKind, returnType) = BindExplicitLambdaReturnType(returnTypeSyntax, diagnostics);
+                    }
                     parameterSyntaxList = paren.ParameterList.Parameters;
                     CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
                     break;
@@ -187,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (attributesBuilder.Any(a => a.Count > 0))
                 {
-                    attributes = attributesBuilder.ToImmutable();
+                    parameterAttributes = attributesBuilder.ToImmutable();
                 }
 
                 typesBuilder.Free();
@@ -202,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return new UnboundLambda(syntax, this, diagnostics.AccumulatesDependencies, attributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -235,6 +241,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
+
+            syntax = syntax.SkipRef(out RefKind refKind);
+            var returnType = BindType(syntax, diagnostics);
+            var type = returnType.Type;
+
+            if (returnType.IsStatic)
+            {
+                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(useWarning: false), syntax.Location, type);
+            }
+            else if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+            {
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.Location, type);
+            }
+
+            return (refKind, returnType);
         }
 
         private static void CheckParenthesizedLambdaParameters(

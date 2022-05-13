@@ -1674,7 +1674,7 @@ class C
             comp.DeclarationDiagnostics.Verify();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16652")]
+        [Fact]
         public void FetchLocalFunctionSymbolThroughLocal()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(@"
@@ -1692,30 +1692,28 @@ class C
 }");
             var comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
+
             comp.VerifyDiagnostics(
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, CLSCompliant, D]").WithLocation(7, 20),
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
                 // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
                 // (7,41): error CS0246: The type or namespace name 'DAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("DAttribute").WithLocation(7, 41),
                 // (7,41): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D").WithLocation(7, 41),
                 // (7,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
-                //         void Local<[A, B, CLSCompliant, D]T>() { }
+                //         void Local<[A, B, CLSCompliant, D]T>() 
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
             var model = comp.GetSemanticModel(tree);

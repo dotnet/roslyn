@@ -617,5 +617,44 @@ class Program
                 //         C c = new C()
                 Diagnostic(ErrorCode.ERR_InsufficientStack, "new").WithLocation(10, 15));
         }
+
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
+        public void NullableAnalysis_CondAccess_ComplexRightSide()
+        {
+            var source1 = @"
+#nullable enable
+object? x = null;
+C? c = null;
+if (
+";
+            var source2 = @"
+    )
+{
+}
+
+class C
+{
+    public bool M(object? obj) => false;
+}
+";
+            var sourceBuilder = new StringBuilder();
+            sourceBuilder.Append(source1);
+            for (var i = 0; i < 15; i++)
+            {
+                sourceBuilder.AppendLine($"    c?.M(x = {i}) == (");
+            }
+            sourceBuilder.AppendLine("    c!.M(x)");
+
+            sourceBuilder.Append("    ");
+            for (var i = 0; i < 15; i++)
+            {
+                sourceBuilder.Append(")");
+            }
+
+            sourceBuilder.Append(source2);
+
+            var comp = CreateCompilation(sourceBuilder.ToString());
+            comp.VerifyDiagnostics();
+        }
     }
 }

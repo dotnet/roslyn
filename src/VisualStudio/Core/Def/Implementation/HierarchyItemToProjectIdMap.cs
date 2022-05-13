@@ -41,8 +41,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // The properties supported and the interpretation of their values varies from one project system
                     // to another. This code is designed with C# and VB in mind, so we need to filter out everything
                     // else.
-                    if (p.Language != LanguageNames.CSharp
-                        && p.Language != LanguageNames.VisualBasic)
+                    if (p.Language is not LanguageNames.CSharp
+                        and not LanguageNames.VisualBasic)
                     {
                         return false;
                     }

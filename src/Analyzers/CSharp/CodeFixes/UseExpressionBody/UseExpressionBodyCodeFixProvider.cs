@@ -108,14 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
 #if CODE_STYLE // 'CodeActionPriority' is not a public API, hence not supported in CodeStyle layer.
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
 #else
             internal override CodeActionPriority Priority { get; }
 
             public MyCodeAction(string title, CodeActionPriority priority, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
                 Priority = priority;
             }

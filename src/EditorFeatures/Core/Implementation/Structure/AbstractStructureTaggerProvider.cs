@@ -202,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                             {
                             }
                         }
+
                         continue;
                     }
 

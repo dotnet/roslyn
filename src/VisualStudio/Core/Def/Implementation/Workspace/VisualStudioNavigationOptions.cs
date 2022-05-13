@@ -9,6 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal static class VisualStudioNavigationOptions
     {
         public static readonly PerLanguageOption2<bool> NavigateToObjectBrowser = new(nameof(VisualStudioNavigationOptions), nameof(NavigateToObjectBrowser), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.NavigateToObjectBrowser"));
     }
 }

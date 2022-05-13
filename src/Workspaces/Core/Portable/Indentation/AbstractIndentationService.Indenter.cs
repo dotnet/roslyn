@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                     _tabSize,
                     this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
                     tokenStream: null,
-                    _syntaxFacts);
+                    document.Document.GetRequiredLanguageService<IHeaderFactsService>());
             }
 
             public IndentationResult? GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)

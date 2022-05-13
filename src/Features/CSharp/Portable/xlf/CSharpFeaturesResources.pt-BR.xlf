@@ -182,6 +182,11 @@
         <target state="translated">Desselar a classe '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">Usar padrões recursivos</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">Aviso: embutindo a chamada de método temporária na condicional.</target>
@@ -297,21 +302,6 @@
         <target state="translated">Seleção inválida.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">A seleção não contém um token válido.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">Nenhuma seleção válida para realizar a extração.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">Nenhum nó de raiz comum para extração.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">Contém uma seleção inválida.</target>
@@ -415,6 +405,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">registro</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">registrar struct</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

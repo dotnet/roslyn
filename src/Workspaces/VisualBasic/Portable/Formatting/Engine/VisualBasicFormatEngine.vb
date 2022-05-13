@@ -24,11 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        token2)
         End Sub
 
-        Friend Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts
-            Get
-                Return VisualBasicSyntaxFacts.Instance
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
             Return New TriviaDataFactory(Me.TreeData, Me.Options)

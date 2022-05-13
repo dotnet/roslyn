@@ -375,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we stop looking.
 
             TypeSymbol type0 = operand.Type.StrippedType();
+            TypeSymbol constrainedToTypeOpt = type0 as TypeParameterSymbol;
 
             // Searching for user-defined operators is expensive; let's take an early out if we can.
             if (OperatorFacts.DefinitelyHasNoUserDefinedOperators(type0))
@@ -400,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (; (object)current != null; current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 operators.Clear();
-                GetUserDefinedUnaryOperatorsFromType(current, kind, name, operators);
+                GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, current, kind, name, operators);
                 results.Clear();
                 if (CandidateOperators(operators, operand, results, ref useSiteInfo))
                 {
@@ -444,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         operators.Clear();
                         resultsFromInterface.Clear();
-                        GetUserDefinedUnaryOperatorsFromType(@interface, kind, name, operators);
+                        GetUserDefinedUnaryOperatorsFromType(constrainedToTypeOpt, @interface, kind, name, operators);
                         if (CandidateOperators(operators, operand, resultsFromInterface, ref useSiteInfo))
                         {
                             hadApplicableCandidates = true;
@@ -466,6 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void GetUserDefinedUnaryOperatorsFromType(
+            TypeSymbol constrainedToTypeOpt,
             NamedTypeSymbol type,
             UnaryOperatorKind kind,
             string name,
@@ -482,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol operandType = op.GetParameterType(0);
                 TypeSymbol resultType = op.ReturnType;
 
-                operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op));
+                operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op, constrainedToTypeOpt));
 
                 // SPEC: For the unary operators + ++ - -- ! ~ a lifted form of an operator exists
                 // SPEC: if the operand and its result types are both non-nullable value types.
@@ -503,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             operators.Add(new UnaryOperatorSignature(
                                 UnaryOperatorKind.Lifted | UnaryOperatorKind.UserDefined | kind,
-                                MakeNullable(operandType), MakeNullable(resultType), op));
+                                MakeNullable(operandType), MakeNullable(resultType), op, constrainedToTypeOpt));
                         }
                         break;
                 }

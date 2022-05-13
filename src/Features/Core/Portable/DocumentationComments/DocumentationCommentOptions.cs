@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
     internal static class DocumentationCommentOptions
     {
         public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(DocumentationCommentOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
+            storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
     }
 
     [ExportOptionProvider, Shared]

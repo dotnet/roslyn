@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!(key is ImmutableArray<DocumentId>))
+                if (key is not ImmutableArray<DocumentId>)
                 {
                     return key;
                 }

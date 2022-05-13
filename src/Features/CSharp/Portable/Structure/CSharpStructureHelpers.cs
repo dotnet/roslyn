@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // If the next token is a semicolon, and we aren't in the initializer of a for-loop, use that token as the end.
 
             var nextToken = lastToken.GetNextToken(includeSkipped: true);
-            if (nextToken.Kind() != SyntaxKind.None && nextToken.Kind() == SyntaxKind.SemicolonToken)
+            if (nextToken.Kind() is not SyntaxKind.None and SyntaxKind.SemicolonToken)
             {
                 var forStatement = nextToken.GetAncestor<ForStatementSyntax>();
                 if (forStatement != null && forStatement.FirstSemicolonToken == nextToken)

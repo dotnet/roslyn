@@ -22,11 +22,11 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value)
+        public static void ThrowIfNull<T>([NotNull] T value, [CallerLineNumber] int lineNumber = 0) where T : class?
         {
             if (value is null)
             {
-                Fail("Unexpected null");
+                Fail("Unexpected null", lineNumber);
             }
         }
 
@@ -35,11 +35,24 @@ namespace Roslyn.Utilities
         /// all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfNull<T>([NotNull] T value, string message)
+        public static void ThrowIfNull<T>([NotNull] T? value, [CallerLineNumber] int lineNumber = 0) where T : struct
         {
             if (value is null)
             {
-                Fail(message);
+                Fail("Unexpected null", lineNumber);
+            }
+        }
+
+        /// <summary>
+        /// Throws a non-accessible exception if the provided value is null.  This method executes in
+        /// all builds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ThrowIfNull<T>([NotNull] T value, string message, [CallerLineNumber] int lineNumber = 0)
+        {
+            if (value is null)
+            {
+                Fail(message, lineNumber);
             }
         }
 
@@ -48,11 +61,11 @@ namespace Roslyn.Utilities
         /// in all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition)
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, [CallerLineNumber] int lineNumber = 0)
         {
             if (!condition)
             {
-                Fail("Unexpected false");
+                Fail("Unexpected false", lineNumber);
             }
         }
 
@@ -61,11 +74,11 @@ namespace Roslyn.Utilities
         /// in all builds
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message)
+        public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message, [CallerLineNumber] int lineNumber = 0)
         {
             if (!condition)
             {
-                Fail(message);
+                Fail(message, lineNumber);
             }
         }
 
@@ -74,11 +87,11 @@ namespace Roslyn.Utilities
         /// all builds.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition)
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [CallerLineNumber] int lineNumber = 0)
         {
             if (condition)
             {
-                Fail("Unexpected true");
+                Fail("Unexpected true", lineNumber);
             }
         }
 
@@ -87,18 +100,18 @@ namespace Roslyn.Utilities
         /// all builds.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string message)
+        public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string message, [CallerLineNumber] int lineNumber = 0)
         {
             if (condition)
             {
-                Fail(message);
+                Fail(message, lineNumber);
             }
         }
 
         [DebuggerHidden]
         [DoesNotReturn]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void Fail(string message = "Unexpected")
-            => throw new InvalidOperationException(message);
+        public static void Fail(string message = "Unexpected", [CallerLineNumber] int lineNumber = 0)
+            => throw new InvalidOperationException($"{message} - line {lineNumber}");
     }
 }

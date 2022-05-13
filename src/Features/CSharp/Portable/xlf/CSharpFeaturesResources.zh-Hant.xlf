@@ -182,6 +182,11 @@
         <target state="translated">為類別 '{0}' 解密</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_recursive_patterns">
+        <source>Use recursive patterns</source>
+        <target state="translated">使用遞迴模式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
         <source>Warning: Inlining temporary into conditional method call.</source>
         <target state="translated">警告: 內嵌臨時加入條件式方法呼叫。</target>
@@ -297,21 +302,6 @@
         <target state="translated">無效的選取範圍。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Selection_does_not_contain_a_valid_token">
-        <source>Selection does not contain a valid token.</source>
-        <target state="translated">選取範圍沒有包含有效的語彙基元。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction.</source>
-        <target state="translated">沒有可執行擷取的有效選取範圍。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction.</source>
-        <target state="translated">沒有根節點可供擷取。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Contains_invalid_selection">
         <source>Contains invalid selection.</source>
         <target state="translated">包含無效的選取範圍。</target>
@@ -415,6 +405,11 @@
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">記錄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="record_struct">
+        <source>record struct</source>
+        <target state="translated">記錄結構</target>
         <note />
       </trans-unit>
       <trans-unit id="switch_statement">

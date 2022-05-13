@@ -17,16 +17,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     /// <summary>
-    /// Aggregates handlers for the specified language and dispatches LSP requests
+    /// Aggregates handlers for the specified languages and dispatches LSP requests
     /// to the appropriate handler for the request.
     /// </summary>
     internal class RequestDispatcher
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler>> _requestHandlers;
 
-        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, string? languageName = null)
+        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, ImmutableArray<string> languageNames)
         {
-            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => rh.Metadata.LanguageName == languageName));
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => languageNames.All(languageName => rh.Metadata.LanguageNames.Contains(languageName))));
         }
 
         private static ImmutableDictionary<string, Lazy<IRequestHandler>> CreateMethodToHandlerMap(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)

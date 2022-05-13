@@ -76,12 +76,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 actionIfInsideActiveSpan(_renameService.ActiveSession, containingSpan);
             }
-            else
+            else if (_renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
             {
-                // It's in a read-only area, so let's commit the rename and then let the character go
-                // through
+                // It's in a read-only area that is open, so let's commit the rename 
+                // and then let the character go through
 
                 CommitIfActiveAndCallNextHandler(args, nextHandler);
+            }
+            else
+            {
+                nextHandler();
+                return;
             }
         }
 

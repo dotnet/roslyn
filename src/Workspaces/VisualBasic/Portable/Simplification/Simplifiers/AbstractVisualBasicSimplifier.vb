@@ -176,6 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     Return True
                 End If
             End If
+
             Return False
         End Function
 

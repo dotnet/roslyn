@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -189,8 +190,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (await TryAddSemanticClassificationsFromCacheAsync(document, textSpan, classifiedSpans, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                 return;
 
+            var options = ClassificationOptions.From(document.Project);
             await classificationService.AddSemanticClassificationsAsync(
-                document, textSpan, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryAddSemanticClassificationsFromCacheAsync(
@@ -208,12 +210,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             if (semanticCacheService == null)
                 return false;
 
-            var checksums = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var checksum = checksums.Text;
-
             var result = await semanticCacheService.GetCachedSemanticClassificationsAsync(
-                SemanticClassificationCacheUtilities.GetDocumentKeyForCaching(document),
-                textSpan, checksum, cancellationToken).ConfigureAwait(false);
+                document, textSpan, cancellationToken).ConfigureAwait(false);
             if (result.IsDefault)
                 return false;
 
