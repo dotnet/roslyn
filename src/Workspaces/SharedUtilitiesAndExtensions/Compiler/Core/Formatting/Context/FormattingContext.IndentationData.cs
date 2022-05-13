@@ -27,26 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             protected abstract IndentationData WithTextSpanCore(TextSpan span);
         }
 
-        private class RootIndentationData : SimpleIndentationData
-        {
-            // first and last token of root indentation are not valid
-            public RootIndentationData(SyntaxNode rootNode)
-                : base(rootNode.FullSpan, indentation: 0)
-            {
-            }
-
-            private RootIndentationData(TextSpan textSpan)
-                : base(textSpan, indentation: 0)
-            {
-            }
-
-            protected override IndentationData WithTextSpanCore(TextSpan span)
-            {
-                return new RootIndentationData(span);
-            }
-        }
-
-        private class SimpleIndentationData : IndentationData
+        private sealed class SimpleIndentationData : IndentationData
         {
             private readonly int _indentation;
 
@@ -64,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
-        private class RelativeIndentationData : IndentationData
+        private sealed class RelativeIndentationData : IndentationData
         {
             private readonly Lazy<int> _lazyIndentationDelta;
             private readonly Func<int> _baseIndentationGetter;

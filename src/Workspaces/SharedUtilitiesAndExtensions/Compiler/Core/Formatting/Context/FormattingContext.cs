@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // if we are trying to format whole document, there is no reason to get initial context. just set
                 // initial indentation.
-                var data = new RootIndentationData(rootNode);
+                var data = new SimpleIndentationData(rootNode.FullSpan, indentation: 0);
                 _indentationTree.AddIntervalInPlace(data);
                 _indentationMap.Add(data.TextSpan);
                 return;
