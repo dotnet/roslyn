@@ -135,11 +135,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
             // When pasting, only do anything special if the user selections were entirely inside a single string
-            // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
+            // token/expression.  Otherwise, we have a multi-selection across token kinds which will be extremely
             // complex to try to reconcile.
             var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(
                 documentBeforePaste, selectionsBeforePaste, cancellationToken);
             if (stringExpressionBeforePaste == null)
+                return;
+
+            // Also ensure that all the changes the editor actually applied were inside a single string
+            // token/expression. If the editor decided to make changes outside of the string, we definitely do not want
+            // to do anything here.
+            var stringExpressionBeforePasteFromChanges = TryGetCompatibleContainingStringExpression(
+                documentBeforePaste, new NormalizedSnapshotSpanCollection(snapshotBeforePaste, snapshotBeforePaste.Version.Changes.Select(c => c.OldSpan)), cancellationToken);
+            if (stringExpressionBeforePaste != stringExpressionBeforePasteFromChanges)
                 return;
 
             var textChanges = GetEdits(cancellationToken);
