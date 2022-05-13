@@ -192,10 +192,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var effectiveBaseToken = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) : operation.BaseToken;
                 var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
-                var relativeIndentationDeltaGetter = () =>
+                Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> relativeIndentationDeltaGetter = static (self, operation, effectiveBaseToken) =>
                 {
-                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.HeaderFacts, TreeData.Root, effectiveBaseToken);
-                    return baseIndentationDelta * Options.IndentationSize;
+                    var baseIndentationDelta = operation.GetAdjustedIndentationDelta(self._engine.HeaderFacts, self.TreeData.Root, effectiveBaseToken);
+                    return baseIndentationDelta * self.Options.IndentationSize;
                 };
 
                 // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     : static (self, operation) => self._tokenStream.GetCurrentColumn(operation.BaseToken);
 
                 // set new indentation
-                var relativeIndentationData = new RelativeIndentationData(this, inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
+                var relativeIndentationData = new RelativeIndentationData(this, effectiveBaseToken, inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
 
                 _indentationTree.AddIntervalInPlace(relativeIndentationData);
                 _relativeIndentationTree.AddIntervalInPlace(relativeIndentationData);
