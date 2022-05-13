@@ -420,13 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
-        protected sealed override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
 
         public sealed override bool HasUnsupportedMetadata
         {

@@ -17,7 +17,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -610,8 +609,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
 
-                MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
-                result = result.AdjustDiagnosticInfo(diag);
+                if (diag != null)
+                {
+                    result = new UseSiteInfo<AssemblySymbol>(diag);
+                }
             }
         }
 

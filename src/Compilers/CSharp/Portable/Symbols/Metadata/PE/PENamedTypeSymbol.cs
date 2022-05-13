@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (mrEx != null)
             {
-                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
+                result._lazyCachedUseSiteInfo.Initialize(result.DeriveCompilerFeatureRequiredDiagnostic() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
             }
 
             return result;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (mrEx != null || metadataArity < containerMetadataArity)
             {
-                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
+                result._lazyCachedUseSiteInfo.Initialize(result.DeriveCompilerFeatureRequiredDiagnostic() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
             }
 
             return result;
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad)
             {
-                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
+                _lazyCachedUseSiteInfo.Initialize(DeriveCompilerFeatureRequiredDiagnostic() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
             }
         }
 
@@ -2066,8 +2066,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return diagnostic;
         }
-
-        protected override int HighestPriorityUseSiteError => (int)ErrorCode.ERR_UnsupportedCompilerFeature;
 
 #nullable enable
         internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()

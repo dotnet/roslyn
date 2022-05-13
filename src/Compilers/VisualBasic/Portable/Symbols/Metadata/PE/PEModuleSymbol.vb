@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private _lazyTypeNames As ICollection(Of String)
         Private _lazyNamespaceNames As ICollection(Of String)
 
-        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.VoidDiagnosticInfo
+        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
         Friend Sub New(assemblySymbol As PEAssemblySymbol, [module] As PEModule, importOptions As MetadataImportOptions, ordinal As Integer)
             Me.New(DirectCast(assemblySymbol, AssemblySymbol), [module], importOptions, ordinal)
@@ -488,11 +488,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Function GetCompilerFeatureRequiredDiagnostic() As DiagnosticInfo
-            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is Nothing Then
+            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is ErrorFactory.EmptyDiagnosticInfo Then
                 Interlocked.CompareExchange(
                     _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
                     DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, Me, EntityHandle.ModuleDefinition, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(Me)),
-                    ErrorFactory.VoidDiagnosticInfo)
+                    ErrorFactory.EmptyDiagnosticInfo)
             End If
 
             Return If(_lazyCachedCompilerFeatureRequiredDiagnosticInfo,

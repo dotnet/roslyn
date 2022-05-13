@@ -5,7 +5,6 @@
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
@@ -488,8 +487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
 
-                MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
-                result = result.AdjustDiagnosticInfo(diag);
+                if (diag != null)
+                {
+                    result = new UseSiteInfo<AssemblySymbol>(diag);
+                }
             }
         }
 

@@ -402,13 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Return error code that has highest priority while calculating use site error for this symbol. 
         /// </summary>
-        protected override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BindToBogus;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
 
         public sealed override bool HasUnsupportedMetadata
         {

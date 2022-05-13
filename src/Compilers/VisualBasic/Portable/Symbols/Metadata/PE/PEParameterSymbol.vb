@@ -63,8 +63,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Private _lazyHiddenAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
-
         Friend Shared Function Create(
             moduleSymbol As PEModuleSymbol,
             containingSymbol As PEMethodSymbol,

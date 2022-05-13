@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
 #nullable enable
-        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.VoidDiagnosticInfo;
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 #nullable disable
 
         internal PEAssemblySymbol(PEAssembly assembly, DocumentationProvider documentationProvider, bool isLinked, MetadataImportOptions importOptions)
@@ -289,12 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #nullable enable
         internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
         {
-            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.VoidDiagnosticInfo)
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
             {
                 Interlocked.CompareExchange(
                     ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
                     PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, PrimaryModule, this.Assembly.Handle, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(PrimaryModule)),
-                    CSDiagnosticInfo.VoidDiagnosticInfo);
+                    CSDiagnosticInfo.EmptyErrorInfo);
             }
 
             return _lazyCachedCompilerFeatureRequiredDiagnosticInfo;

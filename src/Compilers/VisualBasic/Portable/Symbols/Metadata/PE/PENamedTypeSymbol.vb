@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             If makeBad OrElse metadataArity < containerMetadataArity Then
-                _lazyCachedUseSiteInfo.Initialize(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me))
+                _lazyCachedUseSiteInfo.Initialize(If(DeriveCompilerFeatureRequiredDiagnostic(), ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
             End If
 
             Debug.Assert(Not _mangleName OrElse _name.Length < name.Length)

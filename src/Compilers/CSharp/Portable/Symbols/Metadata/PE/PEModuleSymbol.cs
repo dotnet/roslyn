@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
 #nullable enable
-        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.VoidDiagnosticInfo;
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
 #nullable disable
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
@@ -763,12 +763,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #nullable enable
         internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
         {
-            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.VoidDiagnosticInfo)
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
             {
                 Interlocked.CompareExchange(
                     ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
                     PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, this, Token, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(this)),
-                    CSDiagnosticInfo.VoidDiagnosticInfo);
+                    CSDiagnosticInfo.EmptyErrorInfo);
             }
 
             return _lazyCachedCompilerFeatureRequiredDiagnosticInfo ?? (_assemblySymbol as PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnostic();

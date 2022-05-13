@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private _lazyCustomAttributes As ImmutableArray(Of VisualBasicAttributeData)
 
-        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.VoidDiagnosticInfo
+        Private _lazyCachedCompilerFeatureRequiredDiagnosticInfo As DiagnosticInfo = ErrorFactory.EmptyDiagnosticInfo
 
         Friend Sub New(assembly As PEAssembly, documentationProvider As DocumentationProvider,
                        isLinked As Boolean, importOptions As MetadataImportOptions)
@@ -262,11 +262,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Friend Function GetCompilerFeatureRequiredDiagnosticInfo() As DiagnosticInfo
-            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is Nothing Then
+            If _lazyCachedCompilerFeatureRequiredDiagnosticInfo Is ErrorFactory.EmptyDiagnosticInfo Then
                 Interlocked.CompareExchange(
                     _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
                     DeriveCompilerFeatureRequiredAttributeDiagnostic(Me, PrimaryModule, _assembly.Handle, CompilerFeatureRequiredFeatures.None, New MetadataDecoder(PrimaryModule)),
-                    ErrorFactory.VoidDiagnosticInfo)
+                    ErrorFactory.EmptyDiagnosticInfo)
             End If
 
             Return _lazyCachedCompilerFeatureRequiredDiagnosticInfo

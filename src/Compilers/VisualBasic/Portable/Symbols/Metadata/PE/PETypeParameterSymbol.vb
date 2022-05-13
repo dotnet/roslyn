@@ -39,11 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Private _lazyCachedBoundsUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
 
-        ''' <summary>
-        ''' First error on the type symbol itself
-        ''' </summary>
-        Private _lazyCachedUseSiteInfo As CachedUseSiteInfo(Of AssemblySymbol) = CachedUseSiteInfo(Of AssemblySymbol).Uninitialized ' Indicates unknown state. 
-
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
             definingNamedType As PENamedTypeSymbol,

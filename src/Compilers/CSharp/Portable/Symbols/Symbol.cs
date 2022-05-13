@@ -942,13 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Return error code that has highest priority while calculating use site error for this symbol. 
         /// Supposed to be ErrorCode, but it causes inconsistent accessibility error.
         /// </summary>
-        protected virtual int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected virtual bool IsHighestPriorityUseSiteErrorCode(int code) => true;
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -1006,8 +1000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected bool IsHighestPriorityUseSiteError(DiagnosticInfo info)
-            => info.Severity == DiagnosticSeverity.Error
-               && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == int.MaxValue);
+            => info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code);
 
         /// <summary>
         /// Merges given diagnostic and dependencies to the existing result.
