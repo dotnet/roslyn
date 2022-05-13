@@ -26,6 +26,7 @@
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.2.0-2.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>17.2.3194</VisualStudioEditorPackagesVersion>
+    <VisualStudioMacEditorPackagesVersion>17.3.68-preview</VisualStudioMacEditorPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.3.5</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
@@ -138,9 +139,9 @@
     <MicrosoftVisualStudioEditorVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioEditorVersion>
     <MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion>
     <MicrosoftVisualStudioExtensibilityTestingXunitVersion>$(MicrosoftVisualStudioExtensibilityTestingVersion)</MicrosoftVisualStudioExtensibilityTestingXunitVersion>
-    <MicrosoftVisualStudioFPFPresentationCoreVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioFPFPresentationCoreVersion>
-    <MicrosoftVisualStudioFPFPresentationFrameworkVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioFPFPresentationFrameworkVersion>
-    <MicrosoftVisualStudioFPFWindowsBaseVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioFPFWindowsBaseVersion>
+    <MicrosoftVisualStudioFPFPresentationCoreVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioFPFPresentationCoreVersion>
+    <MicrosoftVisualStudioFPFPresentationFrameworkVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioFPFPresentationFrameworkVersion>
+    <MicrosoftVisualStudioFPFWindowsBaseVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioFPFWindowsBaseVersion>
     <MicrosoftVisualStudioGraphModelVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioGraphModelVersion>
     <MicrosoftVisualStudioImageCatalogVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImageCatalogVersion>
     <MicrosoftVisualStudioImagingVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioImagingVersion>
@@ -177,7 +178,7 @@
     <MicrosoftVisualStudioTextLogicVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextLogicVersion>
     <MicrosoftVisualStudioTextUIVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIVersion>
     <MicrosoftVisualStudioTextUIWpfVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUIWpfVersion>
-    <MicrosoftVisualStudioTextUICocoaVersion>$(VisualStudioEditorPackagesVersion)</MicrosoftVisualStudioTextUICocoaVersion>
+    <MicrosoftVisualStudioTextUICocoaVersion>$(VisualStudioMacEditorPackagesVersion)</MicrosoftVisualStudioTextUICocoaVersion>
     <MicrosoftVisualStudioThreadingAnalyzersVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>$(MicrosoftVisualStudioThreadingPackagesVersion)</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
