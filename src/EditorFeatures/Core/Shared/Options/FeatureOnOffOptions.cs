@@ -94,6 +94,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
+        /// <summary>
+        /// This option was previously "bool?" to accomodate different supported defaults
+        /// that were being provided via remote settings. The feature has stabalized and moved
+        /// to on by default, so the storage location was changed to
+        /// TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2 (note the 2 suffix).
+        /// </summary>
         public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
             FeatureName, "AddImportsOnPaste", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2"));
