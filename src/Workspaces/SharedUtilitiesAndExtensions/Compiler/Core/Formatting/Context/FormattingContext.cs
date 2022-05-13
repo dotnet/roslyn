@@ -192,21 +192,19 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var effectiveBaseToken = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) : operation.BaseToken;
                 var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
-                var relativeIndentationGetter = new Lazy<int>(() =>
+                var relativeIndentationDeltaGetter = () =>
                 {
                     var baseIndentationDelta = operation.GetAdjustedIndentationDelta(_engine.HeaderFacts, TreeData.Root, effectiveBaseToken);
-                    var indentationDelta = baseIndentationDelta * Options.IndentationSize;
+                    return baseIndentationDelta * Options.IndentationSize;
+                };
 
-                    // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
-                    var baseIndentation = _tokenStream.GetCurrentColumn(operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ?
-                                                                            _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) :
-                                                                            operation.BaseToken);
-
-                    return baseIndentation + indentationDelta;
-                }, isThreadSafe: true);
+                // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
+                Func<int> relativeIndentationBaseIndentationGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
+                    ? () => _tokenStream.GetCurrentColumn(_tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken))
+                    : () => _tokenStream.GetCurrentColumn(operation.BaseToken);
 
                 // set new indentation
-                var relativeIndentationData = new RelativeIndentationData(inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationGetter);
+                var relativeIndentationData = new RelativeIndentationData(inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
 
                 _indentationTree.AddIntervalInPlace(relativeIndentationData);
                 _relativeIndentationTree.AddIntervalInPlace(relativeIndentationData);
@@ -235,15 +233,29 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             // get indentation based on its previous indentation
-            var indentationGetter = new Lazy<int>(() =>
+            if (indentationData is not AdjustedIndentationData { BaseIndentationData: var baseIndentationData, Adjustment: var totalAdjustment })
             {
-                var indentationDelta = operation.IndentationDeltaOrPosition * Options.IndentationSize;
+                (baseIndentationData, totalAdjustment) = (indentationData, 0);
+            }
 
-                return indentationData.Indentation + indentationDelta;
-            }, isThreadSafe: true);
+            totalAdjustment += operation.IndentationDeltaOrPosition * Options.IndentationSize;
+
+            IndentationData derived;
+            if (totalAdjustment == 0)
+            {
+                derived = baseIndentationData.WithTextSpan(intervalTreeSpan);
+            }
+            else if (baseIndentationData is SimpleIndentationData { Indentation: var baseIndentation })
+            {
+                derived = new SimpleIndentationData(intervalTreeSpan, baseIndentation + totalAdjustment);
+            }
+            else
+            {
+                derived = new AdjustedIndentationData(intervalTreeSpan, baseIndentationData, totalAdjustment);
+            }
 
             // set new indentation
-            _indentationTree.AddIntervalInPlace(new LazyIndentationData(intervalTreeSpan, indentationGetter));
+            _indentationTree.AddIntervalInPlace(derived);
             _indentationMap.Add(intervalTreeSpan);
         }
 

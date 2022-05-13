@@ -20,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             public TextSpan TextSpan { get; }
             public abstract int Indentation { get; }
+
+            public IndentationData WithTextSpan(TextSpan span)
+                => span == TextSpan ? this : WithTextSpanCore(span);
+
+            protected abstract IndentationData WithTextSpanCore(TextSpan span);
         }
 
         private class RootIndentationData : SimpleIndentationData
@@ -28,6 +33,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             public RootIndentationData(SyntaxNode rootNode)
                 : base(rootNode.FullSpan, indentation: 0)
             {
+            }
+
+            private RootIndentationData(TextSpan textSpan)
+                : base(textSpan, indentation: 0)
+            {
+            }
+
+            protected override IndentationData WithTextSpanCore(TextSpan span)
+            {
+                return new RootIndentationData(span);
             }
         }
 
@@ -42,25 +57,34 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             public override int Indentation => _indentation;
+
+            protected override IndentationData WithTextSpanCore(TextSpan span)
+            {
+                return new SimpleIndentationData(span, _indentation);
+            }
         }
 
-        private class LazyIndentationData : IndentationData
+        private class RelativeIndentationData : IndentationData
         {
-            private readonly Lazy<int> _indentationGetter;
-            public LazyIndentationData(TextSpan textSpan, Lazy<int> indentationGetter)
+            private readonly Lazy<int> _lazyIndentationDelta;
+            private readonly Func<int> _baseIndentationGetter;
+
+            public RelativeIndentationData(int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<int> indentationDeltaGetter, Func<int> baseIndentationGetter)
                 : base(textSpan)
             {
-                _indentationGetter = indentationGetter;
+                _lazyIndentationDelta = new Lazy<int>(indentationDeltaGetter, isThreadSafe: true);
+                _baseIndentationGetter = baseIndentationGetter;
+
+                this.Operation = operation;
+                this.InseparableRegionSpan = TextSpan.FromBounds(inseparableRegionSpanStart, textSpan.End);
             }
 
-            public override int Indentation => _indentationGetter.Value;
-        }
-
-        private class RelativeIndentationData : LazyIndentationData
-        {
-            public RelativeIndentationData(int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Lazy<int> indentationGetter)
-                : base(textSpan, indentationGetter)
+            private RelativeIndentationData(int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Lazy<int> lazyIndentationDelta, Func<int> baseIndentationGetter)
+                : base(textSpan)
             {
+                _lazyIndentationDelta = lazyIndentationDelta;
+                _baseIndentationGetter = baseIndentationGetter;
+
                 this.Operation = operation;
                 this.InseparableRegionSpan = TextSpan.FromBounds(inseparableRegionSpanStart, textSpan.End);
             }
@@ -71,6 +95,33 @@ namespace Microsoft.CodeAnalysis.Formatting
             public SyntaxToken EndToken
             {
                 get { return this.Operation.EndToken; }
+            }
+
+            public override int Indentation => _lazyIndentationDelta.Value + _baseIndentationGetter();
+
+            protected override IndentationData WithTextSpanCore(TextSpan span)
+            {
+                return new RelativeIndentationData(InseparableRegionSpan.Start, span, Operation, _lazyIndentationDelta, _baseIndentationGetter);
+            }
+        }
+
+        private sealed class AdjustedIndentationData : IndentationData
+        {
+            public AdjustedIndentationData(TextSpan textSpan, IndentationData baseIndentationData, int adjustment)
+                : base(textSpan)
+            {
+                BaseIndentationData = baseIndentationData;
+                Adjustment = adjustment;
+            }
+
+            public IndentationData BaseIndentationData { get; }
+            public int Adjustment { get; }
+
+            public override int Indentation => BaseIndentationData.Indentation + Adjustment;
+
+            protected override IndentationData WithTextSpanCore(TextSpan span)
+            {
+                return new AdjustedIndentationData(span, BaseIndentationData, Adjustment);
             }
         }
     }
