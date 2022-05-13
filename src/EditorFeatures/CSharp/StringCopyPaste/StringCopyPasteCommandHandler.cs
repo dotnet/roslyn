@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (selectionsBeforePaste.Count != 1)
                     return default;
 
-                var clipboardData = copyPasteService?.TryGetClipboardData(KeyAndVersion);
+                var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
                 var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 
                 if (copyPasteData == null)
