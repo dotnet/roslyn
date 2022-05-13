@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
                 {
                     using var _ = ArrayBuilder<SyntaxToken>.GetInstance(modifiers.Count + 1, out var keywords);
 
-                    for (var i = 0; i < modifiers.Count; i++)
+                    for (i = 0; i < modifiers.Count; i++)
                     {
                         keywords.Add(modifiers[i]);
 
