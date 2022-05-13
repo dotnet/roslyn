@@ -199,12 +199,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 };
 
                 // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
-                Func<int> relativeIndentationBaseIndentationGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
-                    ? () => _tokenStream.GetCurrentColumn(_tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken))
-                    : () => _tokenStream.GetCurrentColumn(operation.BaseToken);
+                Func<FormattingContext, IndentBlockOperation, int> relativeIndentationBaseIndentationGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
+                    ? static (self, operation) => self._tokenStream.GetCurrentColumn(self._tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken))
+                    : static (self, operation) => self._tokenStream.GetCurrentColumn(operation.BaseToken);
 
                 // set new indentation
-                var relativeIndentationData = new RelativeIndentationData(inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
+                var relativeIndentationData = new RelativeIndentationData(this, inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
 
                 _indentationTree.AddIntervalInPlace(relativeIndentationData);
                 _relativeIndentationTree.AddIntervalInPlace(relativeIndentationData);

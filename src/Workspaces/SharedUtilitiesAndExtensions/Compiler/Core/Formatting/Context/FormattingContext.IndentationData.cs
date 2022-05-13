@@ -47,12 +47,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private sealed class RelativeIndentationData : IndentationData
         {
+            private readonly FormattingContext _formattingContext;
             private readonly Lazy<int> _lazyIndentationDelta;
-            private readonly Func<int> _baseIndentationGetter;
+            private readonly Func<FormattingContext, IndentBlockOperation, int> _baseIndentationGetter;
 
-            public RelativeIndentationData(int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<int> indentationDeltaGetter, Func<int> baseIndentationGetter)
+            public RelativeIndentationData(FormattingContext formattingContext, int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<int> indentationDeltaGetter, Func<FormattingContext, IndentBlockOperation, int> baseIndentationGetter)
                 : base(textSpan)
             {
+                _formattingContext = formattingContext;
                 _lazyIndentationDelta = new Lazy<int>(indentationDeltaGetter, isThreadSafe: true);
                 _baseIndentationGetter = baseIndentationGetter;
 
@@ -60,9 +62,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.InseparableRegionSpan = TextSpan.FromBounds(inseparableRegionSpanStart, textSpan.End);
             }
 
-            private RelativeIndentationData(int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Lazy<int> lazyIndentationDelta, Func<int> baseIndentationGetter)
+            private RelativeIndentationData(FormattingContext formattingContext, int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Lazy<int> lazyIndentationDelta, Func<FormattingContext, IndentBlockOperation, int> baseIndentationGetter)
                 : base(textSpan)
             {
+                _formattingContext = formattingContext;
                 _lazyIndentationDelta = lazyIndentationDelta;
                 _baseIndentationGetter = baseIndentationGetter;
 
@@ -78,11 +81,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 get { return this.Operation.EndToken; }
             }
 
-            public override int Indentation => _lazyIndentationDelta.Value + _baseIndentationGetter();
+            public override int Indentation => _lazyIndentationDelta.Value + _baseIndentationGetter(_formattingContext, Operation);
 
             protected override IndentationData WithTextSpanCore(TextSpan span)
             {
-                return new RelativeIndentationData(InseparableRegionSpan.Start, span, Operation, _lazyIndentationDelta, _baseIndentationGetter);
+                return new RelativeIndentationData(_formattingContext, InseparableRegionSpan.Start, span, Operation, _lazyIndentationDelta, _baseIndentationGetter);
             }
         }
 
