@@ -190,6 +190,7 @@ stages:
                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                    /p:DotnetPublishUsingPipelines=true
                    /p:IgnoreIbcMergeErrors=true
+                   /p:GenerateSbom=true
       condition: succeeded()
 
     - task: PowerShell@2
