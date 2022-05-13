@@ -39,7 +39,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         var simpleTypeName = metadataName.UnmangledTypeName;
         var nodesWithAttributesMatchingSimpleName = context.SyntaxProvider.CreateSyntaxProviderForAttribute<T>(simpleTypeName);
 
-        var collectedNodes = nodesWithAttributesMatchingSimpleName.Collect().WithTrackingName("compilationUnit_ForAttributeWithMetadataName");
+        var collectedNodes = nodesWithAttributesMatchingSimpleName.Collect().WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
 
         var compilationAndCollectedNodesProvider = collectedNodes
             .Combine(context.CompilationProvider)
