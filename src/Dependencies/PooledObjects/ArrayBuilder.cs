@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public T Last()
-            => _builder[^1];
+            => _builder[_builder.Count - 1];
 
         internal T? LastOrDefault()
             => Count == 0 ? default : Last();

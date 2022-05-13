@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-internal static class SyntaxValueProviderExtensions
+internal static partial class SyntaxValueProviderExtensions
 {
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
@@ -74,6 +74,31 @@ internal static class SyntaxValueProviderExtensions
         return result;
     }
 
+    private static GlobalAliases GetGlobalAliasesInCompilationUnit(CompilationUnitSyntax compilationUnit)
+    {
+        var globalAliases = Aliases.GetInstance();
+
+        foreach (var usingDirective in compilationUnit.Usings)
+        {
+            if (usingDirective.GlobalKeyword == default)
+                continue;
+
+            AddAlias(usingDirective, globalAliases);
+        }
+
+        return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
+    }
+
+    private static void AddAlias(UsingDirectiveSyntax usingDirective, Aliases aliases)
+    {
+        if (usingDirective.Alias == null)
+            return;
+
+        var aliasName = usingDirective.Alias.Name.Identifier.ValueText;
+        var symbolName = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
+        aliases.Add((aliasName, symbolName));
+    }
+
     private static ImmutableArray<T> GetMatchingNodes<T>(
         GlobalAliases globalAliases,
         CompilationUnitSyntax compilationUnit,
@@ -124,22 +149,26 @@ internal static class SyntaxValueProviderExtensions
                 // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
                 localAliases.Count = localAliasCount;
             }
-            else if (node is AttributeSyntax attribute &&
-                     node.Parent is T parent &&
+            else if (node is AttributeListSyntax attributeList &&
+                     attributeList.Parent is T parent &&
                      // no need to examine another attribute on a node if we already added it due to a prior attribute
                      results.LastOrDefault() != parent)
             {
                 seenNames.Clear();
 
-                // attributes can't have attributes inside of them.  so no need to recurse when we're done.
-                //
-                // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
-                // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                if (matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText) ||
-                    matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText + "Attribute"))
+                foreach (var attribute in attributeList.Attributes)
                 {
-                    results.Add(parent);
+                    // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
+                    // e.g. if there is [X] then we have to lookup with X and with XAttribute.
+                    if (matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText) ||
+                        matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText + "Attribute"))
+                    {
+                        results.Add(parent);
+                        return;
+                    }
                 }
+
+                // attributes can't have attributes inside of them.  so no need to recurse when we're done.
             }
             else
             {
@@ -195,94 +224,6 @@ internal static class SyntaxValueProviderExtensions
             }
 
             return false;
-        }
-    }
-
-    private static GlobalAliases GetGlobalAliasesInCompilationUnit(CompilationUnitSyntax compilationUnit)
-    {
-        var globalAliases = Aliases.GetInstance();
-
-        foreach (var usingDirective in compilationUnit.Usings)
-        {
-            if (usingDirective.GlobalKeyword == default)
-                continue;
-
-            AddAlias(usingDirective, globalAliases);
-        }
-
-        return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
-    }
-
-    private static void AddAlias(UsingDirectiveSyntax usingDirective, Aliases aliases)
-    {
-        if (usingDirective.Alias == null)
-            return;
-
-        var aliasName = usingDirective.Alias.Name.Identifier.ValueText;
-        var symbolName = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
-        aliases.Add((aliasName, symbolName));
-    }
-
-    /// <summary>
-    /// Simple wrapper class around an immutable array so we can have the value-semantics needed for the incremental
-    /// generator to know when a change actually happened and it should run later transform stages.
-    /// </summary>
-    private class GlobalAliases : IEquatable<GlobalAliases>
-    {
-        public static readonly GlobalAliases Empty = new(ImmutableArray<(string aliasName, string symbolName)>.Empty);
-
-        public readonly ImmutableArray<(string aliasName, string symbolName)> AliasAndSymbolNames;
-
-        private int _hashCode;
-
-        private GlobalAliases(ImmutableArray<(string aliasName, string symbolName)> aliasAndSymbolNames)
-        {
-            AliasAndSymbolNames = aliasAndSymbolNames;
-        }
-
-        public static GlobalAliases Create(ImmutableArray<(string aliasName, string symbolName)> aliasAndSymbolNames)
-        {
-            return aliasAndSymbolNames.IsEmpty ? Empty : new GlobalAliases(aliasAndSymbolNames);
-        }
-
-        public override int GetHashCode()
-        {
-            if (_hashCode == 0)
-            {
-                var hashCode = 0;
-                foreach (var tuple in this.AliasAndSymbolNames)
-                    hashCode = Hash.Combine(tuple.GetHashCode(), hashCode);
-
-                _hashCode = hashCode == 0 ? 1 : hashCode;
-            }
-
-            return _hashCode;
-        }
-
-        public override bool Equals(object? obj)
-            => this.Equals(obj as GlobalAliases);
-
-        public bool Equals(GlobalAliases? array)
-        {
-            if (array is null)
-                return false;
-
-            if (ReferenceEquals(this, array))
-                return true;
-
-            if (this.AliasAndSymbolNames == array.AliasAndSymbolNames)
-                return true;
-
-            if (this.AliasAndSymbolNames.Length != array.AliasAndSymbolNames.Length)
-                return false;
-
-            for (int i = 0, n = this.AliasAndSymbolNames.Length; i < n; i++)
-            {
-                if (this.AliasAndSymbolNames[i] != array.AliasAndSymbolNames[i])
-                    return false;
-            }
-
-            return true;
         }
     }
 }
