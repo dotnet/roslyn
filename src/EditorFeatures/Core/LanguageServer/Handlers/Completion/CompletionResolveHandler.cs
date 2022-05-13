@@ -20,25 +20,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLspServiceFactory(typeof(CompletionResolveHandler))]
-    internal sealed class CompletionResolveHandlerFactory : ILspServiceFactory
-    {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandlerFactory(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            var completionListCache = lspServices.GetRequiredService<CompletionListCache>();
-            return new CompletionResolveHandler(_globalOptions, completionListCache);
-        }
-    }
-
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// 

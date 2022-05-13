@@ -11,21 +11,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportRoslynLspServiceFactory(typeof(RequestTelemetryLogger))]
-internal class RequestTelemetryLoggerFactory : ILspServiceFactory
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RequestTelemetryLoggerFactory()
-    {
-    }
-
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        return new RequestTelemetryLogger(serverKind.ToTelemetryString());
-    }
-}
-
 /// <summary>
 /// Logs metadata on LSP requests (duration, success / failure metrics)
 /// for this particular LSP server instance.

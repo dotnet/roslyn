@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export, Shared]
+[Export(typeof(RoslynLspServiceProvider)), Shared]
 internal class RoslynLspServiceProvider : AbstractLspServiceProvider
 {
     [ImportingConstructor]

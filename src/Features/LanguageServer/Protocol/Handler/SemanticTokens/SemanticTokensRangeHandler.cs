@@ -22,33 +22,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    [ExportRoslynLspServiceFactory(typeof(SemanticTokensRangeHandler)), Shared]
-    internal sealed class SemanticTokensRangeHandlerFactory : ILspServiceFactory
-    {
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
-        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensRangeHandlerFactory(
-            IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
-        {
-            _globalOptions = globalOptions;
-            _asyncListenerProvider = asynchronousOperationListenerProvider;
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            var clientCapabilities = lspServices.GetRequiredService<IClientCapabilitiesProvider>().GetClientCapabilities();
-            var notificationManager = lspServices.GetRequiredService<ILanguageServerNotificationManager>();
-            return new SemanticTokensRangeHandler(_globalOptions, _asyncListenerProvider, _lspWorkspaceRegistrationService, notificationManager, clientCapabilities);
-        }
-    }
-
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
     internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {

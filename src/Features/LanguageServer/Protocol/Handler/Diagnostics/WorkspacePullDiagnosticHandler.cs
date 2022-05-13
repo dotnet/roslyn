@@ -21,29 +21,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportRoslynLspServiceFactory(typeof(WorkspacePullDiagnosticHandler)), Shared]
-    internal class WorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
-    {
-        private readonly IDiagnosticService _diagnosticService;
-        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandlerFactory(
-            IDiagnosticService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-            IGlobalOptionService globalOptions)
-        {
-            _diagnosticService = diagnosticService;
-            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
-            _globalOptions = globalOptions;
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new WorkspacePullDiagnosticHandler(_diagnosticService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
-    }
-
     [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal sealed class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {

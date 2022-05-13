@@ -20,11 +20,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal interface IClientCapabilitiesProvider : ILspService
-    {
-        ClientCapabilities GetClientCapabilities();
-    }
-
     internal class LanguageServerTarget : ILanguageServerTarget, IClientCapabilitiesProvider
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;

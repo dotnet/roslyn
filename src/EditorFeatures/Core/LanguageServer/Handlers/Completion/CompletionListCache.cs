@@ -11,18 +11,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
-    [ExportRoslynLspServiceFactory(typeof(CompletionListCache)), Shared]
-    internal class CompletionListCacheFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionListCacheFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new CompletionListCache();
-    }
-
     /// <summary>
     /// Caches completion lists in between calls to CompletionHandler and
     /// CompletionResolveHandler. Used to avoid unnecessary recomputation.

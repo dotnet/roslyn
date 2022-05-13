@@ -15,19 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
-    [ExportRoslynLspServiceFactory(typeof(WorkspaceSpellCheckHandler)), Shared]
-    internal class WorkspaceSpellCheckHandlerFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceSpellCheckHandlerFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new WorkspaceSpellCheckHandler();
-    }
-
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
     internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {

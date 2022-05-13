@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -85,46 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                     }
                 }
             }
-        }
-    }
-
-    [ExportLspServiceFactory(typeof(LspWorkspaceManager), StringConstants.XamlLspLanguagesContract), Shared]
-    internal class XamlLspWorkspaceManagerFactory : LspWorkspaceManagerFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlLspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : base(lspWorkspaceRegistrationService)
-        {
-        }
-    }
-
-    [ExportLspServiceFactory(typeof(RequestTelemetryLogger), StringConstants.XamlLspLanguagesContract), Shared]
-    internal class XamlRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlRequestTelemetryLoggerFactory()
-        {
-        }
-    }
-
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-    internal class ExportStatelessXamlLspServiceAttribute : ExportStatelessLspServiceAttribute
-    {
-        public ExportStatelessXamlLspServiceAttribute(Type handlerType) : base(handlerType, StringConstants.XamlLspLanguagesContract, WellKnownLspServerKinds.XamlLspServer)
-        {
-        }
-    }
-
-    [Export, Shared]
-    internal class XamlLspServiceProvider : AbstractLspServiceProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public XamlLspServiceProvider(
-            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
-            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories) : base(lspServices, lspServiceFactories)
-        {
         }
     }
 }

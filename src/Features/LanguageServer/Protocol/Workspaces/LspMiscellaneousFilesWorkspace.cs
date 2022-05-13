@@ -19,18 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportRoslynLspServiceFactory(typeof(LspMiscellaneousFilesWorkspace), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
-    internal class LspMiscellaneousFilesWorkspaceFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LspMiscellaneousFilesWorkspaceFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new LspMiscellaneousFilesWorkspace();
-    }
-
     /// <summary>
     /// Defines a default workspace for opened LSP files that are not found in any
     /// workspace registered by the <see cref="LspWorkspaceRegistrationService"/>.

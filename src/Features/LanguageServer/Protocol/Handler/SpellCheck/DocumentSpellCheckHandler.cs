@@ -11,19 +11,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
-    [ExportRoslynLspServiceFactory(typeof(DocumentSpellCheckHandler)), Shared]
-    internal class DocumentSpellCheckHandlerFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSpellCheckHandlerFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new DocumentSpellCheckHandler();
-    }
-
     [Method(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
     internal class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {

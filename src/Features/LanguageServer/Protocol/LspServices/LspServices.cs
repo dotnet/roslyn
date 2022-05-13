@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal class LspServices : IDisposable
 {
-    private ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices { get; }
+    private readonly ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/>.

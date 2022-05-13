@@ -17,18 +17,6 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 {
-    [ExportRoslynLspServiceFactory(typeof(CodeActionsCache)), Shared]
-    internal class CodeActionsCacheFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionsCacheFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new CodeActionsCache();
-    }
-
     /// <summary>
     /// Caches suggested action sets between calls to <see cref="CodeActionsHandler"/> and
     /// <see cref="CodeActionResolveHandler"/>.

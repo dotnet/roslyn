@@ -11,26 +11,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(RequestDispatcher), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptRequestDispatcherFactory : RequestDispatcherFactory
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptRequestDispatcherFactory()
-    {
-    }
-}
-
-[ExportLspServiceFactory(typeof(LspWorkspaceManager), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal class VSTypeScriptLspWorkspaceManagerFactory : LspWorkspaceManagerFactory
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSTypeScriptLspWorkspaceManagerFactory(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : base(lspWorkspaceRegistrationService)
-    {
-    }
-}
-
 [ExportLspServiceFactory(typeof(RequestTelemetryLogger), ProtocolConstants.TypeScriptLanguageContract), Shared]
 internal class VSTypeScriptRequestTelemetryLoggerFactory : RequestTelemetryLoggerFactory
 {
