@@ -3058,5 +3058,40 @@ public static readonly string F = ""a""
             Assert.NotEqual(TimeSpan.Zero, generatorTiming2.ElapsedTime);
             Assert.True(generatorTiming.ElapsedTime > generatorTiming2.ElapsedTime);
         }
+
+        [Fact]
+        public void Generators_Execution_Ordering()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            void emptyInit(GeneratorInitializationContext ctx) { }
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            List<string> executionOrder = new();
+
+
+            var generators = new ISourceGenerator[]
+            {
+                new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) => ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => executionOrder.Add(nameof(PipelineCallbackGenerator))))),
+                new CallbackGenerator2(emptyInit,(ctx) => executionOrder.Add(nameof(CallbackGenerator2))),
+                new CallbackGenerator3(emptyInit,(ctx) => executionOrder.Add(nameof(CallbackGenerator3))),
+                new CallbackGenerator(emptyInit,(ctx) => executionOrder.Add(nameof(CallbackGenerator))),
+            };
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generators, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResults = driver.GetRunResult();
+
+            Assert.Equal(4, executionOrder.Count);
+            Assert.Equal(nameof(PipelineCallbackGenerator), executionOrder[0]);
+            Assert.Equal(nameof(CallbackGenerator), executionOrder[1]);
+            Assert.Equal(nameof(CallbackGenerator3), executionOrder[2]);
+            Assert.Equal(nameof(CallbackGenerator2), executionOrder[3]);
+        }
     }
 }

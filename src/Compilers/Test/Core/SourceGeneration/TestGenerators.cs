@@ -106,6 +106,17 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
+    [GenerateBefore("Roslyn.Test.Utilities.TestGenerators.CallbackGenerator2")]
+    [GenerateAfter("Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator")]
+    [GenerateAfter("Roslyn.Test.Utilities.TestGenerators.CallbackGenerator")]
+    [GenerateAfter("Roslyn.Test.Utilities.TestGenerators.CallbackGeneratoN")]
+    internal class CallbackGenerator3 : CallbackGenerator
+    {
+        public CallbackGenerator3(Action<GeneratorInitializationContext> onInit, Action<GeneratorExecutionContext> onExecute, string? source = "") : base(onInit, onExecute, source)
+        {
+        }
+    }
+
     internal class InMemoryAdditionalText : AdditionalText
     {
         private readonly SourceText _content;
