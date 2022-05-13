@@ -42,26 +42,34 @@ internal static class SyntaxValueProviderExtensions
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
             (n, _) => n is CompilationUnitSyntax,
-            (context, _) => GetGlobalAliasesInCompilationUnit((CompilationUnitSyntax)context.Node));
+            (context, _) => GetGlobalAliasesInCompilationUnit((CompilationUnitSyntax)context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
         // file changes its global aliases.
-        var allUpGlobalAliasesProvider = individualFileGlobalAliasesProvider
-            .Collect().Select((arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()));
+        var collectedGlobalAliasesProvider = individualFileGlobalAliasesProvider
+            .Collect()
+            .WithTrackingName("collectedGlobalAliases_ForAttribute");
+
+        var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
+            .Select((arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
+            .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
         var compilationUnitProvider = provider.CreateSyntaxProvider(
             (n, _) => n is CompilationUnitSyntax,
-            (context, _) => (CompilationUnitSyntax)context.Node);
+            (context, _) => (CompilationUnitSyntax)context.Node).WithTrackingName("compilationUnit_ForAttribute");
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
-        var compilationUnitAndGlobalAliasesProvider = compilationUnitProvider.Combine(allUpGlobalAliasesProvider);
+        var compilationUnitAndGlobalAliasesProvider = compilationUnitProvider
+            .Combine(allUpGlobalAliasesProvider)
+            .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         // For each pair of compilation unit + global aliases, walk the compilation unit 
-        var result = compilationUnitAndGlobalAliasesProvider.SelectMany((globalAliasesAndCompilationUnit, cancellationToken) =>
-            GetMatchingNodes<T>(
-                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, attributeName, cancellationToken));
+        var result = compilationUnitAndGlobalAliasesProvider
+            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes<T>(
+                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, attributeName, cancellationToken))
+            .WithTrackingName("result_ForAttribute");
 
         return result;
     }
