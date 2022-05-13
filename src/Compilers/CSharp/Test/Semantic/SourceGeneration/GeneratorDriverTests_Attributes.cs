@@ -419,6 +419,76 @@ class D { }
         }
 
         [Fact]
+        public void FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration2()
+        {
+            var source = @"
+[X]
+class C { }
+[Y]
+class D { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+                    Assert.False(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "D" }));
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration3()
+        {
+            var source = @"
+[Y]
+class C { }
+[X]
+class D { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.False(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
+                    Assert.True(step.Outputs.Any(o => o.Value is ClassDeclarationSyntax { Identifier.ValueText: "D" }));
+                });
+        }
+
+        [Fact]
         public void FindAttributeOnNestedClasses_WhenSearchingForClassDeclaration1()
         {
             var source = @"
@@ -584,6 +654,168 @@ class C { }
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
                 });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1()
+        {
+            var source = @"
+using A = XAttribute;
+
+[A]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias2()
+        {
+            var source = @"
+using AAttribute = XAttribute;
+
+[A]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias3()
+        {
+            var source = @"
+using AAttribute = XAttribute;
+
+[AAttribute]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1()
+        {
+            var source = @"
+using AAttribute : X;
+
+[AAttribute]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        }
+
+        [Fact]
+        public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias2()
+        {
+            var source = @"
+using AAttribute : XAttribute;
+
+[B]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ctx) =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
         }
     }
 }
