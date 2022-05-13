@@ -1597,10 +1597,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
-        internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        internal override IEnumerable<Symbol> GetInstanceFieldsAndEventsAndProperties()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
-            return membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEvent);
+            return membersAndInitializers.NonTypeMembers.Where(IsInstanceFieldOrEventOrProperty);
         }
 
         protected void AfterMembersChecks(BindingDiagnosticBag diagnostics)

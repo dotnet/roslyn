@@ -3508,7 +3508,7 @@ public class C1
             var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
             comp.TestOnlyCompilationData = accessorBindingData;
             Assert.Empty(comp.GetTypeByMetadataName("C1").GetMembers().OfType<FieldSymbol>());
-            comp.VerifyDiagnostics(); // PROTOTYPE(semi-auto-props): Is this the correct behavior?
+            comp.VerifyDiagnostics();
             // PROTOTYPE(semi-auto-props): If we're going to have a diagnostic that P1 must be non-null when exiting constructor,
             // then we need another test in constructor like:
             /*
@@ -6093,6 +6093,34 @@ public class C
             comp.VerifyDiagnostics();
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr()
+        {
+            var comp = CreateCompilation(@"
+public unsafe struct S1
+{
+    public S1* s;
+    public object P { get => field; }
+}
+public unsafe struct S2
+{
+    public S2* s;
+    public int P { get => field; }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     public S1* s;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
+
+            // PROTOTYPE(semi-auto-props): This shouldn't need extra binding.
+            // Try to follow what was done for the circular struct diagnostic.
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }

@@ -215,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
                 case SymbolKind.Property:
                     // PROTOTYPE(semi-auto-props): Review other event associated field callers and see if we have to do anything special for properties.
+                    // Everything is reviewed except FlowAnalysis.
 
                     // Backing field for semi auto props are not included in GetMembers.
                     if (member is SourcePropertySymbol property)

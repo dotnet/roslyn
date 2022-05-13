@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var hasGenerics = false;
             if (partialClosure.Add(type))
             {
-                foreach (var member in type.GetInstanceFieldsAndEvents())
+                foreach (var member in type.GetInstanceFieldsAndEventsAndProperties())
                 {
                     // Only instance fields (including field-like events) affect the outcome.
                     FieldSymbol field;
@@ -193,6 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
                         case SymbolKind.Event:
                             field = ((EventSymbol)member).AssociatedField;
+                            break;
+                        case SymbolKind.Property:
+                            field = (member as SourcePropertySymbolBase)?.FieldKeywordBackingField;
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(member.Kind);
