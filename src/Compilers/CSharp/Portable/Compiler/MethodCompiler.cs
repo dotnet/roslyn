@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = members[memberOrdinal];
 
                 //When a filter is supplied, limit the compilation of members passing the filter.
-                if (member is not SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } accessor ||
+                if (member is not SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true } accessor ||
                     !PassesFilter(_filterOpt, member))
                 {
                     continue;
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(!method.IsPartialDefinition());
                             }
 
-                            if (member is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true })
+                            if (member is SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true })
                             {
                                 // We already compiled these accessors in the loop above.
                                 continue;

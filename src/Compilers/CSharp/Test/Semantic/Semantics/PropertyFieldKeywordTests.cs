@@ -3461,7 +3461,7 @@ public class Point
         }
 
         [Fact]
-        public void Test_ContainsFieldKeywordAPI()
+        public void Test_ContainsFieldIdentifierAPI()
         {
             var comp = CreateCompilation(@"
 public class C1
@@ -3483,12 +3483,12 @@ public class C2
 
             var accessorsC1 = comp.GetTypeByMetadataName("C1").GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(2, accessorsC1.Length);
-            Assert.False(accessorsC1[0].ContainsFieldKeyword);
-            Assert.False(accessorsC1[1].ContainsFieldKeyword);
+            Assert.False(accessorsC1[0].ContainsFieldIdentifier);
+            Assert.False(accessorsC1[1].ContainsFieldIdentifier);
 
             var accessorsC2 = comp.GetTypeByMetadataName("C2").GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(1, accessorsC2.Length);
-            Assert.False(accessorsC2[0].ContainsFieldKeyword);
+            Assert.False(accessorsC2[0].ContainsFieldIdentifier);
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
