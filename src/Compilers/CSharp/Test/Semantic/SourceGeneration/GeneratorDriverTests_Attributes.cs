@@ -25,54 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 {
     public class GeneratorDriverTests_Attributes : CSharpTestBase
     {
-
-        //Assert.Collection(runResult.TrackedSteps["Classes"],
-        //    step =>
-        //    {
-        //        Assert.Equal("C", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
-        //        Assert.Equal(IncrementalStepRunReason.New, step.Outputs[0].Reason);
-        //    },
-        //    step =>
-        //    {
-        //        Assert.Equal("D", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
-        //        Assert.Equal(IncrementalStepRunReason.New, step.Outputs[0].Reason);
-        //    });
-
-        //// re-run without changes
-        //driver = driver.RunGenerators(compilation);
-        //runResult = driver.GetRunResult().Results[0];
-
-        //Assert.Collection(runResult.TrackedSteps["Classes"],
-        //    step =>
-        //    {
-        //        Assert.Equal("C", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
-        //        Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
-        //    },
-        //    step =>
-        //    {
-        //        Assert.Equal("D", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
-        //        Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
-        //    });
-
-        //// modify the original tree, see that the post init is still cached
-        //var c2 = compilation.ReplaceSyntaxTree(compilation.SyntaxTrees.First(), CSharpSyntaxTree.ParseText("class E{}", parseOptions));
-        //driver = driver.RunGenerators(c2);
-        //runResult = driver.GetRunResult().Results[0];
-
-        //Assert.Collection(runResult.TrackedSteps["Classes"],
-        //    step =>
-        //    {
-        //        Assert.Equal("E", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
-        //        Assert.Equal(IncrementalStepRunReason.Modified, step.Outputs[0].Reason);
-        //    },
-        //    step =>
-        //    {
-        //        Assert.Equal("D", ((ClassDeclarationSyntax)step.Outputs[0].Value).Identifier.ValueText);
-        //        Assert.Equal(IncrementalStepRunReason.Cached, step.Outputs[0].Reason);
-        //    });
-
         #region Non-Incremental tests
-        
+
         // These tests just validate basic correctness of results in different scenarios, without actually validating
         // that the incremental nature of this provider works properly.
 
@@ -1516,6 +1470,269 @@ class C { }
                 {
                     Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
                 });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile1()
+        {
+            var source1 = @"
+[A]
+class C { }
+";
+            var source2 = @"
+global using A = XAttribute;
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile2()
+        {
+            var source1 = @"
+[A]
+class C { }
+";
+            var source2 = @"
+global using AAttribute = XAttribute;
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_BothGlobalAndLocalAliasDifferentFile1()
+        {
+            var source1 = @"
+[B]
+class C { }
+";
+            var source2 = @"
+global using AAttribute = XAttribute;
+using B = AAttribute;
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasLoop1()
+        {
+            var source1 = @"
+[A]
+class C { }
+";
+            var source2 = @"
+global using AAttribute = BAttribute;
+global using BAttribute = AAttribute;
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.False(runResult.TrackedSteps.ContainsKey("FindX"));
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasDifferentFile1()
+        {
+            var source1 = @"
+using B = AAttribute;
+[B]
+class C { }
+";
+            var source2 = @"
+global using AAttribute = XAttribute;
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        [Fact]
+        public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasDifferentFile2()
+        {
+            var source1 = @"
+using BAttribute = AAttribute;
+[B]
+class C { }
+";
+            var source2 = @"
+global using AAttribute = XAttribute;
+";
+
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+        }
+
+        #endregion
+
+        #region Incremental tests
+
+        // These tests validate minimal recomputation performed after changes are made to the compilation.
+
+        [Fact]
+        public void RerunOnSameCompilationCachesResultFully()
+        {
+            var source = @"
+[X]
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute")
+                    .WithTrackingName("FindX");
+
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+
+            // re-run without changes
+            driver = driver.RunGenerators(compilation);
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["FindX"],
+                step =>
+                {
+                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
+                });
+
+            Assert.Equal(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Unchanged);
+            Assert.Equal(runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
+            Assert.Equal(runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
+            Assert.Equal(runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Unchanged);
+            Assert.Equal(runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
+            Assert.Equal(runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason, IncrementalStepRunReason.Cached);
+
+            foreach (var steps in runResult.TrackedSteps.Values)
+            {
+                Assert.Collection(steps, step =>
+                {
+                    Assert.Equal(IncrementalStepRunReason.Unchanged, step.Outputs[0].Reason);
+                });
+            }
         }
 
         #endregion
