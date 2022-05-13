@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.MakeMemberStatic
@@ -50,18 +51,16 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             return Task.CompletedTask;
         }
 
-        private static bool TryGetIndexOfRawKind(SyntaxTokenList modifiers, int rawKind, out int index)
+        private static bool ContainsRawKind(SyntaxTokenList modifiers, int rawKind)
         {
             for (var i = 0; i < modifiers.Count; i++)
             {
                 if (modifiers[i].RawKind == rawKind)
                 {
-                    index = i;
                     return true;
                 }
             }
 
-            index = -1;
             return false;
         }
 
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             for (var i = staticIndex - 1; i >= 0; i--)
             {
                 var rawKind = GetKeywordRawKind(order[i]);
-                if (TryGetIndexOfRawKind(modifiers, rawKind, out var index))
+                if (ContainsRawKind(modifiers, rawKind))
                 {
                     modifierBeforeStaticRawKind = rawKind;
                     break;
