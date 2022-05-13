@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeMemberStatic
         {
         }
 
+        protected override SyntaxToken PartialModifier => SyntaxFactory.Token(SyntaxKind.PartialKeyword);
+
         protected override SyntaxToken StaticModifier => SyntaxFactory.Token(SyntaxKind.StaticKeyword);
 
         protected override int GetKeywordRawKind(string trimmed)

@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             _option = option;
         }
 
+        protected abstract SyntaxToken PartialModifier { get; }
+
         protected abstract SyntaxToken StaticModifier { get; }
 
         protected abstract int GetKeywordRawKind(string trimmed);
@@ -96,6 +98,13 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
 
             if (staticIndex == -1)
             {
+                var lastModifier = modifiers[^1];
+                if (lastModifier.RawKind == PartialModifier.RawKind)
+                {
+                    // If last modifier is partial then place static before it
+                    return modifiers.Replace(lastModifier, StaticModifier).Add(lastModifier);
+                }
+
                 return modifiers.Add(StaticModifier);
             }
 

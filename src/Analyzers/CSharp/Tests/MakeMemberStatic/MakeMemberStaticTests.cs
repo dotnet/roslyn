@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.MakeMemberStatic;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
@@ -25,6 +26,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeMemberStatic
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.PreferredModifierOrder,
+                        customModifierOrder ?? CSharpCodeStyleOptions.PreferredModifierOrder.DefaultValue.Value }
+                }
+            }.RunAsync();
+        }
+
+        private static async Task TestAsync(string testCode, string fixedCode, LanguageVersion languageVersion, string? customModifierOrder = null)
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = testCode,
+                FixedCode = fixedCode,
+                LanguageVersion = languageVersion,
                 Options =
                 {
                     { CSharpCodeStyleOptions.PreferredModifierOrder,
@@ -290,6 +306,32 @@ public static class Foo
                 "sealed, override, readonly, unsafe, volatile, async";
 
             await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestPartialAlwaysLast()
+        {
+            var testCode = @"
+public static partial class Foo3
+{
+    public partial void {|CS0708:Test|}();
+
+    public partial void {|CS0708:Test|}() { }
+}
+";
+
+            var fixedCode = @"
+public static partial class Foo3
+{
+    public static partial void Test();
+
+    public static partial void Test() { }
+}
+";
+
+            var customModifierOrder = "public, private, protected, internal";
+
+            await TestAsync(testCode, fixedCode, LanguageVersion.CSharp9, customModifierOrder);
         }
     }
 }
