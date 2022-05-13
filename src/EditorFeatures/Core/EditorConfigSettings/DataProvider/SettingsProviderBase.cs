@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Extensions;
@@ -51,10 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
                 return;
             }
 
-            var configOptionsProvider = new ProjectState.ProjectAnalyzerConfigOptionsProvider(project.State);
-            var workspaceOptions = configOptionsProvider.GetOptionsForSourcePath(givenFolder.FullName);
+            var configData = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
             var result = project.GetAnalyzerConfigOptions();
-            var options = new CombinedAnalyzerConfigOptions(workspaceOptions, result);
+            var options = new CombinedAnalyzerConfigOptions(configData.ConfigOptions, result);
             UpdateOptions(options, Workspace.Options);
         }
 
