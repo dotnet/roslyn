@@ -1695,7 +1695,7 @@ class C { }
         }
 
         [Fact]
-        public void TestSourceFileRemovedAttribute1()
+        public void TestSourceChanged_AttributeRemoved1()
         {
             var source1 = @"
 global using AAttribute = BAttribute;";
@@ -1744,7 +1744,7 @@ class C { }
         }
 
         [Fact]
-        public void TestSourceFileAddedAttribute1()
+        public void TestSourceFileChanged_AttributeAdded1()
         {
             var source1 = @"
 global using AAttribute = BAttribute;";
