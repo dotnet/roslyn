@@ -404,36 +404,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency)
+            
 
-            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+            If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type)) Then
                 Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
             Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+            If MergeUseSiteInfo(useSiteInfo, refModifiersUseSiteInfo) Then
                 Return refModifiersUseSiteInfo
             End If
 
             Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.TypeCustomModifiers)
 
-            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+            If MergeUseSiteInfo(useSiteInfo, typeModifiersUseSiteInfo) Then
                 Return typeModifiersUseSiteInfo
             End If
 
             ' Check parameters.
             Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
 
-            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+            If MergeUseSiteInfo(useSiteInfo, parametersUseSiteInfo) Then
                 Return parametersUseSiteInfo
             End If
 
-            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
-                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
-                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
-                                                 parametersUseSiteInfo.DiagnosticInfo)))
+            Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
@@ -464,16 +462,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedProperty1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedProperty1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedProperty1
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedProperty1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 

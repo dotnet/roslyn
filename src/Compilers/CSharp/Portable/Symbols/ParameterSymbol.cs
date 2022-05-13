@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 UseSiteInfo<AssemblySymbol> info = default;
                 DeriveUseSiteInfoFromParameter(ref info, this);
-                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
+                return info.DiagnosticInfo?.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 

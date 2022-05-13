@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim useSiteInfo As New UseSiteInfo(Of AssemblySymbol)(primaryDependency)
 
                 For Each pair In diagnosticsBuilder
-                    useSiteInfo = MergeUseSiteInfo(useSiteInfo, pair.UseSiteInfo)
+                    MergeUseSiteInfo(useSiteInfo, pair.UseSiteInfo)
                     If useSiteInfo.DiagnosticInfo IsNot Nothing Then
                         Exit For
                     End If

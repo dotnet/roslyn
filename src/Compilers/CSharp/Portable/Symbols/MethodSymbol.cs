@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol.
+        /// Returns true if the error code is highest priority while calculating use site error for this symbol.
         /// </summary>
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus;
 
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code == (int)ErrorCode.ERR_BindToBogus;
+                return (object)info != null && info.Code is (int)ErrorCode.ERR_BindToBogus or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 

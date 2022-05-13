@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is the highest priority while calculating use site error for this symbol. 
         /// Supposed to be ErrorCode, but it causes inconsistent accessibility error.
         /// </summary>
         protected virtual bool IsHighestPriorityUseSiteErrorCode(int code) => true;
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return false;
+                return GetUseSiteInfo().DiagnosticInfo?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 

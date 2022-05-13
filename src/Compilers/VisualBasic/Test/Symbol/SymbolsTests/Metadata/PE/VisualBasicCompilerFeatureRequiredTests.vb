@@ -89,22 +89,22 @@ BC37319: 'OnType' requires compiler feature 'test', which is not supported by th
                       ~~~~~~
 BC37319: 'OnType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnType.M()
-        ~~~~~~~~~~
+               ~
 BC37319: 'Public Shared Overloads Sub M()' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
-        ~~~~~~~~~~~~
+                 ~
 BC37319: 'param As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnParameter.M(1)
-        ~~~~~~~~~~~~~~~~
+                    ~
 BC37319: 'Public Shared Field As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _1 = OnField.Field
                  ~~~~~~~~~~~~~
 BC37319: 'Public Shared Overloads Property [Property] As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnProperty.Property = 1
-        ~~~~~~~~~~~~~~~~~~~
+                   ~~~~~~~~
 BC37319: 'Public Shared Overloads Property [Property] As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _2 = OnProperty.Property
-                 ~~~~~~~~~~~~~~~~~~~
+                            ~~~~~~~~
 BC37319: 'Public Shared Overloads Property Set [Property](value As Integer)' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertySetter.Property = 1
         ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,7 +134,7 @@ BC37319: 'T' requires compiler feature 'test', which is not supported by this ve
                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'T' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodTypeParameter.M(Of Integer)()
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~~~~~~~~
 BC37319: 'OnDelegateType' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onDelegateType As OnDelegateType 
                               ~~~~~~~~~~~~~~
@@ -162,25 +162,25 @@ BC37319: 'OnModule' requires compiler feature 'test', which is not supported by 
                       ~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnType.M()
-        ~~~~~~~~~~
+               ~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
         ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
-        ~~~~~~~~~~~~
+                 ~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodReturn.M()
         ~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodReturn.M()
-        ~~~~~~~~~~~~~~~~~~
+                       ~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnParameter.M(1)
         ~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnParameter.M(1)
-        ~~~~~~~~~~~~~~~~
+                    ~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _1 = OnField.Field
                  ~~~~~~~
@@ -192,37 +192,37 @@ BC37319: 'OnModule' requires compiler feature 'test', which is not supported by 
         ~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnProperty.Property = 1
-        ~~~~~~~~~~~~~~~~~~~
+                   ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _2 = OnProperty.Property
                  ~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _2 = OnProperty.Property
-                 ~~~~~~~~~~~~~~~~~~~
+                            ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertySetter.Property = 1
         ~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertySetter.Property = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _3 = OnPropertySetter.Property
                  ~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _3 = OnPropertySetter.Property
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+                                  ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertyGetter.Property = 1
         ~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertyGetter.Property = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _4 = OnPropertyGetter.Property
                  ~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _4 = OnPropertyGetter.Property
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+                                  ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         AddHandler OnEvent.Event, AddressOf EmptySub
                    ~~~~~~~
@@ -276,7 +276,7 @@ BC37319: 'OnModule' requires compiler feature 'test', which is not supported by 
         ~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodTypeParameter.M(Of Integer)()
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onDelegateType As OnDelegateType 
                               ~~~~~~~~~~~~~~
@@ -285,25 +285,25 @@ BC37319: 'OnModule' requires compiler feature 'test', which is not supported by 
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnIndexedPropertyParameter.Property(1) = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                   ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                            ~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onThis = New OnThisIndexerParameter()
-                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onThis = New OnThisIndexerParameter()
                          ~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         onThis(1) = 1
-        ~~~~~~~~~
+        ~~~~~~
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _7 = onThis(1)
-                 ~~~~~~~~~
+                 ~~~~~~
 ]]>
                                         </errors>)
         End Sub
@@ -316,25 +316,25 @@ BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' r
                       ~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnType.M()
-        ~~~~~~~~~~
+               ~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
         ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
-        ~~~~~~~~~~~~
+                 ~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodReturn.M()
         ~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodReturn.M()
-        ~~~~~~~~~~~~~~~~~~
+                       ~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnParameter.M(1)
         ~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnParameter.M(1)
-        ~~~~~~~~~~~~~~~~
+                    ~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _1 = OnField.Field
                  ~~~~~~~
@@ -346,37 +346,37 @@ BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' r
         ~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnProperty.Property = 1
-        ~~~~~~~~~~~~~~~~~~~
+                   ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _2 = OnProperty.Property
                  ~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _2 = OnProperty.Property
-                 ~~~~~~~~~~~~~~~~~~~
+                            ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertySetter.Property = 1
         ~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertySetter.Property = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _3 = OnPropertySetter.Property
                  ~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _3 = OnPropertySetter.Property
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+                                  ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertyGetter.Property = 1
         ~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnPropertyGetter.Property = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _4 = OnPropertyGetter.Property
                  ~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _4 = OnPropertyGetter.Property
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~
+                                  ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         AddHandler OnEvent.Event, AddressOf EmptySub
                    ~~~~~~~
@@ -430,7 +430,7 @@ BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' r
         ~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethodTypeParameter.M(Of Integer)()
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              ~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onDelegateType As OnDelegateType 
                               ~~~~~~~~~~~~~~
@@ -439,25 +439,25 @@ BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' r
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnIndexedPropertyParameter.Property(1) = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                   ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
                  ~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                            ~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onThis = New OnThisIndexerParameter()
-                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                         ~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim onThis = New OnThisIndexerParameter()
                          ~~~~~~~~~~~~~~~~~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         onThis(1) = 1
-        ~~~~~~~~~
+        ~~~~~~
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _7 = onThis(1)
-                 ~~~~~~~~~
+                 ~~~~~~
 ]]>
                                         </errors>)
         End Sub
