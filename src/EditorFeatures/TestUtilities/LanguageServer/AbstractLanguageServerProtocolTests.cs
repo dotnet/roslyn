@@ -50,8 +50,8 @@ namespace Roslyn.Test.Utilities
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
         {
-            TService IDocumentServiceProvider.GetService<TService>()
-                => (TService)(object)new TestSpanMapper();
+            TService? IDocumentServiceProvider.GetService<TService>() where TService : class
+                => typeof(TService) == typeof(ISpanMappingService) ? (TService)(object)new TestSpanMapper() : null;
         }
 
         internal class TestSpanMapper : ISpanMappingService

@@ -14,16 +14,16 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal class InlineRenameAdornmentViewModel : INotifyPropertyChanged, IDisposable
+    internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public InlineRenameAdornmentViewModel(InlineRenameSession session)
+        public RenameFlyoutViewModel(InlineRenameSession session)
         {
             _session = session;
             _session.ReplacementTextChanged += OnReplacementTextChanged;

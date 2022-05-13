@@ -22,9 +22,9 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal partial class Dashboard : UserControl, IDisposable
+    internal partial class RenameDashboard : InlineRenameAdornment
     {
-        private readonly DashboardViewModel _model;
+        private readonly RenameDashboardViewModel _model;
         private readonly IWpfTextView _textView;
         private readonly IAdornmentLayer _findAdornmentLayer;
         private PresentationSource _presentationSource;
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 RenameShortcutKey.PreviewChanges
             };
 
-        public Dashboard(
-            DashboardViewModel model,
+        public RenameDashboard(
+            RenameDashboardViewModel model,
             IEditorFormatMapService editorFormatMapService,
             IWpfTextView textView)
         {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
-            => new DashboardAutomationPeer(this, _model.OriginalName);
+            => new RenameDashboardAutomationPeer(this, _model.OriginalName);
 
         private void DisconnectFromPresentationSource()
         {
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _textView.GotAggregateFocus -= OnTextViewGotAggregateFocus;
             _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;

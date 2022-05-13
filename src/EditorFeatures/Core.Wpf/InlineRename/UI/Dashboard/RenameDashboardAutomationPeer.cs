@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     /// <summary>
     /// Custom AutomationPeer to announce that an Inline Rename session has begun.
     /// </summary>
-    internal class DashboardAutomationPeer : UserControlAutomationPeer
+    internal class RenameDashboardAutomationPeer : UserControlAutomationPeer
     {
         private readonly string _identifier;
 
-        public DashboardAutomationPeer(UserControl owner, string identifier) : base(owner)
+        public RenameDashboardAutomationPeer(UserControl owner, string identifier) : base(owner)
             => _identifier = identifier;
 
         protected override bool HasKeyboardFocusCore()
