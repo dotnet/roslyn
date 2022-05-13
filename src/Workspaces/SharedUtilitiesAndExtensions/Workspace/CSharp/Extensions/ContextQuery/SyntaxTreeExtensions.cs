@@ -1383,6 +1383,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return leftToken.Parent is BinaryPatternSyntax;
             }
 
+            // e is SomeEnum.SomeEnumValue and $$
+            // e is SomeEnum.SomeEnumValue or $$
+            // 'and' & 'or' are identifier here because of lack of context
+            if (leftToken.IsKind(SyntaxKind.IdentifierToken) &&
+                (leftToken.IsKindOrHasMatchingText(SyntaxKind.AndKeyword) || leftToken.IsKindOrHasMatchingText(SyntaxKind.OrKeyword)))
+            {
+                return leftToken.Parent?.Parent is DeclarationPatternSyntax;
+            }
+
             // e is not $$
             if (leftToken.IsKind(SyntaxKind.NotKeyword) && leftToken.Parent.IsKind(SyntaxKind.NotPattern))
             {

@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -284,6 +285,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is >= 0 $$"));
+        }
+
+        [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIdentifierAnd()
+        {
+            await VerifyKeywordAsync(@"var a = DayOfWeek.Monday;
+
+if (a is DayOfWeek.Monday and $$)
+{
+    
+}");
+        }
+
+        [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterIdentifierOr()
+        {
+            await VerifyKeywordAsync(@"var a = DayOfWeek.Monday;
+
+if (a is DayOfWeek.Monday or $$)
+{
+    
+}");
         }
     }
 }
