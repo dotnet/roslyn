@@ -269,13 +269,13 @@ class A
                 Diagnostic(ErrorCode.ERR_InvalidArray, "5").WithLocation(6, 32),
                 // (6,33): error CS1003: Syntax error, ',' expected
                 //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",", ";").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(6, 33),
                 // (6,33): error CS0443: Syntax error; value expected
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_ValueExpected, "").WithLocation(6, 33),
                 // (6,33): error CS1003: Syntax error, ']' expected
                 //         int[] arr = new int[5][5;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 33),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]").WithLocation(6, 33),
                 // (6,33): error CS0178: Invalid rank specifier: expected ',' or ']'
                 //         int[] arr = new int[5][5;
                 Diagnostic(ErrorCode.ERR_InvalidArray, "").WithLocation(6, 33)
@@ -350,7 +350,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 22),
                 // (4,24): error CS1003: Syntax error, ']' expected
                 //         var x = new[,3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 24));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 24));
         }
 
         [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
@@ -370,7 +370,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21),
                 // (4,23): error CS1003: Syntax error, ']' expected
                 //         var x = new[3 { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 23));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 23));
         }
 
         [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
@@ -390,7 +390,7 @@ class C {
                 Diagnostic(ErrorCode.ERR_InvalidArray, "3").WithLocation(4, 21),
                 // (4,24): error CS1003: Syntax error, ']' expected
                 //         var x = new[3, { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 24));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 24));
         }
 
         [Fact, WorkItem(24701, "https://github.com/dotnet/roslyn/issues/24701")]
@@ -478,7 +478,7 @@ class C {
             ParseAndValidate(test,
                 // (4,22): error CS1003: Syntax error, ']' expected
                 //         var x = new[ { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(4, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]").WithLocation(4, 22));
         }
 
         [Fact]
@@ -647,7 +647,7 @@ partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
                 // (2,20): error CS1003: Syntax error, '(' expected
                 // partial delegate E { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(", "{").WithLocation(2, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("(").WithLocation(2, 20),
                 // (2,20): error CS1026: ) expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "{").WithLocation(2, 20),
@@ -1090,7 +1090,7 @@ class Test
             // Semantic error
             // (6,25): error CS0400: The type or namespace name 'MyType' could not be found in the global namespace (are you missing an assembly reference?)
             CreateCompilation(test).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType", "<global namespace>")
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "MyType").WithArguments("MyType")
                 );
         }
 
@@ -1436,7 +1436,7 @@ class NamedExample
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "1"),
     // (9,52): error CS1003: Syntax error, ',' expected
     //     static void ExampleMethod(int required, string 1 = "default string",int optionalint = 10)
-    Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(",", ""));
+    Diagnostic(ErrorCode.ERR_SyntaxError, "1").WithArguments(","));
         }
 
         [Fact, WorkItem(542416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542416")]
@@ -1485,7 +1485,7 @@ class Program
             ParseAndValidate(test,
     // (5,40): error CS1003: Syntax error, ':' expected
     //     static void M(int p2 = max is int?1,)
-    Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":", ","),
+    Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":"),
     // (5,40): error CS1525: Invalid expression term ','
     //     static void M(int p2 = max is int?1,)
     Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
@@ -1652,7 +1652,7 @@ namespace x
             ParseAndValidate(test,
                 // (8,15): error CS1003: Syntax error, ']' expected
                 //             a[);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(8, 15)
                 );
         }
 
@@ -1674,7 +1674,7 @@ public class b
 
             var parsedTree = ParseWithRoundTripCheck(test);
             var firstDiag = parsedTree.GetDiagnostics().Take(1);
-            firstDiag.Verify(Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments("foreach", "for"));
+            firstDiag.Verify(Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments("foreach"));
         }
 
         [Fact]
@@ -2678,7 +2678,7 @@ namespace x
             ParseAndValidate(test,
                 // (13,16): error CS1003: Syntax error, 'explicit' expected
                 //         public operator ii(a aa)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit", "operator")
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("explicit")
                 );
         }
 
@@ -2867,13 +2867,13 @@ class A
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
                 // (4,23): error CS1003: Syntax error, 'operator' expected
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(4, 23),
                 // (4,23): error CS1019: Overloadable unary operator expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
                 // (4,32): error CS1003: Syntax error, '(' expected
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(4, 32),
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
@@ -2885,7 +2885,7 @@ class A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 43),
                 // (6,17): error CS1026: ) expected
                 //         return 0;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
@@ -2894,7 +2894,7 @@ class A
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
                 // (8,31): error CS1003: Syntax error, '(' expected
                 //     public static A operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(8, 31),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
                 // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
@@ -2922,13 +2922,13 @@ class A
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
                 // (4,23): error CS1003: Syntax error, 'operator' expected
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator", "explicit").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(4, 23),
                 // (4,23): error CS1019: Overloadable unary operator expected
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "explicit").WithLocation(4, 23),
                 // (4,32): error CS1003: Syntax error, '(' expected
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(4, 32),
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
@@ -2943,7 +2943,7 @@ class A
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(4, 43),
                 // (4,43): error CS1003: Syntax error, ',' expected
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "{").WithLocation(4, 43),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(4, 43),
                 // (6,17): error CS1026: ) expected
                 //         return 0;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
@@ -2952,7 +2952,7 @@ class A
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
                 // (8,31): error CS1003: Syntax error, '(' expected
                 //     public static A operator ()
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(", ")").WithLocation(8, 31),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
                 // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
@@ -2993,7 +2993,7 @@ class MyClass {
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "long"),
     // (3,23): error CS1003: Syntax error, ',' expected
     //     public void f(int long) {    // CS1041
-    Diagnostic(ErrorCode.ERR_SyntaxError, "long").WithArguments(",", "long"),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "long").WithArguments(","),
     // (3,27): error CS1001: Identifier expected
     //     public void f(int long) {    // CS1041
     Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
@@ -4243,30 +4243,30 @@ Diagnostic(ErrorCode.ERR_InvalidExprTerm, "?").WithArguments("?"));
 ";
 
             ParseAndValidate(test,
-    // (7,27): error CS1003: Syntax error, ':' expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":", ","),
-    // (7,27): error CS1525: Invalid expression term ','
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(","),
-    // (7,30): error CS1002: ; expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "++"),
-    // (7,33): error CS1525: Invalid expression term ':'
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":"),
-    // (7,33): error CS1002: ; expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (7,33): error CS1513: } expected
-    //         int s = true ? x++, y++ : y++; // Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"),
-    // (8,29): error CS1002: ; expected
-    //         s = true ? x++ : x++, y++; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ","),
-    // (8,29): error CS1513: } expected
-    //         s = true ? x++ : x++, y++; // Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ","));
+                // (7,27): error CS1003: Syntax error, ':' expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, ",").WithArguments(":").WithLocation(7, 27),
+                // (7,27): error CS1525: Invalid expression term ','
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(7, 27),
+                // (7,30): error CS1002: ; expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "++").WithLocation(7, 30),
+                // (7,33): error CS1525: Invalid expression term ':'
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ":").WithArguments(":").WithLocation(7, 33),
+                // (7,33): error CS1002: ; expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(7, 33),
+                // (7,33): error CS1513: } expected
+                //         int s = true ? x++, y++ : y++; // Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(7, 33),
+                // (8,29): error CS1002: ; expected
+                //         s = true ? x++ : x++, y++; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(8, 29),
+                // (8,29): error CS1513: } expected
+                //         s = true ? x++ : x++, y++; // Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(8, 29));
         }
 
         [WorkItem(542229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542229")]
@@ -4297,24 +4297,24 @@ class Program
 }
 ";
             ParseAndValidate(test,
-    // (5,23): error CS1525: Invalid expression term 'return'
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return"),
-    // (5,23): error CS1003: Syntax error, ':' expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(":", "return"),
-    // (5,23): error CS1525: Invalid expression term 'return'
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return"),
-    // (5,23): error CS1002: ; expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "return"),
-    // (5,31): error CS1002: ; expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (5,31): error CS1513: } expected
-    //         int s = 1>2 ? return 0: return 1; 	// Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"));
+                // (5,23): error CS1525: Invalid expression term 'return'
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return").WithLocation(5, 23),
+                // (5,23): error CS1003: Syntax error, ':' expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(":").WithLocation(5, 23),
+                // (5,23): error CS1525: Invalid expression term 'return'
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "return").WithArguments("return").WithLocation(5, 23),
+                // (5,23): error CS1002: ; expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "return").WithLocation(5, 23),
+                // (5,31): error CS1002: ; expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(5, 31),
+                // (5,31): error CS1513: } expected
+                //         int s = 1>2 ? return 0: return 1; 	// Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(5, 31));
         }
 
         [Fact]
@@ -4333,24 +4333,24 @@ class Program
 }
 ";
             ParseAndValidate(test,
-    // (5,24): error CS1525: Invalid expression term 'goto'
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto"),
-    // (5,24): error CS1003: Syntax error, ':' expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_SyntaxError, "goto").WithArguments(":", "goto"),
-    // (5,24): error CS1525: Invalid expression term 'goto'
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto"),
-    // (5,24): error CS1002: ; expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "goto"),
-    // (5,33): error CS1002: ; expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, ":"),
-    // (5,33): error CS1513: } expected
-    //         int s = true ? goto lab1: goto lab2; // Invalid
-    Diagnostic(ErrorCode.ERR_RbraceExpected, ":"));
+                // (5,24): error CS1525: Invalid expression term 'goto'
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto").WithLocation(5, 24),
+                // (5,24): error CS1003: Syntax error, ':' expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_SyntaxError, "goto").WithArguments(":").WithLocation(5, 24),
+                // (5,24): error CS1525: Invalid expression term 'goto'
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "goto").WithArguments("goto").WithLocation(5, 24),
+                // (5,24): error CS1002: ; expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "goto").WithLocation(5, 24),
+                // (5,33): error CS1002: ; expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(5, 33),
+                // (5,33): error CS1513: } expected
+                //         int s = true ? goto lab1: goto lab2; // Invalid
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(5, 33));
         }
 
         [Fact]
@@ -4425,10 +4425,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadVarDecl, "(").WithLocation(4, 26),
                 // (4,26): error CS1003: Syntax error, '[' expected
                 //     event System.Action E();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[").WithLocation(4, 26),
                 // (4,27): error CS1003: Syntax error, ']' expected
                 //     event System.Action E();
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]", ")").WithLocation(4, 27)
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("]").WithLocation(4, 27)
                 );
         }
 
@@ -4625,13 +4625,13 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
                 // (3,23): error CS1003: Syntax error, 'operator' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(3, 23),
                 // (3,23): error CS1019: Overloadable unary operator expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
                 // (3,32): error CS1003: Syntax error, '(' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(3, 32),
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
@@ -4643,7 +4643,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 49),
                 // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
@@ -4676,13 +4676,13 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),
                 // (3,23): error CS1003: Syntax error, 'operator' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator", "implicit").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(3, 23),
                 // (3,23): error CS1019: Overloadable unary operator expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_OvlUnaryOperatorExpected, "implicit").WithLocation(3, 23),
                 // (3,32): error CS1003: Syntax error, '(' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(", "operator").WithLocation(3, 32),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(3, 32),
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
@@ -4697,7 +4697,7 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(3, 49),
                 // (3,49): error CS1003: Syntax error, ',' expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(3, 49),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(3, 49),
                 // (3,59): error CS1026: ) expected
                 //     public static int implicit operator (goo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(3, 59),
@@ -5259,7 +5259,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 36),
                 // (9,36): error CS1003: Syntax error, ':' expected
                 //         Console.WriteLine("Hello")?
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":", "").WithLocation(9, 36),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(9, 36),
                 // (9,36): error CS1733: Expected expression
                 //         Console.WriteLine("Hello")?
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 36),
@@ -5447,7 +5447,7 @@ public class QueryExpressionTest
               Diagnostic(ErrorCode.ERR_ConstValueRequired, "in"),
               // (12,35): error CS1003: Syntax error, ',' expected
               //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
-              Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in"),
+              Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(","),
               // (12,38): error CS1002: ; expected
               //         var query13 = from  const in expr1 join  i in expr2 on const equals i select new { const, i };
               Diagnostic(ErrorCode.ERR_SemicolonExpected, "expr1"),
@@ -5703,7 +5703,7 @@ class TestClass { }";
             tree.GetDiagnostics().Verify(
                 // (1,6): error CS1003: Syntax error, ',' expected
                 // [One Two] // error: missing comma
-                Diagnostic(ErrorCode.ERR_SyntaxError, "Two").WithArguments(",", "").WithLocation(1, 6)
+                Diagnostic(ErrorCode.ERR_SyntaxError, "Two").WithArguments(",").WithLocation(1, 6)
                 );
             N(SyntaxKind.CompilationUnit);
             {

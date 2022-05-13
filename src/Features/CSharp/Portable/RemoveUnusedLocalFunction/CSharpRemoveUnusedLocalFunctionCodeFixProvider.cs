@@ -38,7 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    CSharpFeaturesResources.Remove_unused_function,
+                    GetDocumentUpdater(context),
+                    nameof(CSharpFeaturesResources.Remove_unused_function)),
+                context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -60,14 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
             }
 
             return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Remove_unused_function, createChangedDocument, CSharpFeaturesResources.Remove_unused_function)
-            {
-            }
         }
     }
 }

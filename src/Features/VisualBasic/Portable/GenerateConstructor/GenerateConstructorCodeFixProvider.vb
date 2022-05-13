@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -48,9 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, fallbackOptions As CodeAndImportGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateConstructorService)()
-            Return service.GenerateConstructorAsync(document, node, cancellationToken)
+            Return service.GenerateConstructorAsync(document, node, fallbackOptions, cancellationToken)
         End Function
 
         Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode

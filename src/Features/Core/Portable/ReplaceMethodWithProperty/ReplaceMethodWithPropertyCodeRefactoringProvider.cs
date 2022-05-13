@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var nameChanged = hasGetPrefix;
 
             // Looks good!
-            context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
+            context.RegisterRefactoring(CodeAction.Create(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
                 c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName),
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 var setMethod = FindSetMethod(methodSymbol);
                 if (setMethod != null)
                 {
-                    context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
+                    context.RegisterRefactoring(CodeAction.Create(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
                         c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"),
@@ -491,13 +491,5 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
         public int GetHashCode([DisallowNull] ReferenceLocation obj)
             => obj.Location.SourceSpan.GetHashCode();
-
-        private class ReplaceMethodWithPropertyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public ReplaceMethodWithPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
-        }
     }
 }

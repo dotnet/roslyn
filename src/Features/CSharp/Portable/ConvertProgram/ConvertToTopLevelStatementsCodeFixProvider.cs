@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         {
             var methodDeclaration = (MethodDeclarationSyntax)diagnostics[0].AdditionalLocations[0].FindNode(cancellationToken);
 
-            var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, CodeCleanupOptions.CreateProvider(fallbackOptions), cancellationToken).ConfigureAwait(false);
+            var newDocument = await ConvertToTopLevelStatementsAsync(document, methodDeclaration, fallbackOptions, cancellationToken).ConfigureAwait(false);
             var newRoot = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(editor.OriginalRoot, newRoot);

@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { {}: p }",
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // e is { {}: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 10),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 10),
                 // (1,12): error CS1003: Syntax error, ',' expected
                 // e is { {}: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { name[0]: p }",
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // e is { name[0]: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 15),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 15),
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // e is { name[0]: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 17));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -366,10 +366,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { [0]: p }",
                 // (1,11): error CS1003: Syntax error, ',' expected
                 // e is { [0]: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 11),
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // e is { [0]: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -422,10 +422,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { not a: p }",
                     // (1,13): error CS1003: Syntax error, ',' expected
                     // e is { not a: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 13),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 13),
                     // (1,15): error CS1003: Syntax error, ',' expected
                     // e is { not a: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 15));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 15));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -477,10 +477,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { x or y: p }",
                     // (1,14): error CS1003: Syntax error, ',' expected
                     // e is { x or y: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 14),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 14),
                     // (1,16): error CS1003: Syntax error, ',' expected
                     // e is { x or y: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 16));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 16));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -581,10 +581,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { >1: p }",
                     // (1,10): error CS1003: Syntax error, ',' expected
                     // e is { >1: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",", ":").WithLocation(1, 10),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(1, 10),
                     // (1,12): error CS1003: Syntax error, ',' expected
                     // e is { >1: p }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",", "").WithLocation(1, 12));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "p").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -752,10 +752,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"e is { [0].b: p }",
                 // (1,11): error CS1003: Syntax error, ',' expected
                 // e is { [0].b: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",", ".").WithLocation(1, 11),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 11),
                 // (1,12): error CS1003: Syntax error, ',' expected
                 // e is { [0].b: p }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",", "").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.IsPatternExpression);
             {

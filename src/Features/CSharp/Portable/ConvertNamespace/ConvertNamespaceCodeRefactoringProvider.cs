@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
 
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactoring(new MyCodeAction(
+            context.RegisterRefactoring(CodeAction.Create(
                 info.Value.title, c => ConvertAsync(document, namespaceDecl, formattingOptions, c), info.Value.equivalenceKey));
         }
 
@@ -71,14 +71,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return position <= namespaceDeclaration.Name.Span.End;
 
             throw ExceptionUtilities.UnexpectedValue(baseDeclaration.Kind());
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                 // Don't report on valid GetInstance method of ICustomMarshaler.
                 // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
-                if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters: { Length: 1 }, ContainingType: { } containingType } methodSymbol &&
+                if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters.Length: 1, ContainingType: { } containingType } methodSymbol &&
                     methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String &&
                     containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
                 {

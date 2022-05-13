@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeGeneration;
 #endif
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -58,15 +59,19 @@ namespace Microsoft.CodeAnalysis.Simplification
             PreferPredefinedTypeKeywordInDeclaration = preferPredefinedTypeKeywordInDeclaration ?? DefaultPreferPredefinedTypeKeyword;
         }
 
-        public CodeStyleOption2<bool> QualifyMemberAccess(SymbolKind symbolKind)
-            => symbolKind switch
+        public bool TryGetQualifyMemberAccessOption(SymbolKind symbolKind, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+        {
+            option = symbolKind switch
             {
                 SymbolKind.Field => QualifyFieldAccess,
                 SymbolKind.Property => QualifyPropertyAccess,
                 SymbolKind.Method => QualifyMethodAccess,
                 SymbolKind.Event => QualifyEventAccess,
-                _ => throw ExceptionUtilities.UnexpectedValue(symbolKind),
+                _ => null,
             };
+
+            return option != null;
+        }
 
 #if !CODE_STYLE
         public static SimplifierOptions GetDefault(HostLanguageServices languageServices)
@@ -81,6 +86,13 @@ namespace Microsoft.CodeAnalysis.Simplification
 #endif
     }
 
+    internal interface SimplifierOptionsProvider
+#if !CODE_STYLE
+        : OptionsProvider<SimplifierOptions>
+#endif
+    {
+    }
+
 #if !CODE_STYLE
     internal static class SimplifierOptionsProviders
     {
@@ -90,12 +102,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             return SimplifierOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
         }
 
-        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetSimplifierOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.SimplifierOptions ?? SimplifierOptions.GetDefault(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
-
-        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetSimplifierOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions, cancellationToken).ConfigureAwait(false);
-
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await document.GetSimplifierOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 #endif
 }

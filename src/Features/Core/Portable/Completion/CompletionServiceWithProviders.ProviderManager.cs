@@ -27,14 +27,6 @@ namespace Microsoft.CodeAnalysis.Completion
             private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
             private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
 
-            // Following CWTs are used to cache completion providers from projects' references,
-            // so we can avoid the slow path unless there's any change to the references.
-            private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap = new();
-            private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider> _analyzerReferenceToCompletionProvidersMap = new();
-
-            private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback _createProjectCompletionProvidersProvider
-                = new(r => new ProjectCompletionProvider(r));
-
             private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
             private readonly Func<string, CompletionProvider?> _getProviderByName;
 
@@ -116,46 +108,15 @@ namespace Microsoft.CodeAnalysis.Completion
                 return allCompletionProviders.ConcatFast(projectCompletionProviders);
             }
 
-            private ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
+            public static ImmutableArray<CompletionProvider> GetProjectCompletionProviders(Project? project)
             {
-                if (project is null)
-                {
-                    return ImmutableArray<CompletionProvider>.Empty;
-                }
-
-                if (project is null || project.Solution.Workspace.Kind == WorkspaceKind.Interactive)
+                if (project?.Solution.Workspace.Kind == WorkspaceKind.Interactive)
                 {
                     // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict completions in Interactive
                     return ImmutableArray<CompletionProvider>.Empty;
                 }
 
-                if (_projectCompletionProvidersMap.TryGetValue(project.AnalyzerReferences, out var completionProviders))
-                {
-                    return completionProviders.Value;
-                }
-
-                return GetProjectCompletionProvidersSlow(project);
-
-                // Local functions
-                ImmutableArray<CompletionProvider> GetProjectCompletionProvidersSlow(Project project)
-                {
-                    return _projectCompletionProvidersMap.GetValue(project.AnalyzerReferences, pId => new(ComputeProjectCompletionProviders(project))).Value;
-                }
-
-                ImmutableArray<CompletionProvider> ComputeProjectCompletionProviders(Project project)
-                {
-                    using var _ = ArrayBuilder<CompletionProvider>.GetInstance(out var builder);
-                    foreach (var reference in project.AnalyzerReferences)
-                    {
-                        var projectCompletionProvider = _analyzerReferenceToCompletionProvidersMap.GetValue(reference, _createProjectCompletionProvidersProvider);
-                        foreach (var completionProvider in projectCompletionProvider.GetExtensions(project.Language))
-                        {
-                            builder.Add(completionProvider);
-                        }
-                    }
-
-                    return builder.ToImmutable();
-                }
+                return ProjectCompletionProvider.GetExtensions(project);
             }
 
             private ImmutableArray<CompletionProvider> FilterProviders(
@@ -254,13 +215,8 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             private sealed class ProjectCompletionProvider
-                : AbstractProjectExtensionProvider<CompletionProvider, ExportCompletionProviderAttribute>
+                : AbstractProjectExtensionProvider<ProjectCompletionProvider, CompletionProvider, ExportCompletionProviderAttribute>
             {
-                public ProjectCompletionProvider(AnalyzerReference reference)
-                    : base(reference)
-                {
-                }
-
                 protected override bool SupportsLanguage(ExportCompletionProviderAttribute exportAttribute, string language)
                 {
                     return exportAttribute.Language == null

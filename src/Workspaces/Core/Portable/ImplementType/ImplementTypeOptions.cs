@@ -3,6 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ImplementType
 {
@@ -18,4 +23,8 @@ namespace Microsoft.CodeAnalysis.ImplementType
 
         public static readonly ImplementTypeOptions Default = new();
     }
+
+    internal readonly record struct ImplementTypeGenerationOptions(
+        ImplementTypeOptions ImplementTypeOptions,
+        CodeAndImportGenerationOptionsProvider FallbackOptions);
 }

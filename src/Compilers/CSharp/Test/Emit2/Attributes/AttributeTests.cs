@@ -1780,7 +1780,7 @@ public struct Test
             comp.VerifyDiagnostics(
                 // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [field: System.Runtime.InteropServices.FieldOffset(0)]
-                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithArguments("System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
+                Diagnostic(ErrorCode.ERR_StructOffsetOnBadField, "System.Runtime.InteropServices.FieldOffset").WithLocation(4, 13)
                 );
         }
 
