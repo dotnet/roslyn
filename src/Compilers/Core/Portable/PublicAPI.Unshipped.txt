@@ -92,3 +92,9 @@ virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitRangeVaria
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitTypeParameter(Microsoft.CodeAnalysis.ITypeParameterSymbol! symbol, TArgument argument) -> TResult
 
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
+Microsoft.CodeAnalysis.GenerateAfterAttribute
+Microsoft.CodeAnalysis.GenerateAfterAttribute.GeneratorToExecuteBefore.get -> string!
+Microsoft.CodeAnalysis.GenerateAfterAttribute.GenerateAfterAttribute(string! generatorToExecuteBefore) -> void
+Microsoft.CodeAnalysis.GenerateBeforeAttribute
+Microsoft.CodeAnalysis.GenerateBeforeAttribute.GenerateBeforeAttribute(string! generatorToExecuteAfter) -> void
+Microsoft.CodeAnalysis.GenerateBeforeAttribute.GeneratorToExecuteAfter.get -> string!

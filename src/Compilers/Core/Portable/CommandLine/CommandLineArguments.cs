@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -534,6 +535,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             resolvedReferences.Free();
+            generatorBuilder.SortByDependency();
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();

@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
-            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
+            (var filteredGenerators, var incrementalGenerators, var states) = GetIncrementalGenerators(generators, null, SourceExtension);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, states, DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -66,10 +66,12 @@ namespace Microsoft.CodeAnalysis
 
         public GeneratorDriver AddGenerators(ImmutableArray<ISourceGenerator> generators)
         {
-            (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            var newState = _state.With(sourceGenerators: _state.Generators.AddRange(filteredGenerators),
-                                       incrementalGenerators: _state.IncrementalGenerators.AddRange(incrementalGenerators),
-                                       generatorStates: _state.GeneratorStates.AddRange(new GeneratorState[filteredGenerators.Length]));
+            generators = _state.Generators.AddRange(generators);
+            var generatorStates = _state.GeneratorStates;
+            (var filteredGenerators, var incrementalGenerators, var incrementalState) = GetIncrementalGenerators(generators, generatorStates, SourceExtension);
+            var newState = _state.With(sourceGenerators: filteredGenerators,
+                                       incrementalGenerators: incrementalGenerators,
+                                       generatorStates: incrementalState);
             return FromState(newState);
         }
 
@@ -353,14 +355,29 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(type.Assembly.GetName().Name ?? string.Empty, type.FullName!);
         }
 
-        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, string sourceExtension)
+        private static (ImmutableArray<ISourceGenerator>, ImmutableArray<IIncrementalGenerator>, ImmutableArray<GeneratorState>) GetIncrementalGenerators(ImmutableArray<ISourceGenerator> generators, ImmutableArray<GeneratorState>? states, string sourceExtension)
         {
+            var builder = generators.ToBuilder();
+            var stateBuilder = (states ?? ImmutableArray.Create(new GeneratorState[generators.Length])).ToBuilder();
+            var delta = generators.Length - stateBuilder.Count;
+            if (delta > 0)
+            {
+                stateBuilder.AddRange(new GeneratorState[delta]);
+            }
+            var enumerator = builder.SortByDependency();
+            foreach (var m in enumerator)
+            {
+                var item = stateBuilder[m.From];
+                stateBuilder.RemoveAt(m.From);
+                stateBuilder.Insert(m.To, item);
+            }
+            generators = builder.ToImmutable();
             return (generators, generators.SelectAsArray(g => g switch
             {
                 IncrementalGeneratorWrapper igw => igw.Generator,
                 IIncrementalGenerator ig => ig,
                 _ => new SourceGeneratorAdaptor(g, sourceExtension)
-            }));
+            }), stateBuilder.ToImmutable());
 
         }
 
