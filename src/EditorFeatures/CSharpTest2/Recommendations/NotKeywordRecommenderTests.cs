@@ -123,6 +123,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMiddleofCompletePattern_EmptyListPattern()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is ($$ []) and var x)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtBeginningOfSwitchExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -291,24 +298,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIdentifierAnd()
         {
-            await VerifyKeywordAsync(@"var a = DayOfWeek.Monday;
+            await VerifyKeywordAsync(InitializeObjectE +
+@"if (e is Test.TestValue and $$)
 
-if (a is DayOfWeek.Monday and $$)
-{
-    
-}");
+enum Test { TestValue }");
         }
 
         [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIdentifierOr()
         {
-            await VerifyKeywordAsync(@"var a = DayOfWeek.Monday;
+            await VerifyKeywordAsync(InitializeObjectE +
+@"if (e is Test.TestValue or $$)
 
-if (a is DayOfWeek.Monday or $$)
-{
-    
-}");
+enum Test { TestValue }");
         }
     }
 }

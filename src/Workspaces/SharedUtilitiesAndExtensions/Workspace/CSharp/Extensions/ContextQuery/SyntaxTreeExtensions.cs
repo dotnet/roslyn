@@ -1378,18 +1378,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is 1 and $$
             // e is 1 or $$
-            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
-            {
-                return leftToken.Parent is BinaryPatternSyntax;
-            }
-
             // e is SomeEnum.SomeEnumValue and $$
             // e is SomeEnum.SomeEnumValue or $$
-            // 'and' & 'or' are identifier here because of lack of context
-            if (leftToken.IsKind(SyntaxKind.IdentifierToken) &&
-                (leftToken.IsKindOrHasMatchingText(SyntaxKind.AndKeyword) || leftToken.IsKindOrHasMatchingText(SyntaxKind.OrKeyword)))
+            // 'and' & 'or' are identifier in the last 2 examples because of lack of context
+            if (leftToken.IsKindOrHasMatchingText(SyntaxKind.AndKeyword) || leftToken.IsKindOrHasMatchingText(SyntaxKind.OrKeyword))
             {
-                return leftToken.Parent?.Parent is DeclarationPatternSyntax;
+                return leftToken.Parent is BinaryPatternSyntax || leftToken.Parent?.Parent is DeclarationPatternSyntax;
             }
 
             // e is not $$
