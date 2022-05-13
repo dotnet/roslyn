@@ -12,96 +12,95 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal class LspServices : IDisposable
 {
-    internal class LspServices : IDisposable
+    private ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices { get; }
+
+    /// <summary>
+    /// Gates access to <see cref="_servicesToDispose"/>.
+    /// </summary>
+    private readonly object _gate = new();
+    private readonly HashSet<IDisposable> _servicesToDispose = new(ReferenceEqualityComparer.Instance);
+
+    public LspServices(
+        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
+        ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
+        WellKnownLspServerKinds serverKind,
+        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
     {
-        private ImmutableDictionary<Type, Lazy<ILspService, LspServiceMetadataView>> _lazyLspServices { get; }
+        // Convert MEF exported service factories to the lazy LSP services that they create.
+        var servicesFromFactories = mefLspServiceFactories.Select(lz => new Lazy<ILspService, LspServiceMetadataView>(() => lz.Value.CreateILspService(this, serverKind), lz.Metadata));
 
-        /// <summary>
-        /// Gates access to <see cref="_servicesToDispose"/>.
-        /// </summary>
-        private readonly object _gate = new();
-        private readonly HashSet<IDisposable> _servicesToDispose = new(ReferenceEqualityComparer.Instance);
+        var services = mefLspServices.Concat(servicesFromFactories);
 
-        public LspServices(
-            ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
-            ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
-            WellKnownLspServerKinds serverKind,
-            ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> baseServices)
+        // Make sure that we only include services exported for the specified server kind (or NotSpecified).
+        services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.NotSpecified);
+
+        // Include the base level services that were passed in.
+        services = services.Concat(baseServices);
+
+        _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
+    }
+
+    public T GetRequiredService<T>() where T : class, ILspService
+    {
+        var service = GetService<T>();
+        Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
+        return service;
+    }
+
+    public T? GetService<T>() where T : class, ILspService
+    {
+        var type = typeof(T);
+        return TryGetService(type, out var service) ? (T)service : null;
+    }
+
+    public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)
+    {
+        if (_lazyLspServices.TryGetValue(type, out var lazyService))
         {
-            // Convert MEF exported service factories to the lazy LSP services that they create.
-            var servicesFromFactories = mefLspServiceFactories.Select(lz => new Lazy<ILspService, LspServiceMetadataView>(() => lz.Value.CreateILspService(this, serverKind), lz.Metadata));
+            // If we are creating a stateful LSP service for the first time, we need to check
+            // if it is disposable after creation and keep it around to dispose of on shutdown.
+            // Stateless LSP services will be disposed of on MEF container disposal.
+            var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
-            var services = mefLspServices.Concat(servicesFromFactories);
-
-            // Make sure that we only include services exported for the specified server kind (or NotSpecified).
-            services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.NotSpecified);
-
-            // Include the base level services that were passed in.
-            services = services.Concat(baseServices);
-
-            _lazyLspServices = services.ToImmutableDictionary(lazyService => lazyService.Metadata.Type, lazyService => lazyService);
-        }
-
-        public T GetRequiredService<T>() where T : class, ILspService
-        {
-            var service = GetService<T>();
-            Contract.ThrowIfNull(service, $"Missing required LSP service {typeof(T).FullName}");
-            return service;
-        }
-
-        public T? GetService<T>() where T : class, ILspService
-        {
-            var type = typeof(T);
-            return TryGetService(type, out var service) ? (T)service : null;
-        }
-
-        public bool TryGetService(Type type, [NotNullWhen(true)] out object? lspService)
-        {
-            if (_lazyLspServices.TryGetValue(type, out var lazyService))
+            lspService = lazyService.Value;
+            if (checkDisposal && lspService is IDisposable disposable)
             {
-                // If we are creating a stateful LSP service for the first time, we need to check
-                // if it is disposable after creation and keep it around to dispose of on shutdown.
-                // Stateless LSP services will be disposed of on MEF container disposal.
-                var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
-
-                lspService = lazyService.Value;
-                if (checkDisposal && lspService is IDisposable disposable)
+                lock (_gate)
                 {
-                    lock (_gate)
-                    {
-                        var res = _servicesToDispose.Add(disposable);
-                    }
+                    var res = _servicesToDispose.Add(disposable);
                 }
-
-                return true;
             }
 
-            lspService = null;
-            return false;
+            return true;
         }
 
-        public ImmutableArray<Type> GetRegisteredServices() => _lazyLspServices.Keys.ToImmutableArray();
+        lspService = null;
+        return false;
+    }
 
-        public void Dispose()
+    public ImmutableArray<Type> GetRegisteredServices() => _lazyLspServices.Keys.ToImmutableArray();
+
+    public void Dispose()
+    {
+        ImmutableArray<IDisposable> disposableServices;
+        lock (_gate)
         {
-            ImmutableArray<IDisposable> disposableServices;
-            lock (_gate)
-            {
-                disposableServices = _servicesToDispose.ToImmutableArray();
-                _servicesToDispose.Clear();
-            }
+            disposableServices = _servicesToDispose.ToImmutableArray();
+            _servicesToDispose.Clear();
+        }
 
-            foreach (var disposableService in disposableServices)
+        foreach (var disposableService in disposableServices)
+        {
+            try
             {
-                try
-                {
-                    disposableService.Dispose();
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                {
-                }
+                disposableService.Dispose();
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
             }
         }
     }

@@ -88,7 +88,6 @@ internal class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         _requestTelemetryLogger = requestTelemetryLogger;
 
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-
     }
 
     #region Implementation of IDocumentChangeTracker

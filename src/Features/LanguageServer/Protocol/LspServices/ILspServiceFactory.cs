@@ -4,14 +4,13 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer
+namespace Microsoft.CodeAnalysis.LanguageServer;
+
+internal interface ILspServiceFactory
 {
-    internal interface ILspServiceFactory
-    {
-        /// <summary>
-        /// Some LSP services need to know the client capabilities on construction or
-        /// need to know about other <see cref="ILspService"/> instances to be constructed.
-        /// </summary>
-        ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind);
-    }
+    /// <summary>
+    /// Some LSP services need to know the client capabilities on construction or
+    /// need to know about other <see cref="ILspService"/> instances to be constructed.
+    /// </summary>
+    ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind);
 }

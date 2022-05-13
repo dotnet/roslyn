@@ -27,10 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
     [Method(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
     internal class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {
-        public DocumentSpellCheckHandler()
-        {
-        }
-
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;
 
