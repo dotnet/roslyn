@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
-        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
-            FeatureName, "AddImportsOnPaste", defaultValue: null,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste"));
+        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
+            FeatureName, "AddImportsOnPaste", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2"));
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,

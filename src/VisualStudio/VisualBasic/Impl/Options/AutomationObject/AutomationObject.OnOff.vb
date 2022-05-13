@@ -125,11 +125,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property AddImportsOnPaste As Integer
+        Public Property AddImportsOnPaste As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
             End Get
-            Set(value As Integer)
+            Set(value As Boolean)
                 SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value)
             End Set
         End Property
