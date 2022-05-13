@@ -333,5 +333,111 @@ public static partial class Foo3
 
             await TestAsync(testCode, fixedCode, LanguageVersion.CSharp9, customModifierOrder);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestComplexScenario1()
+        {
+            var testCode = @"
+public static class Foo
+{
+    protected static class Bar
+    {
+        unsafe private new string {|CS0708:ToString|}() { return string.Empty; }
+    }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    protected static class Bar
+    {
+        static unsafe private new string ToString() { return string.Empty; }
+    }
+}
+";
+
+            var customModifierOrder = "abstract, protected, volatile, static, unsafe";
+
+            await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestComplexScenario2()
+        {
+            var testCode = @"
+public static class Foo
+{
+    protected static class Bar
+    {
+        async private new System.Threading.Tasks.Task<int> {|CS0708:GetHashCode|}() { return await System.Threading.Tasks.Task.FromResult(0); }
+    }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    protected static class Bar
+    {
+        async private static new System.Threading.Tasks.Task<int> GetHashCode() { return await System.Threading.Tasks.Task.FromResult(0); }
+    }
+}
+";
+
+            var customModifierOrder = "abstract, private, volatile, static, async, unsafe";
+
+            await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestComplexScenario3()
+        {
+            var testCode = @"
+public static class Foo
+{
+    protected static class Bar
+    {
+        async private new System.Threading.Tasks.Task<int> {|CS0708:GetHashCode|}() { return await System.Threading.Tasks.Task.FromResult(0); }
+    }
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    protected static class Bar
+    {
+        static async private new System.Threading.Tasks.Task<int> GetHashCode() { return await System.Threading.Tasks.Task.FromResult(0); }
+    }
+}
+";
+
+            var customModifierOrder = "abstract, protected, volatile, static, unsafe";
+
+            await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMemberStatic)]
+        public async Task TestComplexScenario4()
+        {
+            var testCode = @"
+public static class Foo
+{
+    volatile internal int {|CS0708:_test|};
+}
+";
+
+            var fixedCode = @"
+public static class Foo
+{
+    volatile internal static int _test;
+}
+";
+
+            var customModifierOrder = "override, new, private, internal, public, static, async";
+
+            await TestAsync(testCode, fixedCode, customModifierOrder);
+        }
     }
 }
