@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
                     modifiers[0].WithoutLeadingTrivia()).AddRange(modifiers.Skip(1));
             }
 
-            var keywords = new Collection<SyntaxToken>();
+            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(modifiers.Count + 1, out var keywords);
 
             for (var i = 0; i < modifiers.Count; i++)
             {
