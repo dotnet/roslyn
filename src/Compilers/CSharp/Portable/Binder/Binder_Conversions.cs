@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteInfo);
+            var conversion = Conversions.ClassifyConversionFromExpression(source, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
             diagnostics.Add(source.Syntax, useSiteInfo);
             return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, destination: destination, diagnostics: diagnostics);
@@ -253,6 +253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
+                if (conversion.IsUTF8StringLiteral)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
+                }
+
                 reportUseSiteDiagnosticsForUnderlyingConversions(conversion);
 
                 return new BoundConversion(
@@ -311,19 +316,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void CheckConstraintLanguageVersionAndRuntimeSupportForConversion(SyntaxNodeOrToken syntax, Conversion conversion, BindingDiagnosticBag diagnostics)
         {
-            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic && method.IsAbstract)
+            Debug.Assert(syntax.SyntaxTree is object);
+
+            if (conversion.IsUserDefined && conversion.Method is MethodSymbol method && method.IsStatic)
             {
-                Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
-
-                if (Compilation.SourceModule != method.ContainingModule)
+                if (method.IsAbstract)
                 {
-                    Debug.Assert(syntax.SyntaxTree is object);
-                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+                    Debug.Assert(conversion.ConstrainedToTypeOpt is TypeParameterSymbol);
 
-                    if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    if (Compilation.SourceModule != method.ContainingModule)
                     {
-                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                        CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureStaticAbstractMembersInInterfaces, diagnostics, syntax.GetLocation()!);
+
+                        if (!Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                        }
                     }
+                }
+
+                if (SyntaxFacts.IsCheckedOperator(method.Name) &&
+                    Compilation.SourceModule != method.ContainingModule)
+                {
+                    CheckFeatureAvailability(syntax.SyntaxTree, MessageID.IDS_FeatureCheckedUserDefinedOperators, diagnostics, syntax.GetLocation()!);
                 }
             }
         }
@@ -547,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedOperand = CreateConversion(
                     syntax: syntax,
                     source: convertedOperand,
-                    conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteInfo),
+                    conversion: Conversions.ClassifyStandardConversion(convertedOperand.Type, conversionParameterType, ref useSiteInfo),
                     isCast: false,
                     conversionGroupOpt: conversionGroup,
                     wasCompilerGenerated: true,
@@ -570,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     convertedOperand,
                     conversion,
-                    @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
+                    @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
@@ -582,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Skip introducing the conversion from C to C?.  The "to" conversion is now wrong though,
                     // because it will still assume converting C? to D?. 
 
-                    toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, ref useSiteInfo);
+                    toConversion = Conversions.ClassifyConversionFromType(conversionReturnType, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                     Debug.Assert(toConversion.Exists);
                 }
                 else
@@ -591,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     userDefinedConversion = CreateConversion(
                         syntax: syntax,
                         source: userDefinedConversion,
-                        conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteInfo),
+                        conversion: Conversions.ClassifyStandardConversion(conversionReturnType, conversionToType, ref useSiteInfo),
                         isCast: false,
                         conversionGroupOpt: conversionGroup,
                         wasCompilerGenerated: true,
@@ -607,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     convertedOperand,
                     conversion,
-                    @checked: false,
+                    @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
@@ -650,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateType.AddUseSiteInfo(ref useSiteInfo);
             }
 
-            conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, ref useSiteInfo);
+            conversion = Conversions.ClassifyConversionFromExpression(source, delegateType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             bool warnOnMethodGroupConversion =
                 source.Kind == BoundKind.MethodGroup &&
                 !isCast &&
@@ -667,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr = CreateConversion(syntax, source, conversion, isCast, conversionGroup, delegateType, diagnostics);
             }
 
-            conversion = Conversions.ClassifyConversionFromExpression(expr, destination, ref useSiteInfo);
+            conversion = Conversions.ClassifyConversionFromExpression(expr, destination, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             if (!conversion.Exists)
             {
                 GenerateImplicitConversionError(diagnostics, syntax, conversion, source, destination);

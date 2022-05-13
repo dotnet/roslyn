@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             var title = string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name);
-            return new SolutionChangeAction(
+            return SolutionChangeAction.Create(
                 title,
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
                 title);
@@ -146,7 +146,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
         private static ISymbol GetSymbolsToPullUp(MemberAnalysisResult analysisResult)
         {
-            if (analysisResult.Member is IPropertySymbol propertySymbol)
+            var member = analysisResult.Member;
+            // We don't support generating static interface members, so we need to update to non-static before generating.
+            var modifier = DeclarationModifiers.From(member).WithIsStatic(false);
+            if (member is IPropertySymbol propertySymbol)
             {
                 // Property is treated differently since we need to make sure it gives right accessor symbol to ICodeGenerationService,
                 // otherwise ICodeGenerationService won't give the expected declaration.
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
                         accessibility: Accessibility.Public,
+                        modifiers: modifier,
                         getMethod: MakePublicAccessor(propertySymbol.GetMethod),
                         setMethod: MakePublicAccessor(propertySymbol.SetMethod));
                 }
@@ -164,15 +168,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                     // We are pulling a public property, filter the non-public getter/setter.
                     return CodeGenerationSymbolFactory.CreatePropertySymbol(
                         propertySymbol,
+                        modifiers: modifier,
                         getMethod: FilterOutNonPublicAccessor(propertySymbol.GetMethod),
                         setMethod: FilterOutNonPublicAccessor(propertySymbol.SetMethod));
                 }
             }
-            else
+            else if (member is IMethodSymbol methodSymbol)
             {
-                // ICodeGenerationService will give the right result if it is method or event
-                return analysisResult.Member;
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(methodSymbol, modifiers: modifier);
             }
+            else if (member is IEventSymbol eventSymbol)
+            {
+                return CodeGenerationSymbolFactory.CreateEventSymbol(eventSymbol, modifiers: modifier);
+            }
+            else if (member is IFieldSymbol fieldSymbol)
+            {
+                return CodeGenerationSymbolFactory.CreateFieldSymbol(fieldSymbol, modifiers: modifier);
+            }
+
+            // ICodeGenerationService will give the right result if it is method or event
+            return member;
         }
 
         private static void ChangeMemberToPublicAndNonStatic(
@@ -257,6 +272,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             var destinationSyntaxNode = await codeGenerationService.FindMostRelevantNameSpaceOrTypeDeclarationAsync(
                 solution, result.Destination, CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
+            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
+                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
+                cancellationToken).ConfigureAwait(false);
+
             var symbolToDeclarations = await InitializeSymbolToDeclarationsMapAsync(result, cancellationToken).ConfigureAwait(false);
 
             // Add members to destination
@@ -275,14 +294,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 });
 
             var context = new CodeGenerationContext(reuseSyntax: true, generateMethodBodies: false);
-            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+
+            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+            var importsPlacementOptions = await AddImportPlacementOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
 
             var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, codeGenOptions, cancellationToken);
-
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);
-            var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
-                solution.GetDocumentId(destinationSyntaxNode.SyntaxTree),
-                cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = destinationEditor.OriginalDocument.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -338,7 +356,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // add imports by moving all source imports to destination container, then taking out unneccessary
             // imports that we just added (marked by our annotation).
             var addImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IAddImportsService>();
-            var importsPlacement = await AddImportPlacementOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
 
             var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFacts);
 
@@ -351,17 +368,18 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 node.GetCurrentNode(newDestination),
                 sourceImports,
                 generator,
-                importsPlacement,
+                importsPlacementOptions,
                 cancellationToken));
 
             var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
                 destinationEditor.GetChangedDocument(),
                 node => node.HasAnnotation(s_annotation),
+                formattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Format whitespace trivia within the import statements we pull up
-            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            destinationDocument = await Formatter.FormatAsync(destinationDocument, s_annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
 
             var destinationRoot = AddLeadingTriviaBeforeFirstMember(
                 await destinationDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false),

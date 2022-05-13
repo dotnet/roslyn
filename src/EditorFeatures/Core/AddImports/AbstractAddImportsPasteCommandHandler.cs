@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.AddMissingImports;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
@@ -125,11 +126,11 @@ namespace Microsoft.CodeAnalysis.AddImport
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
             var updatedDocument = _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
 
                 var options = new AddMissingImportsOptions(
-                    HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language),
-                    placement);
+                    CleanupOptions: cleanupOptions,
+                    HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language));
 
                 return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             });

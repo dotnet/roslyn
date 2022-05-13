@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.InlineMethod
                 callerDeclarationNode,
                 inlineExpression, invocationOperation);
 
-            var nestedCodeAction = new CodeAction.CodeActionWithNestedActions(
+            var nestedCodeAction = CodeAction.CodeActionWithNestedActions.Create(
                 string.Format(FeaturesResources.Inline_0, calleeMethodSymbol.ToNameDisplayString()),
                 codeActions,
                 isInlinable: true);

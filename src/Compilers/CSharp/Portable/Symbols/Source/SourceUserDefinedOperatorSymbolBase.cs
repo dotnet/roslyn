@@ -332,9 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     CheckUserDefinedConversionSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -347,13 +349,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckTrueFalseSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
                     CheckIncrementDecrementSignature(diagnostics);
                     break;
 
                 case WellKnownMemberNames.LeftShiftOperatorName:
                 case WellKnownMemberNames.RightShiftOperatorName:
+                case WellKnownMemberNames.UnsignedRightShiftOperatorName:
                     CheckShiftSignature(diagnostics);
                     break;
 
@@ -367,8 +372,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (name)
             {
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -377,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.FalseOperatorName:
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     return parameterCount == 1;
                 default:
                     return parameterCount == 2;
@@ -667,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckShiftSignature(BindingDiagnosticBag diagnostics)
         {
-            // SPEC: A binary << or >> operator must take two parameters, the first
+            // SPEC: A binary <<, >> or >>> operator must take two parameters, the first
             // SPEC: of which must have type T or T? and the second of which must
             // SPEC: have type int or int?, and can return any type.
 

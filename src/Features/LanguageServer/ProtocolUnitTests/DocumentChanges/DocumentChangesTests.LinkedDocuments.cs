@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
         private static Solution GetLSPSolution(TestLspServer testLspServer, Uri uri)
         {
-            var lspDocument = testLspServer.GetManager().GetLspDocument(new TextDocumentIdentifier { Uri = uri }, null);
+            var lspDocument = testLspServer.GetManager().GetLspDocument(new TextDocumentIdentifier { Uri = uri });
             Contract.ThrowIfNull(lspDocument);
             return lspDocument.Project.Solution;
         }

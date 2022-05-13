@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, _service))
                 .ToImmutableArray();
 
-            var nestedCodeAction = new CodeActionWithNestedActions(
+            var nestedCodeAction = CodeActionWithNestedActions.Create(
                 string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
                 allActions, isInlinable: true);
             context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);

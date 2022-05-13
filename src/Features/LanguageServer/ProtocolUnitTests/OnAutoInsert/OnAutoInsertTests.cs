@@ -268,7 +268,7 @@ End Class";
         $0
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -290,7 +290,7 @@ End Class";
 		$0
 	}
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4);
+            await VerifyMarkupAndExpected("\n", markup, expected, insertSpaces: false, tabSize: 4, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -316,7 +316,7 @@ End Class";
         }
     }
 }";
-            await VerifyMarkupAndExpected("\n", markup, expected);
+            await VerifyMarkupAndExpected("\n", markup, expected, serverKind: WellKnownLspServerKinds.RazorLspServer);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -373,16 +373,23 @@ End Class";
             await VerifyNoResult("\n", markup);
         }
 
-        private async Task VerifyMarkupAndExpected(string characterTyped, string markup, string expected, bool insertSpaces = true, int tabSize = 4, string languageName = LanguageNames.CSharp)
+        private async Task VerifyMarkupAndExpected(
+            string characterTyped,
+            string markup,
+            string expected,
+            bool insertSpaces = true,
+            int tabSize = 4,
+            string languageName = LanguageNames.CSharp,
+            WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             Task<TestLspServer> testLspServerTask;
             if (languageName == LanguageNames.CSharp)
             {
-                testLspServerTask = CreateTestLspServerAsync(markup);
+                testLspServerTask = CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions, serverKind);
             }
             else if (languageName == LanguageNames.VisualBasic)
             {
-                testLspServerTask = CreateVisualBasicTestLspServerAsync(markup);
+                testLspServerTask = CreateVisualBasicTestLspServerAsync(markup, CapabilitiesWithVSExtensions, serverKind);
             }
             else
             {

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -1033,7 +1034,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var formattingRules = Formatter.GetDefaultFormattingRules(document);
             if (additionalRules != null)
             {
-                formattingRules = additionalRules.Concat(formattingRules);
+                formattingRules = additionalRules.Concat(formattingRules).ToImmutableArray();
             }
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
@@ -1082,13 +1083,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = _threadingContext.JoinableTaskFactory.Run(() =>
-                    Simplifier.ReduceAsync(
-                        document,
-                        annotation,
-                        optionSet: null,
-                        cancellationToken: cancellationToken)
-                );
+                document = _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var simplifierOptions = await SimplifierOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                    return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
+                });
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);

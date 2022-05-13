@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project.Solution, _sharedState.IdeAnalyzerOptions);
 
             protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
+                => new(document, span, diagnostics, registerCodeFix, _ => _sharedState.CodeActionOptions, cancellationToken);
 
             protected override FixAllContext CreateFixAllContext(
                 Document? document,
@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 CancellationToken cancellationToken)
                 => new(new FixAllState(
                     fixAllProvider: null,
+                    diagnosticSpan: null,
                     document,
                     project,
                     codeFixProvider,

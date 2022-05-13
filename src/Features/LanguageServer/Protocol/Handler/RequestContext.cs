@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public readonly ClientCapabilities ClientCapabilities;
 
         /// <summary>
-        /// The LSP client making the request
+        /// The LSP server handling the request.
         /// </summary>
-        public readonly string? ClientName;
+        public readonly WellKnownLspServerKinds ServerKind;
 
         /// <summary>
         /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to <see cref="IRequestHandler{RequestType, ResponseType}.GetTextDocumentIdentifier(RequestType)"/>.
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Solution? solution,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
-            string? clientName,
+            WellKnownLspServerKinds serverKind,
             Document? document,
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Document = document;
             Solution = solution;
             ClientCapabilities = clientCapabilities;
-            ClientName = clientName;
+            ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
             GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static RequestContext? Create(
             bool requiresLSPSolution,
             TextDocumentIdentifier? textDocument,
-            string? clientName,
+            WellKnownLspServerKinds serverKind,
             ILspLogger logger,
             ClientCapabilities clientCapabilities,
             LspWorkspaceManager lspWorkspaceManager,
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             //    so they're not accidentally operating on stale solution state.
             if (!requiresLSPSolution)
             {
-                return new RequestContext(solution: null, logger, clientCapabilities, clientName, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
+                return new RequestContext(solution: null, logger, clientCapabilities, serverKind, document: null, documentChangeTracker, trackedDocuments, supportedLanguages, globalOptions);
             }
 
             // Go through each registered workspace, find the solution that contains the document that
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // we were given a request associated with a document.  Find the corresponding roslyn
                 // document for this.  If we can't, we cannot proceed.
-                document = lspWorkspaceManager.GetLspDocument(textDocument, clientName);
+                document = lspWorkspaceManager.GetLspDocument(textDocument);
                 if (document != null)
                     workspaceSolution = document.Project.Solution;
             }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 workspaceSolution,
                 logger,
                 clientCapabilities,
-                clientName,
+                serverKind,
                 document,
                 documentChangeTracker,
                 trackedDocuments,

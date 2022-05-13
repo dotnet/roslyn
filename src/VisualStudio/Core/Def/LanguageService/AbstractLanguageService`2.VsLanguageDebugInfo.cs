@@ -5,11 +5,14 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -30,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;
+            private readonly IThreadingContext _threadingContext;
             private readonly ILanguageDebugInfoService? _languageDebugInfo;
             private readonly IBreakpointResolutionService? _breakpointService;
             private readonly IProximityExpressionsService? _proximityExpressionsService;
@@ -39,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 Guid languageId,
                 TLanguageService languageService,
                 HostLanguageServices languageServiceProvider,
+                IThreadingContext threadingContext,
                 IUIThreadOperationExecutor uiThreadOperationExecutor)
             {
                 Contract.ThrowIfNull(languageService);
@@ -46,6 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 _languageId = languageId;
                 _languageService = languageService;
+                _threadingContext = threadingContext;
                 _languageDebugInfo = languageServiceProvider.GetService<ILanguageDebugInfoService>();
                 _breakpointService = languageServiceProvider.GetService<IBreakpointResolutionService>();
                 _proximityExpressionsService = languageServiceProvider.GetService<IProximityExpressionsService>();
@@ -96,13 +102,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                             // NOTE(cyrusn): We have to wait here because the debuggers' 
                                             // GetNameOfLocation is a blocking call.  In the future, it 
                                             // would be nice if they could make it async.
-                                            var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                                            if (!debugLocationInfo.IsDefault)
+                                            _threadingContext.JoinableTaskFactory.Run(async () =>
                                             {
-                                                name = debugLocationInfo.Name;
-                                                lineOffset = debugLocationInfo.LineOffset;
-                                            }
+                                                var debugLocationInfo = await _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).ConfigureAwait(false);
+
+                                                if (!debugLocationInfo.IsDefault)
+                                                {
+                                                    name = debugLocationInfo.Name;
+                                                    lineOffset = debugLocationInfo.LineOffset;
+                                                }
+                                            });
                                         }
                                     }
                                 }
@@ -194,21 +203,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         showProgress: false,
                         action: waitContext =>
                     {
-                        var cancellationToken = waitContext.UserCancellationToken;
-                        if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
+                        _threadingContext.JoinableTaskFactory.Run(async () =>
                         {
-                            var solution = _languageService.Workspace.CurrentSolution;
-
-                            // NOTE(cyrusn): We have to wait here because the debuggers' ResolveName
-                            // call is synchronous.  In the future it would be nice to make it async.
-                            if (_breakpointService != null)
+                            var cancellationToken = waitContext.UserCancellationToken;
+                            if (dwFlags == (uint)RESOLVENAMEFLAGS.RNF_BREAKPOINT)
                             {
-                                var breakpoints = _breakpointService.ResolveBreakpointsAsync(solution, pszName, cancellationToken).WaitAndGetResult(cancellationToken);
-                                var debugNames = breakpoints.Select(bp => CreateDebugName(bp, solution, cancellationToken)).WhereNotNull().ToList();
+                                var solution = _languageService.Workspace.CurrentSolution;
 
-                                enumName = new VsEnumDebugName(debugNames);
+                                // NOTE(cyrusn): We have to wait here because the debuggers' ResolveName
+                                // call is synchronous.  In the future it would be nice to make it async.
+                                if (_breakpointService != null)
+                                {
+                                    var breakpoints = await _breakpointService.ResolveBreakpointsAsync(
+                                        solution, pszName, cancellationToken).ConfigureAwait(false);
+                                    var debugNames = await breakpoints.SelectAsArrayAsync(
+                                        bp => CreateDebugNameAsync(bp, solution, cancellationToken)).ConfigureAwait(false);
+
+                                    enumName = new VsEnumDebugName(debugNames);
+                                }
                             }
-                        }
+                        });
                     });
 
                     ppNames = enumName;
@@ -216,20 +230,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 }
             }
 
-            private IVsDebugName CreateDebugName(BreakpointResolutionResult breakpoint, Solution solution, CancellationToken cancellationToken)
+            private async ValueTask<IVsDebugName> CreateDebugNameAsync(
+                BreakpointResolutionResult breakpoint, Solution solution, CancellationToken cancellationToken)
             {
                 var document = breakpoint.Document;
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
-                var text = document.GetTextSynchronously(cancellationToken);
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
-                if (!span.TryMapSpanFromSecondaryBufferToPrimaryBuffer(solution.Workspace, document.Id, out var mappedSpan))
-                {
-                    mappedSpan = span;
-                }
+                var mappedSpan = await span.MapSpanFromSecondaryBufferToPrimaryBufferAsync(
+                    _threadingContext, solution.Workspace, document.Id, cancellationToken).ConfigureAwait(false);
+                if (mappedSpan != null)
+                    span = mappedSpan.Value;
 
-                return new VsDebugName(breakpoint.LocationNameOpt, filePath, mappedSpan);
+                return new VsDebugName(breakpoint.LocationNameOpt, filePath, span);
             }
 
             public int ValidateBreakpointLocation(IVsTextBuffer pBuffer, int iLine, int iCol, VsTextSpan[] pCodeSpan)

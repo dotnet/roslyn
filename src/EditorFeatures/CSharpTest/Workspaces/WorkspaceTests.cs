@@ -1278,20 +1278,20 @@ class D { }
             workspace.AddTestProject(project1);
 
             var solution = workspace.CurrentSolution;
-            var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
             var optionValue = solution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions.IndentStyle.Smart, optionValue);
+            Assert.Equal(FormattingOptions2.IndentStyle.Smart, optionValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block);
+            var newOptions = solution.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions.IndentStyle.Block, newOptionValue);
+            Assert.Equal(FormattingOptions2.IndentStyle.Block, newOptionValue);
 
             var applied = workspace.TryApplyChanges(newSolution);
             Assert.True(applied);
 
             var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(FormattingOptions.IndentStyle.Block, currentOptionValue);
+            Assert.Equal(FormattingOptions2.IndentStyle.Block, currentOptionValue);
         }
 
         [CombinatorialData]
@@ -1312,9 +1312,9 @@ class D { }
             var beforeSolutionForPrimaryWorkspace = primaryWorkspace.CurrentSolution;
             var beforeSolutionForSecondaryWorkspace = secondaryWorkspace.CurrentSolution;
 
-            var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-            Assert.Equal(FormattingOptions.IndentStyle.Smart, primaryWorkspace.Options.GetOption(optionKey));
-            Assert.Equal(FormattingOptions.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
+            var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+            Assert.Equal(FormattingOptions2.IndentStyle.Smart, primaryWorkspace.Options.GetOption(optionKey));
+            Assert.Equal(FormattingOptions2.IndentStyle.Smart, secondaryWorkspace.Options.GetOption(optionKey));
 
             // Hook up the option changed event handler.
             var optionService = primaryWorkspace.Services.GetRequiredService<IOptionService>();
@@ -1324,12 +1324,12 @@ class D { }
             if (testDeprecatedOptionsSetter)
             {
 #pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
-                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block);
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block);
 #pragma warning restore CS0618 // Type or member is obsolete
             }
             else
             {
-                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions.IndentStyle.Block));
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, FormattingOptions2.IndentStyle.Block));
             }
 
             // Verify current solution and option change for both workspaces.
@@ -1353,9 +1353,9 @@ class D { }
                 Assert.NotEqual(beforeOptionChangedSolution, currentSolution);
 
                 // Verify workspace.CurrentSolution has changed option.
-                var optionKey = new OptionKey2(FormattingOptions.SmartIndent, LanguageNames.CSharp);
-                Assert.Equal(FormattingOptions.IndentStyle.Smart, beforeOptionChangedSolution.Options.GetOption(optionKey));
-                Assert.Equal(FormattingOptions.IndentStyle.Block, currentSolution.Options.GetOption(optionKey));
+                var optionKey = new OptionKey2(FormattingOptions2.SmartIndent, LanguageNames.CSharp);
+                Assert.Equal(FormattingOptions2.IndentStyle.Smart, beforeOptionChangedSolution.Options.GetOption(optionKey));
+                Assert.Equal(FormattingOptions2.IndentStyle.Block, currentSolution.Options.GetOption(optionKey));
             }
         }
     }

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         internal ImmutableArray<Diagnostic> FlowDiagnostics(CSharpCompilation compilation)
         {
-            var flowDiagnostics = DiagnosticBag.GetInstance();
+            var flowDiagnostics = BindingDiagnosticBag.GetInstance();
             foreach (var method in AllMethods(compilation.SourceModule.GlobalNamespace))
             {
                 var sourceSymbol = method as SourceMemberMethodSymbol;
@@ -28,14 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, new TypeCompilationState(sourceSymbol.ContainingType, compilation, null), new BindingDiagnosticBag(new DiagnosticBag()));
+                var compilationState = new TypeCompilationState(sourceSymbol.ContainingType, compilation, null);
+                var boundBody = MethodCompiler.BindMethodBody(sourceSymbol, compilationState, new BindingDiagnosticBag(new DiagnosticBag()));
                 if (boundBody != null)
                 {
-                    FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
+                    FlowAnalysisPass.Rewrite(sourceSymbol, boundBody, compilationState, flowDiagnostics, hasTrailingExpression: false, originalBodyNested: false);
                 }
             }
 
-            return flowDiagnostics.ToReadOnlyAndFree<Diagnostic>();
+            return flowDiagnostics.ToReadOnlyAndFree().Diagnostics;
         }
 
         private IEnumerable<MethodSymbol> AllMethods(Symbol symbol)

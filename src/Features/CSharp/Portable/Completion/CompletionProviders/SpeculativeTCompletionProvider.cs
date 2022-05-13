@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(token.Parent, cancellationToken).ConfigureAwait(false);
 
+            var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+            if (context.IsInTaskLikeTypeContext)
+                return false;
+
             var spanStart = position;
             while (true)
             {

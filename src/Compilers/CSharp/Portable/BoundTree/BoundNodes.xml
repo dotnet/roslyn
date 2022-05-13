@@ -603,6 +603,14 @@
     <Field Name="LeftConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
 
     <Field Name="OperatorResultKind" Type="BoundNullCoalescingOperatorResultKind" Null="NotApplicable"/>
+    <!--
+    This flag reflects the evaluation context used by the operator for conversions.
+    Semantics of the node is well defined without this flag because the necessary
+    conversions, if any, are stored in the dedicated properties. Flag's value is not
+    important for lowering or code generation. It is only used by NullableWalker
+    when it attempts to re-apply conversions to the original operands.
+    -->
+    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <Node Name="BoundNullCoalescingAssignmentOperator" Base="BoundExpression">
@@ -1057,6 +1065,14 @@
   <Node Name="BoundReturnStatement" Base="BoundStatement">
     <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression?"/>
+    <!--
+    This flag reflects the evaluation context used by the return statement to convert
+    the original return expression. Semantics of the node is well defined without this
+    flag because the necessary conversion is part of ExpressionOpt. Flag’s value is not
+    important for lowering or code generation. It is only used by NullableWalker when
+    it attempts to re-infer the best return type for a lambda expression.
+    -->
+    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <Node Name="BoundYieldReturnStatement" Base="BoundStatement">
@@ -1118,8 +1134,6 @@
     <Field Name="Expression" Type="BoundExpression" Null="disallow" />
     <Field Name="Cases" Type="ImmutableArray&lt;(ConstantValue value, LabelSymbol label)&gt;" />
     <Field Name="DefaultLabel" Type="LabelSymbol" Null="disallow" />
-    <!-- Equality method to be used when dispatching on a non-integral type such as string. -->
-    <Field Name="EqualityMethod" Type="MethodSymbol?" />
   </Node>
 
   <Node Name="BoundIfStatement" Base="BoundStatement">
@@ -1286,6 +1300,12 @@
 
   <Node Name="BoundLiteral" Base="BoundExpression">
     <Field Name="ConstantValueOpt" Type="ConstantValue?"/>
+  </Node>
+
+  <Node Name="BoundUTF8String" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Value" Type="string" Null="disallow"/>
   </Node>
 
   <Node Name="BoundThisReference" Base="BoundExpression">
@@ -1987,6 +2007,8 @@
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
 
+    <!-- Whether the containing BoundArrayCreation or BoundStackAllocArrayCreationBase has an inferred vs. explicit type. -->
+    <Field Name="IsInferred" Type="bool"/>
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 

@@ -652,6 +652,7 @@ class C
             TestBinary(SyntaxKind.GreaterThanToken);
             TestBinary(SyntaxKind.GreaterThanEqualsToken);
             TestBinary(SyntaxKind.GreaterThanGreaterThanToken);
+            TestBinary(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
             TestBinary(SyntaxKind.AmpersandToken);
             TestBinary(SyntaxKind.AmpersandAmpersandToken);
             TestBinary(SyntaxKind.BarToken);
@@ -692,6 +693,7 @@ class C
             TestAssignment(SyntaxKind.EqualsToken);
             TestAssignment(SyntaxKind.LessThanLessThanEqualsToken);
             TestAssignment(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+            TestAssignment(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
             TestAssignment(SyntaxKind.AmpersandEqualsToken);
             TestAssignment(SyntaxKind.BarEqualsToken);
             TestAssignment(SyntaxKind.CaretEqualsToken);
@@ -3716,17 +3718,12 @@ class C
 {
     void M()
     {
-        // syntax error
         var j = e is a < i >>> 2;
     }
 }
 ";
             var tree = UsingTree(text);
-            tree.GetDiagnostics().Verify(
-                // (7,30): error CS1525: Invalid expression term '>'
-                //         var j = e is a < i >>> 2;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 30)
-                );
+            tree.GetDiagnostics().Verify();
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -3763,40 +3760,32 @@ class C
                                         N(SyntaxKind.EqualsValueClause);
                                         {
                                             N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.GreaterThanExpression);
+                                            N(SyntaxKind.LessThanExpression);
                                             {
-                                                N(SyntaxKind.LessThanExpression);
+                                                N(SyntaxKind.IsExpression);
                                                 {
-                                                    N(SyntaxKind.IsExpression);
+                                                    N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "e");
-                                                        }
-                                                        N(SyntaxKind.IsKeyword);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "a");
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken, "e");
                                                     }
-                                                    N(SyntaxKind.LessThanToken);
-                                                    N(SyntaxKind.RightShiftExpression);
+                                                    N(SyntaxKind.IsKeyword);
+                                                    N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "i");
-                                                        }
-                                                        N(SyntaxKind.GreaterThanGreaterThanToken);
-                                                        M(SyntaxKind.IdentifierName);
-                                                        {
-                                                            M(SyntaxKind.IdentifierToken);
-                                                        }
+                                                        N(SyntaxKind.IdentifierToken, "a");
                                                     }
                                                 }
-                                                N(SyntaxKind.GreaterThanToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.UnsignedRightShiftExpression);
                                                 {
-                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
                                                 }
                                             }
                                         }
@@ -3899,6 +3888,381 @@ class C
                                                         M(SyntaxKind.IdentifierToken);
                                                     }
                                                     N(SyntaxKind.LessThanLessThanToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_07()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        // syntax error
+        var j = e is a < i >>>> 2;
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify(
+                // (7,31): error CS1525: Invalid expression term '>'
+                //         var j = e is a < i >>>> 2;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 31)
+                );
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "j");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.GreaterThanExpression);
+                                            {
+                                                N(SyntaxKind.LessThanExpression);
+                                                {
+                                                    N(SyntaxKind.IsExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "e");
+                                                        }
+                                                        N(SyntaxKind.IsKeyword);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "a");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.LessThanToken);
+                                                    N(SyntaxKind.UnsignedRightShiftExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "i");
+                                                        }
+                                                        N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                        M(SyntaxKind.IdentifierName);
+                                                        {
+                                                            M(SyntaxKind.IdentifierToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.GreaterThanToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_08()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        M(out a < i >>> 2);
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "M");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.OutKeyword);
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "a");
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.UnsignedRightShiftExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "2");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_09()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        //const int a = 1;
+        //const int i = 2;
+        switch (false)
+        {
+            case a < i >>> 2: break;
+        }
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchStatement);
+                            {
+                                N(SyntaxKind.SwitchKeyword);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.FalseLiteralExpression);
+                                {
+                                    N(SyntaxKind.FalseKeyword);
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.SwitchSection);
+                                {
+                                    N(SyntaxKind.CaseSwitchLabel);
+                                    {
+                                        N(SyntaxKind.CaseKeyword);
+                                        N(SyntaxKind.LessThanExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "a");
+                                            }
+                                            N(SyntaxKind.LessThanToken);
+                                            N(SyntaxKind.UnsignedRightShiftExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "i");
+                                                }
+                                                N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "2");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.BreakStatement);
+                                    {
+                                        N(SyntaxKind.BreakKeyword);
+                                        N(SyntaxKind.SemicolonToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(377556, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=377556")]
+        public void TypeArgumentShiftAmbiguity_10()
+        {
+            const string text = @"
+class C
+{
+    void M()
+    {
+        //int a = 1;
+        //int i = 1;
+        var j = a < i >>> 2;
+    }
+}
+";
+            var tree = UsingTree(text);
+            tree.GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "j");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.LessThanExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "a");
+                                                }
+                                                N(SyntaxKind.LessThanToken);
+                                                N(SyntaxKind.UnsignedRightShiftExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "i");
+                                                    }
+                                                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
                                                     N(SyntaxKind.NumericLiteralExpression);
                                                     {
                                                         N(SyntaxKind.NumericLiteralToken, "2");
@@ -4505,7 +4869,7 @@ select t";
         }
 
         [Fact]
-        public void RangeExpression_Binary_WithALowerPrecedenceOperator()
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator_01()
         {
             UsingExpression("1<<2..3>>4");
             N(SyntaxKind.RightShiftExpression);
@@ -4531,6 +4895,41 @@ select t";
                     }
                 }
                 N(SyntaxKind.GreaterThanGreaterThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RangeExpression_Binary_WithALowerPrecedenceOperator_02()
+        {
+            UsingExpression("1<<2..3>>>4");
+            N(SyntaxKind.UnsignedRightShiftExpression);
+            {
+                N(SyntaxKind.LeftShiftExpression);
+                {
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                    N(SyntaxKind.LessThanLessThanToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "2");
+                        }
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "3");
+                        }
+                    }
+                }
+                N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
                 N(SyntaxKind.NumericLiteralExpression);
                 {
                     N(SyntaxKind.NumericLiteralToken, "4");
@@ -5739,6 +6138,227 @@ select t";
                     //             A B = new C($@"{D(.E}\F\G{H}_{I.J.K("L")}.M");
                     Diagnostic(ErrorCode.ERR_SyntaxError, @""")}.M""").WithArguments(",", "").WithLocation(7, 51)
                 );
+        }
+
+        [Fact]
+        public void UnsignedRightShift_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x >>> y", options);
+
+                N(SyntaxKind.UnsignedRightShiftExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShift_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x > >> y", options,
+                    // (1,5): error CS1525: Invalid expression term '>'
+                    // x > >> y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 5)
+                    );
+
+                N(SyntaxKind.GreaterThanExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.RightShiftExpression);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShift_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x >> > y", options,
+                    // (1,6): error CS1525: Invalid expression term '>'
+                    // x >> > y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 6)
+                    );
+
+                N(SyntaxKind.GreaterThanExpression);
+                {
+                    N(SyntaxKind.RightShiftExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_01()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x >>>= y", options);
+
+                N(SyntaxKind.UnsignedRightShiftAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_02()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x > >>= y", options,
+                    // (1,5): error CS1525: Invalid expression term '>'
+                    // x > >>= y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(1, 5)
+                    );
+
+                N(SyntaxKind.RightShiftAssignmentExpression);
+                {
+                    N(SyntaxKind.GreaterThanExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_03()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x >> >= y", options,
+                    // (1,6): error CS1525: Invalid expression term '>='
+                    // x >> >= y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">=").WithArguments(">=").WithLocation(1, 6)
+                    );
+
+                N(SyntaxKind.GreaterThanOrEqualExpression);
+                {
+                    N(SyntaxKind.RightShiftExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanEqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void UnsignedRightShiftAssignment_04()
+        {
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular10, TestOptions.RegularNext })
+            {
+                UsingExpression("x >>> = y", options,
+                    // (1,7): error CS1525: Invalid expression term '='
+                    // x >>> = y
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(1, 7)
+                    );
+
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.UnsignedRightShiftExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                }
+                EOF();
+            }
         }
     }
 }

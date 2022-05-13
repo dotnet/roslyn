@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private bool IsAtEndOfText(char currentChar)
             => currentChar == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd();
 
-        private void ScanRawStringLiteral(ref TokenInfo info)
+        private void ScanRawStringLiteral(ref TokenInfo info, bool inDirective)
         {
             _builder.Length = 0;
 
@@ -98,6 +99,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 // If we didn't have an error, the subroutines better have set the string value for this literal.
                 Debug.Assert(info.StringValue != null);
+            }
+
+            Debug.Assert(info.Kind is (SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken));
+
+            if (!inDirective && ScanUTF8Suffix())
+            {
+                switch (info.Kind)
+                {
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                        info.Kind = SyntaxKind.UTF8SingleLineRawStringLiteralToken;
+                        break;
+
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                        info.Kind = SyntaxKind.UTF8MultiLineRawStringLiteralToken;
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(info.Kind);
+                };
             }
 
             info.Text = TextWindow.GetText(intern: true);

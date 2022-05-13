@@ -8,12 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 {
     internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
     {
+        protected abstract ISyntaxFormatting GetSyntaxFormatting();
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
 
@@ -22,29 +25,34 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var title = GetTitle();
             context.RegisterCodeFix(
-                new MyCodeAction(
-                    GetTitle(),
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
+                CodeAction.Create(
+                    title,
+                    c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                    title),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
         protected abstract string GetTitle();
 
-        private static Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, CancellationToken cancellationToken)
+#if CODE_STYLE
+        private async Task<Document> RemoveUnnecessaryImportsAsync(
+#else
+        private static async Task<Document> RemoveUnnecessaryImportsAsync(
+#endif
+            Document document,
+            CancellationToken cancellationToken)
         {
+#if CODE_STYLE
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = GetSyntaxFormatting().GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree));
+#else
+            var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+#endif
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
+            return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
     }
 }

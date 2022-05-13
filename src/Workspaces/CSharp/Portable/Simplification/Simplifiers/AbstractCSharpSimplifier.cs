@@ -9,11 +9,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Simplification.Simplifiers;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
     /// Contains helpers used by several simplifier subclasses.
     /// </summary>
     internal abstract class AbstractCSharpSimplifier<TSyntax, TSimplifiedSyntax>
-        : AbstractSimplifier<TSyntax, TSimplifiedSyntax>
+        : AbstractSimplifier<TSyntax, TSimplifiedSyntax, CSharpSimplifierOptions>
         where TSyntax : SyntaxNode
         where TSimplifiedSyntax : SyntaxNode
     {
@@ -394,9 +394,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return nameOfInvocationExpr != null;
         }
 
-        protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, OptionSet optionSet, SemanticModel semanticModel)
+        protected static bool PreferPredefinedTypeKeywordInMemberAccess(ExpressionSyntax expression, CSharpSimplifierOptions options, SemanticModel semanticModel)
         {
-            if (!SimplificationHelpers.PreferPredefinedTypeKeywordInMemberAccess(optionSet, semanticModel.Language))
+            if (!options.PreferPredefinedTypeKeywordInMemberAccess.Value)
                 return false;
 
             return (expression.IsDirectChildOfMemberAccessExpression() || expression.InsideCrefReference()) &&

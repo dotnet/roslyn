@@ -195,7 +195,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Most modifiers not allowed if we're an explicit impl.
             if (!@event.ExplicitInterfaceImplementations.Any())
             {
-                if (destination != CodeGenerationDestination.InterfaceType)
+                // If we're generating into an interface, then allow modifiers for static abstract members
+                if (destination is CodeGenerationDestination.InterfaceType)
+                {
+                    if (@event.IsStatic)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+
+                        // We only generate the abstract keyword in interfaces for static abstract members
+                        if (@event.IsAbstract)
+                        {
+                            tokens.Add(SyntaxFactory.Token(SyntaxKind.AbstractKeyword));
+                        }
+                    }
+                }
+                else
                 {
                     AddAccessibilityModifiers(@event.DeclaredAccessibility, tokens, options, Accessibility.Private);
 

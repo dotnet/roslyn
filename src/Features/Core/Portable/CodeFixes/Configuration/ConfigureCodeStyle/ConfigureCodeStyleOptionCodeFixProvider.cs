@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Configuration.ConfigureCodeStyle
 
                         // Add code action to configure the optionValue.
                         nestedActions.Add(
-                            new SolutionChangeAction(
+                            SolutionChangeAction.Create(
                                 parts.optionValue,
                                 solution => ConfigurationUpdater.ConfigureCodeStyleOptionAsync(parts.optionName, parts.optionValue, diagnostic, isPerLanguage, project, cancellationToken),
                                 parts.optionValue));

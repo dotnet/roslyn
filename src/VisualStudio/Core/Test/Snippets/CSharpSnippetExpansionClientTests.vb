@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -393,14 +394,17 @@ using G=   H.I;
                     workspace.GetService(Of IGlobalOptionService))
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
-                Dim options = New AddImportPlacementOptions(
+                Dim addImportOptions = New AddImportPlacementOptions(
                     PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
                     PlaceImportsInsideNamespaces:=False,
                     AllowInHiddenRegions:=False)
 
+                Dim formattingOptions = CSharpSyntaxFormattingOptions.Default
+
                 Dim updatedDocument = expansionClient.AddImports(
                     document,
-                    options,
+                    addImportOptions,
+                    formattingOptions,
                     If(position, 0),
                     snippetNode,
                     CancellationToken.None)

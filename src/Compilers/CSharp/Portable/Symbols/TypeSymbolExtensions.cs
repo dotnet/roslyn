@@ -1265,6 +1265,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsSpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
+        internal static bool IsSpanOrReadOnlySpanChar(this TypeSymbol type)
+        {
+            return type is NamedTypeSymbol
+            {
+                ContainingNamespace: { Name: "System", ContainingNamespace: { IsGlobalNamespace: true } },
+                MetadataName: "ReadOnlySpan`1" or "Span`1",
+                TypeArgumentsWithAnnotationsNoUseSiteDiagnostics: { Length: 1 } arguments,
+            }
+            && arguments[0].SpecialType == SpecialType.System_Char;
+        }
+
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Returns true if the type is one of the restricted types, namely: <see cref="T:System.TypedReference"/>, 

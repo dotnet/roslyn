@@ -23,6 +23,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SymbolInfo GetSymbolInfo(this SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken)
             => semanticModel.GetSymbolInfo(token.Parent!, cancellationToken);
 
+        public static DataFlowAnalysis AnalyzeRequiredDataFlow(this SemanticModel semanticModel, SyntaxNode statementOrExpression)
+            => semanticModel.AnalyzeDataFlow(statementOrExpression) ?? throw new InvalidOperationException();
+
+        public static DataFlowAnalysis AnalyzeRequiredDataFlow(this SemanticModel semanticModel, SyntaxNode firstStatement, SyntaxNode lastStatement)
+            => semanticModel.AnalyzeDataFlow(firstStatement, lastStatement) ?? throw new InvalidOperationException();
+
+        public static ControlFlowAnalysis AnalyzeRequiredControlFlow(this SemanticModel semanticModel, SyntaxNode statement)
+            => semanticModel.AnalyzeControlFlow(statement) ?? throw new InvalidOperationException();
+
+        public static ControlFlowAnalysis AnalyzeRequiredControlFlow(this SemanticModel semanticModel, SyntaxNode firstStatement, SyntaxNode lastStatement)
+            => semanticModel.AnalyzeControlFlow(firstStatement, lastStatement) ?? throw new InvalidOperationException();
+
         public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             return semanticModel.GetDeclaredSymbol(declaration, cancellationToken)

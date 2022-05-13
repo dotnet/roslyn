@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -52,10 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declarationStatement = context.Node;
-            var options = context.Options;
             var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
-            var optionSet = options.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
 
             var semanticModel = context.SemanticModel;
             var declaredType = Helper.FindAnalyzableType(declarationStatement, semanticModel, cancellationToken);
@@ -64,8 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return;
             }
 
+            var simplifierOptions = context.Options.GetCSharpSimplifierOptions(syntaxTree);
+
             var typeStyle = Helper.AnalyzeTypeName(
-                declaredType, semanticModel, optionSet, cancellationToken);
+                declaredType, semanticModel, simplifierOptions, cancellationToken);
             if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
             {
                 return;

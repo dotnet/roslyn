@@ -523,7 +523,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
     private static Document? GetLspDocument(Uri uri, TestLspServer testLspServer)
     {
-        return testLspServer.GetManager().GetLspDocument(CreateTextDocumentIdentifier(uri), clientName: null);
+        return testLspServer.GetManager().GetLspDocument(CreateTextDocumentIdentifier(uri));
     }
 
     private static Solution? GetLspHostSolution(TestLspServer testLspServer)

@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         VisualBasic_Interactive_Window = 268,
 
         NonFatalWatson = 269,
-        GlobalOperationRegistration = 270,
+        // GlobalOperationRegistration = 270, No longer fired.
         CommandHandler_FindAllReference = 271,
 
         CodefixInfobar_Enable = 272,

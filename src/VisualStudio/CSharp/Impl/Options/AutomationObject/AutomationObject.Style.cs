@@ -363,6 +363,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, value); }
         }
 
+        public string Style_PreferTopLevelStatements
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTopLevelStatements); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTopLevelStatements, value); }
+        }
+
         public string Style_PreferLocalOverAnonymousFunction
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction); }

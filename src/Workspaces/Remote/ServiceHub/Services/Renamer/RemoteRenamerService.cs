@@ -25,17 +25,15 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableSymbolAndProjectId symbolAndProjectId,
             string newName,
             SymbolRenameOptions options,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
 
@@ -52,15 +50,13 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableRenameLocations?> FindRenameLocationsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableSymbolAndProjectId symbolAndProjectId,
             SymbolRenameOptions options,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
                 var symbol = await symbolAndProjectId.TryRehydrateAsync(
                     solution, cancellationToken).ConfigureAwait(false);
 
@@ -74,15 +70,14 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
-            PinnedSolutionInfo solutionInfo,
+            Checksum solutionChecksum,
             SerializableRenameLocations renameLocationSet,
             string replacementText,
             ImmutableArray<SerializableSymbolAndProjectId> nonConflictSymbolIds,
             CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                 var nonConflictSymbols = await GetNonConflictSymbolsAsync(solution, nonConflictSymbolIds, cancellationToken).ConfigureAwait(false);
 
                 var rehydratedSet = await RenameLocations.TryRehydrateAsync(solution, renameLocationSet, cancellationToken).ConfigureAwait(false);

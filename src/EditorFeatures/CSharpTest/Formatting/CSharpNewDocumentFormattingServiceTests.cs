@@ -255,5 +255,44 @@ namespace Goo
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error))
             });
         }
+
+        [Fact]
+        public async Task TestPreferTopLevelStatements()
+        {
+            await TestAsync(testCode: @"using System;
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");",
+            expected: @"using System;
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");",
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion))
+            });
+        }
+
+        [Fact]
+        public async Task TestPreferProgramMain()
+        {
+            await TestAsync(testCode: @"using System;
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");",
+            expected: @"using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello, World!"");
+    }
+}",
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Suggestion))
+            });
+        }
     }
 }
