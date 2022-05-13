@@ -23,7 +23,7 @@ internal static partial class SyntaxValueProviderExtensions
 
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
-    /// possibly bind to the provided <paramref name="name"/>. <paramref name="name"/> should be the
+    /// possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
     /// simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
     /// generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
@@ -38,11 +38,11 @@ internal static partial class SyntaxValueProviderExtensions
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    public static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(this SyntaxValueProvider provider, string name)
+    internal static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(this SyntaxValueProvider provider, string simpleName)
         where T : SyntaxNode
     {
-        if (!SyntaxFacts.IsValidIdentifier(name))
-            throw new ArgumentException("<todo: add error message>", nameof(name));
+        if (!SyntaxFacts.IsValidIdentifier(simpleName))
+            throw new ArgumentException("<todo: add error message>", nameof(simpleName));
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
@@ -73,7 +73,7 @@ internal static partial class SyntaxValueProviderExtensions
         // For each pair of compilation unit + global aliases, walk the compilation unit 
         var result = compilationUnitAndGlobalAliasesProvider
             .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes<T>(
-                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, name, cancellationToken))
+                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, cancellationToken))
             .WithTrackingName("result_ForAttribute");
 
         return result;
