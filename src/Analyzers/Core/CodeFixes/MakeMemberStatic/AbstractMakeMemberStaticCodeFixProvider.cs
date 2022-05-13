@@ -73,19 +73,6 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             return lastParsed.Item2;
         }
 
-        private static bool ContainsRawKind(SyntaxTokenList modifiers, int rawKind)
-        {
-            for (var i = 0; i < modifiers.Count; i++)
-            {
-                if (modifiers[i].RawKind == rawKind)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private SyntaxTokenList InsertStaticModifier(SyntaxTokenList modifiers, string preferredOrder)
         {
             if (modifiers.Count == 0)
@@ -111,7 +98,7 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
             for (var i = staticIndex - 1; i >= 0; i--)
             {
                 var rawKind = GetKeywordRawKind(order[i]);
-                if (ContainsRawKind(modifiers, rawKind))
+                if (modifiers.Any(m => m.RawKind == rawKind))
                 {
                     using var _ = ArrayBuilder<SyntaxToken>.GetInstance(modifiers.Count + 1, out var keywords);
 
