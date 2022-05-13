@@ -21,7 +21,7 @@ internal static partial class SyntaxValueProviderExtensions
 {
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
-    /// possibly bind to the provided <paramref name="attributeName"/>. <paramref name="attributeName"/> should be the
+    /// possibly bind to the provided <paramref name="name"/>. <paramref name="name"/> should be the
     /// simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
     /// generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
@@ -36,11 +36,11 @@ internal static partial class SyntaxValueProviderExtensions
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    public static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(this SyntaxValueProvider provider, string attributeName)
+    public static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(this SyntaxValueProvider provider, string name)
         where T : SyntaxNode
     {
-        if (!SyntaxFacts.IsValidIdentifier(attributeName))
-            throw new ArgumentException("<todo: add error message>", nameof(attributeName));
+        if (!SyntaxFacts.IsValidIdentifier(name))
+            throw new ArgumentException("<todo: add error message>", nameof(name));
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
@@ -71,7 +71,7 @@ internal static partial class SyntaxValueProviderExtensions
         // For each pair of compilation unit + global aliases, walk the compilation unit 
         var result = compilationUnitAndGlobalAliasesProvider
             .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes<T>(
-                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, attributeName, cancellationToken))
+                globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, name, cancellationToken))
             .WithTrackingName("result_ForAttribute");
 
         return result;
@@ -105,13 +105,14 @@ internal static partial class SyntaxValueProviderExtensions
     private static ImmutableArray<T> GetMatchingNodes<T>(
         GlobalAliases globalAliases,
         CompilationUnitSyntax compilationUnit,
-        string attributeName,
+        string name,
         CancellationToken cancellationToken) where T : SyntaxNode
     {
         // As we walk down the compilation unit and nested namespaces, we may encounter additional using aliases local
         // to this file. Keep track of them so we can determine if they would allow an attribute in code to bind to the
         // attribute being searched for.
         var localAliases = Aliases.GetInstance();
+        var nameHasAttributeSuffix = name.HasAttributeSuffix(isCaseSensitive: true);
 
         // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
         // don't get into cycles.
@@ -163,8 +164,13 @@ internal static partial class SyntaxValueProviderExtensions
                 {
                     // Have to lookup both with the name in the attribute, as well as adding the 'Attribute' suffix.
                     // e.g. if there is [X] then we have to lookup with X and with XAttribute.
-                    if (matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText) ||
-                        matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText + "Attribute"))
+                    if (matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText, withAttributeSuffix: false))
+                    {
+                        results.Add(parent);
+                        return;
+                    }
+
+                    if (nameHasAttributeSuffix && matchesAttributeName(attribute.Name.GetUnqualifiedName().Identifier.ValueText, withAttributeSuffix: true))
                     {
                         results.Add(parent);
                         return;
@@ -195,11 +201,22 @@ internal static partial class SyntaxValueProviderExtensions
             }
         }
 
-        bool matchesAttributeName(string currentAttributeName)
+        bool matchesAttributeName(string currentAttributeName, bool withAttributeSuffix)
         {
             // If the names match, we're done.
-            if (StringOrdinalComparer.Equals(currentAttributeName, attributeName))
-                return true;
+            if (withAttributeSuffix)
+            {
+                if (currentAttributeName.Length + "Attribute".Length == name.Length &&
+                    name.StartsWith(currentAttributeName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (StringOrdinalComparer.Equals(currentAttributeName, name))
+                    return true;
+            }
 
             // Otherwise, keep searching through aliases.  Check that this is the first time seeing this name so we
             // don't infinite recurse in error code where aliases reference each other.
@@ -211,7 +228,7 @@ internal static partial class SyntaxValueProviderExtensions
                     // ... name portion to see if it might bind to the attr name the caller is searching for.
                     if (StringOrdinalComparer.Equals(currentAttributeName, aliasName))
                     {
-                        if (matchesAttributeName(symbolName))
+                        if (matchesAttributeName(symbolName, withAttributeSuffix))
                             return true;
                     }
                 }
@@ -220,7 +237,7 @@ internal static partial class SyntaxValueProviderExtensions
                 {
                     if (StringOrdinalComparer.Equals(currentAttributeName, aliasName))
                     {
-                        if (matchesAttributeName(symbolName))
+                        if (matchesAttributeName(symbolName, withAttributeSuffix))
                             return true;
                     }
                 }
