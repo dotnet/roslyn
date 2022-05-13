@@ -28,17 +28,20 @@ internal static partial class SyntaxValueProviderExtensions
     /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
     /// references an alias name.  For example, given:
     /// <code>
-    /// using XAttribute = CLSCompilation;
+    /// using XAttribute = System.CLSCompliantAttribute;
     /// [X]
     /// class C { }
     /// </code>
     /// Then
-    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;("CLSCompliant")</c>
+    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
     /// will find the <c>C</c> class.
     /// </summary>
     public static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(this SyntaxValueProvider provider, string attributeName)
         where T : SyntaxNode
     {
+        if (!SyntaxFacts.IsValidIdentifier(attributeName))
+            throw new ArgumentException("<todo: add error message>", nameof(attributeName));
+
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
             (n, _) => n is CompilationUnitSyntax,
