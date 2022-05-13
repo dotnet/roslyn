@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
 
             // If that last thing copied was a line copy (or we can't even figure out what it was), don't do
             // anything.  There is special handling for line copy/paste that we don't want to interfere with.
-            var lastCopyIsLineCopy = copyPasteService.LastCopyWasLineCopy();
+            var lastCopyIsLineCopy = copyPasteService.LastCopyWasLineCopy;
             if (lastCopyIsLineCopy is true or null)
                 return;
 
