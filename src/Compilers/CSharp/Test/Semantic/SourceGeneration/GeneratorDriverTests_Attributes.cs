@@ -3,21 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
@@ -54,10 +45,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -84,10 +72,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -114,10 +99,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -144,10 +126,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -174,10 +153,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -204,10 +180,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -234,10 +207,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -264,10 +234,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -294,10 +261,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -324,10 +288,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -354,10 +315,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -384,10 +342,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -414,10 +369,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -496,10 +448,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -693,10 +642,7 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
         }
 
         [Fact]
@@ -1639,20 +1585,14 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
             // re-run without changes
             driver = driver.RunGenerators(compilation);
             runResult = driver.GetRunResult().Results[0];
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1686,20 +1626,14 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
             // re-run with just changes to references.  this helper is entirely syntactic, so nothing should change.
             driver = driver.RunGenerators(compilation.RemoveAllReferences());
             runResult = driver.GetRunResult().Results[0];
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1737,18 +1671,17 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
             // re-run with the file with the class removed.  this will remove the actual output.
             driver = driver.RunGenerators(compilation.RemoveSyntaxTrees(compilation.SyntaxTrees.Last()));
             runResult = driver.GetRunResult().Results[0];
 
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"][0].Outputs.Single().Reason);
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"][1].Outputs.Single().Reason);
-            Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"][2].Outputs.Single().Reason);
+
+            Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+                s => Assert.Equal(IncrementalStepRunReason.Removed, s.Outputs.Single().Reason));
 
             // the per-file global aliases get changed (because the last file is removed).
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
@@ -1789,12 +1722,8 @@ class C { }
             Console.WriteLine(runResult);
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttribute"],
-                step =>
-                {
-                    Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" });
-                });
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
-            // re-run with the file with the class removed.  this will remove the actual output.
             driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
                 compilation.SyntaxTrees.Last(),
                 compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
@@ -1802,12 +1731,64 @@ class C { }
 "))));
             runResult = driver.GetRunResult().Results[0];
 
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-            Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
-            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
+        }
+
+        [Fact]
+        public void TestSourceFileAddedAttribute1()
+        {
+            var source1 = @"
+global using AAttribute = BAttribute;";
+
+            var source2 = @"
+global using BAttribute = XAttribute;";
+
+            var source3 = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+            Console.WriteLine(runResult);
+
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
+
+            driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
+                compilation.SyntaxTrees.Last(),
+                compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
+[B]
+class C { }
+"))));
+            runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
+                s => Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason));
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["collectedGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["allUpGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnit_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationUnitAndGlobalAliases_ForAttribute"].Single().Outputs.Single().Reason);
+            Assert.Equal(IncrementalStepRunReason.Removed, runResult.TrackedSteps["result_ForAttribute"].Single().Outputs.Single().Reason);
         }
 
         #endregion
