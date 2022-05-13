@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Need to find all the possible projects that contain this metadata.
                 var projectsThatReferenceMetadataAssembly =
                     await DependentProjectsFinder.GetDependentProjectsAsync(
-                        solution, type, projects: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, ImmutableArray.Create<ISymbol>(type), solution.Projects.ToImmutableHashSet(), cancellationToken).ConfigureAwait(false);
 
                 // Now collect all the dependent projects as well.
                 var projectsThatCouldReferenceType =
