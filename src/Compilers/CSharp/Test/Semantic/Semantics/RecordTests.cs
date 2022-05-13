@@ -30313,7 +30313,7 @@ class C2 : I(0)
                 );
         }
 
-        [ConditionalTheory(typeof(NoUsedAssembliesValidation), Reason = "https://github.com/dotnet/roslyn/issues/60060")]
+        [Theory]
         [WorkItem(44902, "https://github.com/dotnet/roslyn/issues/44902")]
         [CombinatorialData]
         public void CrossAssemblySupportingAndNotSupportingCovariantReturns(bool useCompilationReference)
@@ -30326,7 +30326,7 @@ class C2 : I(0)
 public record C(int I) : B(I);";
 
             var compA = CreateEmptyCompilation(new[] { sourceA, IsExternalInitTypeDefinition }, references: TargetFrameworkUtil.GetReferences(TargetFramework.NetStandard20));
-            compA.VerifyDiagnostics();
+            compA.VerifyEmitDiagnostics();
             Assert.False(compA.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
             var actualMembers = compA.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
             var expectedMembers = new[]
@@ -30354,7 +30354,7 @@ public record C(int I) : B(I);";
 
             // CS1701: Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy
             var compB = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress), parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.NetCoreApp);
-            compB.VerifyDiagnostics();
+            compB.VerifyEmitDiagnostics();
             Assert.True(compB.Assembly.RuntimeSupportsCovariantReturnsOfClasses);
 
             actualMembers = compB.GetMember<NamedTypeSymbol>("D").GetMembers().ToTestDisplayStrings();
