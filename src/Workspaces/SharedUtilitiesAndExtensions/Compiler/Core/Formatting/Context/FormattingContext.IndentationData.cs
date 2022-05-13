@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Formatting
             private const int UninitializedIndentationDelta = int.MinValue;
 
             private readonly FormattingContext _formattingContext;
-            private readonly SyntaxToken _effectiveBaseToken;
-            private readonly Func<FormattingContext, IndentBlockOperation, int> _indentationDeltaGetter;
-            private readonly Func<FormattingContext, IndentBlockOperation, int> _baseIndentationGetter;
+            private readonly Func<FormattingContext, IndentBlockOperation, SyntaxToken> _effectiveBaseTokenGetter;
+            private readonly Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> _indentationDeltaGetter;
+            private readonly Func<FormattingContext, SyntaxToken, int> _baseIndentationGetter;
 
             /// <summary>
             /// Caches the value produced by <see cref="GetOrComputeIndentationDelta"/>.
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.Formatting
             /// </value>
             private int _lazyIndentationDelta;
 
-            public RelativeIndentationData(FormattingContext formattingContext, in SyntaxToken effectiveBaseToken, int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<FormattingContext, IndentBlockOperation, int> indentationDeltaGetter, Func<FormattingContext, IndentBlockOperation, int> baseIndentationGetter)
+            public RelativeIndentationData(FormattingContext formattingContext, int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<FormattingContext, IndentBlockOperation, SyntaxToken> effectiveBaseTokenGetter, Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> indentationDeltaGetter, Func<FormattingContext, SyntaxToken, int> baseIndentationGetter)
                 : base(textSpan)
             {
                 _formattingContext = formattingContext;
-                _effectiveBaseToken = effectiveBaseToken;
+                _effectiveBaseTokenGetter = effectiveBaseTokenGetter;
                 _indentationDeltaGetter = indentationDeltaGetter;
                 _baseIndentationGetter = baseIndentationGetter;
 
@@ -78,11 +78,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 this.InseparableRegionSpan = TextSpan.FromBounds(inseparableRegionSpanStart, textSpan.End);
             }
 
-            private RelativeIndentationData(FormattingContext formattingContext, in SyntaxToken effectiveBaseToken, int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<FormattingContext, IndentBlockOperation, int> indentationDeltaGetter, Func<FormattingContext, IndentBlockOperation, int> baseIndentationGetter, int lazyIndentationDelta)
+            private RelativeIndentationData(FormattingContext formattingContext, int inseparableRegionSpanStart, TextSpan textSpan, IndentBlockOperation operation, Func<FormattingContext, IndentBlockOperation, SyntaxToken> effectiveBaseTokenGetter, Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> indentationDeltaGetter, Func<FormattingContext, SyntaxToken, int> baseIndentationGetter, int lazyIndentationDelta)
                 : base(textSpan)
             {
                 _formattingContext = formattingContext;
-                _effectiveBaseToken = effectiveBaseToken;
+                _effectiveBaseTokenGetter = effectiveBaseTokenGetter;
                 _indentationDeltaGetter = indentationDeltaGetter;
                 _baseIndentationGetter = baseIndentationGetter;
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (indentationDelta != UninitializedIndentationDelta)
                     return indentationDelta;
 
-                indentationDelta = _indentationDeltaGetter(_formattingContext, Operation);
+                indentationDelta = _indentationDeltaGetter(_formattingContext, Operation, _effectiveBaseTokenGetter(_formattingContext, Operation));
                 var existingIndentationDelta = Interlocked.CompareExchange(ref _lazyIndentationDelta, indentationDelta, UninitializedIndentationDelta);
                 if (existingIndentationDelta != UninitializedIndentationDelta)
                     return existingIndentationDelta;
@@ -114,11 +114,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return indentationDelta;
             }
 
-            public override int Indentation => GetOrComputeIndentationDelta() + _baseIndentationGetter(_formattingContext, Operation);
+            public override int Indentation => GetOrComputeIndentationDelta() + _baseIndentationGetter(_formattingContext, _effectiveBaseTokenGetter(_formattingContext, Operation));
 
             protected override IndentationData WithTextSpanCore(TextSpan span)
             {
-                return new RelativeIndentationData(_formattingContext, in _effectiveBaseToken, InseparableRegionSpan.Start, span, Operation, _indentationDeltaGetter, _baseIndentationGetter, _lazyIndentationDelta);
+                return new RelativeIndentationData(_formattingContext, InseparableRegionSpan.Start, span, Operation, _effectiveBaseTokenGetter, _indentationDeltaGetter, _baseIndentationGetter, _lazyIndentationDelta);
             }
         }
 

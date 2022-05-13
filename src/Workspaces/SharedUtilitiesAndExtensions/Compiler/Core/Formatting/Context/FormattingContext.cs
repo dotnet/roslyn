@@ -190,8 +190,10 @@ namespace Microsoft.CodeAnalysis.Formatting
             // relative indentation case where indentation depends on other token
             if (operation.IsRelativeIndentation)
             {
-                var effectiveBaseToken = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine) ? _tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken) : operation.BaseToken;
-                var inseparableRegionStartingPosition = effectiveBaseToken.FullSpan.Start;
+                Func<FormattingContext, IndentBlockOperation, SyntaxToken> effectiveBaseTokenGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
+                    ? static (self, operation) => self._tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken)
+                    : static (self, operation) => operation.BaseToken;
+
                 Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> relativeIndentationDeltaGetter = static (self, operation, effectiveBaseToken) =>
                 {
                     var baseIndentationDelta = operation.GetAdjustedIndentationDelta(self._engine.HeaderFacts, self.TreeData.Root, effectiveBaseToken);
@@ -199,12 +201,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 };
 
                 // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
-                Func<FormattingContext, IndentBlockOperation, int> relativeIndentationBaseIndentationGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
-                    ? static (self, operation) => self._tokenStream.GetCurrentColumn(self._tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken))
-                    : static (self, operation) => self._tokenStream.GetCurrentColumn(operation.BaseToken);
+                Func<FormattingContext, SyntaxToken, int> relativeIndentationBaseIndentationGetter =
+                    static (self, effectiveBaseToken) => self._tokenStream.GetCurrentColumn(effectiveBaseToken);
 
                 // set new indentation
-                var relativeIndentationData = new RelativeIndentationData(this, effectiveBaseToken, inseparableRegionStartingPosition, intervalTreeSpan, operation, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
+                var inseparableRegionStartingPosition = effectiveBaseTokenGetter(this, operation).FullSpan.Start;
+                var relativeIndentationData = new RelativeIndentationData(this, inseparableRegionStartingPosition, intervalTreeSpan, operation, effectiveBaseTokenGetter, relativeIndentationDeltaGetter, relativeIndentationBaseIndentationGetter);
 
                 _indentationTree.AddIntervalInPlace(relativeIndentationData);
                 _relativeIndentationTree.AddIntervalInPlace(relativeIndentationData);
