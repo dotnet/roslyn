@@ -65,8 +65,6 @@ public class NumericIntPtrTests : CSharpTestBase
 
     private static int SymbolComparison(Symbol x, Symbol y) => SymbolComparison(x.ToTestDisplayString(), y.ToTestDisplayString());
 
-    private static int SymbolComparison(ISymbol x, ISymbol y) => SymbolComparison(x.ToTestDisplayString(), y.ToTestDisplayString());
-
     private static int SymbolComparison(string x, string y)
     {
         return string.CompareOrdinal(normalizeDisplayString(x), normalizeDisplayString(y));
