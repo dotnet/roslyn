@@ -18,17 +18,17 @@ Analyzers have been broadly categorized into the following three buckets based o
 **Contents:**
 	
 Following sample analyzers, with simple unit tests, are provided:
-  1. Stateless analyzers:
+  1. [Stateless analyzers](https://github.com/dotnet/roslyn-sdk/tree/master/samples/CSharp/Analyzers/Analyzers.Implementation/StatelessAnalyzers):
      1. SymbolAnalyzer: Analyzer for reporting symbol diagnostics.
      2. SyntaxNodeAnalyzer: Analyzer for reporting syntax node diagnostics.
      3. CodeBlockAnalyzer: Analyzer for reporting code block diagnostics.
      4. CompilationAnalyzer: Analyzer for reporting compilation diagnostics.
      5. SyntaxTreeAnalyzer: Analyzer for reporting syntax tree diagnostics.
      6. SemanticModelAnalyzer: Analyzer for reporting syntax tree diagnostics, that require some semantic analysis.
-  2. Stateful analyzers:
+  2. [Stateful analyzers](https://github.com/dotnet/roslyn-sdk/tree/master/samples/CSharp/Analyzers/Analyzers.Implementation/StatefulAnalyzers):
      1. CodeBlockStartedAnalyzer: Analyzer to demonstrate code block wide analysis.
      2. CompilationStartedAnalyzer: Analyzer to demonstrate analysis within a compilation, for example analysis that depends on certain well-known symbol(s).
      3. CompilationStartedAnalyzerWithCompilationWideAnalysis: Analyzer to demonstrate compilation-wide analysis.
-  3. Additional File analyzers:
+  3. [Additional File analyzers](https://github.com/dotnet/roslyn-sdk/tree/master/samples/CSharp/Analyzers/Analyzers.Implementation/AdditionalFileAnalyzers):
      1. SimpleAdditionalFileAnalyzer: Demonstrates reading an additional file line-by-line and using the data in analysis.
      2. XmlAdditionalFileAnalyzer: Demonstrates writing an additional file out to a `Stream` so that it can be read back as a structured document (in this case, XML).

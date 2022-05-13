@@ -874,6 +874,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         break;
 
                     case ExprContext.Sideeffects:
+                        if (node.LocalSymbol.RefKind != RefKind.None)
+                        {
+                            // Reading from a ref has a side effect since the read
+                            // may result in a NullReferenceException.
+                            RecordVarRead(node.LocalSymbol);
+                        }
                         break;
 
                     case ExprContext.Value:

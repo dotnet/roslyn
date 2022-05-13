@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.FormatDocument)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
+    [Order(Before = PredefinedCommandHandlerNames.StringCopyPaste)]
     [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal partial class FormatCommandHandler :
         ICommandHandler<FormatDocumentCommandArgs>,

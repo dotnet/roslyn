@@ -198,6 +198,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
 
+        public static string Option_Collapse_regions_on_file_open
+            => ServicesVSResources.Collapse_regions_on_file_open;
+
+        public static string Option_Collapse_usings_on_file_open
+            => CSharpVSResources.Collapse_usings_on_file_open;
+
+        public static string Option_Collapse_metadata_on_file_open
+            => ServicesVSResources.Collapse_metadata_on_file_open;
+
         public static string Option_Show_outlining_for_declaration_level_constructs
             => ServicesVSResources.Show_outlining_for_declaration_level_constructs;
 
@@ -329,6 +338,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Automatically_open_stack_trace_explorer_on_focus
             => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
+
+        public static string Option_Fix_text_pasted_into_string_literals_experimental
+            => ServicesVSResources.Fix_text_pasted_into_string_literals_experimental;
 
         public static string Option_Go_To_Definition
             => ServicesVSResources.Go_To_Definition;

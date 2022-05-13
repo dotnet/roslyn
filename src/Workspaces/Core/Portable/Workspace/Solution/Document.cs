@@ -512,38 +512,5 @@ namespace Microsoft.CodeAnalysis
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
-
-        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
-        {
-            var projectFilePath = Project.FilePath;
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-            string? effectiveFilePath = null;
-
-            if (FilePath != null)
-            {
-                effectiveFilePath = FilePath;
-            }
-            else if (Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
-                }
-            }
-
-            if (effectiveFilePath != null)
-            {
-                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
-            }
-            else
-            {
-                // Really no idea where this is going, so bail
-                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
-            }
-        }
     }
 }

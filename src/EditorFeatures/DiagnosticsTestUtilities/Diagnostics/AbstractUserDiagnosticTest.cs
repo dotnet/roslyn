@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
                     testDriver.FallbackOptions,
+                    isBlocking: false,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);

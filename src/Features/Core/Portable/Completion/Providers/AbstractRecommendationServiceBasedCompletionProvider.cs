@@ -178,7 +178,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var relatedId in relatedDocumentIds)
             {
                 var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedId);
-                var context = await CreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                var context = await CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+                Contract.ThrowIfNull(context);
                 var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);
 
                 if (!symbols.IsDefault)

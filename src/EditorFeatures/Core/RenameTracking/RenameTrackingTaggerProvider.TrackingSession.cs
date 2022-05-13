@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         {
             private static readonly Task<TriggerIdentifierKind> s_notRenamableTask = Task.FromResult(TriggerIdentifierKind.NotRenamable);
             private readonly Task<TriggerIdentifierKind> _isRenamableIdentifierTask;
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
             private readonly CancellationToken _cancellationToken;
             private readonly IThreadingContext _threadingContext;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -62,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _threadingContext = stateMachine.ThreadingContext;
                 _asyncListener = asyncListener;
                 _trackingSpan = snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, SpanTrackingMode.EdgeInclusive);
-                _cancellationTokenSource = new CancellationTokenSource();
                 _cancellationToken = _cancellationTokenSource.Token;
 
                 if (snapshotSpan.Length > 0)
