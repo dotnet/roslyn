@@ -1019,7 +1019,7 @@ namespace Microsoft.CodeAnalysis
                     // generate on demand.  So just try to see if we can grab the last generated skeleton for that
                     // project.
                     var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
-                    this.SkeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
+                    return this.SkeletonReferenceCache.TryGetAlreadyBuiltMetadataReference(properties);
                 }
 
                 return null;
