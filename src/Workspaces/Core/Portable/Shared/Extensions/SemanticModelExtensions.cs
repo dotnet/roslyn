@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // if it has one.
             if (symbol is IMethodSymbol methodSymbol &&
                 methodSymbol.MethodKind == MethodKind.BuiltinOperator &&
-                methodSymbol.ContainingType is ITypeSymbol containingType)
+                methodSymbol.ContainingType is { } containingType)
             {
                 var comparer = SymbolEquivalenceComparer.Instance.ParameterEquivalenceComparer;
 
