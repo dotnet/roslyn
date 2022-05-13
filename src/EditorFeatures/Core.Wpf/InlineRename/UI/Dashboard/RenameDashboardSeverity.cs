@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal enum DashboardSeverity
+    internal enum RenameDashboardSeverity
     {
         None,
         Info,
