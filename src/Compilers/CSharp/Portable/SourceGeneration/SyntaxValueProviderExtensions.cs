@@ -72,11 +72,26 @@ internal static class SyntaxValueProviderExtensions
         string attributeName,
         CancellationToken cancellationToken) where T : SyntaxNode
     {
+        // As we walk down the compilation unit and nested namespaces, we may encounter additional using aliases local
+        // to this file. Keep track of them so we can determine if they would allow an attribute in code to bind to the
+        // attribute being searched for.
         var localAliases = Aliases.GetInstance();
-        var results = ArrayBuilder<T>.GetInstance();
+
+        // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
+        // don't get into cycles.
         var seenNames = PooledHashSet<string>.GetInstance();
 
-        recurse(compilationUnit);
+        var results = ArrayBuilder<T>.GetInstance();
+
+        try
+        {
+            recurse(compilationUnit);
+        }
+        finally
+        {
+            localAliases.Free();
+            seenNames.Free();
+        }
 
         return results.ToImmutableAndFree();
 
@@ -120,6 +135,9 @@ internal static class SyntaxValueProviderExtensions
             }
             else
             {
+                // For any other node, just keep recursing deeper to see if we can find an attribute. Note: we cannot
+                // terminate the search anywhere as attributes may be found on things like local functions, and that
+                // means having to dive deep into statements and expressions.
                 foreach (var child in node.ChildNodesAndTokens())
                 {
                     if (child.IsNode)
