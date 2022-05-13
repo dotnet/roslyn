@@ -79,38 +79,31 @@ namespace Microsoft.CodeAnalysis.MakeMemberStatic
                 return modifiers.Add(StaticModifier);
             }
 
-            int? modifierBeforeStaticRawKind = null;
             for (var i = staticIndex - 1; i >= 0; i--)
             {
                 var rawKind = GetKeywordRawKind(order[i]);
                 if (ContainsRawKind(modifiers, rawKind))
                 {
-                    modifierBeforeStaticRawKind = rawKind;
-                    break;
+                    using var _ = ArrayBuilder<SyntaxToken>.GetInstance(modifiers.Count + 1, out var keywords);
+
+                    for (var i = 0; i < modifiers.Count; i++)
+                    {
+                        keywords.Add(modifiers[i]);
+
+                        if (modifiers[i].RawKind == rawKind)
+                        {
+                            keywords.Add(StaticModifier);
+                        }
+                    }
+
+                    return new SyntaxTokenList(keywords);
                 }
             }
 
-            if (!modifierBeforeStaticRawKind.HasValue)
-            {
-                // When the static modifier is added at the beginning of the modifiers it needs to
-                // get the leading trivia from the previous first modifier
-                return new SyntaxTokenList(StaticModifier.WithLeadingTrivia(modifiers[0].LeadingTrivia),
-                    modifiers[0].WithoutLeadingTrivia()).AddRange(modifiers.Skip(1));
-            }
-
-            using var _ = ArrayBuilder<SyntaxToken>.GetInstance(modifiers.Count + 1, out var keywords);
-
-            for (var i = 0; i < modifiers.Count; i++)
-            {
-                keywords.Add(modifiers[i]);
-
-                if (modifiers[i].RawKind == modifierBeforeStaticRawKind.Value)
-                {
-                    keywords.Add(StaticModifier);
-                }
-            }
-
-            return new SyntaxTokenList(keywords);
+            // When the static modifier is added at the beginning of the modifiers it needs to
+            // get the leading trivia from the previous first modifier
+            return new SyntaxTokenList(StaticModifier.WithLeadingTrivia(modifiers[0].LeadingTrivia),
+                modifiers[0].WithoutLeadingTrivia()).AddRange(modifiers.Skip(1));
         }
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
