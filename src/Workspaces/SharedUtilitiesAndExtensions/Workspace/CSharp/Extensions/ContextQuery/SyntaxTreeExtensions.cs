@@ -1383,7 +1383,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // 'and' & 'or' are identifier in the last 2 examples because of lack of context
             if (leftToken.IsKindOrHasMatchingText(SyntaxKind.AndKeyword) || leftToken.IsKindOrHasMatchingText(SyntaxKind.OrKeyword))
             {
-                return leftToken.Parent is BinaryPatternSyntax || leftToken.Parent?.Parent is DeclarationPatternSyntax;
+                return leftToken.Parent is BinaryPatternSyntax ||
+                       leftToken.Parent is SingleVariableDesignationSyntax { Parent: DeclarationPatternSyntax };
             }
 
             // e is not $$

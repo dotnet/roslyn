@@ -295,23 +295,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIdentifierAnd()
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("and")]
+        [InlineData("or")]
+        public async Task TestAfterIdentifierPatternKeyword(string precedingKeyword)
         {
             await VerifyKeywordAsync(InitializeObjectE +
-@"if (e is Test.TestValue and $$)
+$@"if (e is Test.TestValue {precedingKeyword} $$)
 
-enum Test { TestValue }");
-        }
-
-        [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterIdentifierOr()
-        {
-            await VerifyKeywordAsync(InitializeObjectE +
-@"if (e is Test.TestValue or $$)
-
-enum Test { TestValue }");
+enum Test {{ TestValue }}");
         }
     }
 }
