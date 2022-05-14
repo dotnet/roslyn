@@ -282,8 +282,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_RequireAccessibilityModifiers
         {
-            get { return GetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers); }
-            set { SetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers, value); }
+            get { return GetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired); }
+            set { SetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired, value); }
         }
 
         public string Style_RemoveUnnecessarySuppressionExclusions

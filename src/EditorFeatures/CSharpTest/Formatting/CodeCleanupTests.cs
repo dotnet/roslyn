@@ -648,7 +648,7 @@ namespace A
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
             var defaultOptions = CodeActionOptions.GetDefault(document.Project.LanguageServices);
 
-            var fallbackOptions = defaultOptions  with
+            var fallbackOptions = defaultOptions with
             {
                 CleanupOptions = defaultOptions.CleanupOptions with
                 {

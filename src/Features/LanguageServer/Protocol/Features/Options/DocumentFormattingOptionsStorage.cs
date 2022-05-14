@@ -21,7 +21,8 @@ internal static class DocumentFormattingOptionsStorage
 #pragma warning disable IDE0060 // Unused parameters to match common pattern
     public static DocumentFormattingOptions GetDocumentFormattingOptions(this IGlobalOptionService globalOptions, string language)
         => new(
-           // FileHeaderTemplate not stored in global options
+           // FileHeaderTemplate not stored in global options (does not have a storage other than editorconfig)
+           // InsertFinalNewLine not stored in global options (does not have a storage other than editorconfig)
            );
 #pragma warning restore
 }

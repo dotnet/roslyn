@@ -28,15 +28,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         static AbstractAddRequiredParenthesesDiagnosticAnalyzer()
         {
-            var options = new[]
-            {
-                CodeStyleOptions2.ArithmeticBinaryParentheses, CodeStyleOptions2.OtherBinaryParentheses,
-                CodeStyleOptions2.OtherParentheses, CodeStyleOptions2.RelationalBinaryParentheses
-            };
-
             var includeArray = new[] { false, true };
 
-            foreach (var option in options)
+            foreach (var equivalenceKey in GetAllEquivalenceKeys())
             {
                 foreach (var includeInFixAll in includeArray)
                 {
@@ -46,15 +40,11 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                         properties = properties.Add(AddRequiredParenthesesConstants.IncludeInFixAll, "");
                     }
 
-                    var equivalenceKey = GetEquivalenceKey(option);
                     properties = properties.Add(AddRequiredParenthesesConstants.EquivalenceKey, equivalenceKey);
                     s_cachedProperties.Add((includeInFixAll, equivalenceKey), properties);
                 }
             }
         }
-
-        private static string GetEquivalenceKey(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> parentPrecedence)
-            => parentPrecedence.Name;
 
         private static ImmutableDictionary<string, string?> GetProperties(bool includeInFixAll, string equivalenceKey)
             => s_cachedProperties[(includeInFixAll, equivalenceKey)];

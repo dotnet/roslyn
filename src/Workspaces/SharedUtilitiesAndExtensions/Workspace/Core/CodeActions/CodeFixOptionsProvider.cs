@@ -57,15 +57,10 @@ internal readonly struct CodeFixOptionsProvider
 #if CODE_STYLE
         => formatting.DefaultOptions;
 #else
-        => formatting.GetFormattingOptions(_options, FallbackSyntaxFormattingOptions);
+        => formatting.GetFormattingOptions(_options, _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions);
 #endif
 
-    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers,
-#if CODE_STYLE
-        SyntaxFormattingOptions.CommonOptions.Default.AccessibilityModifiersRequired);
-#else
-        FallbackSyntaxFormattingOptions.AccessibilityModifiersRequired);
-#endif
+    public AccessibilityModifiersRequired AccessibilityModifiersRequired => _options.GetEditorConfigOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackSyntaxFormattingOptions.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(PerLanguageOption2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);
@@ -77,9 +72,11 @@ internal readonly struct CodeFixOptionsProvider
         => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.LineFormatting;
 #endif
 
-#if !CODE_STYLE
-    private SyntaxFormattingOptions FallbackSyntaxFormattingOptions
-        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions;
+    private SyntaxFormattingOptions.CommonOptions FallbackSyntaxFormattingOptions
+#if CODE_STYLE
+        => SyntaxFormattingOptions.CommonOptions.Default;
+#else
+        => _fallbackOptions.GetOptions(_languageServices).CleanupOptions.FormattingOptions.Common;
 #endif
 }
 

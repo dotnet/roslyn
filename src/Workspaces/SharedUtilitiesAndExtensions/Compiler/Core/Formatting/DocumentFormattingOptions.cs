@@ -37,15 +37,14 @@ internal static class DocumentFormattingOptionsProviders
         return new()
         {
             FileHeaderTemplate = options.GetEditorConfigOption(CodeStyleOptions2.FileHeaderTemplate, fallbackOptions.FileHeaderTemplate),
-            InsertFinalNewLine = fallbackOptions.InsertFinalNewLine // not stored in global options
+            InsertFinalNewLine = options.GetEditorConfigOption(FormattingOptions2.InsertFinalNewLine, fallbackOptions.InsertFinalNewLine)
         };
     }
 
 #if !CODE_STYLE
     public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, DocumentFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetDocumentFormattingOptions(fallbackOptions);
     }
 

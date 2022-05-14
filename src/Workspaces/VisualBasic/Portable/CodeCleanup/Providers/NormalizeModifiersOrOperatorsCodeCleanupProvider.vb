@@ -48,6 +48,12 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Private Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
+            ' list of modifier syntax kinds in order
+            ' this order will be used when the rewriter re-order modifiers
+            ' PERF: Using UShort instead of SyntaxKind as the element type so that the compiler can use array literal initialization
+            Private Shared ReadOnly s_modifierKindsInOrder As SyntaxKind() =
+                VisualBasicIdeCodeStyleOptions.DefaultPreferredModifierOrder.ToArray()
+
             Private Shared ReadOnly s_removeDimKeywordSet As HashSet(Of SyntaxKind) = New HashSet(Of SyntaxKind)(SyntaxFacts.EqualityComparer) From {
                 SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PublicKeyword, SyntaxKind.FriendKeyword,
                 SyntaxKind.SharedKeyword, SyntaxKind.ShadowsKeyword, SyntaxKind.ReadOnlyKeyword}
@@ -388,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim result = New List(Of SyntaxToken)(modifiers.Count)
 
                 Dim modifierList = modifiers.ToList()
-                For Each k In VisualBasicIdeCodeStyleOptions.DefaultPreferredModifierOrder
+                For Each k In s_modifierKindsInOrder
                     ' we found all modifiers
                     If currentModifierIndex = modifierList.Count Then
                         Exit For
@@ -498,7 +504,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                            Return newPreviousToken
                                        End If
 
-                                       throw ExceptionUtilities.UnexpectedValue(o)
+                                       Throw ExceptionUtilities.UnexpectedValue(o)
                                    End Function)
             End Function
 
@@ -508,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private Shared Function AreModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
                 Dim startIndex = 0
                 For Each modifier In modifiers
-                    Dim newIndex = VisualBasicIdeCodeStyleOptions.DefaultPreferredModifierOrder.IndexOf(modifier.Kind, startIndex)
+                    Dim newIndex = s_modifierKindsInOrder.IndexOf(modifier.Kind, startIndex)
                     If newIndex = 0 AndAlso startIndex = 0 Then
                         ' very first search with matching the very first modifier in the modifier orders
                         startIndex = newIndex + 1

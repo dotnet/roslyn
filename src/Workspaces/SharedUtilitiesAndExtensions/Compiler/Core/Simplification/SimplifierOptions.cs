@@ -93,11 +93,13 @@ namespace Microsoft.CodeAnalysis.Simplification
         }
 
 #if !CODE_STYLE
+        public static SimplifierOptions GetSimplifierOptions(this AnalyzerConfigOptions options, SimplifierOptions? fallbackOptions, HostLanguageServices languageServices)
+            => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(options, fallbackOptions);
+
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptions? fallbackOptions, CancellationToken cancellationToken)
         {
-            var simplificationService = document.Project.LanguageServices.GetRequiredService<ISimplificationService>();
             var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return simplificationService.GetSimplifierOptions(configOptions, fallbackOptions);
+            return configOptions.GetSimplifierOptions(fallbackOptions, document.Project.LanguageServices);
         }
 
         public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

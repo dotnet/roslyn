@@ -75,7 +75,7 @@ internal readonly struct CSharpCodeFixOptionsProvider
     // CodeStyleOptions
 
     public CodeStyleOption2<string> PreferredModifierOrder => GetOption(CSharpCodeStyleOptions.PreferredModifierOrder, FallbackCodeStyleOptions.PreferredModifierOrder);
-    public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, FallbackCodeStyleOptions.Common.RequireAccessibilityModifiers);
+    public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.Common.AccessibilityModifiersRequired);
 
     private TValue GetOption<TValue>(Option2<TValue> option, TValue defaultValue)
         => _options.GetEditorConfigOption(option, defaultValue);

@@ -64,16 +64,18 @@ internal static partial class SyntaxFormattingOptionsProviders
         {
             LineFormatting = options.GetLineFormattingOptions(fallbackOptions.LineFormatting),
             SeparateImportDirectiveGroups = options.GetEditorConfigOption(GenerationOptions.SeparateImportDirectiveGroups, fallbackOptions.SeparateImportDirectiveGroups),
-            AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.RequireAccessibilityModifiers, fallbackOptions.AccessibilityModifiersRequired),
+            AccessibilityModifiersRequired = options.GetEditorConfigOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, fallbackOptions.AccessibilityModifiersRequired),
         };
     }
 
 #if !CODE_STYLE
+    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this AnalyzerConfigOptions options, SyntaxFormattingOptions? fallbackOptions, HostLanguageServices languageServices)
+        => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options, fallbackOptions);
+
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var formattingService = document.Project.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
-        return formattingService.GetFormattingOptions(configOptions, fallbackOptions);
+        return configOptions.GetSyntaxFormattingOptions(fallbackOptions, document.Project.LanguageServices);
     }
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, SyntaxFormattingOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)

@@ -21,7 +21,7 @@ internal abstract class IdeCodeStyleOptions
     private static readonly CodeStyleOption2<UnusedParametersPreference> s_preferAllMethodsUnusedParametersPreference =
         new(UnusedParametersPreference.AllMethods, NotificationOption2.Suggestion);
 
-    private static readonly CodeStyleOption2<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
+    private static readonly CodeStyleOption2<AccessibilityModifiersRequired> s_accessibilityModifiersRequiredDefault =
         new(SyntaxFormattingOptions.CommonOptions.Default.AccessibilityModifiersRequired, NotificationOption2.Silent);
 
     private static readonly CodeStyleOption2<ParenthesesPreference> s_alwaysForClarityPreference =
@@ -54,7 +54,7 @@ internal abstract class IdeCodeStyleOptions
         [DataMember(Order = 13)] public CodeStyleOption2<bool> PreferCompoundAssignment { get; init; } = s_trueWithSuggestionEnforcement;
         [DataMember(Order = 14)] public CodeStyleOption2<bool> PreferSimplifiedInterpolation { get; init; } = s_trueWithSuggestionEnforcement;
         [DataMember(Order = 15)] public CodeStyleOption2<UnusedParametersPreference> UnusedParameters { get; init; } = s_preferAllMethodsUnusedParametersPreference;
-        [DataMember(Order = 16)] public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers { get; init; } = s_requireAccessibilityModifiersDefault;
+        [DataMember(Order = 16)] public CodeStyleOption2<AccessibilityModifiersRequired> AccessibilityModifiersRequired { get; init; } = s_accessibilityModifiersRequiredDefault;
         [DataMember(Order = 17)] public CodeStyleOption2<bool> PreferReadonly { get; init; } = s_trueWithSuggestionEnforcement;
         [DataMember(Order = 18)] public CodeStyleOption2<ParenthesesPreference> ArithmeticBinaryParentheses { get; init; } = s_alwaysForClarityPreference;
         [DataMember(Order = 19)] public CodeStyleOption2<ParenthesesPreference> OtherBinaryParentheses { get; init; } = s_alwaysForClarityPreference;

@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
         private void HandleVariableDeclaration(SyntaxNodeAnalysisContext context)
         {
             var declarationStatement = context.Node;
-            var syntaxTree = context.Node.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
             var semanticModel = context.SemanticModel;

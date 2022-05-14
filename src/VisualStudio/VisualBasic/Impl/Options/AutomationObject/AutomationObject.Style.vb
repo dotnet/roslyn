@@ -208,10 +208,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Style_RequireAccessibilityModifiers As String
             Get
-                Return GetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers)
+                Return GetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired)
             End Get
             Set(value As String)
-                SetXmlOption(CodeStyleOptions2.RequireAccessibilityModifiers, value)
+                SetXmlOption(CodeStyleOptions2.AccessibilityModifiersRequired, value)
             End Set
         End Property
 

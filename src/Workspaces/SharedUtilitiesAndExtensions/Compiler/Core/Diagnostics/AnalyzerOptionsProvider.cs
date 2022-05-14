@@ -81,7 +81,7 @@ internal readonly struct AnalyzerOptionsProvider
     public CodeStyleOption2<bool> PreferCompoundAssignment => GetOption(CodeStyleOptions2.PreferCompoundAssignment, FallbackCodeStyleOptions.PreferCompoundAssignment);
     public CodeStyleOption2<bool> PreferSimplifiedInterpolation => GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, FallbackCodeStyleOptions.PreferSimplifiedInterpolation);
     public CodeStyleOption2<UnusedParametersPreference> UnusedParameters => GetOption(CodeStyleOptions2.UnusedParameters, FallbackCodeStyleOptions.UnusedParameters);
-    public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, FallbackCodeStyleOptions.RequireAccessibilityModifiers);
+    public CodeStyleOption2<AccessibilityModifiersRequired> RequireAccessibilityModifiers => GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, FallbackCodeStyleOptions.AccessibilityModifiersRequired);
     public CodeStyleOption2<bool> PreferReadonly => GetOption(CodeStyleOptions2.PreferReadonly, FallbackCodeStyleOptions.PreferReadonly);
     public CodeStyleOption2<ParenthesesPreference> ArithmeticBinaryParentheses => GetOption(CodeStyleOptions2.ArithmeticBinaryParentheses, FallbackCodeStyleOptions.ArithmeticBinaryParentheses);
     public CodeStyleOption2<ParenthesesPreference> OtherBinaryParentheses => GetOption(CodeStyleOptions2.OtherBinaryParentheses, FallbackCodeStyleOptions.OtherBinaryParentheses);

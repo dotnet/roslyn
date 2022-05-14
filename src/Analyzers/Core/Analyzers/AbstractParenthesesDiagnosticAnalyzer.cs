@@ -43,5 +43,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 PrecedenceKind.Other => "Other",
                 _ => throw ExceptionUtilities.UnexpectedValue(precedenceKind),
             };
+
+        protected static ImmutableArray<string> GetAllEquivalenceKeys()
+            => ImmutableArray.Create("ArithmeticBinary", "RelationalBinary", "OtherBinary", "Other");
     }
 }

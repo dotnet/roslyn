@@ -26,7 +26,7 @@ internal static class SyntaxFormattingOptionsStorage
         {
             LineFormatting = globalOptions.GetLineFormattingOptions(language),
             SeparateImportDirectiveGroups = globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language),
-            AccessibilityModifiersRequired = globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, language).Value
+            AccessibilityModifiersRequired = globalOptions.GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, language).Value
         };
 
     public static ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)

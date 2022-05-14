@@ -242,16 +242,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     "dotnet_code_quality_unused_parameters",
                     s => ParseUnusedParametersPreference(s, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters),
                     o => GetUnusedParametersPreferenceEditorConfigString(o, IdeCodeStyleOptions.CommonOptions.Default.UnusedParameters)),
-            new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(UnusedParameters)}Preference"));
+            new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.UnusedParametersPreference"));
 
-        internal static readonly PerLanguageOption2<CodeStyleOption2<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
+        internal static readonly PerLanguageOption2<CodeStyleOption2<AccessibilityModifiersRequired>> AccessibilityModifiersRequired =
             CreateOption(
-                CodeStyleOptionGroups.Modifier, nameof(RequireAccessibilityModifiers),
-                IdeCodeStyleOptions.CommonOptions.Default.RequireAccessibilityModifiers,
+                CodeStyleOptionGroups.Modifier, "RequireAccessibilityModifiers",
+                IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired,
                 new EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>(
                     "dotnet_style_require_accessibility_modifiers",
-                    s => ParseAccessibilityModifiersRequired(s, IdeCodeStyleOptions.CommonOptions.Default.RequireAccessibilityModifiers),
-                    v => GetAccessibilityModifiersRequiredEditorConfigString(v, IdeCodeStyleOptions.CommonOptions.Default.RequireAccessibilityModifiers)),
+                    s => ParseAccessibilityModifiersRequired(s, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired),
+                    v => GetAccessibilityModifiersRequiredEditorConfigString(v, IdeCodeStyleOptions.CommonOptions.Default.AccessibilityModifiersRequired)),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RequireAccessibilityModifiers"));
 
         internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferReadonly = CreateOption(
@@ -275,10 +275,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly BidirectionalMap<string, AccessibilityModifiersRequired> s_accessibilityModifiersRequiredMap =
             new(new[]
             {
-                KeyValuePairUtil.Create("never", AccessibilityModifiersRequired.Never),
-                KeyValuePairUtil.Create("always", AccessibilityModifiersRequired.Always),
-                KeyValuePairUtil.Create("for_non_interface_members", AccessibilityModifiersRequired.ForNonInterfaceMembers),
-                KeyValuePairUtil.Create("omit_if_default", AccessibilityModifiersRequired.OmitIfDefault),
+                KeyValuePairUtil.Create("never", CodeStyle.AccessibilityModifiersRequired.Never),
+                KeyValuePairUtil.Create("always", CodeStyle.AccessibilityModifiersRequired.Always),
+                KeyValuePairUtil.Create("for_non_interface_members", CodeStyle.AccessibilityModifiersRequired.ForNonInterfaceMembers),
+                KeyValuePairUtil.Create("omit_if_default", CodeStyle.AccessibilityModifiersRequired.OmitIfDefault),
             });
 
         private static CodeStyleOption2<AccessibilityModifiersRequired> ParseAccessibilityModifiersRequired(string optionString, CodeStyleOption2<AccessibilityModifiersRequired> defaultValue)

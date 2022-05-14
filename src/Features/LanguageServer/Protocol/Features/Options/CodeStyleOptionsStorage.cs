@@ -43,7 +43,7 @@ internal static class CodeStyleOptionsStorage
             PreferCompoundAssignment = globalOptions.GetOption(CodeStyleOptions2.PreferCompoundAssignment, language),
             PreferSimplifiedInterpolation = globalOptions.GetOption(CodeStyleOptions2.PreferSimplifiedInterpolation, language),
             UnusedParameters = globalOptions.GetOption(CodeStyleOptions2.UnusedParameters, language),
-            RequireAccessibilityModifiers = globalOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, language),
+            AccessibilityModifiersRequired = globalOptions.GetOption(CodeStyleOptions2.AccessibilityModifiersRequired, language),
             PreferReadonly = globalOptions.GetOption(CodeStyleOptions2.PreferReadonly, language),
             ArithmeticBinaryParentheses = globalOptions.GetOption(CodeStyleOptions2.ArithmeticBinaryParentheses, language),
             OtherBinaryParentheses = globalOptions.GetOption(CodeStyleOptions2.OtherBinaryParentheses, language),

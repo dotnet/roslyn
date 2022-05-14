@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
 
-                if (configOptions.TryGetEditorConfigOption<CodeStyleOption2<AccessibilityModifiersRequired>>(CodeStyleOptions2.RequireAccessibilityModifiers, out var value))
+                if (configOptions.TryGetEditorConfigOption<CodeStyleOption2<AccessibilityModifiersRequired>>(CodeStyleOptions2.AccessibilityModifiersRequired, out var value))
                 {
                     return value.Value;
                 }

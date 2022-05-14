@@ -42,24 +42,25 @@ internal interface AddImportPlacementOptionsProvider
 {
 }
 
-#if !CODE_STYLE
 internal static partial class AddImportPlacementOptionsProviders
 {
+#if !CODE_STYLE
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this AnalyzerConfigOptions options, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions, HostLanguageServices languageServices)
+        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions, fallbackOptions);
+
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
-
-        // Normally we don't allow generation into a hidden region in the file.  However, if we have a
-        // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
-        // our edit to their domain appropriate.
-        var spanMapper = document.Services.GetService<ISpanMappingService>();
-        var allowInHiddenRegions = spanMapper != null && spanMapper.SupportsMappingImportDirectives;
-
-        return addImportsService.GetAddImportOptions(configOptions, allowInHiddenRegions, fallbackOptions);
+        return configOptions.GetAddImportPlacementOptions(document.AllowImportsInHiddenRegions(), fallbackOptions, document.Project.LanguageServices);
     }
+
+    // Normally we don't allow generation into a hidden region in the file.  However, if we have a
+    // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
+    // our edit to their domain appropriate.
+    public static bool AllowImportsInHiddenRegions(this Document document)
+        => document.Services.GetService<ISpanMappingService>()?.SupportsMappingImportDirectives == true;
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
         => await GetAddImportPlacementOptionsAsync(document, await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
-}
 #endif
+}

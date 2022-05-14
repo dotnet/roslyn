@@ -27,6 +27,9 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     private static readonly CodeStyleOption2<UnusedValuePreference> s_discardVariableWithSilentEnforcement =
         new(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent);
 
+    private static readonly CodeStyleOption2<UnusedValuePreference> s_discardVariableWithSuggestionEnforcement =
+        new(UnusedValuePreference.DiscardVariable, NotificationOption2.Suggestion);
+
     private static readonly CodeStyleOption2<string> s_defaultModifierOrder =
         new(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption2.Silent);
 
@@ -60,7 +63,7 @@ internal sealed class CSharpIdeCodeStyleOptions : IdeCodeStyleOptions
     [DataMember(Order = BaseMemberCount + 18)] public CodeStyleOption2<bool> PreferLocalOverAnonymousFunction { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember(Order = BaseMemberCount + 19)] public CodeStyleOption2<bool> PreferTupleSwap { get; init; } = s_trueWithSuggestionEnforcement;
     [DataMember(Order = BaseMemberCount + 20)] public CodeStyleOption2<UnusedValuePreference> UnusedValueExpressionStatement { get; init; } = s_discardVariableWithSilentEnforcement;
-    [DataMember(Order = BaseMemberCount + 21)] public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment { get; init; } = s_discardVariableWithSilentEnforcement;
+    [DataMember(Order = BaseMemberCount + 21)] public CodeStyleOption2<UnusedValuePreference> UnusedValueAssignment { get; init; } = s_discardVariableWithSuggestionEnforcement;
     [DataMember(Order = BaseMemberCount + 22)] public CodeStyleOption2<bool> PreferMethodGroupConversion { get; init; } = s_trueWithSilentEnforcement;
 
     // the following are also used in code generation features, consider sharing:

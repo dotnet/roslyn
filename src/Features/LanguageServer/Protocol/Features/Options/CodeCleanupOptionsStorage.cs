@@ -23,7 +23,7 @@ internal static class CodeCleanupOptionsStorage
             globalOptions.GetSyntaxFormattingOptions(languageServices),
             globalOptions.GetSimplifierOptions(languageServices))
         {
-            AddImportOptions = AddImportPlacementOptions.Default,
+            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
             DocumentFormattingOptions = globalOptions.GetDocumentFormattingOptions(languageServices.Language)
         };
 }
