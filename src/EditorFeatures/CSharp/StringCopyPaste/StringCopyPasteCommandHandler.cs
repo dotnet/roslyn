@@ -121,10 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (documentBeforePaste == null || documentAfterPaste == null)
                 return;
 
-            // See if we can determine the information about the code the user copied from.
-            var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
-            if (copyPasteService is null)
-                return;
+            var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
 
             // If that last thing copied was a line copy (or we can't even figure out what it was), don't do
             // anything.  There is special handling for line copy/paste that we don't want to interfere with.
