@@ -13,12 +13,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.Formatting;
 
 [DataContract]
-internal sealed class DocumentFormattingOptions
+internal sealed record class DocumentFormattingOptions
 {
     public static readonly DocumentFormattingOptions Default = new();
 
-    [DataMember(Order = 0)] public string FileHeaderTemplate { get; init; } = "";
-    [DataMember(Order = 1)] public bool InsertFinalNewLine { get; init; } = false;
+    [DataMember] public string FileHeaderTemplate { get; init; } = "";
+    [DataMember] public bool InsertFinalNewLine { get; init; } = false;
 }
 
 internal interface DocumentFormattingOptionsProvider

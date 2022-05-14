@@ -18,16 +18,16 @@ internal sealed record class AddImportPlacementOptions
     public static readonly CodeStyleOption2<AddImportPlacement> s_outsideNamespacePlacementWithSilentEnforcement =
        new(AddImportPlacement.OutsideNamespace, NotificationOption2.Silent);
 
-    [property: DataMember(Order = 0)]
+    [DataMember]
     public bool PlaceSystemNamespaceFirst { get; init; } = true;
 
     /// <summary>
     /// Where to place C# usings relative to namespace declaration, ignored by VB.
     /// </summary>
-    [property: DataMember(Order = 1)]
+    [DataMember]
     public CodeStyleOption2<AddImportPlacement> UsingDirectivePlacement { get; init; } = s_outsideNamespacePlacementWithSilentEnforcement;
 
-    [property: DataMember(Order = 2)]
+    [DataMember]
     public bool AllowInHiddenRegions { get; init; } = false;
 
     public bool PlaceImportsInsideNamespaces => UsingDirectivePlacement.Value == AddImportPlacement.InsideNamespace;

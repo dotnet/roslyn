@@ -15,11 +15,11 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
 [DataContract]
-internal readonly record struct ExtractMethodOptions(
-    [property: DataMember(Order = 0)] bool DontPutOutOrRefOnStruct = true)
+internal readonly record struct ExtractMethodOptions
 {
+    [DataMember] public bool DontPutOutOrRefOnStruct { get; init; } = true;
+
     public ExtractMethodOptions()
-        : this(DontPutOutOrRefOnStruct: true)
     {
     }
 
@@ -28,19 +28,18 @@ internal readonly record struct ExtractMethodOptions(
 
 /// <summary>
 /// All options needed to perform method extraction.
-/// Combines global <paramref name="ExtractOptions"/> with document specific code generation options.
+/// Combines global <see cref="ExtractOptions"/> with document specific code generation options.
 /// </summary>
+[DataContract]
 internal readonly record struct ExtractMethodGenerationOptions(
-    ExtractMethodOptions ExtractOptions,
-    CodeGenerationOptions CodeGenerationOptions,
-    AddImportPlacementOptions AddImportOptions,
-    LineFormattingOptions LineFormattingOptions)
+    [property: DataMember] CodeGenerationOptions CodeGenerationOptions)
 {
+    [DataMember] public ExtractMethodOptions ExtractOptions { get; init; } = ExtractMethodOptions.Default;
+    [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
+    [DataMember] public LineFormattingOptions LineFormattingOptions { get; init; } = LineFormattingOptions.Default;
+
     public static ExtractMethodGenerationOptions GetDefault(HostLanguageServices languageServices)
-        => new(ExtractMethodOptions.Default,
-               CodeGenerationOptions.GetDefault(languageServices),
-               AddImportPlacementOptions.Default,
-               LineFormattingOptions.Default);
+        => new(CodeGenerationOptions.GetDefault(languageServices));
 }
 
 internal static class ExtractMethodGenerationOptionsProviders
@@ -54,11 +53,12 @@ internal static class ExtractMethodGenerationOptionsProviders
         var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions.Value.AddImportOptions, cancellationToken).ConfigureAwait(false);
         var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(fallbackOptions.Value.LineFormattingOptions, cancellationToken).ConfigureAwait(false);
 
-        return new ExtractMethodGenerationOptions(
-            extractOptions,
-            codeGenerationOptions,
-            addImportOptions,
-            lineFormattingOptions);
+        return new ExtractMethodGenerationOptions(codeGenerationOptions)
+        {
+            ExtractOptions = extractOptions,
+            AddImportOptions = addImportOptions,
+            LineFormattingOptions = lineFormattingOptions,
+        };
     }
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)

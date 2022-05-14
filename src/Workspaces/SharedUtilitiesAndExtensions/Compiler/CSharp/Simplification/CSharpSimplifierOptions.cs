@@ -3,16 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     [DataContract]
-    internal sealed class CSharpSimplifierOptions : SimplifierOptions
+    internal sealed class CSharpSimplifierOptions : SimplifierOptions, IEquatable<CSharpSimplifierOptions>
     {
         private static readonly CodeStyleOption2<PreferBracesPreference> s_defaultPreferBraces =
             new(PreferBracesPreference.Always, NotificationOption2.Silent);
@@ -25,29 +28,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         public static readonly CSharpSimplifierOptions Default = new();
 
-        [DataMember(Order = BaseMemberCount + 0)]
-        public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> VarForBuiltInTypes { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2<bool>.Default;
+        [DataMember] public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = s_trueWithSuggestionEnforcement;
+        [DataMember] public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = s_trueWithSilentEnforcement;
+        [DataMember] public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
+        [DataMember] public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = s_trueWithSuggestionEnforcement;
 
-        [DataMember(Order = BaseMemberCount + 1)]
-        public CodeStyleOption2<bool> VarWhenTypeIsApparent { get; init; } = CodeStyleOption2<bool>.Default;
+        public override bool Equals(object? obj)
+            => Equals(obj as CSharpSimplifierOptions);
 
-        [DataMember(Order = BaseMemberCount + 2)]
-        public CodeStyleOption2<bool> VarElsewhere { get; init; } = CodeStyleOption2<bool>.Default;
+        public bool Equals([AllowNull] CSharpSimplifierOptions other)
+            => other is not null &&
+               Common.Equals(other.Common) &&
+               VarForBuiltInTypes.Equals(other.VarForBuiltInTypes) &&
+               VarWhenTypeIsApparent.Equals(other.VarWhenTypeIsApparent) &&
+               VarElsewhere.Equals(other.VarElsewhere) &&
+               PreferSimpleDefaultExpression.Equals(other.PreferSimpleDefaultExpression) &&
+               PreferParameterNullChecking.Equals(other.PreferParameterNullChecking) &&
+               AllowEmbeddedStatementsOnSameLine.Equals(other.AllowEmbeddedStatementsOnSameLine) &&
+               PreferBraces.Equals(other.PreferBraces) &&
+               PreferThrowExpression.Equals(other.PreferThrowExpression);
 
-        [DataMember(Order = BaseMemberCount + 3)]
-        public CodeStyleOption2<bool> PreferSimpleDefaultExpression { get; init; } = s_trueWithSuggestionEnforcement;
-
-        [DataMember(Order = BaseMemberCount + 4)]
-        public CodeStyleOption2<bool> PreferParameterNullChecking { get; init; } = s_trueWithSuggestionEnforcement;
-
-        [DataMember(Order = BaseMemberCount + 5)]
-        public CodeStyleOption2<bool> AllowEmbeddedStatementsOnSameLine { get; init; } = s_trueWithSilentEnforcement;
-
-        [DataMember(Order = BaseMemberCount + 6)]
-        public CodeStyleOption2<PreferBracesPreference> PreferBraces { get; init; } = s_defaultPreferBraces;
-
-        [DataMember(Order = BaseMemberCount + 7)]
-        public CodeStyleOption2<bool> PreferThrowExpression { get; init; } = s_trueWithSuggestionEnforcement;
+        public override int GetHashCode()
+            => Hash.Combine(VarForBuiltInTypes,
+               Hash.Combine(VarWhenTypeIsApparent,
+               Hash.Combine(VarElsewhere,
+               Hash.Combine(PreferSimpleDefaultExpression,
+               Hash.Combine(PreferParameterNullChecking,
+               Hash.Combine(AllowEmbeddedStatementsOnSameLine,
+               Hash.Combine(PreferBraces,
+               Hash.Combine(PreferThrowExpression, 0))))))));
     }
 
     internal static class CSharpSimplifierOptionsProviders

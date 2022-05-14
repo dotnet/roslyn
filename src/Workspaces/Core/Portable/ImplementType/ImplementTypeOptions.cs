@@ -12,22 +12,21 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ImplementType
-{
-    [DataContract]
-    internal readonly record struct ImplementTypeOptions(
-        [property: DataMember(Order = 0)] ImplementTypeInsertionBehavior InsertionBehavior = ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
-        [property: DataMember(Order = 1)] ImplementTypePropertyGenerationBehavior PropertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties)
-    {
-        public ImplementTypeOptions()
-            : this(InsertionBehavior: ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind)
-        {
-        }
+namespace Microsoft.CodeAnalysis.ImplementType;
 
-        public static readonly ImplementTypeOptions Default = new();
+[DataContract]
+internal readonly record struct ImplementTypeOptions
+{
+    [DataMember] public ImplementTypeInsertionBehavior InsertionBehavior { get; init; } = ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+    [DataMember] public ImplementTypePropertyGenerationBehavior PropertyGenerationBehavior { get; init; } = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
+
+    public ImplementTypeOptions()
+    {
     }
 
-    internal readonly record struct ImplementTypeGenerationOptions(
-        ImplementTypeOptions ImplementTypeOptions,
-        CleanCodeGenerationOptionsProvider FallbackOptions);
+    public static readonly ImplementTypeOptions Default = new();
 }
+
+internal readonly record struct ImplementTypeGenerationOptions(
+    ImplementTypeOptions ImplementTypeOptions,
+    CleanCodeGenerationOptionsProvider FallbackOptions);

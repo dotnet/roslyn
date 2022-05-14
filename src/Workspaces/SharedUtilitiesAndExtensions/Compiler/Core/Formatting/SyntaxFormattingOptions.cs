@@ -20,15 +20,13 @@ internal abstract class SyntaxFormattingOptions
     {
         public static readonly CommonOptions Default = new();
 
-        [DataMember(Order = 0)] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
-        [DataMember(Order = 1)] public bool SeparateImportDirectiveGroups { get; init; } = false;
-        [DataMember(Order = 2)] public AccessibilityModifiersRequired AccessibilityModifiersRequired { get; init; } = AccessibilityModifiersRequired.ForNonInterfaceMembers;
+        [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
+        [DataMember] public bool SeparateImportDirectiveGroups { get; init; } = false;
+        [DataMember] public AccessibilityModifiersRequired AccessibilityModifiersRequired { get; init; } = AccessibilityModifiersRequired.ForNonInterfaceMembers;
     }
 
-    [DataMember(Order = 0)]
+    [DataMember]
     public CommonOptions Common { get; init; } = CommonOptions.Default;
-
-    protected const int BaseMemberCount = 1;
 
     public abstract SyntaxFormattingOptions With(LineFormattingOptions lineFormatting);
 

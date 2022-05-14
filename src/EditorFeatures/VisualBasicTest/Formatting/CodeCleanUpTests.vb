@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -336,16 +337,17 @@ End Class
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
 
-                Dim solution = workspace.CurrentSolution.
-                    WithOptions(workspace.Options.
-                        WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst).
-                        WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)).
-                    WithAnalyzerReferences(
-                    {
-                        New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                        New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                        New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                    })
+                ' must set global options since incremental analyzer infra reads from global options
+                Dim globalOptions = workspace.GlobalOptions
+                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), separateImportsGroups)
+                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic), systemImportsFirst)
+
+                Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
+                {
+                    New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
+                })
 
                 workspace.TryApplyChanges(solution)
 
@@ -360,21 +362,11 @@ End Class
 
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
-                Dim options = VisualBasicCodeActionOptions.Default.With(
-                    New VisualBasicSyntaxFormattingOptions() With
-                    {
-                        .Common = New SyntaxFormattingOptions.CommonOptions() With
-                        {
-                            .LineFormatting = LineFormattingOptions.Default,
-                            .SeparateImportDirectiveGroups = separateImportsGroups
-                        }
-                    })
-
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    options.CreateProvider(),
+                    globalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

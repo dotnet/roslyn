@@ -16,9 +16,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
         internal CodeActionOptions GetCodeActionOptions(HostLanguageServices languageServices)
             => CodeActionOptions.GetDefault(languageServices) with
             {
-                ImplementTypeOptions = new(
-                    InsertionBehavior: (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
-                    PropertyGenerationBehavior: (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior)
+                ImplementTypeOptions = new()
+                {
+                    InsertionBehavior = (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
+                    PropertyGenerationBehavior = (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior
+                }
             };
     }
 }

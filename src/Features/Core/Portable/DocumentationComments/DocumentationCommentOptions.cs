@@ -8,10 +8,17 @@ using Microsoft.CodeAnalysis.Formatting;
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
 [DataContract]
-internal readonly record struct DocumentationCommentOptions(
-    [property: DataMember(Order = 0)] LineFormattingOptions LineFormatting,
-    [property: DataMember(Order = 1)] bool AutoXmlDocCommentGeneration)
+internal readonly record struct DocumentationCommentOptions
 {
+    public static readonly DocumentationCommentOptions Default = new();
+
+    [DataMember] public LineFormattingOptions LineFormatting { get; init; } = LineFormattingOptions.Default;
+    [DataMember] public bool AutoXmlDocCommentGeneration { get; init; } = true;
+
+    public DocumentationCommentOptions()
+    {
+    }
+
     public bool UseTabs => LineFormatting.UseTabs;
     public int TabSize => LineFormatting.TabSize;
     public string NewLine => LineFormatting.NewLine;

@@ -81,7 +81,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Once LSP supports overtype we can move all of brace completion to LSP.
             if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
             {
-                var indentationOptions = new IndentationOptions(formattingOptions, _globalOptions.GetAutoFormattingOptions(document.Project.Language));
+                var indentationOptions = new IndentationOptions(formattingOptions)
+                {
+                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+                };
 
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
                     request, document, indentationOptions, cancellationToken).ConfigureAwait(false);

@@ -29,14 +29,12 @@ internal abstract class CodeGenerationOptions
     {
         public static readonly CommonOptions Default = new();
 
-        [DataMember(Order = 0)] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
-        [DataMember(Order = 1)] public bool AddNullChecksToConstructorsGeneratedFromMembers { get; init; } = false;
+        [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
+        [DataMember] public bool AddNullChecksToConstructorsGeneratedFromMembers { get; init; } = false;
     }
 
-    [DataMember(Order = 0)]
+    [DataMember]
     public CommonOptions Common { get; init; } = CommonOptions.Default;
-
-    protected const int BaseMemberCount = 1;
 
     public NamingStylePreferences NamingStyle => Common.NamingStyle;
     public bool AddNullChecksToConstructorsGeneratedFromMembers => Common.AddNullChecksToConstructorsGeneratedFromMembers;

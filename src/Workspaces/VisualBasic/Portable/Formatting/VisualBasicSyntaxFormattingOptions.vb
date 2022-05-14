@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     <DataContract>
     Friend NotInheritable Class VisualBasicSyntaxFormattingOptions
         Inherits SyntaxFormattingOptions
+        Implements IEquatable(Of VisualBasicSyntaxFormattingOptions)
 
         Public Shared ReadOnly [Default] As New VisualBasicSyntaxFormattingOptions()
 
@@ -34,6 +35,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     .AccessibilityModifiersRequired = AccessibilityModifiersRequired
                 }
             }
+        End Function
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, VisualBasicSyntaxFormattingOptions))
+        End Function
+
+        Public Overloads Function Equals(other As VisualBasicSyntaxFormattingOptions) As Boolean Implements IEquatable(Of VisualBasicSyntaxFormattingOptions).Equals
+            Return other IsNot Nothing AndAlso
+                   Common.Equals(other.Common)
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Common.GetHashCode()
         End Function
     End Class
 End Namespace

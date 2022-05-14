@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
     <DataContract>
     Friend NotInheritable Class VisualBasicIdeCodeStyleOptions
         Inherits IdeCodeStyleOptions
+        Implements IEquatable(Of VisualBasicIdeCodeStyleOptions)
 
         Private Shared ReadOnly s_unusedLocalVariableWithSilentEnforcement As New CodeStyleOption2(Of UnusedValuePreference)(
             UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent)
@@ -31,26 +32,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
         Private Shared ReadOnly s_defaultModifierOrder As New CodeStyleOption2(Of String)(
             String.Join(",", DefaultPreferredModifierOrder.Select(AddressOf SyntaxFacts.GetText)), NotificationOption2.Silent)
 
-        Public Shared ReadOnly [Default] As New VisualBasicIdeCodeStyleOptions()
+        Public Shared ReadOnly [Default] As New VisualBasicIdeCodeStyleOptions(CommonOptions.Default)
 
-        <DataMember(Order:=BaseMemberCount + 0)>
-        Public ReadOnly PreferredModifierOrder As CodeStyleOption2(Of String)
+        <DataMember> Public ReadOnly PreferredModifierOrder As CodeStyleOption2(Of String)
+        <DataMember> Public ReadOnly PreferIsNotExpression As CodeStyleOption2(Of Boolean)
+        <DataMember> Public ReadOnly PreferSimplifiedObjectCreation As CodeStyleOption2(Of Boolean)
+        <DataMember> Public ReadOnly UnusedValueExpressionStatement As CodeStyleOption2(Of UnusedValuePreference)
+        <DataMember> Public ReadOnly UnusedValueAssignment As CodeStyleOption2(Of UnusedValuePreference)
 
-        <DataMember(Order:=BaseMemberCount + 1)>
-        Public ReadOnly PreferIsNotExpression As CodeStyleOption2(Of Boolean)
-
-        <DataMember(Order:=BaseMemberCount + 2)>
-        Public ReadOnly PreferSimplifiedObjectCreation As CodeStyleOption2(Of Boolean)
-
-        <DataMember(Order:=BaseMemberCount + 3)>
-        Public ReadOnly UnusedValueExpressionStatement As CodeStyleOption2(Of UnusedValuePreference)
-
-        <DataMember(Order:=BaseMemberCount + 4)>
-        Public ReadOnly UnusedValueAssignment As CodeStyleOption2(Of UnusedValuePreference)
-
-#Disable Warning IDE1006 ' Record Naming Style
+#Disable Warning IDE1006 ' Parameter names must match field names for serialization
         Public Sub New(
-            Optional Common As CommonOptions = Nothing,
+            Common As CommonOptions,
             Optional PreferredModifierOrder As CodeStyleOption2(Of String) = Nothing,
             Optional PreferIsNotExpression As CodeStyleOption2(Of Boolean) = Nothing,
             Optional PreferSimplifiedObjectCreation As CodeStyleOption2(Of Boolean) = Nothing,
@@ -65,5 +57,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeStyle
             Me.UnusedValueExpressionStatement = If(UnusedValueExpressionStatement, s_unusedLocalVariableWithSilentEnforcement)
             Me.UnusedValueAssignment = If(UnusedValueAssignment, s_unusedLocalVariableWithSuggestionEnforcement)
         End Sub
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, VisualBasicIdeCodeStyleOptions))
+        End Function
+
+        Public Overloads Function Equals(other As VisualBasicIdeCodeStyleOptions) As Boolean Implements IEquatable(Of VisualBasicIdeCodeStyleOptions).Equals
+            Return other IsNot Nothing AndAlso
+                   Common.Equals(other.Common) AndAlso
+                   PreferredModifierOrder.Equals(other.PreferredModifierOrder) AndAlso
+                   PreferIsNotExpression.Equals(other.PreferIsNotExpression) AndAlso
+                   PreferSimplifiedObjectCreation.Equals(other.PreferSimplifiedObjectCreation) AndAlso
+                   UnusedValueExpressionStatement.Equals(other.UnusedValueExpressionStatement) AndAlso
+                   UnusedValueAssignment.Equals(other.UnusedValueAssignment)
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Hash.Combine(Common,
+                   Hash.Combine(PreferredModifierOrder,
+                   Hash.Combine(PreferIsNotExpression,
+                   Hash.Combine(PreferSimplifiedObjectCreation,
+                   Hash.Combine(UnusedValueExpressionStatement,
+                   Hash.Combine(UnusedValueAssignment, 0))))))
+        End Function
     End Class
 End Namespace

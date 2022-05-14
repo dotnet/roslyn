@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const int DefaultConditionalExpressionWrappingLength = 120;
 
 #if !CODE_STYLE
-        [DataMember(Order = 0)] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
-        [DataMember(Order = 1)] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
-        [DataMember(Order = 2)] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
-        [DataMember(Order = 3)] public CodeCleanupOptions CleanupOptions { get; init; }
-        [DataMember(Order = 4)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
-        [DataMember(Order = 5)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
+        [DataMember(Order = 0)] public CodeCleanupOptions CleanupOptions { get; init; }
+        [DataMember(Order = 1)] public CodeGenerationOptions CodeGenerationOptions { get; init; }
+        [DataMember(Order = 2)] public IdeCodeStyleOptions CodeStyleOptions { get; init; }
+        [DataMember(Order = 3)] public SymbolSearchOptions SearchOptions { get; init; } = SymbolSearchOptions.Default;
+        [DataMember(Order = 4)] public ImplementTypeOptions ImplementTypeOptions { get; init; } = ImplementTypeOptions.Default;
+        [DataMember(Order = 5)] public ExtractMethodOptions ExtractMethodOptions { get; init; } = ExtractMethodOptions.Default;
         [DataMember(Order = 6)] public bool HideAdvancedMembers { get; init; } = false;
         [DataMember(Order = 7)] public int WrappingColumn { get; init; } = DefaultWrappingColumn;
         [DataMember(Order = 8)] public int ConditionalExpressionWrappingLength { get; init; } = DefaultConditionalExpressionWrappingLength;
@@ -177,11 +177,12 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this CodeActionOptionsProvider provider, HostLanguageServices languageServices)
         {
             var codeActionOptions = provider.GetOptions(languageServices);
-            return new(
-                codeActionOptions.ExtractMethodOptions,
-                codeActionOptions.CodeGenerationOptions,
-                codeActionOptions.CleanupOptions.AddImportOptions,
-                codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting);
+            return new(codeActionOptions.CodeGenerationOptions)
+            {
+                ExtractOptions = codeActionOptions.ExtractMethodOptions,
+                AddImportOptions = codeActionOptions.CleanupOptions.AddImportOptions,
+                LineFormattingOptions = codeActionOptions.CleanupOptions.FormattingOptions.LineFormatting
+            };
         }
 #endif
     }

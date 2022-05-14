@@ -15,10 +15,10 @@ internal sealed record class LineFormattingOptions
 {
     public static readonly LineFormattingOptions Default = new();
 
-    [DataMember(Order = 0)] public bool UseTabs { get; init; } = false;
-    [DataMember(Order = 1)] public int TabSize { get; init; } = 4;
-    [DataMember(Order = 2)] public int IndentationSize { get; init; } = 4;
-    [DataMember(Order = 3)] public string NewLine { get; init; } = Environment.NewLine;
+    [DataMember] public bool UseTabs { get; init; } = false;
+    [DataMember] public int TabSize { get; init; } = 4;
+    [DataMember] public int IndentationSize { get; init; } = 4;
+    [DataMember] public string NewLine { get; init; } = Environment.NewLine;
 }
 
 internal interface LineFormattingOptionsProvider

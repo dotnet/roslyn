@@ -16,14 +16,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 internal static class ExtractMethodOptionsStorage
 {
     public static ExtractMethodOptions GetExtractMethodOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
-            DontPutOutOrRefOnStruct: globalOptions.GetOption(DontPutOutOrRefOnStruct, language));
+        => new()
+        {
+            DontPutOutOrRefOnStruct = globalOptions.GetOption(DontPutOutOrRefOnStruct, language)
+        };
 
     public static ExtractMethodGenerationOptions GetExtractMethodGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
-        => new(globalOptions.GetExtractMethodOptions(languageServices.Language),
-               globalOptions.GetCodeGenerationOptions(languageServices),
-               globalOptions.GetAddImportPlacementOptions(languageServices),
-               globalOptions.GetLineFormattingOptions(languageServices.Language));
+        => new(globalOptions.GetCodeGenerationOptions(languageServices))
+        {
+            ExtractOptions = globalOptions.GetExtractMethodOptions(languageServices.Language),
+            AddImportOptions = globalOptions.GetAddImportPlacementOptions(languageServices),
+            LineFormattingOptions = globalOptions.GetLineFormattingOptions(languageServices.Language)
+        };
 
     public static ValueTask<ExtractMethodGenerationOptions> GetExtractMethodGenerationOptionsAsync(this Document document, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         => document.GetExtractMethodGenerationOptionsAsync(globalOptions.GetExtractMethodGenerationOptions(document.Project.LanguageServices), cancellationToken);

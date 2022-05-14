@@ -7289,7 +7289,7 @@ class Class : IInterface
 }",
                 CodeActionOptions = (CSharpCodeActionOptions.Default with
                 {
-                    ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+                    ImplementTypeOptions = new() { InsertionBehavior = ImplementTypeInsertionBehavior.AtTheEnd }
                 }).CreateProvider()
             }.RunAsync();
         }
@@ -7464,7 +7464,7 @@ class Class : IInterface
 }",
                 CodeActionOptions = (CSharpCodeActionOptions.Default with
                 {
-                    ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
+                    ImplementTypeOptions = new() { PropertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferAutoProperties }
                 }).CreateProvider()
             }.RunAsync();
         }

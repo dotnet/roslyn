@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     }
 
     [DataContract]
-    internal sealed class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions
+    internal sealed class CSharpSyntaxFormattingOptions : SyntaxFormattingOptions, IEquatable<CSharpSyntaxFormattingOptions>
     {
         private static readonly CodeStyleOption2<NamespaceDeclarationPreference> s_defaultNamespaceDeclarations =
             new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent);
@@ -111,32 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static readonly CSharpSyntaxFormattingOptions Default = new();
 
-        [DataMember(Order = BaseMemberCount + 0)]
-        public SpacePlacement Spacing { get; init; } = SpacingDefault;
-
-        [DataMember(Order = BaseMemberCount + 1)]
-        public BinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; } = BinaryOperatorSpacingOptions.Single;
-
-        [DataMember(Order = BaseMemberCount + 2)]
-        public NewLinePlacement NewLines { get; init; } = NewLinesDefault;
-
-        [DataMember(Order = BaseMemberCount + 3)]
-        public LabelPositionOptions LabelPositioning { get; init; } = LabelPositionOptions.OneLess;
-
-        [DataMember(Order = BaseMemberCount + 4)]
-        public IndentationPlacement Indentation { get; init; } = IndentationDefault;
-
-        [DataMember(Order = BaseMemberCount + 5)]
-        public bool WrappingKeepStatementsOnSingleLine { get; init; } = true;
-
-        [DataMember(Order = BaseMemberCount + 6)]
-        public bool WrappingPreserveSingleLine { get; init; } = true;
-
-        [DataMember(Order = BaseMemberCount + 7)]
-        public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_defaultNamespaceDeclarations;
-
-        [DataMember(Order = BaseMemberCount + 8)]
-        public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
+        [DataMember] public SpacePlacement Spacing { get; init; } = SpacingDefault;
+        [DataMember] public BinaryOperatorSpacingOptions SpacingAroundBinaryOperator { get; init; } = BinaryOperatorSpacingOptions.Single;
+        [DataMember] public NewLinePlacement NewLines { get; init; } = NewLinesDefault;
+        [DataMember] public LabelPositionOptions LabelPositioning { get; init; } = LabelPositionOptions.OneLess;
+        [DataMember] public IndentationPlacement Indentation { get; init; } = IndentationDefault;
+        [DataMember] public bool WrappingKeepStatementsOnSingleLine { get; init; } = true;
+        [DataMember] public bool WrappingPreserveSingleLine { get; init; } = true;
+        [DataMember] public CodeStyleOption2<NamespaceDeclarationPreference> NamespaceDeclarations { get; init; } = s_defaultNamespaceDeclarations;
+        [DataMember] public CodeStyleOption2<bool> PreferTopLevelStatements { get; init; } = s_trueWithSilentEnforcement;
 
         public override SyntaxFormattingOptions With(LineFormattingOptions lineFormatting)
             => new CSharpSyntaxFormattingOptions()
@@ -152,6 +137,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 NamespaceDeclarations = NamespaceDeclarations,
                 PreferTopLevelStatements = PreferTopLevelStatements
             };
+
+        public override bool Equals(object? obj)
+            => Equals(obj as CSharpSyntaxFormattingOptions);
+
+        public bool Equals(CSharpSyntaxFormattingOptions? other)
+            => other is not null &&
+               Common.Equals(other.Common) &&
+               SpacingAroundBinaryOperator == other.SpacingAroundBinaryOperator &&
+               NewLines == other.NewLines &&
+               LabelPositioning == other.LabelPositioning &&
+               Indentation == other.Indentation &&
+               WrappingKeepStatementsOnSingleLine == other.WrappingKeepStatementsOnSingleLine &&
+               WrappingPreserveSingleLine == other.WrappingPreserveSingleLine &&
+               NamespaceDeclarations.Equals(other.NamespaceDeclarations) &&
+               PreferTopLevelStatements.Equals(other.PreferTopLevelStatements);
+
+        public override int GetHashCode()
+            => Hash.Combine(Common,
+               Hash.Combine((int)SpacingAroundBinaryOperator,
+               Hash.Combine((int)NewLines,
+               Hash.Combine((int)LabelPositioning,
+               Hash.Combine((int)Indentation,
+               Hash.Combine(WrappingKeepStatementsOnSingleLine,
+               Hash.Combine(WrappingPreserveSingleLine,
+               Hash.Combine(NamespaceDeclarations,
+               Hash.Combine(PreferTopLevelStatements, 0)))))))));
     }
 
     internal static class CSharpSyntaxFormattingOptionsProviders

@@ -16,8 +16,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     <DataContract>
     Friend NotInheritable Class VisualBasicCodeGenerationOptions
         Inherits CodeGenerationOptions
+        Implements IEquatable(Of VisualBasicCodeGenerationOptions)
 
         Public Shared ReadOnly [Default] As New VisualBasicCodeGenerationOptions()
+
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, VisualBasicCodeGenerationOptions))
+        End Function
+
+        Public Overloads Function Equals(other As VisualBasicCodeGenerationOptions) As Boolean Implements IEquatable(Of VisualBasicCodeGenerationOptions).Equals
+            Return other IsNot Nothing AndAlso
+                   Common.Equals(other.Common)
+        End Function
+
+        Public Overrides Function GetHashCode() As Integer
+            Return Common.GetHashCode()
+        End Function
 
 #If Not CODE_STYLE Then
         Public Overrides Function GetInfo(context As CodeGenerationContext, parseOptions As ParseOptions) As CodeGenerationContextInfo

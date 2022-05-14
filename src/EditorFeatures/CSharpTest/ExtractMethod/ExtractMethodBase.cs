@@ -131,11 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = new ExtractMethodGenerationOptions(
-                ExtractOptions: new ExtractMethodOptions(dontPutOutOrRefOnStruct),
-                CodeGenerationOptions: CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
-                AddImportOptions: AddImportPlacementOptions.Default,
-                LineFormattingOptions: LineFormattingOptions.Default);
+            var options = new ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.LanguageServices))
+            {
+                ExtractOptions = new() { DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
+            };
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);

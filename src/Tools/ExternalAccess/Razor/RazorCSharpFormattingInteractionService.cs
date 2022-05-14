@@ -53,9 +53,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var optionService = services.GetRequiredService<IOptionService>();
             var configOptions = documentOptions.AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
-            var indentationOptions = new IndentationOptions(
-               formattingService.GetFormattingOptions(configOptions, fallbackOptions),
-               globalOptions.GetAutoFormattingOptions(languageServices));
+            var indentationOptions = new IndentationOptions(formattingService.GetFormattingOptions(configOptions, fallbackOptions))
+            {
+                AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(languageServices)
+            };
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
         }
@@ -83,7 +84,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
 
             var formattingOptions = GetFormattingOptions(indentationOptions);
-            var roslynIndentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions.UnderlyingObject, (FormattingOptions2.IndentStyle)indentStyle);
+            var roslynIndentationOptions = new IndentationOptions(formattingOptions)
+            {
+                AutoFormattingOptions = autoFormattingOptions.UnderlyingObject,
+                IndentStyle = (FormattingOptions2.IndentStyle)indentStyle
+            };
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, roslynIndentationOptions, cancellationToken).ConfigureAwait(false);
         }

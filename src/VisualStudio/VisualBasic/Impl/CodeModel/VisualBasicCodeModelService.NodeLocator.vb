@@ -454,7 +454,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(enumBlock.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetMethodBlockStartPoint(text As SourceText, options As LineFormattingOptions, methodBlock As MethodBlockBaseSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetMethodBlockStartPoint(text As SourceText, options As LineFormattingOptions, methodBlock As MethodBlockBaseSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -782,7 +782,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return New VirtualTreePoint(propertyStatement.SyntaxTree, text, startPosition)
             End Function
 
-            Private Function GetEventBlockStartPoint(text As SourceText, options As LineFormattingOptions, eventBlock As EventBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetEventBlockStartPoint(text As SourceText, options As LineFormattingOptions, eventBlock As EventBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part
@@ -979,7 +979,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                     .FirstOrNull(Function(t) t.Kind = SyntaxKind.ColonTrivia)
             End Function
 
-            Private Function GetNamespaceBlockStartPoint(text As SourceText, options As LineFormattingOptions, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
+            Private Shared Function GetNamespaceBlockStartPoint(text As SourceText, options As LineFormattingOptions, namespaceBlock As NamespaceBlockSyntax, part As EnvDTE.vsCMPart) As VirtualTreePoint?
                 Dim startPosition As Integer
 
                 Select Case part

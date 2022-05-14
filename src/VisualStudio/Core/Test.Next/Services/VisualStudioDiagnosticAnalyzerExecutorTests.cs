@@ -30,6 +30,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -92,20 +93,31 @@ End Class";
 
             using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
-                // set option
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CodeStyleOptions2.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption2<bool>(false, NotificationOption2.Silent))));
-
                 var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic));
+
+                ideAnalyzerOptions = ideAnalyzerOptions with
+                {
+                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions(
+                        Common: new IdeCodeStyleOptions.CommonOptions()
+                        {
+                            PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
+                        })
+                };
 
                 var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
                 Assert.True(analyzerResult.IsEmpty);
 
-                // set option
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CodeStyleOptions2.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption2<bool>(true, NotificationOption2.Error))));
+                ideAnalyzerOptions = ideAnalyzerOptions with
+                {
+                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions(
+                        Common: new IdeCodeStyleOptions.CommonOptions()
+                        {
+                            PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                        })
+                };
+
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
                 var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);

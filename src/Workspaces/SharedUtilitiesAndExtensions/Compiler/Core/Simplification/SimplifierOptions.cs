@@ -29,18 +29,15 @@ namespace Microsoft.CodeAnalysis.Simplification
         {
             public static readonly CommonOptions Default = new();
 
-            [DataMember(Order = 0)] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = DefaultQualifyAccess;
-            [DataMember(Order = 1)] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = DefaultQualifyAccess;
-            [DataMember(Order = 2)] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = DefaultQualifyAccess;
-            [DataMember(Order = 3)] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = DefaultQualifyAccess;
-            [DataMember(Order = 4)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = DefaultPreferPredefinedTypeKeyword;
-            [DataMember(Order = 5)] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = DefaultPreferPredefinedTypeKeyword;
+            [DataMember] public CodeStyleOption2<bool> QualifyFieldAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember] public CodeStyleOption2<bool> QualifyPropertyAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember] public CodeStyleOption2<bool> QualifyMethodAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember] public CodeStyleOption2<bool> QualifyEventAccess { get; init; } = DefaultQualifyAccess;
+            [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInMemberAccess { get; init; } = DefaultPreferPredefinedTypeKeyword;
+            [DataMember] public CodeStyleOption2<bool> PreferPredefinedTypeKeywordInDeclaration { get; init; } = DefaultPreferPredefinedTypeKeyword;
         }
 
-        [DataMember(Order = 0)]
         public CommonOptions Common { get; init; } = CommonOptions.Default;
-
-        protected const int BaseMemberCount = 1;
 
         public CodeStyleOption2<bool> QualifyFieldAccess => Common.QualifyFieldAccess;
         public CodeStyleOption2<bool> QualifyPropertyAccess => Common.QualifyPropertyAccess;

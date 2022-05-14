@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -623,16 +624,17 @@ namespace A
         {
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
-            var solution = workspace.CurrentSolution
-                .WithOptions(workspace.Options
-                    .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
-                    .WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups)
-                    .WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement))
-                .WithAnalyzerReferences(new[]
-                {
-                    new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                    new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                });
+            // must set global options since incremental analyzer infra reads from global options
+            var globalOptions = workspace.GlobalOptions;
+            globalOptions.SetGlobalOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp), separateUsingGroups);
+            globalOptions.SetGlobalOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemUsingsFirst);
+            globalOptions.SetGlobalOption(new OptionKey(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement), preferredImportPlacement);
+
+            var solution = workspace.CurrentSolution.WithAnalyzerReferences(new[]
+            {
+                new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
+            });
 
             workspace.TryApplyChanges(solution);
 
@@ -646,24 +648,9 @@ namespace A
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
-            var defaultOptions = CodeActionOptions.GetDefault(document.Project.LanguageServices);
-
-            var fallbackOptions = defaultOptions with
-            {
-                CleanupOptions = defaultOptions.CleanupOptions with
-                {
-                    FormattingOptions = new CSharpSyntaxFormattingOptions()
-                    {
-                        Common = new SyntaxFormattingOptions.CommonOptions()
-                        {
-                            SeparateImportDirectiveGroups = separateUsingGroups
-                        }
-                    }
-                }
-            };
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), fallbackOptions.CreateProvider(), CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), globalOptions.CreateProvider(), CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

@@ -20,12 +20,12 @@ using Microsoft.CodeAnalysis.OrganizeImports;
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
 [DataContract]
-internal record class CodeCleanupOptions(
-    [property: DataMember(Order = 0)] SyntaxFormattingOptions FormattingOptions,
-    [property: DataMember(Order = 1)] SimplifierOptions SimplifierOptions)
+internal sealed record class CodeCleanupOptions(
+    [property: DataMember] SyntaxFormattingOptions FormattingOptions,
+    [property: DataMember] SimplifierOptions SimplifierOptions)
 {
-    [DataMember(Order = 2)] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
-    [DataMember(Order = 3)] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
+    [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
+    [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
 #if !CODE_STYLE
     public static CodeCleanupOptions GetDefault(HostLanguageServices languageServices)
