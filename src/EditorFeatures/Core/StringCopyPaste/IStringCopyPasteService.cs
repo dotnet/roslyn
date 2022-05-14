@@ -11,12 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 {
     internal interface IStringCopyPasteService : IWorkspaceService
     {
-        /// <summary>
-        /// Returns true or false if the last copy is known to be a line copy or not.  Returns null if it can't be
-        /// determined.
-        /// </summary>
-        bool? LastCopyWasLineCopy { get; }
-
         bool TrySetClipboardData(string key, string data);
         string? TryGetClipboardData(string key);
     }
@@ -40,7 +34,5 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
         public string? TryGetClipboardData(string key)
             => null;
-
-        public bool? LastCopyWasLineCopy => null;
     }
 }

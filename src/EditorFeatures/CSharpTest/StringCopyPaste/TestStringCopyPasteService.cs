@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         private string? _key;
         private string? _data;
 
-        public bool? LastCopyWasLineCopyData;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestStringCopyPasteService()
@@ -36,8 +34,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
         public string? TryGetClipboardData(string key)
             => _key == key ? _data : null;
-
-        public bool? LastCopyWasLineCopy
-            => this.LastCopyWasLineCopyData;
     }
 }

@@ -13,10 +13,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
     [ExportWorkspaceService(typeof(IStringCopyPasteService), ServiceLayer.Host), Shared]
     internal class WpfStringCopyPasteService : IStringCopyPasteService
     {
-        // Value from:
-        // https://devdiv.visualstudio.com/DevDiv/_git/VS-Platform?path=/src/Editor/Text/Impl/EditorOperations/EditorOperations.cs&version=GBmain&line=84&lineEnd=85&lineStartColumn=1&lineEndColumn=1&lineStyle=plain&_a=contents
-        private const string ClipboardLineBasedCutCopyTag = "VisualStudioEditorOperationsLineCutCopyClipboardTag";
-
         private const string RoslynFormat = nameof(RoslynFormat);
 
         [ImportingConstructor]
@@ -27,25 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.StringCopyPaste
 
         private static string GetFormat(string key)
             => $"{RoslynFormat}-{key}";
-
-        public bool? LastCopyWasLineCopy
-        {
-            get
-            {
-                try
-                {
-                    var dataObject = Clipboard.GetDataObject();
-
-                    return dataObject.GetDataPresent(ClipboardLineBasedCutCopyTag) &&
-                        dataObject.GetData(ClipboardLineBasedCutCopyTag) is bool value && value;
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-                {
-                }
-
-                return null;
-            }
-        }
 
         public bool TrySetClipboardData(string key, string data)
         {

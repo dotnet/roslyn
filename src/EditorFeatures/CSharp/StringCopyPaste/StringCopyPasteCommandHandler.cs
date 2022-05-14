@@ -121,14 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             if (documentBeforePaste == null || documentAfterPaste == null)
                 return;
 
-            var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
-
-            // If that last thing copied was a line copy (or we can't even figure out what it was), don't do
-            // anything.  There is special handling for line copy/paste that we don't want to interfere with.
-            var lastCopyIsLineCopy = copyPasteService.LastCopyWasLineCopy;
-            if (lastCopyIsLineCopy is true or null)
-                return;
-
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
             // When pasting, only do anything special if the user selections were entirely inside a single string
@@ -225,6 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (selectionsBeforePaste.Count != 1)
                     return default;
 
+                var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
                 var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
                 var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 
