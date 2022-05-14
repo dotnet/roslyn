@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -22,5 +23,11 @@ namespace Microsoft.CodeAnalysis.Options
         {
             GlobalOptions = globalOptions;
         }
+
+        public bool RazorUseTabs
+            => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
+
+        public int RazorTabSize
+            => GlobalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
     }
 }

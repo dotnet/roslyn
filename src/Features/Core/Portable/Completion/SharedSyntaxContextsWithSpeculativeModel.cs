@@ -35,16 +35,16 @@ namespace Microsoft.CodeAnalysis.Completion
                 if (_document.Id != document.Id && !_lazyRelatedDocumentIds.Value.Contains(document.Id))
                     throw new ArgumentException("Don't support getting SyntaxContext for document unrelated to the original document");
 
-                lazyContext = GetLazySyntaxContextWithSpeculativeModel(document);
+                lazyContext = GetLazySyntaxContextWithSpeculativeModel(document, this);
             }
 
             return lazyContext.GetValueAsync(cancellationToken);
 
             // Extract a local function to avoid creating a closure for code path of cache hit.
-            AsyncLazy<SyntaxContext> GetLazySyntaxContextWithSpeculativeModel(Document document)
+            static AsyncLazy<SyntaxContext> GetLazySyntaxContextWithSpeculativeModel(Document document, SharedSyntaxContextsWithSpeculativeModel self)
             {
-                return _cache.GetOrAdd(document, d => AsyncLazy.Create(cancellationToken
-                    => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, _position, cancellationToken), cacheResult: true));
+                return self._cache.GetOrAdd(document, d => AsyncLazy.Create(cancellationToken
+                    => CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(d, self._position, cancellationToken), cacheResult: true));
             }
         }
     }

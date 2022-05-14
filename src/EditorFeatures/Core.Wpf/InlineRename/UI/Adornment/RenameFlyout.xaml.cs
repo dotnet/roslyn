@@ -8,17 +8,17 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     /// <summary>
     /// Interaction logic for InlineRenameAdornment.xaml
     /// </summary>
-    internal partial class InlineRenameAdornment : UserControl, IDisposable
+    internal partial class RenameFlyout : InlineRenameAdornment
     {
-        private readonly InlineRenameAdornmentViewModel _viewModel;
+        private readonly RenameFlyoutViewModel _viewModel;
         private readonly ITextView _textView;
 
-        public InlineRenameAdornment(InlineRenameAdornmentViewModel viewModel, ITextView textView)
+        public RenameFlyout(RenameFlyoutViewModel viewModel, ITextView textView)
         {
             DataContext = _viewModel = viewModel;
             _textView = textView;
@@ -29,8 +29,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             _textView.LostAggregateFocus += TextView_LostFocus;
             _textView.Caret.PositionChanged += TextView_CursorChanged;
 
-            // On initialization focus the first tab target
-            Initialized += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            // On load focus the first tab target
+            Loaded += (s, e) =>
+            {
+                Focus();
+                MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+            };
 
             InitializeComponent();
             PositionAdornment();
@@ -67,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             Canvas.SetLeft(this, left);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _viewModel.Dispose();
 

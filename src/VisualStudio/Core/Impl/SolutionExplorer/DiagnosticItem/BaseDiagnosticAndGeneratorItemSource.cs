@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 .Select(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions?.Result);
+                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions?.AnalyzerOptions, analyzerConfigOptions?.TreeOptions);
                     return new DiagnosticItem(projectId, AnalyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 }));
 
@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                     foreach (var item in _items.OfType<DiagnosticItem>())
                     {
-                        var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions?.Result);
+                        var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions?.AnalyzerOptions, newAnalyzerConfigOptions?.TreeOptions);
                         item.UpdateEffectiveSeverity(effectiveSeverity);
                     }
                 }
