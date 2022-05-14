@@ -25,7 +25,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
-    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationPreferences>
+    internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationContextInfo>
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            CSharpCodeGenerationPreferences preferences, SyntaxNode property,
+            CSharpCodeGenerationContextInfo info, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
             // C# might have trivia with the accessors that needs to be preserved.  
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var (getAccessor, setAccessor) = GetExistingAccessors(accessorListSyntax);
 
             var getAccessorStatement = generator.ReturnStatement(generator.IdentifierName(fieldName));
-            var newGetter = GetUpdatedAccessor(preferences, getAccessor, getAccessorStatement);
+            var newGetter = GetUpdatedAccessor(info, getAccessor, getAccessorStatement);
 
             SyntaxNode newSetter = null;
             if (setAccessor != null)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 var setAccessorStatement = generator.ExpressionStatement(generator.AssignmentStatement(
                     generator.IdentifierName(fieldName),
                     generator.IdentifierName("value")));
-                newSetter = GetUpdatedAccessor(preferences, setAccessor, setAccessorStatement);
+                newSetter = GetUpdatedAccessor(info, setAccessor, setAccessorStatement);
             }
 
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
@@ -75,20 +75,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration) ||
                                                                  a.IsKind(SyntaxKind.InitAccessorDeclaration)));
 
-        private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationPreferences preferences,
+        private static SyntaxNode GetUpdatedAccessor(CSharpCodeGenerationContextInfo info,
             SyntaxNode accessor, SyntaxNode statement)
         {
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
 
-            var preference = preferences.PreferExpressionBodiedAccessors;
+            var preference = info.Options.PreferExpressionBodiedAccessors.Value;
             if (preference == ExpressionBodyPreference.Never)
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
             }
 
             if (!accessorDeclarationSyntax.Body.TryConvertToArrowExpressionBody(
-                    accessorDeclarationSyntax.Kind(), preferences.LanguageVersion, preference,
+                    accessorDeclarationSyntax.Kind(), info.LanguageVersion, preference,
                     out var arrowExpression, out _))
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
@@ -113,11 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override SyntaxNode ConvertPropertyToExpressionBodyIfDesired(
-            CSharpCodeGenerationPreferences preferences, SyntaxNode property)
+            CSharpCodeGenerationContextInfo info, SyntaxNode property)
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
 
-            var preference = preferences.PreferExpressionBodiedProperties;
+            var preference = info.Options.PreferExpressionBodiedProperties.Value;
             if (preference == ExpressionBodyPreference.Never)
             {
                 return propertyDeclaration.WithSemicolonToken(default);

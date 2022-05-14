@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
         internal DisambiguousTargetMenuItemViewModel(
             string displayContent,
             ImageMoniker imageMoniker,
-            DefinitionItem.DetachedDefinitionItem definitionItem,
+            DetachedDefinitionItem definitionItem,
             ImageMoniker languageMoniker) : base(displayContent, imageMoniker, definitionItem)
         {
             LanguageMoniker = languageMoniker;

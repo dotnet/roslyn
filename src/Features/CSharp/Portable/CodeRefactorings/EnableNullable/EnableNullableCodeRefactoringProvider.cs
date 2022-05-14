@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             }
 
             context.RegisterRefactoring(
-                new MyCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, cancellationToken)));
+                new CustomCodeAction((purpose, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, cancellationToken)));
         }
 
         private static async Task<Solution> EnableNullableReferenceTypesAsync(Project project, CodeActionPurpose purpose, CancellationToken cancellationToken)
@@ -252,11 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable
             Apply,
         }
 
-        private sealed class MyCodeAction : CodeAction.SolutionChangeAction
+        private sealed class CustomCodeAction : CodeAction.SolutionChangeAction
         {
             private readonly Func<CodeActionPurpose, CancellationToken, Task<Solution>> _createChangedSolution;
 
-            public MyCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
+            public CustomCodeAction(Func<CodeActionPurpose, CancellationToken, Task<Solution>> createChangedSolution)
                 : base(
                     CSharpFeaturesResources.Enable_nullable_reference_types_in_project,
                     cancellationToken => createChangedSolution(CodeActionPurpose.Apply, cancellationToken),

@@ -63,8 +63,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _scheduler = _options.Explicit ? TaskScheduler.Default : s_exclusiveScheduler;
         }
 
-        public async Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(ISymbol symbol, CancellationToken cancellationToken)
+            => FindReferencesAsync(ImmutableArray.Create(symbol), cancellationToken);
+
+        public async Task FindReferencesAsync(
+            ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
+            var unifiedSymbols = new MetadataUnifyingSymbolHashSet();
+            unifiedSymbols.AddRange(symbols);
+
             await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
             try
             {
@@ -72,8 +79,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 await using var _ = disposable.ConfigureAwait(false);
 
                 // Create the initial set of symbols to search for.  As we walk the appropriate projects in the solution
-                // we'll expand this set as we dicover new symbols to search for in each project.
-                var symbolSet = await SymbolSet.CreateAsync(this, symbol, cancellationToken).ConfigureAwait(false);
+                // we'll expand this set as we discover new symbols to search for in each project.
+                var symbolSet = await SymbolSet.CreateAsync(this, unifiedSymbols, cancellationToken).ConfigureAwait(false);
 
                 // Report the initial set of symbols to the caller.
                 var allSymbols = symbolSet.GetAllSymbols();
@@ -81,7 +88,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
                 // set of documents to search, we only bother with those.
-                var projectsToSearch = await GetProjectIdsToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
+                var projectsToSearch = await GetProjectToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
                 // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
                 // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,
@@ -89,16 +96,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // then process the projects in parallel once we know the set of symbols we're searching for in that
                 // project.
                 var dependencyGraph = _solution.GetProjectDependencyGraph();
-                await _progressTracker.AddItemsAsync(projectsToSearch.Count, cancellationToken).ConfigureAwait(false);
+                await _progressTracker.AddItemsAsync(projectsToSearch.Length, cancellationToken).ConfigureAwait(false);
 
                 using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
 
                 foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects(cancellationToken))
                 {
-                    if (!projectsToSearch.Contains(projectId))
-                        continue;
-
                     var currentProject = _solution.GetRequiredProject(projectId);
+                    if (!projectsToSearch.Contains(currentProject))
+                        continue;
 
                     // As we walk each project, attempt to grow the search set appropriately up and down the inheritance
                     // hierarchy and grab a copy of the symbols to be processed.  Note: this has to happen serially
@@ -135,7 +141,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var symbol in symbols)
             {
                 // See if this is the first time we're running across this symbol.  Note: no locks are needed
-                // here betwen checking and then adding because this is only ever called serially from within
+                // here between checking and then adding because this is only ever called serially from within
                 // FindReferencesAsync above (though we still need a ConcurrentDictionary as reads of these 
                 // symbols will happen later in ProcessDocumentAsync.  However, those reads will only happen
                 // after the dependent symbol values were written in, so it will be safe to blindly read them
@@ -153,24 +159,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        private async Task<HashSet<ProjectId>> GetProjectIdsToSearchAsync(
+        private Task<ImmutableArray<Project>> GetProjectToSearchAsync(
             ImmutableArray<ISymbol> symbols, CancellationToken cancellationToken)
         {
             var projects = _documents != null
                 ? _documents.Select(d => d.Project).ToImmutableHashSet()
                 : _solution.Projects.ToImmutableHashSet();
 
-            var result = new HashSet<ProjectId>();
-
-            foreach (var symbol in symbols)
-            {
-                var dependentProjects = await DependentProjectsFinder.GetDependentProjectsAsync(
-                    _solution, symbol, projects, cancellationToken).ConfigureAwait(false);
-                foreach (var project in dependentProjects)
-                    result.Add(project.Id);
-            }
-
-            return result;
+            return DependentProjectsFinder.GetDependentProjectsAsync(_solution, symbols, projects, cancellationToken);
         }
 
         private async Task ProcessProjectAsync(Project project, ImmutableArray<ISymbol> allSymbols, CancellationToken cancellationToken)
@@ -281,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (Logger.LogBlock(FunctionId.FindReference_ProcessDocumentAsync, cancellationToken))
             {
                 // This is safe to just blindly read. We can only ever get here after the call to ReportGroupsAsync
-                // happened.  So tehre must be a group for this symbol in our map.
+                // happened.  So there must be a group for this symbol in our map.
                 var group = _symbolToGroup[symbol];
                 foreach (var finder in _finders)
                 {

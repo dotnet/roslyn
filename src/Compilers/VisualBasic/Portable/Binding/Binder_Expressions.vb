@@ -3934,7 +3934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else
                     err = ERRID.ERR_TooFewIndices
                 End If
-                ReportDiagnostic(diagnostics, node.ArgumentList, err, node.ToString())
+                ReportDiagnostic(diagnostics, node.ArgumentList, err)
                 Return New BoundArrayAccess(node, expr, boundArguments, arrayType.ElementType, hasErrors:=True)
             End If
 

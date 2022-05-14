@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         {
             public readonly Task<string> GetEventNameTask;
             private readonly IThreadingContext _threadingContext;
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
             private readonly ITrackingPoint _trackingPoint;
             private readonly ITrackingSpan _trackingSpan;
             private readonly ITextView _textView;
@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 Mutex testSessionHookupMutex)
             {
                 _threadingContext = eventHookupSessionManager.ThreadingContext;
-                _cancellationTokenSource = new CancellationTokenSource();
                 var cancellationToken = _cancellationTokenSource.Token;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;

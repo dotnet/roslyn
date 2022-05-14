@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeGeneration;
 #endif
 
 namespace Microsoft.CodeAnalysis.Simplification
@@ -85,6 +86,13 @@ namespace Microsoft.CodeAnalysis.Simplification
 #endif
     }
 
+    internal interface SimplifierOptionsProvider
+#if !CODE_STYLE
+        : OptionsProvider<SimplifierOptions>
+#endif
+    {
+    }
+
 #if !CODE_STYLE
     internal static class SimplifierOptionsProviders
     {
@@ -94,12 +102,8 @@ namespace Microsoft.CodeAnalysis.Simplification
             return SimplifierOptions.Create(documentOptions, document.Project.Solution.Workspace.Services, fallbackOptions, document.Project.Language);
         }
 
-        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetSimplifierOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.SimplifierOptions ?? SimplifierOptions.GetDefault(document.Project.LanguageServices), cancellationToken).ConfigureAwait(false);
-
-        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetSimplifierOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).SimplifierOptions, cancellationToken).ConfigureAwait(false);
-
+        public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, SimplifierOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+            => await document.GetSimplifierOptionsAsync(await fallbackOptionsProvider.GetOptionsAsync(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 #endif
 }

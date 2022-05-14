@@ -57,14 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             private readonly ISemanticFactsService _semanticFacts;
             private readonly CancellationToken _cancellationToken;
             private readonly QueryExpressionSyntax _source;
-            private readonly List<string> _introducedLocalNames;
+            private readonly List<string> _introducedLocalNames = new();
 
             public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, QueryExpressionSyntax source, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
                 _semanticFacts = semanticFacts;
                 _source = source;
-                _introducedLocalNames = new List<string>();
                 _cancellationToken = cancellationToken;
             }
 

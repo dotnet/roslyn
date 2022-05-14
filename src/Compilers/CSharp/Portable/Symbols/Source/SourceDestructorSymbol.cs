@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (containingType.IsStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location, this);
+                diagnostics.Add(ErrorCode.ERR_DestructorInStaticClass, location);
             }
             else if (!containingType.IsReferenceType)
             {
-                diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location, this);
+                diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, location);
             }
 
             CheckForBlockAndExpressionBody(

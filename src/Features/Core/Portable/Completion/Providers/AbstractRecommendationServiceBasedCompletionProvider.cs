@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var recommendationOptions = options.ToRecommendationServiceOptions();
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, recommendationOptions, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
 
             if (context.IsInTaskLikeTypeContext)
             {
@@ -178,7 +178,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var relatedId in relatedDocumentIds)
             {
                 var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedId);
-                var context = await CreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                var context = await CompletionHelper.CreateSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+                Contract.ThrowIfNull(context);
                 var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);
 
                 if (!symbols.IsDefault)

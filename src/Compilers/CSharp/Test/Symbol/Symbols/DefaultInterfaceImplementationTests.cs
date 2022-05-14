@@ -3189,7 +3189,7 @@ public interface I1
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
                     // (4,9): error CS8053: Instance properties in interfaces cannot have initializers.
                     //     int P1 {add; remove;} = 0;
-                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9),
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 9),
                     // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
                     //     int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 9)
@@ -3223,7 +3223,7 @@ public interface I1
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 34),
                     // (4,25): error CS8050: Only auto-implemented properties can have initializers.
                     //     static abstract int P1 {add; remove;} = 0;
-                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 25),
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 25),
                     // (4,25): error CS0548: 'I1.P1': property or indexer must have at least one accessor
                     //     static abstract int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 25)
@@ -3287,7 +3287,7 @@ public interface I1
                 compilation1.VerifyEmitDiagnostics(
                     // (4,9): error CS8053: Instance properties in interfaces cannot have initializers..
                     //     int P1 {get; set;} = 0;
-                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9)
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 9)
                     );
 
                 var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3312,7 +3312,7 @@ public interface I1
                 compilation1.VerifyEmitDiagnostics(
                     // (4,25): error CS8050: Only auto-implemented properties can have initializers.
                     //     static abstract int P1 {get; set;} = 0;
-                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I1.P1").WithLocation(4, 25)
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 25)
                     );
 
                 var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -13505,7 +13505,7 @@ public interface I1
             compilation1.VerifyEmitDiagnostics(
                 // (4,24): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public virtual int P1 { get; } = 0; 
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 24),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 24),
                 // (4,29): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public virtual int P1 { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 29)
@@ -14322,7 +14322,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 24),
                 // (14,17): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     private int P4 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(14, 17),
                 // (14,21): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P4 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P4.get").WithLocation(14, 21),
@@ -15767,7 +15767,7 @@ class Test2 : I1, I2, I3
             ValidatePropertyModifiers_14(source1,
                 // (4,23): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public sealed int P1 {get;} = 0; 
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 23),
                 // (4,27): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public sealed int P1 {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(4, 27),
@@ -16030,7 +16030,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("property", "I8.P8").WithLocation(44, 26),
                 // (44,26): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract virtual int P8 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithArguments("I8.P8").WithLocation(44, 26),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithLocation(44, 26),
                 // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.P0'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.P0").WithLocation(90, 15),
@@ -16478,7 +16478,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I4.P4.set").WithLocation(16, 47),
                 // (20,23): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     extern sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(20, 23),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test1", "I1.P1").WithLocation(23, 15),
@@ -16710,7 +16710,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 25),
                 // (20,25): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     override sealed int P5 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 25),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(20, 25),
                 // (20,29): error CS0501: 'I5.P5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I5.P5.get").WithLocation(20, 29),
@@ -36551,7 +36551,7 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_04(source1, isStatic: true,
                 // (15,23): error CS8051: Auto-implemented properties must have get accessors.
                 //     static int I4.M1 {set;} 
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("I1.I4.M1.set").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(15, 23)
                 );
         }
 
@@ -37183,7 +37183,7 @@ class Test2 : I4
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M3.set").WithLocation(43, 21),
                 // (44,12): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     int I3.M4 {get; set;} = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "M4").WithLocation(44, 12),
                 // (44,16): error CS0501: 'I4.I3.M4.get' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M4 {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.M4.get").WithLocation(44, 16),
@@ -44004,7 +44004,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.F1.set").WithLocation(4, 26),
                 // (5,17): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     private int F5 {get;} = 5;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "F5").WithArguments("I1.F5").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "F5").WithLocation(5, 17),
                 // (5,21): error CS0501: 'I1.F5.get' must declare a body because it is not marked abstract, extern, or partial
                 //     private int F5 {get;} = 5;
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.F5.get").WithLocation(5, 21)
@@ -55773,7 +55773,7 @@ public class C2 : I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26 + implModifiers.Length)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(9, 26 + implModifiers.Length)
                 );
         }
 
@@ -55802,7 +55802,7 @@ public struct C2 : I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("abstract").WithLocation(9, 21 + implModifiers.Length),
                 // (9,26): error CS8051: Auto-implemented properties must have get accessors.
                 //     abstract int I1.P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C2.I1.P1.set").WithLocation(9, 26 + implModifiers.Length)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(9, 26 + implModifiers.Length)
                 );
         }
 
@@ -55899,7 +55899,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1,
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; set; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -55928,7 +55928,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
                 // (9,28): error CS8050: Only auto-implemented properties can have initializers.
                 //     static abstract int I1.P1 { get; set; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -55957,7 +55957,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1,
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -55986,7 +55986,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
                 // (9,28): error CS8050: Only auto-implemented properties can have initializers.
                 //     static abstract int I1.P1 { get; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -56015,7 +56015,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1,
                 // (9,21): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     abstract int I1.P1 { set; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithArguments("I2.I1.P1").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(9, 21),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -56044,7 +56044,7 @@ class Test1 : I2
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
                 // (9,28): error CS8050: Only auto-implemented properties can have initializers.
                 //     static abstract int I1.P1 { set; } = 0;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithArguments("I2.I1.P1").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.P1").WithLocation(12, 15)
@@ -66819,16 +66819,16 @@ interface IC
             compilation1.VerifyDiagnostics(
                 // (4,20): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref int PA { get;}
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithArguments("IA.PA").WithLocation(4, 20),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PA").WithLocation(4, 20),
                 // (9,20): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithArguments("IB.PB").WithLocation(9, 20),
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PB").WithLocation(9, 20),
                 // (9,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     static ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 30),
                 // (14,20): error CS8146: Properties which return by reference must have a get accessor
                 //     static ref int PC { set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20)
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 20)
                 );
         }
 
@@ -66858,10 +66858,10 @@ interface IC
             compilation1.VerifyDiagnostics(
                 // (9,23): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 23),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 23),
                 // (14,13): error CS8146: Properties which return by reference must have a get accessor
                 //     ref int PC { set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 13)
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 13)
                 );
         }
 
@@ -66897,13 +66897,13 @@ interface IC
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("IB.PB.get").WithLocation(9, 25),
                 // (9,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     sealed ref int PB { get; set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 30),
                 // (9,30): error CS0501: 'IB.PB.set' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed ref int PB { get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IB.PB.set").WithLocation(9, 30),
                 // (14,20): error CS8146: Properties which return by reference must have a get accessor
                 //     sealed ref int PC { set;}
-                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithArguments("IC.PC").WithLocation(14, 20),
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 20),
                 // (14,25): error CS0501: 'IC.PC.set' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed ref int PC { set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IC.PC.set").WithLocation(14, 25)

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Imaging;
@@ -91,12 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 return KnownMonikers.Overridden;
             }
 
+            if (inheritanceRelationship.HasFlag(InheritanceRelationship.InheritedImport))
+                return KnownMonikers.NamespaceShortcut;
+
             // The relationship is None. Don't know what image should be shown, throws
             throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
         }
 
-        public static ImmutableArray<MenuItemViewModel> CreateModelsForTargetItems(
-            ImmutableArray<InheritanceTargetItem> targets)
+        public static ImmutableArray<MenuItemViewModel> CreateModelsForMarginItem(InheritanceMarginItem item)
         {
             var nameToTargets = s_pool.Allocate();
             try
@@ -104,13 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 // Create a mapping from display name to all targets with that name.  This will allow us to determine if
                 // there may be multiple results with the same name, so we can disambiguate them with additional
                 // information later on when we create the items.
+                var targets = item.TargetItems;
                 foreach (var target in targets)
                     nameToTargets.Add(target.DisplayName, target);
 
-                return targets.OrderBy(t => t.DisplayName).ThenBy(t => t.LanguageName).ThenBy(t => t.ProjectName ?? "")
-                              .GroupBy(t => t.RelationToMember)
-                              .SelectMany(g => CreateMenuItemsWithHeader(g.Key, g, nameToTargets))
-                              .ToImmutableArray();
+                return item.TargetItems
+                    .GroupBy(t => t.RelationToMember)
+                    .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
+                    .ToImmutableArray();
             }
             finally
             {
@@ -137,10 +141,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
             // For multiple members, check if all the targets have the same inheritance relationship.
             // If so, then don't add the header, because it is already indicated by the margin.
             // Otherwise, add the Header.
-            return members.SelectAsArray(MemberMenuItemViewModel.CreateWithHeaderInTargets).CastArray<MenuItemViewModel>();
+            return members.SelectAsArray(m => new MemberMenuItemViewModel(
+                m.DisplayTexts.JoinText(),
+                m.Glyph.GetImageMoniker(),
+                CreateModelsForMarginItem(m))).CastArray<MenuItemViewModel>();
         }
 
         public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
+            InheritanceMarginItem item,
             InheritanceRelationship relationship,
             IEnumerable<InheritanceTargetItem> targets,
             MultiDictionary<string, InheritanceTargetItem> nameToTargets)
@@ -157,6 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 InheritanceRelationship.OverriddenMember => ServicesVSResources.Overridden_members,
                 InheritanceRelationship.OverridingMember => ServicesVSResources.Overriding_members,
                 InheritanceRelationship.ImplementingMember => ServicesVSResources.Implementing_members,
+                InheritanceRelationship.InheritedImport => item.DisplayTexts.JoinText(),
                 _ => throw ExceptionUtilities.UnexpectedValue(relationship)
             };
 
@@ -168,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
                 {
                     // Two or more items with the same name.  Try to disambiguate them based on their languages if
                     // they're all distinct, or their project name if they're not.
-                    var distinctLanguageCount = targetsWithSameName.Select(t => t.LanguageName).Distinct().Count();
+                    var distinctLanguageCount = targetsWithSameName.Select(t => t.LanguageGlyph).Distinct().Count();
                     if (distinctLanguageCount == targetsWithSameName.Count)
                     {
                         builder.Add(DisambiguousTargetMenuItemViewModel.CreateWithSourceLanguageGlyph(target));
