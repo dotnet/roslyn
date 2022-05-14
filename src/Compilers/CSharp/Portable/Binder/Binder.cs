@@ -243,8 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual SyntaxTree AssociatedSyntaxTree => NextRequired.AssociatedSyntaxTree;
-
         /// <summary>
         /// Are we in a context where un-annotated types should be interpreted as non-null?
         /// </summary>

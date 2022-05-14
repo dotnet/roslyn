@@ -15,10 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal class BuckStopsHereBinder : Binder
     {
-        internal BuckStopsHereBinder(CSharpCompilation compilation)
+        internal BuckStopsHereBinder(CSharpCompilation compilation, SyntaxTree? associatedSyntaxTree)
             : base(compilation)
         {
+            this.AssociatedSyntaxTree = associatedSyntaxTree;
         }
+
+        /// <summary>
+        /// In non-speculative scenarios, the syntax tree being bound.
+        /// In speculative scenarios, the syntax tree from the original compilation used as the speculation context.
+        /// PROTOTYPE(ft): what about in EE scenarios?
+        /// </summary>
+        internal readonly SyntaxTree? AssociatedSyntaxTree;
 
         internal override ImportChain? ImportChain
         {
@@ -49,9 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return null;
         }
-
-        // PROTOTYPE(ft): should the return type be nullable?
-        internal override SyntaxTree AssociatedSyntaxTree => throw ExceptionUtilities.Unreachable;
 
         internal override uint LocalScopeDepth => Binder.ExternalScope;
 

@@ -1306,6 +1306,32 @@ symIsHidden:;
             }
         }
 
+        private bool IsInScopeOfAssociatedSyntaxTree(Symbol symbol)
+        {
+            if (symbol is not SourceMemberContainerTypeSymbol { IsFile: true })
+            {
+                return true;
+            }
+
+            var tree = getSyntaxTreeForFileTypes();
+            return symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null);
+
+            SyntaxTree getSyntaxTreeForFileTypes()
+            {
+                for (var binder = this; binder != null; binder = binder.Next)
+                {
+                    if (binder is BuckStopsHereBinder lastBinder)
+                    {
+                        Debug.Assert(lastBinder.AssociatedSyntaxTree is not null);
+                        return lastBinder.AssociatedSyntaxTree;
+                    }
+                }
+
+                Debug.Assert(false);
+                return null;
+            }
+        }
+
         /// <remarks>
         /// Distinguish from <see cref="CanAddLookupSymbolInfo"/>, which performs an analogous task for Add*LookupSymbolsInfo*.
         /// </remarks>
@@ -1322,7 +1348,7 @@ symIsHidden:;
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
-            if (unwrappedSymbol is SourceNamedTypeSymbol { IsFile: true } && !unwrappedSymbol.IsDefinedInSourceTree(this.AssociatedSyntaxTree, definedWithinSpan: null))
+            if (!IsInScopeOfAssociatedSyntaxTree(unwrappedSymbol))
             {
                 return LookupResult.Empty();
             }
@@ -1523,6 +1549,10 @@ symIsHidden:;
             }
             else if (InCref ? !this.IsCrefAccessible(symbol)
                             : !this.IsAccessible(symbol, ref discardedUseSiteInfo, RefineAccessThroughType(options, accessThroughType)))
+            {
+                return false;
+            }
+            else if (!IsInScopeOfAssociatedSyntaxTree(symbol))
             {
                 return false;
             }

@@ -1361,6 +1361,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return foundType is not null;
         }
 
+        public static bool IsFileTypeInSeparateFileFrom(this SourceNamedTypeSymbol possibleFileType, SourceNamedTypeSymbol otherSymbol)
+        {
+            if (!possibleFileType.IsFile)
+            {
+                return false;
+            }
+
+            var leftTree = possibleFileType.MergedDeclaration.Declarations[0].Location.SourceTree;
+            if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool IsPointerType(this TypeSymbol type)
         {
             return type is PointerTypeSymbol;

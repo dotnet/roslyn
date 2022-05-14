@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         switch (nts, other)
                         {
-                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isLeftAFileTypeInSeparateSourceTreeFromRight(left, right) || isLeftAFileTypeInSeparateSourceTreeFromRight(right, left):
+                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when left.IsFileTypeInSeparateFileFrom(right) || right.IsFileTypeInSeparateFileFrom(left):
                                 // no error
                                 break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
@@ -383,24 +383,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             default:
                                 diagnostics.Add(ErrorCode.ERR_DuplicateNameInNS, symbol.Locations.FirstOrNone(), name, @namespace);
                                 break;
-                        }
-
-                        // prototype(ft): better name? better diagnostic?
-                        static bool isLeftAFileTypeInSeparateSourceTreeFromRight(SourceNamedTypeSymbol left, SourceNamedTypeSymbol right)
-                        {
-                            // no, left is not a file type.
-                            if (!left.IsFile)
-                            {
-                                return false;
-                            }
-
-                            var leftTree = left.MergedDeclaration.Declarations[0].Location.SourceTree;
-                            if (right.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
-                            {
-                                return false; // no, there's a declaration of 'right' in the same file as 'left'.
-                            }
-
-                            return true;
                         }
                     }
 

@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 
@@ -659,6 +660,94 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Duplication_08()
+        {
+            var source1 = """
+                partial class Outer
+                {
+                    file class C
+                    {
+                        public static void M() { }
+                    }
+                }
+                """;
+
+            var source2 = """
+                partial class Outer
+                {
+                    file class C
+                    {
+                        public static void M() { }
+                    }
+                }
+                """;
+
+            var source3 = """
+                partial class Outer
+                {
+                    public class C
+                    {
+                        public static void M() { }
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+            compilation.VerifyDiagnostics();
+
+            var classOuter = compilation.GetMember<NamedTypeSymbol>("Outer");
+            var cs = classOuter.GetMembers("C");
+            Assert.Equal(3, cs.Length);
+            Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFile: false });
+        }
+
+        [Fact]
+        public void Duplication_09()
+        {
+            var source1 = """
+                namespace NS
+                {
+                    file class C
+                    {
+                        public static void M() { }
+                    }
+                }
+                """;
+
+            var source2 = """
+                namespace NS
+                {
+                    file class C
+                    {
+                        public static void M() { }
+                    }
+                }
+                """;
+
+            var source3 = """
+                namespace NS
+                {
+                    public class C
+                    {
+                        public static void M() { }
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(new[] { source1, source2, source3 });
+            compilation.VerifyDiagnostics();
+
+            var namespaceNS = compilation.GetMember<NamespaceSymbol>("NS");
+            var cs = namespaceNS.GetMembers("C");
+            Assert.Equal(3, cs.Length);
+            Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFile: true });
+            Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFile: false });
+        }
+
+        [Fact]
         public void SignatureUsage_01()
         {
             var source = """
@@ -1117,5 +1206,501 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void AccessThroughNamespace_01()
+        {
+            var source = """
+                using System;
+
+                namespace NS
+                {
+                    file class C
+                    {
+                        public static void M() => Console.Write(1);
+                    }
+                }
+
+                class Program
+                {
+                    public static void Main()
+                    {
+                        NS.C.M();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AccessThroughNamespace_02()
+        {
+            var source1 = """
+                using System;
+
+                class Outer
+                {
+                    file class C
+                    {
+                        public static void M()
+                        {
+                            Console.Write(1);
+                        }
+                    }
+                }
+                """;
+
+            var source2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Outer.C.M(); // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
+                //         Outer.C.M(); // 1
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15));
+        }
+
+        [Fact]
+        public void AccessThroughType_02()
+        {
+            var source1 = """
+                using System;
+
+                class Outer
+                {
+                    file class C
+                    {
+                        public static void M()
+                        {
+                            Console.Write(1);
+                        }
+                    }
+                }
+                """;
+
+            var source2 = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Outer.C.M(); // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
+                //         Outer.C.M(); // 1
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15));
+        }
+
+        [Fact]
+        public void AccessThroughGlobalUsing_01()
+        {
+            var usings = """
+                global using NS;
+                """;
+
+            var source = """
+                using System;
+
+                namespace NS
+                {
+                    file class C
+                    {
+                        public static void M() => Console.Write(1);
+                    }
+                }
+
+                class Program
+                {
+                    public static void Main()
+                    {
+                        C.M();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(new[] { usings, source, IsExternalInitTypeDefinition }, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("file ")]
+        [InlineData("")]
+        public void AccessThroughGlobalUsing_02(string fileModifier)
+        {
+            var source = $$"""
+                using System;
+
+                namespace NS
+                {
+                    {{fileModifier}}class C
+                    {
+                        public static void M() => Console.Write(1);
+                    }
+                }
+
+                class Program
+                {
+                    public static void Main()
+                    {
+                        C.M(); // 1
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe.WithUsings("NS"));
+            compilation.VerifyDiagnostics(
+                // (15,9): error CS0103: The name 'C' does not exist in the current context
+                //         C.M(); // 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void GlobalUsingStatic_01()
+        {
+            var source = """
+                global using static C;
+
+                file class C
+                {
+                    public static void M() { }
+                }
+                """;
+
+            var main = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        M();
+                    }
+                }
+                """;
+
+            // PROTOTYPE(ft): it should probably be an error to reference a file type in a global using static
+            var compilation = CreateCompilation(new[] { source, main });
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingStatic_01()
+        {
+            var source = """
+                using System;
+                using static C;
+
+                file class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+
+                class Program
+                {
+                    public static void Main()
+                    {
+                        M();
+                    }
+                }
+                """;
+
+            var compilation = CompileAndVerify(source, expectedOutput: "1");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeShadowing()
+        {
+            var source = """
+                using System;
+
+                class Base
+                {
+                    internal class C
+                    {
+                        public static void M()
+                        {
+                            Console.Write(1);
+                        }
+                    }
+                }
+
+                class Derived : Base
+                {
+                    new file class C
+                    {
+                    }
+                }
+                """;
+
+            var main = """
+                class Program
+                {
+                    public static void Main()
+                    {
+                        Derived.C.M();
+                    }
+                }
+                """;
+
+            // 'Derived.C' is not actually accessible from 'Program', so we just bind to 'Base.C' and things work.
+            var compilation = CompileAndVerify(new[] { source, main }, expectedOutput: "1");
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SemanticModel_01()
+        {
+            var source = """
+                file class C
+                {
+                    public static void M() { }
+                }
+
+                class Program
+                {
+                    public void M()
+                    {
+                        C.M();
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var body = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body!;
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            var info = model.GetSymbolInfo(((ExpressionStatementSyntax)body.Statements.First()).Expression);
+            Assert.Equal(compilation.GetMember("C.M").GetPublicSymbol(), info.Symbol);
+
+            var classC = compilation.GetMember("C").GetPublicSymbol();
+            var symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, name: "C");
+            Assert.Equal(new[] { classC }, symbols);
+
+            symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition);
+            Assert.Contains(classC, symbols);
+        }
+
+        [Fact]
+        public void SemanticModel_02()
+        {
+            var source = """
+                file class C
+                {
+                    public static void M() { }
+                }
+                """;
+
+            var main = """
+                class Program
+                {
+                    public void M()
+                    {
+                        C.M(); // 1
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(new[] { source, main });
+            compilation.VerifyDiagnostics(
+                // (5,9): error CS0103: The name 'C' does not exist in the current context
+                //         C.M();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "C").WithArguments("C").WithLocation(5, 9)
+                );
+
+            var tree = compilation.SyntaxTrees[1];
+            var body = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body!;
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            var info = model.GetSymbolInfo(((ExpressionStatementSyntax)body.Statements.First()).Expression);
+            Assert.Null(info.Symbol);
+            Assert.Empty(info.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+
+            var symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition, name: "C");
+            Assert.Empty(symbols);
+
+            symbols = model.LookupSymbols(body.OpenBraceToken.EndPosition);
+            Assert.DoesNotContain(compilation.GetMember("C").GetPublicSymbol(), symbols);
+        }
+
+        [Fact]
+        public void Speculation_01()
+        {
+            var source = """
+                file class C
+                {
+                    public static void M() { }
+                }
+
+                class Program
+                {
+                    public void M()
+                    {
+
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[0];
+            var body = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body!;
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            var newBody = body.AddStatements(SyntaxFactory.ParseStatement("C.M();"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(position: body.OpenBraceToken.EndPosition, newBody, out var speculativeModel));
+            var info = speculativeModel!.GetSymbolInfo(((ExpressionStatementSyntax)newBody.Statements.First()).Expression);
+            Assert.Equal(compilation.GetMember("C.M").GetPublicSymbol(), info.Symbol);
+
+            var classC = compilation.GetMember("C").GetPublicSymbol();
+            var symbols = speculativeModel.LookupSymbols(newBody.OpenBraceToken.EndPosition, name: "C");
+            Assert.Equal(new[] { classC }, symbols);
+
+            symbols = speculativeModel.LookupSymbols(newBody.OpenBraceToken.EndPosition);
+            Assert.Contains(classC, symbols);
+        }
+
+        [Fact]
+        public void Speculation_02()
+        {
+            var source = """
+                file class C
+                {
+                    public static void M() { }
+                }
+                """;
+
+            var main = """
+                class Program
+                {
+                    public void M()
+                    {
+
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(new[] { source, main });
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees[1];
+            var body = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body!;
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+
+            var newBody = body.AddStatements(SyntaxFactory.ParseStatement("C.M();"));
+            Assert.True(model.TryGetSpeculativeSemanticModel(position: body.OpenBraceToken.EndPosition, newBody, out var speculativeModel));
+            var info = speculativeModel!.GetSymbolInfo(((ExpressionStatementSyntax)newBody.Statements.First()).Expression);
+            Assert.Null(info.Symbol);
+            Assert.Empty(info.CandidateSymbols);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+
+            var symbols = speculativeModel.LookupSymbols(newBody.OpenBraceToken.EndPosition, name: "C");
+            Assert.Empty(symbols);
+
+            symbols = speculativeModel.LookupSymbols(newBody.OpenBraceToken.EndPosition);
+            Assert.DoesNotContain(compilation.GetMember("C").GetPublicSymbol(), symbols);
+        }
+
+        [Fact]
+        public void Cref_01()
+        {
+            var source = """
+                file class C
+                {
+                    public static void M() { }
+                }
+
+                class Program
+                {
+                    /// <summary>
+                    /// In the same file as <see cref="C"/>.
+                    /// </summary>
+                    public static void M()
+                    {
+
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Cref_02()
+        {
+            var source = """
+                file class C
+                {
+                    public static void M() { }
+                }
+                """;
+
+            var main = """
+                class Program
+                {
+                    /// <summary>
+                    /// In a different file than <see cref="C"/>.
+                    /// </summary>
+                    public static void M()
+                    {
+
+                    }
+                }
+                """;
+
+            var compilation = CreateCompilation(new[] { source, main }, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            compilation.VerifyDiagnostics(
+                // (4,45): warning CS1574: XML comment has cref attribute 'C' that could not be resolved
+                //     /// In a different file than <see cref="C"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C").WithArguments("C").WithLocation(4, 45)
+                );
+        }
+
+        [Fact]
+        public void TopLevelStatements()
+        {
+            var source = """
+                using System;
+
+                C.M();
+
+                file class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+        }
+
+        // PROTOTYPE(ft): public API (INamedTypeSymbol.IsFile?)
     }
 }
