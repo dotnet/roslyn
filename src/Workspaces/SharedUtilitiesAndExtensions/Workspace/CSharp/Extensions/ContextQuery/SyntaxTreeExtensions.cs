@@ -1448,6 +1448,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 {
                     return patternSyntax is DeclarationPatternSyntax or RecursivePatternSyntax;
                 }
+
+                // e is (expr) a$$
+                //
+                // this will be parsed as a constant-pattern where the constant expression is a cast expression (if 'expr'
+                // is a legal type).
+                if (patternSyntax is ConstantPatternSyntax { Expression: CastExpressionSyntax { Expression: IdentifierNameSyntax } castExpression } &&
+                    leftToken == castExpression.CloseParenToken)
+                {
+                    return true;
+                }
             }
 
             // e is C.P $$
