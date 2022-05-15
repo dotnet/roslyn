@@ -57,6 +57,11 @@
         <target state="translated">Правила форматирования C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_usings_on_file_open">
+        <source>Collapse usings on file open</source>
+        <target state="new">Collapse usings on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
         <target state="translated">Завершение</target>

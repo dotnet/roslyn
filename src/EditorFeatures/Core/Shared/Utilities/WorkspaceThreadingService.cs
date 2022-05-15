@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             _threadingContext = threadingContext;
         }
 
+        public bool IsOnMainThread => _threadingContext.JoinableTaskContext.IsOnMainThread;
+
         public TResult Run<TResult>(Func<Task<TResult>> asyncMethod)
         {
             return _threadingContext.JoinableTaskFactory.Run(asyncMethod);

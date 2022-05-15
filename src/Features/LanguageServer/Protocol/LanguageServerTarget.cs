@@ -248,7 +248,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _queue.Shutdown();
 
             _requestTelemetryLogger.Dispose();
-            _lspWorkspaceManager.Dispose();
         }
 
         private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)

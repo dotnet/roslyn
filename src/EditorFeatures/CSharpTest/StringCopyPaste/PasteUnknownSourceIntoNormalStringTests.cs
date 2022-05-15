@@ -15,8 +15,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\n",
-                @"var x = ""[||]""",
-                @"var x = ""\n[||]""",
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "\n[||]"
+                """,
                 afterUndo: "var x = \"\n[||]\"");
         }
 
@@ -24,10 +28,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNewLineIntoNormalString2()
         {
             TestPasteUnknownSource(
-                pasteText: "\r\n",
-                @"var x = ""[||]""",
-                @"var x = ""\r\n[||]""",
-                afterUndo: "var x = \"\r\n[||]\"");
+                pasteText: """
+
+
+                """,
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "\r\n[||]"
+                """,
+                afterUndo: """
+                var x = "
+                [||]"
+                """);
         }
 
         [WpfFact]
@@ -35,8 +49,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t",
-                @"var x = ""[||]""",
-                @"var x = ""\t[||]""",
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "\t[||]"
+                """,
                 afterUndo: "var x = \"\t[||]\"");
         }
 
@@ -44,30 +62,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestBackslashTIntoNormalString1()
         {
             TestPasteUnknownSource(
-                pasteText: @"\t",
-                @"var x = ""[||]""",
-                @"var x = ""\t[||]""",
-                afterUndo: @"var x = ""[||]""");
+                pasteText: """\t""",
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "\t[||]"
+                """,
+                afterUndo: """
+                var x = "[||]"
+                """);
         }
 
         [WpfFact]
         public void TestSingleQuoteIntoNormalString()
         {
             TestPasteUnknownSource(
-                pasteText: "'",
-                @"var x = ""[||]""",
-                @"var x = ""'[||]""",
-                afterUndo: "var x = \"[||]\"");
+                pasteText: """'""",
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "'[||]"
+                """,
+                afterUndo: """
+                var x = "[||]"
+                """);
         }
 
         [WpfFact]
         public void TestDoubleQuoteIntoNormalString()
         {
             TestPasteUnknownSource(
-                pasteText: "\"",
-                @"var x = ""[||]""",
-                @"var x = ""\""[||]""",
-                afterUndo: "var x = \"\"[||]\"");
+                pasteText: """
+                "
+                """,
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "\"[||]"
+                """,
+                afterUndo: """
+                var x = ""[||]"
+                """);
         }
 
         [WpfFact]
@@ -75,8 +113,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             TestPasteUnknownSource(
                 pasteText: "\t\"\"\t",
-                @"var x = ""[||]""",
-                @"var x = ""\t\""\""\t[||]""",
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "\t\"\"\t[||]"
+                """,
                 afterUndo: "var x = \"\t\"\"\t[||]\"");
         }
 
@@ -84,10 +126,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         public void TestNormalTextIntoNormalString()
         {
             TestPasteUnknownSource(
-                pasteText: "abc",
-                @"var x = ""[||]""",
-                @"var x = ""abc[||]""",
-                afterUndo: @"var x = ""[||]""");
+                pasteText: """abc""",
+                """
+                var x = "[||]"
+                """,
+                """
+                var x = "abc[||]"
+                """,
+                afterUndo: """
+                var x = "[||]"
+                """);
         }
     }
 }
