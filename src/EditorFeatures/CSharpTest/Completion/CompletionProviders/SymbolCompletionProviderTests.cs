@@ -1346,18 +1346,46 @@ $$";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"System");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClause()
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"System");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_NotStaticClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"Console");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_NotSealedClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClauseList()
         {
-            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"String");
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"System");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_NotStaticClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"Console");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_NotSealedClass()
+        {
+            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

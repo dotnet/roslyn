@@ -46,24 +46,76 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyNSATIsAbsentAsync(AddImportsStatement("Imports System", "$$"))
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint1() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "System")
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint1_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint1_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$"), "String")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint2() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "System")
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint2_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint2_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$"), "String")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint3() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "System")
         End Function
 
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint3_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint3_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As $$)"), "String")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTypeConstraint4() As Task
-            Await VerifyNSATExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"))
+            Await VerifyItemExistsAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "System")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint4_NotStaticClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "Console")
+        End Function
+
+        <WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypeConstraint4_NotSealedClass() As Task
+            Await VerifyItemIsAbsentAsync(AddImportsStatement("Imports System", "Class A(Of T As { II, $$})"), "String")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

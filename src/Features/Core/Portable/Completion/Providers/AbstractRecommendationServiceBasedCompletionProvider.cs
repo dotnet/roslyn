@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     s => IsValidForTaskLikeTypeOnlyContext(s, context),
                     s => (s, preselect: s.OriginalDefinition.Equals(taskType)));
             }
+            else if (context.IsGenericConstraintContext)
+            {
+                // Just filter valid symbols. Nothing to preselect
+                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, false));
+            }
             else
             {
                 var shouldPreselectInferredTypes = await ShouldPreselectInferredTypesAsync(completionContext, position, options, cancellationToken).ConfigureAwait(false);
@@ -90,6 +95,25 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
+        }
+
+        private static bool IsValidForGenericConstraintContext(ISymbol symbol)
+        {
+            if (symbol.IsNamespace() ||
+                symbol.IsKind(SymbolKind.TypeParameter))
+            {
+                return true;
+            }
+
+            if (symbol is not INamedTypeSymbol namedType ||
+                symbol.IsDelegateType() ||
+                namedType.IsEnumType() ||
+                namedType.IsStructType())
+            {
+                return false;
+            }
+
+            return !(namedType.IsStatic || namedType.IsSealed);
         }
 
         private static ITypeSymbol? GetSymbolType(ISymbol symbol)
