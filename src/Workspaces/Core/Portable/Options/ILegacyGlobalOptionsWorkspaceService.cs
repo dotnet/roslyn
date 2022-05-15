@@ -13,5 +13,8 @@ namespace Microsoft.CodeAnalysis.Options
     internal interface ILegacyGlobalOptionsWorkspaceService : IWorkspaceService
     {
         public IGlobalOptionService GlobalOptions { get; }
+
+        public bool RazorUseTabs { get; }
+        public int RazorTabSize { get; }
     }
 }

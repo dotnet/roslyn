@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         private const string Default = "*";
 
-        private readonly object _gate;
-        private readonly SolutionCrawlerProgressReporter _progressReporter;
+        private readonly object _gate = new();
+        private readonly SolutionCrawlerProgressReporter _progressReporter = new();
 
         private readonly IAsynchronousOperationListener _listener;
         private readonly Dictionary<Workspace, WorkCoordinator> _documentWorkCoordinatorMap;
@@ -36,15 +36,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             [ImportMany] IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> analyzerProviders,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _gate = new object();
-
             _analyzerProviders = analyzerProviders.GroupBy(kv => kv.Metadata.Name).ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
             AssertAnalyzerProviders(_analyzerProviders);
 
             _documentWorkCoordinatorMap = new Dictionary<Workspace, WorkCoordinator>(ReferenceEqualityComparer.Instance);
             _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
-
-            _progressReporter = new SolutionCrawlerProgressReporter();
         }
 
         public void Register(Workspace workspace)

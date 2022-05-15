@@ -64,9 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return cancellationToken => FixAllAsync(context.Document, diagnostics, context.GetOptionsProvider(), cancellationToken);
         }
 
-        protected Task<Document> FixAsync(Document document, Diagnostic diagnostic, CodeActionOptions options, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), _ => options, cancellationToken);
-
         private Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {

@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class EnumMemberGenerator
     {
-        internal static EnumDeclarationSyntax AddEnumMemberTo(EnumDeclarationSyntax destination, IFieldSymbol enumMember, CSharpCodeGenerationOptions options, CancellationToken cancellationToken)
+        internal static EnumDeclarationSyntax AddEnumMemberTo(EnumDeclarationSyntax destination, IFieldSymbol enumMember, CSharpCodeGenerationContextInfo info, CancellationToken cancellationToken)
         {
             var members = new List<SyntaxNodeOrToken>();
             members.AddRange(destination.Members.GetWithSeparators());
 
-            var member = GenerateEnumMemberDeclaration(enumMember, destination, options, cancellationToken);
+            var member = GenerateEnumMemberDeclaration(enumMember, destination, info, cancellationToken);
 
             if (members.Count == 0)
             {
@@ -50,10 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public static EnumMemberDeclarationSyntax GenerateEnumMemberDeclaration(
             IFieldSymbol enumMember,
             EnumDeclarationSyntax? destination,
-            CSharpCodeGenerationOptions options,
+            CSharpCodeGenerationContextInfo info,
             CancellationToken cancellationToken)
         {
-            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<EnumMemberDeclarationSyntax>(enumMember, options);
+            var reusableSyntax = GetReuseableSyntaxNodeForSymbol<EnumMemberDeclarationSyntax>(enumMember, info);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 .WithEqualsValue(value == null ? null : SyntaxFactory.EqualsValueClause(value: value));
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(member, enumMember, options, cancellationToken));
+                ConditionallyAddDocumentationCommentTo(member, enumMember, info, cancellationToken));
         }
 
         private static ExpressionSyntax? CreateEnumMemberValue(EnumDeclarationSyntax? destination, IFieldSymbol enumMember)

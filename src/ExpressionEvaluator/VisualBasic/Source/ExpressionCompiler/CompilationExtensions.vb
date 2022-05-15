@@ -39,7 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         methodHandle = candidateMethod.Handle
                         Dim stateMachineTypeName As String = Nothing
                         If [module].HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, stateMachineTypeName) OrElse
-                            [module].HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, stateMachineTypeName) _
+                            [module].HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, stateMachineTypeName) OrElse
+                            [module].HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncIteratorStateMachineAttribute, stateMachineTypeName) _
                         Then
                             If metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType) Then
                                 Return candidateMethod

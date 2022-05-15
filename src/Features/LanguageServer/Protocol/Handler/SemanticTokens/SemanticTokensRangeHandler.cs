@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// </summary>
         private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = new();
 
+        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+
         // initialized when first request comes in.
 
         /// <summary>
@@ -60,8 +62,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         /// is true.
         /// </summary>
         private bool? _supportsRefresh;
-
-        private LspWorkspaceManager? _lspWorkspaceManager;
 
         /// <summary>
         /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
@@ -74,10 +74,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensRangeHandler(
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
         {
             _globalOptions = globalOptions;
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
+
+            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+            _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
         }
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
@@ -94,8 +98,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 eventSources = _projectIdToEventSource.Values.ToImmutableArray();
                 _projectIdToEventSource.Clear();
 
-                if (_lspWorkspaceManager != null)
-                    _lspWorkspaceManager.LspSolutionChanged -= OnLspSolutionChanged;
+                _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
             }
 
             foreach (var eventSource in eventSources)
@@ -124,9 +127,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                             processBatchAsync: c => context.NotificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, c),
                             asyncListener: _asyncListener,
                             context.QueueCancellationToken);
-
-                        _lspWorkspaceManager = context.LspWorkspaceManager;
-                        _lspWorkspaceManager.LspSolutionChanged += OnLspSolutionChanged;
                     }
                 }
 

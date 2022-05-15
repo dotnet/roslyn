@@ -219,19 +219,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var globalOptions = targetDocument.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
 
-            var options = codeGenerationService.GetOptions(
-                targetSyntaxTree.Options,
-                documentOptions,
-                new CodeGenerationContext(autoInsertionLocation: false));
+            var options = targetDocument.GetCleanCodeGenerationOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
-            var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
+            var info = options.GenerationOptions.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), targetDocument.Project);
+            var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
-            var formattingOptions = targetDocument.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
-            var simplifierOptions = targetDocument.GetSimplifierOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
-
             newRoot = Simplifier.ReduceAsync(
-                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, simplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
+                targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, options.CleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
@@ -239,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 newRoot,
                 Formatter.Annotation,
                 targetDocument.Project.Solution.Workspace.Services,
-                formattingOptions,
+                options.CleanupOptions.FormattingOptions,
                 formattingRules,
                 cancellationToken);
 

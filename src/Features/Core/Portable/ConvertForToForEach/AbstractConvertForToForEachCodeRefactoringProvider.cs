@@ -146,11 +146,14 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Looks good.  We can convert this.
+            var title = GetTitle();
             context.RegisterRefactoring(
-                new MyCodeAction(GetTitle(),
+                CodeAction.Create(
+                    title,
                     c => ConvertForToForEachAsync(
                         document, forStatement, iterationVariable, collectionExpression,
-                        containingType, collectionType.Type, iterationType, c)),
+                        containingType, collectionType.Type, iterationType, c),
+                    title),
                 forStatement.Span);
 
             return;
@@ -494,13 +497,5 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             => property.IsIndexer &&
                property.Parameters.Length == 1 &&
                property.Parameters[0].Type?.SpecialType == SpecialType.System_Int32;
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
     }
 }

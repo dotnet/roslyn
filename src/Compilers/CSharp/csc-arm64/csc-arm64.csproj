@@ -10,5 +10,13 @@
     <TargetFramework>net472</TargetFramework>
     <DisableNullableWarnings>true</DisableNullableWarnings>
   </PropertyGroup>
+
+  <!-- Can't put this in shared project due to https://github.com/dotnet/project-system/issues/8157 -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\CommandLine\csc.rsp" Condition="'$(TargetFramework)' == 'net472'">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <Import Project="..\CommandLine\CscCommandLine.projitems" Label="Shared" />
 </Project>
