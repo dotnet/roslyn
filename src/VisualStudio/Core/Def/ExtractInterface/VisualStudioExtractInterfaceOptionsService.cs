@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
                     fileName: viewModel.DestinationViewModel.FileName.Trim(),
                     location: GetLocation(viewModel.DestinationViewModel.Destination),
-                    _globalOptions.GetCodeCleanupOptionsProvider());
+                    _globalOptions.CreateProvider());
             }
             else
             {

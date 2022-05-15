@@ -51,7 +51,12 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
 
             if (ShouldOfferFix(methodSymbol.ReturnType, knownTypes))
             {
-                context.RegisterCodeFix(new MyCodeAction(GetDocumentUpdater(context)), context.Diagnostics);
+                context.RegisterCodeFix(
+                    CodeAction.Create(
+                        FeaturesResources.Remove_async_modifier,
+                        GetDocumentUpdater(context),
+                        nameof(FeaturesResources.Remove_async_modifier)),
+                    context.Diagnostics);
             }
         }
 
@@ -244,14 +249,6 @@ namespace Microsoft.CodeAnalysis.RemoveAsyncModifier
                 }
 
                 return expression;
-            }
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Remove_async_modifier, createChangedDocument, FeaturesResources.Remove_async_modifier)
-            {
             }
         }
     }

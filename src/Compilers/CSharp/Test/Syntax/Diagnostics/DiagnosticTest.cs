@@ -2686,7 +2686,7 @@ class Program
             }
         }
 
-        internal class MockMessageProvider : TestMessageProvider
+        internal sealed class MockMessageProvider : TestMessageProvider
         {
             public override DiagnosticSeverity GetSeverity(int code)
             {
@@ -2768,6 +2768,10 @@ class Program
             {
                 return true;
             }
+
+#if DEBUG
+            internal override bool ShouldAssertExpectedMessageArgumentsLength(int errorCode) => false;
+#endif
         }
 
         #endregion

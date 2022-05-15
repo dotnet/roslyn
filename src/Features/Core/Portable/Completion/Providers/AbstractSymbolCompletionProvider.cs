@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext> : LSPCompletionProvider
         where TSyntaxContext : SyntaxContext
     {
-        // PERF: Many CompletionProviders derive AbstractSymbolCompletionProvider and therefore
-        // compute identical contexts. This actually shows up on the 2-core typing test.
-        // Cache the most recent document/position/computed SyntaxContext to reduce repeat computation.
-        private static readonly ConditionalWeakTable<Document, Tuple<int, AsyncLazy<TSyntaxContext>>> s_cachedDocuments = new();
-
         protected AbstractSymbolCompletionProvider()
         {
         }
@@ -261,9 +256,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
                 using (var telemetryCounter = new TelemetryCounter(ShouldCollectTelemetryForTargetTypeCompletion && options.TargetTypedCompletionFilter))
                 {
-                    var syntaxContext = await GetOrCreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
-                    var regularItems = await GetItemsAsync(completionContext, syntaxContext, document, position, options, telemetryCounter, cancellationToken).ConfigureAwait(false);
+                    var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+                    Contract.ThrowIfNull(syntaxContext);
 
+                    var regularItems = await GetItemsAsync(completionContext, syntaxContext, document, position, options, telemetryCounter, cancellationToken).ConfigureAwait(false);
                     completionContext.AddItems(regularItems);
                 }
             }
@@ -290,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null, telemetryCounter);
             }
 
-            var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), cancellationToken).ConfigureAwait(false);
+            var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, new[] { document.Id }.Concat(relatedDocumentIds), cancellationToken).ConfigureAwait(false);
             var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
@@ -327,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private async Task<ImmutableArray<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<(ISymbol symbol, bool preselect)> symbols)>> GetPerContextSymbolsAsync(
-            CompletionContext completionContext, Document document, int position, CompletionOptions options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
+            CompletionContext completionContext, Document document, CompletionOptions options, IEnumerable<DocumentId> relatedDocuments, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
 
@@ -339,7 +335,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 tasks.Add(Task.Run(async () =>
                 {
                     var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                    var syntaxContext = await GetOrCreateContextAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false);
+                    var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+
+                    Contract.ThrowIfNull(syntaxContext);
                     var symbols = await TryGetSymbolsForContextAsync(completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
 
                     return (relatedDocument.Id, syntaxContext, symbols);
@@ -368,33 +366,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return syntaxFacts.IsInInactiveRegion(syntaxContext.SyntaxTree, syntaxContext.Position, cancellationToken)
                 ? default
                 : await GetSymbolsAsync(completionContext, syntaxContext, syntaxContext.Position, options, cancellationToken).ConfigureAwait(false);
-        }
-
-        protected static async Task<TSyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
-            var service = document.GetRequiredLanguageService<ISyntaxContextService>();
-            return (TSyntaxContext)service.CreateContext(document, semanticModel, position, cancellationToken);
-        }
-
-        private static Task<TSyntaxContext> GetOrCreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            lock (s_cachedDocuments)
-            {
-                var (cachedPosition, cachedLazyContext) = s_cachedDocuments.GetValue(
-                    document, d => Tuple.Create(position, new AsyncLazy<TSyntaxContext>(ct => CreateContextAsync(d, position, ct), cacheResult: true)));
-
-                if (cachedPosition == position)
-                {
-                    return cachedLazyContext.GetValueAsync(cancellationToken);
-                }
-
-                var lazyContext = new AsyncLazy<TSyntaxContext>(ct => CreateContextAsync(document, position, ct), cacheResult: true);
-                s_cachedDocuments.Remove(document);
-                s_cachedDocuments.Add(document, Tuple.Create(position, lazyContext));
-                return lazyContext.GetValueAsync(cancellationToken);
-            }
         }
 
         /// <summary>

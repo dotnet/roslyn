@@ -13,11 +13,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
         Partial Private MustInherit Class VisualBasicCodeGenerator
-            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax)
+            Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax, VisualBasicCodeGenerationOptions)
 
             Private ReadOnly _methodName As SyntaxToken
 
@@ -44,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
 
             Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                MyBase.New(insertionPoint, selectionResult, analyzerResult, OptionValueSet.Empty)
+                MyBase.New(insertionPoint, selectionResult, analyzerResult, VisualBasicCodeGenerationOptions.Default, Function(language) NamingStylePreferences.Default, localFunction:=False)
                 Contract.ThrowIfFalse(Me.SemanticDocument Is selectionResult.SemanticDocument)
 
                 Me._methodName = CreateMethodName().WithAdditionalAnnotations(MethodNameAnnotation)

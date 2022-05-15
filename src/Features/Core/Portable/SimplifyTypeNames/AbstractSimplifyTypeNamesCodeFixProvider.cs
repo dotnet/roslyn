@@ -90,10 +90,12 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
 
-            context.RegisterCodeFix(new MyCodeAction(
-                title,
-                GetDocumentUpdater(context),
-                diagnosticId), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    title,
+                    GetDocumentUpdater(context),
+                    diagnosticId),
+                context.Diagnostics);
         }
 
         protected override async Task FixAllAsync(
@@ -130,15 +132,6 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 
             return issueSpan.Equals(span);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(
-                string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

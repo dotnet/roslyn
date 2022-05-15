@@ -56,7 +56,7 @@ namespace Roslyn.Utilities
         /// Used if <see cref="_equalityComparer"/> is present to ensure only unique items are added to <see
         /// cref="_nextBatch"/>.
         /// </summary>
-        private readonly HashSet<TItem> _uniqueItems;
+        private readonly SegmentedHashSet<TItem> _uniqueItems;
 
         /// <summary>
         /// Task kicked off to do the next batch of processing of <see cref="_nextBatch"/>. These
@@ -86,7 +86,7 @@ namespace Roslyn.Utilities
             _asyncListener = asyncListener;
             _cancellationToken = cancellationToken;
 
-            _uniqueItems = new HashSet<TItem>(equalityComparer);
+            _uniqueItems = new SegmentedHashSet<TItem>(equalityComparer);
         }
 
         public void AddWork(TItem item)

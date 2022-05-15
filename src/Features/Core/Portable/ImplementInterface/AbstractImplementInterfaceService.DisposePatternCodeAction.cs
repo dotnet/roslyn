@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             return state.ClassOrStructType.FindImplementationForInterfaceMember(disposeMethod) == null;
         }
 
-        private class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
+        private sealed class ImplementInterfaceWithDisposePatternCodeAction : ImplementInterfaceCodeAction
         {
             public ImplementInterfaceWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state,
                 bool explicitly,
                 bool abstractly,
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
                 return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: false, abstractly: false, throughMember: null);
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             public static ImplementInterfaceWithDisposePatternCodeAction CreateImplementExplicitlyWithDisposePatternCodeAction(
                 AbstractImplementInterfaceService service,
                 Document document,
-                ImplementTypeOptions options,
+                ImplementTypeGenerationOptions options,
                 State state)
             {
                 return new ImplementInterfaceWithDisposePatternCodeAction(service, document, options, state, explicitly: true, abstractly: false, throughMember: null);
@@ -158,12 +158,12 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     sortMembers: false,
                     autoInsertionLocation: false);
 
-                var codeGenerationOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetCodeGenerationOptionsAsync(Options.FallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 var typeDeclarationWithAllMembers = codeGenerator.AddMembers(
                     typeDeclarationWithCoreMembers,
                     disposableMethods,
-                    codeGenerationOptions,
+                    options.GetInfo(context, document.Project),
                     cancellationToken);
 
                 var docWithAllMembers = docWithCoreMembers.WithSyntaxRoot(

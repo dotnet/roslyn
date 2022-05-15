@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
-    internal enum Capitalization
+    internal enum Capitalization : byte
     {
         /// <summary>
         /// Each word is capitalized

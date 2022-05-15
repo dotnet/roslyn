@@ -327,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (isInterface && !isStatic)
             {
-                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location, this);
+                diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location);
             }
             else if (!allowsInitializer)
             {
-                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
+                diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location);
             }
         }
 
@@ -894,13 +894,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.RefKind != RefKind.None)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location, this);
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location);
                 }
 
                 // get-only auto property should not override settable properties
-                if (SetMethod is null && !this.IsReadOnly)
+                if (this.IsOverride && SetMethod is null && !this.IsReadOnly)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location, this);
+                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
                 }
             }
 
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (_refKind != RefKind.None)
                     {
-                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0], _setMethod);
+                        diagnostics.Add(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, _setMethod.Locations[0]);
                     }
                     else if ((_getMethod.LocalAccessibility != Accessibility.NotApplicable) &&
                         (_setMethod.LocalAccessibility != Accessibility.NotApplicable))
@@ -945,12 +945,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (!hasGetAccessor)
                         {
-                            diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location, this);
+                            diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location);
                         }
                     }
                     else if (!hasGetAccessor && IsAutoProperty)
                     {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0], _setMethod);
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.Locations[0]);
                     }
 
                     if (!this.IsOverride)

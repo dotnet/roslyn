@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace
                         diagnostics,
                         fixAllContext.GetProgressTracker(),
 #if CODE_STYLE
-                        options: _ => default,
+                        CodeActionOptions.DefaultProvider,
 #else
                         fixAllContext.State.CodeActionOptionsProvider,
 #endif
