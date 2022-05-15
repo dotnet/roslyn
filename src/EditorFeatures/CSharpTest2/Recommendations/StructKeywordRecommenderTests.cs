@@ -350,5 +350,44 @@ $$");
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterStruct()
             => await VerifyAbsenceAsync(@"struct $$");
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClassTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C<T> where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterClassTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"class C<T>
+    where T : $$
+    where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterMethodTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    void Goo<T>()
+      where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterMethodTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    void Goo<T>()
+      where T : $$
+      where U : T");
+        }
     }
 }

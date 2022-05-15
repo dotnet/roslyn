@@ -436,5 +436,45 @@ class C
 {
     delegate*<$$");
         }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_TypeDeclaration1()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T> where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_TypeDeclaration2()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T>
+        where T : $$
+        where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_MethodDeclaration1()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    public void M<T>() where T : $$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraint_MethodDeclaration2()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    public void M<T>()
+        where T : $$
+        where U : T");
+        }
     }
 }

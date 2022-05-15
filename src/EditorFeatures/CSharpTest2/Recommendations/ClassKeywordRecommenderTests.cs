@@ -358,6 +358,7 @@ $$
 global using Bar;");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint()
         {
@@ -365,6 +366,7 @@ global using Bar;");
 @"class C<T> where T : $$");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterClassTypeParameterConstraint2()
         {
@@ -374,6 +376,7 @@ global using Bar;");
     where U : U");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint()
         {
@@ -383,6 +386,7 @@ global using Bar;");
       where T : $$");
         }
 
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterMethodTypeParameterConstraint2()
         {
