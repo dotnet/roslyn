@@ -1378,9 +1378,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // e is 1 and $$
             // e is 1 or $$
-            if (leftToken.IsKind(SyntaxKind.AndKeyword) || leftToken.IsKind(SyntaxKind.OrKeyword))
+            // e is SomeEnum.SomeEnumValue and $$
+            // e is SomeEnum.SomeEnumValue or $$
+            // 'and' & 'or' are identifier in the last 2 examples because of lack of context
+            if (leftToken.IsKindOrHasMatchingText(SyntaxKind.AndKeyword) || leftToken.IsKindOrHasMatchingText(SyntaxKind.OrKeyword))
             {
-                return leftToken.Parent is BinaryPatternSyntax;
+                return leftToken.Parent is BinaryPatternSyntax ||
+                       leftToken.Parent is SingleVariableDesignationSyntax { Parent: DeclarationPatternSyntax };
             }
 
             // e is not $$
@@ -1443,6 +1447,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     originalLeftToken.Parent == variableDesignationSyntax)
                 {
                     return patternSyntax is DeclarationPatternSyntax or RecursivePatternSyntax;
+                }
+
+                // e is (expr) a$$
+                //
+                // this will be parsed as a constant-pattern where the constant expression is a cast expression (if 'expr'
+                // is a legal type).
+                if (patternSyntax is ConstantPatternSyntax { Expression: CastExpressionSyntax { Expression: IdentifierNameSyntax } castExpression } &&
+                    leftToken == castExpression.CloseParenToken)
+                {
+                    return true;
                 }
             }
 
