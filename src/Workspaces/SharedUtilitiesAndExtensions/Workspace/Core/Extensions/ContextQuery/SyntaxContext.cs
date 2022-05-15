@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public bool IsAttributeNameContext { get; }
         public bool IsAwaitKeywordContext { get; }
         public bool IsEnumTypeMemberAccessContext { get; }
-        public bool IsGenericConstraintContext { get; set; }
+        public bool IsGenericConstraintContext { get; }
         public bool IsGlobalStatementContext { get; }
         public bool IsInImportsDirective { get; }
         public bool IsInQuery { get; }
