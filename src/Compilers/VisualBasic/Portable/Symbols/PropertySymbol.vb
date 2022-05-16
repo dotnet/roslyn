@@ -415,20 +415,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
             If MergeUseSiteInfo(useSiteInfo, refModifiersUseSiteInfo) Then
-                Return refModifiersUseSiteInfo
+                Return useSiteInfo
             End If
 
             Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.TypeCustomModifiers)
 
             If MergeUseSiteInfo(useSiteInfo, typeModifiersUseSiteInfo) Then
-                Return typeModifiersUseSiteInfo
+                Return useSiteInfo
             End If
 
             ' Check parameters.
             Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
 
             If MergeUseSiteInfo(useSiteInfo, parametersUseSiteInfo) Then
-                Return parametersUseSiteInfo
+                Return useSiteInfo
             End If
 
             Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo

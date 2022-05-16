@@ -299,5 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return _lazyCachedCompilerFeatureRequiredDiagnosticInfo;
         }
+
+        public override bool HasUnsupportedMetadata => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature;
     }
 }

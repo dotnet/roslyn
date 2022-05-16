@@ -1180,6 +1180,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return
             End If
 
+            errorInfo = Signature.ReturnParam.DeriveCompilerFeatureRequiredDiagnostic(decoder)
+            If errorInfo IsNot Nothing Then
+                Return
+            End If
+
             For Each parameter In Parameters
                 errorInfo = DirectCast(parameter, PEParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
                 If errorInfo IsNot Nothing Then

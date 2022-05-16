@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -93,6 +94,9 @@ BC37319: 'OnType' requires compiler feature 'test', which is not supported by th
 BC37319: 'Public Shared Overloads Sub M()' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnMethod.M()
                  ~
+BC37319: 'Param As Void' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
+        OnMethodReturn.M()
+                       ~
 BC37319: 'param As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnParameter.M(1)
                     ~
@@ -140,21 +144,110 @@ BC37319: 'OnDelegateType' requires compiler feature 'test', which is not support
                               ~~~~~~~~~~~~~~
 BC37319: 'param As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         OnIndexedPropertyParameter.Property(1) = 1
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                   ~~~~~~~~
 BC37319: 'param As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _6 = OnIndexedPropertyParameter.Property(1)
-                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                            ~~~~~~~~
 BC37319: 'i As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         onThis(1) = 1
-        ~~~~~~~~~
+        ~~~~~~
 BC37319: 'i As Integer' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
         Dim _7 = onThis(1)
-                 ~~~~~~~~~
+                 ~~~~~~
 ]]>
                                         </errors>)
+
+            Dim onType = comp.GetTypeByMetadataName("OnType")
+            Assert.True(onType.HasUnsupportedMetadata)
+            Assert.True(onType.GetMember(Of MethodSymbol)("M").HasUnsupportedMetadata)
+    
+            Dim onMethod = comp.GetTypeByMetadataName("OnMethod")
+            Assert.False(onMethod.HasUnsupportedMetadata)
+            Assert.True(onMethod.GetMember(Of MethodSymbol)("M").HasUnsupportedMetadata)
+    
+            Dim onMethodReturn = comp.GetTypeByMetadataName("OnMethodReturn")
+            Assert.False(onMethodReturn.HasUnsupportedMetadata)
+            Assert.True(onMethodReturn.GetMember(Of MethodSymbol)("M").HasUnsupportedMetadata)
+    
+            Dim onParameter = comp.GetTypeByMetadataName("OnParameter")
+            Assert.False(onParameter.HasUnsupportedMetadata)
+            Dim onParameterMethod = onParameter.GetMember(Of MethodSymbol)("M")
+            Assert.True(onParameterMethod.HasUnsupportedMetadata)
+            Assert.True(onParameterMethod.Parameters(0).HasUnsupportedMetadata)
+    
+            Dim onField = comp.GetTypeByMetadataName("OnField")
+            Assert.False(onField.HasUnsupportedMetadata)
+            Assert.True(onField.GetMember(Of FieldSymbol)("Field").HasUnsupportedMetadata)
+    
+            Dim onProperty = comp.GetTypeByMetadataName("OnProperty")
+            Assert.False(onProperty.HasUnsupportedMetadata)
+            Assert.True(onProperty.GetMember(Of PropertySymbol)("Property").HasUnsupportedMetadata)
+    
+            Dim onPropertyGetter = comp.GetTypeByMetadataName("OnPropertyGetter")
+            Assert.False(onPropertyGetter.HasUnsupportedMetadata)
+            Dim onPropertyGetterProperty = onPropertyGetter.GetMember(Of PropertySymbol)("Property")
+            Assert.False(onPropertyGetterProperty.HasUnsupportedMetadata)
+            Assert.False(onPropertyGetterProperty.SetMethod.HasUnsupportedMetadata)
+            Assert.True(onPropertyGetterProperty.GetMethod.HasUnsupportedMetadata)
+    
+            Dim onPropertySetter = comp.GetTypeByMetadataName("OnPropertySetter")
+            Assert.False(onPropertySetter.HasUnsupportedMetadata)
+            Dim onPropertySetterProperty = onPropertySetter.GetMember(Of PropertySymbol)("Property")
+            Assert.False(onPropertySetterProperty.HasUnsupportedMetadata)
+            Assert.True(onPropertySetterProperty.SetMethod.HasUnsupportedMetadata)
+            Assert.False(onPropertySetterProperty.GetMethod.HasUnsupportedMetadata)
+    
+            Dim onEvent = comp.GetTypeByMetadataName("OnEvent")
+            Assert.False(onEvent.HasUnsupportedMetadata)
+            Assert.True(onEvent.GetMember(Of EventSymbol)("Event").HasUnsupportedMetadata)
+    
+            Dim onEventAdder = comp.GetTypeByMetadataName("OnEventAdder")
+            Assert.False(onEventAdder.HasUnsupportedMetadata)
+            Dim onEventAdderEvent = onEventAdder.GetMember(Of EventSymbol)("Event")
+            Assert.False(onEventAdderEvent.HasUnsupportedMetadata)
+            Assert.True(onEventAdderEvent.AddMethod.HasUnsupportedMetadata)
+            Assert.False(onEventAdderEvent.RemoveMethod.HasUnsupportedMetadata)
+    
+            Dim onEventRemover = comp.GetTypeByMetadataName("OnEventRemover")
+            Assert.False(onEventRemover.HasUnsupportedMetadata)
+            Dim onEventRemoverEvent = onEventRemover.GetMember(Of EventSymbol)("Event")
+            Assert.False(onEventRemoverEvent.HasUnsupportedMetadata)
+            Assert.False(onEventRemoverEvent.AddMethod.HasUnsupportedMetadata)
+            Assert.True(onEventRemoverEvent.RemoveMethod.HasUnsupportedMetadata)
+    
+            Dim onEnum = comp.GetTypeByMetadataName("OnEnum")
+            Assert.True(onEnum.HasUnsupportedMetadata)
+    
+            Dim onEnumMember = comp.GetTypeByMetadataName("OnEnumMember")
+            Assert.False(onEnumMember.HasUnsupportedMetadata)
+            Assert.True(onEnumMember.GetMember(Of FieldSymbol)("A").HasUnsupportedMetadata)
+    
+            Dim onClassTypeParameter = comp.GetTypeByMetadataName("OnClassTypeParameter`1")
+            Assert.True(onClassTypeParameter.HasUnsupportedMetadata)
+            Assert.True(onClassTypeParameter.TypeParameters(0).HasUnsupportedMetadata)
+    
+            Dim onMethodTypeParameter = comp.GetTypeByMetadataName("OnMethodTypeParameter")
+            Assert.False(onMethodTypeParameter.HasUnsupportedMetadata)
+            Dim onMethodTypeParameterMethod = onMethodTypeParameter.GetMember(Of MethodSymbol)("M")
+            Assert.True(onMethodTypeParameterMethod.HasUnsupportedMetadata)
+            Assert.True(onMethodTypeParameterMethod.TypeParameters(0).HasUnsupportedMetadata)
+    
+            Dim onDelegateType = comp.GetTypeByMetadataName("OnDelegateType")
+            Assert.True(onDelegateType.HasUnsupportedMetadata)
+    
+            Dim onIndexedPropertyParameter = comp.GetTypeByMetadataName("OnIndexedPropertyParameter")
+            Assert.False(onIndexedPropertyParameter.HasUnsupportedMetadata)
+            Assert.True(onIndexedPropertyParameter.GetMember(Of MethodSymbol)("get_Property").Parameters(0).HasUnsupportedMetadata)
+            Assert.True(onIndexedPropertyParameter.GetMember(Of MethodSymbol)("set_Property").Parameters(0).HasUnsupportedMetadata)
+    
+            Dim onThisParameterIndexer = comp.GetTypeByMetadataName("OnThisIndexerParameter")
+            Assert.False(onThisParameterIndexer.HasUnsupportedMetadata)
+            Dim indexer = onThisParameterIndexer.GetMember(Of PropertySymbol)("Item")
+            Assert.True(indexer.HasUnsupportedMetadata)
+            Assert.True(indexer.Parameters(0).HasUnsupportedMetadata)
         End Sub
 
-        Protected Overrides Sub AssertModuleErrors(comp As VisualBasicCompilation)
+        Protected Overrides Sub AssertModuleErrors(comp As VisualBasicCompilation, ilRef As MetadataReference)
             comp.AssertTheseDiagnostics(<errors>
                                             <![CDATA[
 BC37319: 'OnModule' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
@@ -306,9 +399,11 @@ BC37319: 'OnModule' requires compiler feature 'test', which is not supported by 
                  ~~~~~~
 ]]>
                                         </errors>)
+
+            Assert.True(comp.GetReferencedAssemblySymbol(ilRef).Modules.Single().HasUnsupportedMetadata)
         End Sub
 
-        Protected Overrides Sub AssertAssemblyErrors(comp As VisualBasicCompilation)
+        Protected Overrides Sub AssertAssemblyErrors(comp As VisualBasicCompilation, ilRef As MetadataReference)
             comp.AssertTheseDiagnostics(<errors>
                                             <![CDATA[
 BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the Visual Basic compiler.
@@ -460,6 +555,8 @@ BC37319: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' r
                  ~~~~~~
 ]]>
                                         </errors>)
+
+            Assert.True(comp.GetReferencedAssemblySymbol(ilRef).HasUnsupportedMetadata)
         End Sub
 
         <Fact>

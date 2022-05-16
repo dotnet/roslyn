@@ -560,16 +560,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Dim containingModule = _containingType.ContainingPEModule
+            Dim decoder = New MetadataDecoder(containingModule, _containingType)
             errorInfo = DeriveCompilerFeatureRequiredAttributeDiagnostic(
                 Me,
                 containingModule,
                 Handle,
                 CompilerFeatureRequiredFeatures.None,
-                New MetadataDecoder(containingModule, _containingType))
+                decoder)
 
             If errorInfo IsNot Nothing Then
                 Return
             End If
+
+            For Each param In Parameters
+                errorInfo = DirectCast(param, PEParameterSymbol).DeriveCompilerFeatureRequiredDiagnostic(decoder)
+                If errorInfo IsNot Nothing Then
+                    Return
+                End If
+            Next
 
             errorInfo = _containingType.GetCompilerFeatureRequiredDiagnostic()
         End Sub

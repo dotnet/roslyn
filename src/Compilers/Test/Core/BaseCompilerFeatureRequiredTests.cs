@@ -672,11 +672,11 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         }
         else
         {
-            AssertAssemblyErrors(comp);
+            AssertAssemblyErrors(comp, compiledIl);
         }
     }
 
-    protected abstract void AssertAssemblyErrors(TCompilation compilation);
+    protected abstract void AssertAssemblyErrors(TCompilation compilation, MetadataReference ilRef);
 
     [Theory]
     [InlineData(true)]
@@ -693,7 +693,8 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         """;
 
 
-        var comp = CreateCompilationWithIL(source: GetUsage(), ilSource: il);
+        var compiledIl = CompileIL(il);
+        var comp = CreateCompilation(source: GetUsage(), references: new[] { compiledIl });
 
         if (isOptional == true)
         {
@@ -701,9 +702,9 @@ public abstract class BaseCompilerFeatureRequiredTests<TCompilation, TSource> : 
         }
         else
         {
-            AssertModuleErrors(comp);
+            AssertModuleErrors(comp, compiledIl);
         }
     }
 
-    protected abstract void AssertModuleErrors(TCompilation compilation);
+    protected abstract void AssertModuleErrors(TCompilation compilation, MetadataReference ilRef);
 }

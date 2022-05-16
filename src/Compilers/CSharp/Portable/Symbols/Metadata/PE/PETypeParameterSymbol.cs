@@ -709,5 +709,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 #nullable enable
         internal DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic(MetadataDecoder decoder)
             => PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, (PEModuleSymbol)ContainingModule, Handle, CompilerFeatureRequiredFeatures.None, decoder);
+
+        public override bool HasUnsupportedMetadata
+        {
+            get
+            {
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                MetadataDecoder decoder = ContainingSymbol is PEMethodSymbol method
+                    ? new MetadataDecoder(containingModule, method)
+                    : new MetadataDecoder(containingModule, (PENamedTypeSymbol)ContainingSymbol);
+                return DeriveCompilerFeatureRequiredDiagnostic(decoder)?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature
+                    ? true
+                    : base.HasUnsupportedMetadata;
+            }
+        }
     }
 }

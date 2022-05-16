@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return GetUseSiteInfo().DiagnosticInfo?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature;
+                return false;
             }
         }
 

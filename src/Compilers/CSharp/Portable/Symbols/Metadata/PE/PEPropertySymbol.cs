@@ -794,12 +794,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var containingType = (PENamedTypeSymbol)ContainingType;
                 PEModuleSymbol containingPEModule = _containingType.ContainingPEModule;
+                var decoder = new MetadataDecoder(containingPEModule, containingType);
                 var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
                     this,
                     containingPEModule,
                     Handle,
                     allowedFeatures: CompilerFeatureRequiredFeatures.None,
-                    new MetadataDecoder(containingPEModule, containingType));
+                    decoder);
+
+                foreach (var param in Parameters)
+                {
+                    diag ??= ((PEParameterSymbol)param).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+                }
 
                 diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
 

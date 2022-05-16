@@ -520,15 +520,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the error code is highest priority while calculating use site error for this symbol. 
         /// </summary>
         protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code)
-            => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BindToBogus or (int)ErrorCode.ERR_BogusType;
+            => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
 
-        public sealed override bool HasUnsupportedMetadata
+        public override bool HasUnsupportedMetadata
         {
             get
             {
                 DiagnosticInfo info = GetUseSiteInfo().DiagnosticInfo;
-                return (object)info != null && info.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
+                return (object)info != null && info.Code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
             }
         }
 

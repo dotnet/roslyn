@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -83,6 +85,9 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (4,10): error CS9512: 'OnMethod.M()' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnMethod.M();
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("OnMethod.M()", "test").WithLocation(4, 10),
+            // (5,16): error CS9512: 'void' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // OnMethodReturn.M();
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("void", "test").WithLocation(5, 16),
             // (6,13): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // OnParameter.M(1);
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "M").WithArguments("int", "test").WithLocation(6, 13),
@@ -128,16 +133,105 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // (26,32): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = OnIndexedPropertyParameter.get_Property(1);
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "get_Property").WithArguments("int", "test").WithLocation(26, 32),
-            // (27,29): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            // (27,1): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // new OnThisIndexerParameter()[1] = 1;
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[1]").WithArguments("int", "test").WithLocation(27, 29),
-            // (28,33): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "new OnThisIndexerParameter()[1]").WithArguments("int", "test").WithLocation(27, 1),
+            // (28,5): error CS9512: 'int' requires compiler feature 'test', which is not supported by this version of the C# compiler.
             // _ = new OnThisIndexerParameter()[1];
-            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "[1]").WithArguments("int", "test").WithLocation(28, 33)
+            Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "new OnThisIndexerParameter()[1]").WithArguments("int", "test").WithLocation(28, 5)
         );
+
+        var onType = comp.GetTypeByMetadataName("OnType");
+        Assert.True(onType!.HasUnsupportedMetadata);
+        Assert.True(onType.GetMember<MethodSymbol>("M").HasUnsupportedMetadata);
+
+        var onMethod = comp.GetTypeByMetadataName("OnMethod");
+        Assert.False(onMethod!.HasUnsupportedMetadata);
+        Assert.True(onMethod.GetMember<MethodSymbol>("M").HasUnsupportedMetadata);
+
+        var onMethodReturn = comp.GetTypeByMetadataName("OnMethodReturn");
+        Assert.False(onMethodReturn!.HasUnsupportedMetadata);
+        Assert.True(onMethodReturn.GetMember<MethodSymbol>("M").HasUnsupportedMetadata);
+
+        var onParameter = comp.GetTypeByMetadataName("OnParameter");
+        Assert.False(onParameter!.HasUnsupportedMetadata);
+        var onParameterMethod = onParameter.GetMember<MethodSymbol>("M");
+        Assert.True(onParameterMethod.HasUnsupportedMetadata);
+        Assert.True(onParameterMethod.Parameters[0].HasUnsupportedMetadata);
+
+        var onField = comp.GetTypeByMetadataName("OnField");
+        Assert.False(onField!.HasUnsupportedMetadata);
+        Assert.True(onField.GetMember<FieldSymbol>("Field").HasUnsupportedMetadata);
+
+        var onProperty = comp.GetTypeByMetadataName("OnProperty");
+        Assert.False(onProperty!.HasUnsupportedMetadata);
+        Assert.True(onProperty.GetMember<PropertySymbol>("Property").HasUnsupportedMetadata);
+
+        var onPropertyGetter = comp.GetTypeByMetadataName("OnPropertyGetter");
+        Assert.False(onPropertyGetter!.HasUnsupportedMetadata);
+        var onPropertyGetterProperty = onPropertyGetter.GetMember<PropertySymbol>("Property");
+        Assert.False(onPropertyGetterProperty.HasUnsupportedMetadata);
+        Assert.False(onPropertyGetterProperty.SetMethod.HasUnsupportedMetadata);
+        Assert.True(onPropertyGetterProperty.GetMethod.HasUnsupportedMetadata);
+
+        var onPropertySetter = comp.GetTypeByMetadataName("OnPropertySetter");
+        Assert.False(onPropertySetter!.HasUnsupportedMetadata);
+        var onPropertySetterProperty = onPropertySetter.GetMember<PropertySymbol>("Property");
+        Assert.False(onPropertySetterProperty.HasUnsupportedMetadata);
+        Assert.True(onPropertySetterProperty.SetMethod.HasUnsupportedMetadata);
+        Assert.False(onPropertySetterProperty.GetMethod.HasUnsupportedMetadata);
+
+        var onEvent = comp.GetTypeByMetadataName("OnEvent");
+        Assert.False(onEvent!.HasUnsupportedMetadata);
+        Assert.True(onEvent.GetMember<EventSymbol>("Event").HasUnsupportedMetadata);
+
+        var onEventAdder = comp.GetTypeByMetadataName("OnEventAdder");
+        Assert.False(onEventAdder!.HasUnsupportedMetadata);
+        var onEventAdderEvent = onEventAdder.GetMember<EventSymbol>("Event");
+        Assert.False(onEventAdderEvent.HasUnsupportedMetadata);
+        Assert.True(onEventAdderEvent.AddMethod!.HasUnsupportedMetadata);
+        Assert.False(onEventAdderEvent.RemoveMethod!.HasUnsupportedMetadata);
+
+        var onEventRemover = comp.GetTypeByMetadataName("OnEventRemover");
+        Assert.False(onEventRemover!.HasUnsupportedMetadata);
+        var onEventRemoverEvent = onEventRemover.GetMember<EventSymbol>("Event");
+        Assert.False(onEventRemoverEvent.HasUnsupportedMetadata);
+        Assert.False(onEventRemoverEvent.AddMethod!.HasUnsupportedMetadata);
+        Assert.True(onEventRemoverEvent.RemoveMethod!.HasUnsupportedMetadata);
+
+        var onEnum = comp.GetTypeByMetadataName("OnEnum");
+        Assert.True(onEnum!.HasUnsupportedMetadata);
+
+        var onEnumMember = comp.GetTypeByMetadataName("OnEnumMember");
+        Assert.False(onEnumMember!.HasUnsupportedMetadata);
+        Assert.True(onEnumMember.GetMember<FieldSymbol>("A").HasUnsupportedMetadata);
+
+        var onClassTypeParameter = comp.GetTypeByMetadataName("OnClassTypeParameter`1");
+        Assert.True(onClassTypeParameter!.HasUnsupportedMetadata);
+        Assert.True(onClassTypeParameter.TypeParameters[0].HasUnsupportedMetadata);
+
+        var onMethodTypeParameter = comp.GetTypeByMetadataName("OnMethodTypeParameter");
+        Assert.False(onMethodTypeParameter!.HasUnsupportedMetadata);
+        var onMethodTypeParameterMethod = onMethodTypeParameter.GetMember<MethodSymbol>("M");
+        Assert.True(onMethodTypeParameterMethod.HasUnsupportedMetadata);
+        Assert.True(onMethodTypeParameterMethod.TypeParameters[0].HasUnsupportedMetadata);
+
+        var onDelegateType = comp.GetTypeByMetadataName("OnDelegateType");
+        Assert.True(onDelegateType!.HasUnsupportedMetadata);
+
+        var onIndexedPropertyParameter = comp.GetTypeByMetadataName("OnIndexedPropertyParameter");
+        Assert.False(onIndexedPropertyParameter!.HasUnsupportedMetadata);
+        Assert.True(onIndexedPropertyParameter.GetMember<MethodSymbol>("get_Property").Parameters[0].HasUnsupportedMetadata);
+        Assert.True(onIndexedPropertyParameter.GetMember<MethodSymbol>("set_Property").Parameters[0].HasUnsupportedMetadata);
+
+        var onThisParameterIndexer = comp.GetTypeByMetadataName("OnThisIndexerParameter");
+        Assert.False(onThisParameterIndexer!.HasUnsupportedMetadata);
+        var indexer = onThisParameterIndexer.GetMember<PropertySymbol>("this[]");
+        Assert.True(indexer.HasUnsupportedMetadata);
+        Assert.True(indexer.Parameters[0].HasUnsupportedMetadata);
     }
 
-    protected override void AssertModuleErrors(CSharpCompilation comp)
+    protected override void AssertModuleErrors(CSharpCompilation comp, MetadataReference ilRef)
     {
         comp.VerifyDiagnostics(
             // (2,1): error CS9512: 'OnModule' requires compiler feature 'test', which is not supported by this version of the C# compiler.
@@ -291,9 +385,11 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // _ = new OnThisIndexerParameter()[1];
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("OnModule", "test").WithLocation(28, 9)
         );
+
+        Assert.True(comp.GetReferencedAssemblySymbol(ilRef).Modules.Single().HasUnsupportedMetadata);
     }
 
-    protected override void AssertAssemblyErrors(CSharpCompilation comp)
+    protected override void AssertAssemblyErrors(CSharpCompilation comp, MetadataReference ilRef)
     {
         comp.VerifyDiagnostics(
             // (2,1): error CS9512: 'AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' requires compiler feature 'test', which is not supported by this version of the C# compiler.
@@ -447,6 +543,8 @@ public class CSharpCompilerFeatureRequiredTests : BaseCompilerFeatureRequiredTes
             // _ = new OnThisIndexerParameter()[1];
             Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "OnThisIndexerParameter").WithArguments("AssemblyTest, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "test").WithLocation(28, 9)
         );
+
+        Assert.True(comp.GetReferencedAssemblySymbol(ilRef).HasUnsupportedMetadata);
     }
 
     [Fact]

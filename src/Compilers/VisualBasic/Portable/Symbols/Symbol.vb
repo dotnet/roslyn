@@ -908,7 +908,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overridable ReadOnly Property HasUnsupportedMetadata As Boolean Implements ISymbol.HasUnsupportedMetadata
             Get
-                Return If(GetUseSiteInfo().DiagnosticInfo?.Code = ERRID.ERR_UnsupportedCompilerFeature, False)
+                Return False
             End Get
         End Property
 
@@ -949,7 +949,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns true if the error code is highest priority while calculating use site error for this symbol. 
         ''' </summary>
         Protected Overridable Function IsHighestPriorityUseSiteError(code As Integer) As Boolean ' Supposed to be ERRID, but it causes inconsistent accessibility error.
-            Return code = ERRID.ERR_UnsupportedCompilerFeature
+            Return False
         End Function
 
         Friend Function MergeUseSiteInfo(ByRef result As UseSiteInfo(Of AssemblySymbol), other As UseSiteInfo(Of AssemblySymbol)) As Boolean

@@ -271,5 +271,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Return _lazyCachedCompilerFeatureRequiredDiagnosticInfo
         End Function
+
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+            Get
+                Dim info = GetCompilerFeatureRequiredDiagnosticInfo()
+                If info IsNot Nothing Then
+                    Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer)
+                End If
+
+                Return False
+            End Get
+        End Property
     End Class
 End Namespace
