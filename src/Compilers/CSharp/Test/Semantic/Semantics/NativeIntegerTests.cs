@@ -7344,6 +7344,15 @@ $@"{{
   IL_0001:  {conversion}
   IL_0002:  ret
 }}";
+            static string convRUn(string conversion) =>
+$@"{{
+      // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r.un
+  IL_0002:  {conversion}
+  IL_0003:  ret
+}}";
             static string convFromNullableT(string conversion, string sourceType) =>
 $@"{{
   // Code size        9 (0x9)
@@ -7353,6 +7362,16 @@ $@"{{
   IL_0007:  {conversion}
   IL_0008:  ret
 }}";
+            static string convRUnFromNullableT(string conversion, string sourceType) =>
+$@"{{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""{sourceType} {sourceType}?.Value.get""
+  IL_0007:  conv.r.un
+  IL_0008:  {conversion}
+  IL_0009:  ret
+}}";
             static string convToNullableT(string conversion, string destType) =>
 $@"{{
   // Code size        8 (0x8)
@@ -7361,6 +7380,16 @@ $@"{{
   IL_0001:  {conversion}
   IL_0002:  newobj     ""{destType}?..ctor({destType})""
   IL_0007:  ret
+}}";
+            static string convRUnToNullableT(string conversion, string destType) =>
+$@"{{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  conv.r.un
+  IL_0002:  {conversion}
+  IL_0003:  newobj     ""{destType}?..ctor({destType})""
+  IL_0008:  ret
 }}";
             static string convFromToNullableT(string conversion, string sourceType, string destType) =>
 $@"{{
@@ -7382,6 +7411,28 @@ $@"{{
   IL_001c:  {conversion}
   IL_001d:  newobj     ""{destType}?..ctor({destType})""
   IL_0022:  ret
+}}";
+            static string convRUnFromToNullableT(string conversion, string sourceType, string destType) =>
+$@"{{
+  // Code size       36 (0x24)
+  .maxstack  1
+  .locals init ({sourceType}? V_0,
+                {destType}? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool {sourceType}?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""{destType}?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""{sourceType} {sourceType}?.GetValueOrDefault()""
+  IL_001c:  conv.r.un
+  IL_001d:  {conversion}
+  IL_001e:  newobj     ""{destType}?..ctor({destType})""
+  IL_0023:  ret
 }}";
             static string convAndExplicit(string method, string conv = null) => conv is null ?
 $@"{{
@@ -8326,8 +8377,8 @@ $@"{{
             conversions(sourceType: "nuint", destType: "uint", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u4"), expectedCheckedIL: conv("conv.ovf.u4.un"));
             conversions(sourceType: "nuint", destType: "long", ExplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: conv("conv.u8"), expectedCheckedIL: conv("conv.ovf.i8.un"));
             conversions(sourceType: "nuint", destType: "ulong", ImplicitNumeric, expectedImplicitIL: conv("conv.u8"), expectedExplicitIL: conv("conv.u8"));
-            conversions(sourceType: "nuint", destType: "float", ImplicitNumeric, expectedImplicitIL: conv("conv.r4"), expectedExplicitIL: conv("conv.r4"));
-            conversions(sourceType: "nuint", destType: "double", ImplicitNumeric, expectedImplicitIL: conv("conv.r8"), expectedExplicitIL: conv("conv.r8"));
+            conversions(sourceType: "nuint", destType: "float", ImplicitNumeric, expectedImplicitIL: convRUn("conv.r4"), expectedExplicitIL: convRUn("conv.r4"));
+            conversions(sourceType: "nuint", destType: "double", ImplicitNumeric, expectedImplicitIL: convRUn("conv.r8"), expectedExplicitIL: convRUn("conv.r8"));
             conversions(sourceType: "nuint", destType: "decimal", ImplicitNumeric,
 @"{
   // Code size        8 (0x8)
@@ -8358,8 +8409,8 @@ $@"{{
             conversions(sourceType: "nuint", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u4", "uint"), expectedCheckedIL: convToNullableT("conv.ovf.u4.un", "uint"));
             conversions(sourceType: "nuint", destType: "long?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convToNullableT("conv.u8", "long"), expectedCheckedIL: convToNullableT("conv.ovf.i8.un", "long"));
             conversions(sourceType: "nuint", destType: "ulong?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.u8", "ulong"), expectedExplicitIL: convToNullableT("conv.u8", "ulong"));
-            conversions(sourceType: "nuint", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.r4", "float"), expectedExplicitIL: convToNullableT("conv.r4", "float"), null);
-            conversions(sourceType: "nuint", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convToNullableT("conv.r8", "double"), expectedExplicitIL: convToNullableT("conv.r8", "double"), null);
+            conversions(sourceType: "nuint", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convRUnToNullableT("conv.r4", "float"), expectedExplicitIL: convRUnToNullableT("conv.r4", "float"), null);
+            conversions(sourceType: "nuint", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convRUnToNullableT("conv.r8", "double"), expectedExplicitIL: convRUnToNullableT("conv.r8", "double"), null);
             conversions(sourceType: "nuint", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       13 (0xd)
@@ -8424,8 +8475,8 @@ $@"{{
             conversions(sourceType: "nuint?", destType: "uint", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u4", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.u4.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "long", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"), expectedCheckedIL: convFromNullableT("conv.ovf.i8.un", "nuint"));
             conversions(sourceType: "nuint?", destType: "ulong", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.u8", "nuint"));
-            conversions(sourceType: "nuint?", destType: "float", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r4", "nuint"));
-            conversions(sourceType: "nuint?", destType: "double", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromNullableT("conv.r8", "nuint"));
+            conversions(sourceType: "nuint?", destType: "float", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convRUnFromNullableT("conv.r4", "nuint"));
+            conversions(sourceType: "nuint?", destType: "double", ExplicitNullableImplicitNumeric, expectedImplicitIL: null, expectedExplicitIL: convRUnFromNullableT("conv.r8", "nuint"));
             conversions(sourceType: "nuint?", destType: "decimal", ExplicitNullableImplicitNumeric, expectedImplicitIL: null,
 @"{
   // Code size       14 (0xe)
@@ -8456,8 +8507,8 @@ $@"{{
             conversions(sourceType: "nuint?", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
             conversions(sourceType: "nuint?", destType: "long?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long"));
             conversions(sourceType: "nuint?", destType: "ulong?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
-            conversions(sourceType: "nuint?", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), null);
-            conversions(sourceType: "nuint?", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), null);
+            conversions(sourceType: "nuint?", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convRUnFromToNullableT("conv.r4", "nuint", "float"), null);
+            conversions(sourceType: "nuint?", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convRUnFromToNullableT("conv.r8", "nuint", "double"), null);
             conversions(sourceType: "nuint?", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       40 (0x28)
@@ -14684,6 +14735,93 @@ enum E { }
                 {
                     comp.VerifyDiagnostics();
                 }
+            }
+        }
+
+        [Fact, WorkItem(60714, "https://github.com/dotnet/roslyn/issues/60714")]
+        public void ConversionFromNuintToDouble()
+        {
+            var source = """
+if (!System.Environment.Is64BitProcess)
+{
+    System.Console.Write("RAN");
+    return;
+}
+
+nuint x = unchecked((nuint)ulong.MaxValue);
+ulong y = ulong.MaxValue;
+
+double a = x;
+double b = y;
+
+if (a == b)
+{
+    System.Console.Write("RAN");
+}
+return;
+
+class C
+{
+    double M(nuint i)
+    {
+        return i;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  conv.r.un
+  IL_0002:  conv.r8
+  IL_0003:  ret
+}");
+        }
+
+        [Fact, WorkItem(60714, "https://github.com/dotnet/roslyn/issues/60714")]
+        public void ConversionFromNuintToFloat()
+        {
+            var source = """
+if (!System.Environment.Is64BitProcess)
+{
+    System.Console.Write("RAN");
+    return;
+}
+
+nuint x = unchecked((nuint)ulong.MaxValue);
+ulong y = ulong.MaxValue;
+
+float a = x;
+float b = y;
+
+if (a == b)
+{
+    System.Console.Write("RAN");
+}
+return;
+
+class C
+{
+    float M(nuint i)
+    {
+        return i;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  conv.r.un
+  IL_0002:  conv.r4
+  IL_0003:  ret
+}");
             }
         }
 
