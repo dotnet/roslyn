@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 documentForGlobalImports: includeGlobalImports ? document : null,
                 spanToSearch,
                 symbolKeyAndLineNumbers,
+                forceFrozenPartialSemanticsForCrossProcessOperations: true,
                 cancellationToken).ConfigureAwait(false);
         }
 

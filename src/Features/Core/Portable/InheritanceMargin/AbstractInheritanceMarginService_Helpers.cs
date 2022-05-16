@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             Document? documentForGlobalImports,
             TextSpan spanToSearch,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool forceFrozenPartialSemanticsForCrossProcessOperations,
             CancellationToken cancellationToken)
         {
             // If we're starting from a document, use it to go to a frozen partial version of it to lower the amount of
             // work we need to do running source generators or producing skeleton references.
-            if (documentForGlobalImports != null)
+            if (documentForGlobalImports != null && forceFrozenPartialSemanticsForCrossProcessOperations)
             {
                 documentForGlobalImports = documentForGlobalImports.WithFrozenPartialSemantics(cancellationToken);
                 project = documentForGlobalImports.Project;
@@ -57,15 +58,21 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
             {
-                // Here the line number is also passed to the remote process. It is done in this way because
-                // when a set of symbols is passed to remote process, those without inheritance targets would not be returned.
-                // To match the returned inheritance targets to the line number, we need set an 'Id' when calling the remote process,
-                // however, given the line number is just an int, setting up an int 'Id' for an int is quite useless, so just passed it to the remote process.
+                // Here the line number is also passed to the remote process. It is done in this way because when a set
+                // of symbols is passed to remote process, those without inheritance targets would not be returned. To
+                // match the returned inheritance targets to the line number, we need set an 'Id' when calling the
+                // remote process, however, given the line number is just an int, setting up an int 'Id' for an int is
+                // quite useless, so just passed it to the remote process.
+                //
+                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
+                // we want results quickly, without waiting for the entire SG pass to go.  The user will still get
+                // accurate results in the future because taggers are set to recompute when compilations are fully
+                // available on the OOP side.
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                     solution,
                     (service, solutionInfo, cancellationToken) =>
                         service.GetInheritanceMarginItemsAsync(
-                            solutionInfo, project.Id, documentForGlobalImports?.Id, spanToSearch, symbolKeyAndLineNumbers, cancellationToken),
+                            solutionInfo, project.Id, documentForGlobalImports?.Id, spanToSearch, symbolKeyAndLineNumbers, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)

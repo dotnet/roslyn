@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             DocumentId? documentIdForGlobalImports,
             TextSpan spanToSearch,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool forceFrozenPartialSemanticsForCrossProcessOperations,
             CancellationToken cancellationToken);
     }
 }

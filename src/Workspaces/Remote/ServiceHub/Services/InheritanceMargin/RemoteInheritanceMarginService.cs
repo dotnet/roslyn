@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
             DocumentId? documentIdForGlobalImports,
             TextSpan spanToSearch,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool forceFrozenPartialSemanticsForCrossProcessOperations,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, solution =>
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var service = (AbstractInheritanceMarginService)project.GetRequiredLanguageService<IInheritanceMarginService>();
                 var documentForGlobaImports = solution.GetDocument(documentIdForGlobalImports);
 
-                return service.GetInheritanceMemberItemAsync(project, documentForGlobaImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken);
+                return service.GetInheritanceMemberItemAsync(project, documentForGlobaImports, spanToSearch, symbolKeyAndLineNumbers, forceFrozenPartialSemanticsForCrossProcessOperations, cancellationToken);
             }, cancellationToken);
         }
     }
