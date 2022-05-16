@@ -84,8 +84,7 @@ internal static class CodeFixOptionsProviders
 {
     public static async ValueTask<CodeFixOptionsProvider> GetCodeFixOptionsProviderAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new CodeFixOptionsProvider(configOptions, fallbackOptions, document.Project.GetExtendedLanguageServices());
     }
 }
