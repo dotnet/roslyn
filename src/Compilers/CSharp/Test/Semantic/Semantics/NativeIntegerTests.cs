@@ -14709,6 +14709,7 @@ C.M5(0);
 C.M6(0);
 C.M7(0);
 C.M8(0);
+C.M9(0);
 
 public class C
 {
@@ -14733,16 +14734,19 @@ public class C
     public static void M7(nint{{s1Nullable}} x) { Write("M7 "); }
     public static void M7(ulong{{s2Nullable}} x) { }
 
-    public static void M8(nint{{s1Nullable}} x) { Write("M8"); }
+    public static void M8(nint{{s1Nullable}} x) { Write("M8 "); }
     public static void M8(nuint{{s2Nullable}} x) { }
+
+    public static void M9(nint{{s1Nullable}} x) { Write("M9(nint)"); }
+    public static void M9(byte{{s2Nullable}} x) { Write("M9(byte)"); }
 }
 """;
             var comp = CreateCompilation(source);
 
             // Note: conversions ushort->nint, ushort?->nint?, ushort->nint? are implicit (so rule 1 kicks in), but ushort?->nint is explicit (so rule 3 kicks in)
             var expected = (nullable1, nullable2) is (false, true)
-                ? "M1 M2 M3 M4 M5(nint) M6 M7 M8"
-                : "M1 M2 M3 M4 M5(ushort) M6 M7 M8";
+                ? "M1 M2 M3 M4 M5(nint) M6 M7 M8 M9(nint)"
+                : "M1 M2 M3 M4 M5(ushort) M6 M7 M8 M9(byte)";
             CompileAndVerify(comp, expectedOutput: expected);
         }
 
@@ -14770,6 +14774,7 @@ C.M6(0);
 C.M7(0);
 C.M8(0);
 C.M9(0);
+C.M10(0);
 
 public class C
 {
@@ -14798,12 +14803,15 @@ public class C
     public static void M8(ulong{{s2Nullable}} x) { Write("M8 "); }
 
     public static void M9(IntPtr{{s1Nullable}} x) { }
-    public static void M9(nuint{{s2Nullable}} x) { Write("M9"); }
+    public static void M9(nuint{{s2Nullable}} x) { Write("M9 "); }
+
+    public static void M10(IntPtr{{s1Nullable}} x) { }
+    public static void M10(byte{{s2Nullable}} x) { Write("M10"); }
 }
 """;
             var comp = CreateCompilation(source);
 
-            CompileAndVerify(comp, expectedOutput: "M1 M2 M3 M4 M5 M6 M7 M8 M9");
+            CompileAndVerify(comp, expectedOutput: "M1 M2 M3 M4 M5 M6 M7 M8 M9 M10");
         }
     }
 }
