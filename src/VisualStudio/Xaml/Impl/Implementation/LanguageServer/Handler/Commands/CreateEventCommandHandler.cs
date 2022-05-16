@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle the command that adds an event handler method in code
     /// </summary>
-    [ExportStatelessXamlLspService(typeof(CreateEventCommandHandler))]
+    [ExportStatelessXamlLspService(typeof(CreateEventCommandHandler)), Shared]
     [Command(StringConstants.CreateEventHandlerCommand)]
     internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {

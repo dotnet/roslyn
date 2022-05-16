@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportStatelessXamlLspService(typeof(CodeActionsHandler))]
+    [ExportStatelessXamlLspService(typeof(CodeActionsHandler)), Shared]
     internal class XamlCodeActionsHandler : CodeActionsHandler
     {
         [ImportingConstructor]
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         }
     }
 
-    [ExportStatelessXamlLspService(typeof(CodeActionResolveHandler))]
+    [ExportStatelessXamlLspService(typeof(CodeActionResolveHandler)), Shared]
     internal class XamlCodeActionResolveHandler : CodeActionResolveHandler
     {
         [ImportingConstructor]
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         }
     }
 
-    [ExportStatelessXamlLspService(typeof(RunCodeActionHandler))]
+    [ExportStatelessXamlLspService(typeof(RunCodeActionHandler)), Shared]
     internal class XamlRunCodeActionHandler : RunCodeActionHandler
     {
         [ImportingConstructor]
