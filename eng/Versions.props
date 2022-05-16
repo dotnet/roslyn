@@ -230,6 +230,7 @@
     <SystemMemoryVersion>4.5.4</SystemMemoryVersion>
     <SystemResourcesExtensionsVersion>6.0.0</SystemResourcesExtensionsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.0.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemRuntimeInteropServicesNFloatInternalVersion>6.0.1</SystemRuntimeInteropServicesNFloatInternalVersion>
     <SystemRuntimeLoaderVersion>4.3.0</SystemRuntimeLoaderVersion>
     <SystemSecurityPrincipalVersion>4.3.0</SystemSecurityPrincipalVersion>
     <SystemTextEncodingCodePagesVersion>6.0.0</SystemTextEncodingCodePagesVersion>
