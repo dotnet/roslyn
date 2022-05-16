@@ -2118,6 +2118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void AfterAccessorBindingChecks()
+        {
+            _ = KnownCircularStruct;
+        }
+
         internal override bool KnownCircularStruct
         {
             get
@@ -2136,7 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (Interlocked.CompareExchange(ref _lazyKnownCircularStruct, value, (int)ThreeState.Unknown) == (int)ThreeState.Unknown)
                         {
-                            DeclaringCompilation.CircularStructDiagnostics.AddRange(diagnostics);
+                            DeclaringCompilation.AfterAccessorBindingDiagnostics.AddRange(diagnostics);
                         }
 
                         Debug.Assert(value == _lazyKnownCircularStruct);

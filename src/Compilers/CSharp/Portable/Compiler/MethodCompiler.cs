@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     new LocalizableResourceString(messageResourceName, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
             }
 
-            addCircularStructDiagnostics(compilation.SourceModule.GlobalNamespace);
+            addAfterAccessorBindingDiagnostics(compilation.SourceModule.GlobalNamespace);
             methodCompiler.WaitForWorkers();
-            diagnostics.AddRange(compilation.CircularStructDiagnostics, allowMismatchInDependencyAccumulation: true);
+            diagnostics.AddRange(compilation.AfterAccessorBindingDiagnostics, allowMismatchInDependencyAccumulation: true);
             diagnostics.AddRange(compilation.AdditionalCodegenWarnings);
 
             // we can get unused field warnings only if compiling whole compilation.
@@ -218,37 +218,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void addCircularStructDiagnostics(NamespaceOrTypeSymbol symbol)
+            void addAfterAccessorBindingDiagnostics(Symbol symbol)
             {
-                if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol && PassesFilter(filterOpt, symbol))
+                if (PassesFilter(filterOpt, symbol))
                 {
-                    _ = sourceMemberContainerTypeSymbol.KnownCircularStruct;
+                    symbol.AfterAccessorBindingChecks();
                 }
 
-                foreach (var member in symbol.GetMembersUnordered())
+                if (symbol is NamespaceOrTypeSymbol namespaceOrType)
                 {
-                    if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                    foreach (var member in namespaceOrType.GetMembersUnordered())
                     {
                         if (compilation.Options.ConcurrentBuild)
                         {
-                            Task worker = addCircularStructDiagnosticsAsAsync(namespaceOrTypeSymbol);
+                            Task worker = addAfterAccessorBindingDiagnosticsAsAsync(member);
                             methodCompiler._compilerTasks.Push(worker);
                         }
                         else
                         {
-                            addCircularStructDiagnostics(namespaceOrTypeSymbol);
+                            addAfterAccessorBindingDiagnostics(member);
                         }
                     }
                 }
             }
 
-            Task addCircularStructDiagnosticsAsAsync(NamespaceOrTypeSymbol symbol)
+            Task addAfterAccessorBindingDiagnosticsAsAsync(Symbol symbol)
             {
                 return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
                     try
                     {
-                        addCircularStructDiagnostics(symbol);
+                        addAfterAccessorBindingDiagnostics(symbol);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                     {

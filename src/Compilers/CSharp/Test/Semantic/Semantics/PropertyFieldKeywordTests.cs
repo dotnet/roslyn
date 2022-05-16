@@ -6118,9 +6118,7 @@ public unsafe struct S2
                 //     public S1* s;
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
 
-            // PROTOTYPE(semi-auto-props): This shouldn't need extra binding.
-            // Try to follow what was done for the circular struct diagnostic.
-            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }
