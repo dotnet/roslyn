@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -102,16 +103,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private int GetOrComputeIndentationDelta()
             {
-                var indentationDelta = Volatile.Read(ref _lazyIndentationDelta);
-                if (indentationDelta != UninitializedIndentationDelta)
-                    return indentationDelta;
-
-                indentationDelta = _indentationDeltaGetter(_formattingContext, Operation, _effectiveBaseTokenGetter(_formattingContext, Operation));
-                var existingIndentationDelta = Interlocked.CompareExchange(ref _lazyIndentationDelta, indentationDelta, UninitializedIndentationDelta);
-                if (existingIndentationDelta != UninitializedIndentationDelta)
-                    return existingIndentationDelta;
-
-                return indentationDelta;
+                return LazyInitialization.EnsureInitialized(
+                    ref _lazyIndentationDelta,
+                    UninitializedIndentationDelta,
+                    static self => self._indentationDeltaGetter(
+                        self._formattingContext,
+                        self.Operation,
+                        self._effectiveBaseTokenGetter(self._formattingContext, self.Operation)),
+                    this);
             }
 
             public override int Indentation => GetOrComputeIndentationDelta() + _baseIndentationGetter(_formattingContext, _effectiveBaseTokenGetter(_formattingContext, Operation));
@@ -122,16 +121,31 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
         }
 
+        /// <summary>
+        /// Represents an indentation in which a fixed offset (<see cref="Adjustment"/>) is applied to a reference
+        /// indentation amount (<see cref="BaseIndentationData"/>).
+        /// </summary>
         private sealed class AdjustedIndentationData : IndentationData
         {
             public AdjustedIndentationData(TextSpan textSpan, IndentationData baseIndentationData, int adjustment)
                 : base(textSpan)
             {
+                Debug.Assert(adjustment != 0, $"Indentation with no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+                Debug.Assert(baseIndentationData is not AdjustedIndentationData, $"Indentation data should only involve one layer of adjustment (multiples can be combined by adding the {nameof(Adjustment)} fields.");
+
                 BaseIndentationData = baseIndentationData;
                 Adjustment = adjustment;
             }
 
+            /// <summary>
+            /// The reference indentation data which needs to be adjusted.
+            /// </summary>
             public IndentationData BaseIndentationData { get; }
+
+            /// <summary>
+            /// The adjustment to apply to the <see cref="IndentationData.Indentation"/> value providede by
+            /// <see cref="BaseIndentationData"/>.
+            /// </summary>
             public int Adjustment { get; }
 
             public override int Indentation => BaseIndentationData.Indentation + Adjustment;
