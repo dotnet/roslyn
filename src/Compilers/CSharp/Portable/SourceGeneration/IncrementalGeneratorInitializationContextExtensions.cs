@@ -48,7 +48,9 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         // the required semantic model for it once, instead of potentially many times (in the rare, but possible case of
         // a single file with a ton of matching nodes in it).
         var groupedNodes = collectedNodes.SelectMany(
-            (array, cancellationToken) => array.GroupBy(n => n.SyntaxTree).Select(g => new SyntaxNodeGrouping<T>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
+            static (array, cancellationToken) =>
+                array.GroupBy(static n => n.SyntaxTree)
+                     .Select(static g => new SyntaxNodeGrouping<T>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
         var compilationAndGroupedNodesProvider = groupedNodes
             .Combine(context.CompilationProvider)
@@ -116,7 +118,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         public SyntaxNodeGrouping(IGrouping<SyntaxTree, TSyntaxNode> grouping)
         {
             SyntaxTree = grouping.Key;
-            SyntaxNodes = grouping.OrderBy(n => n.FullSpan.Start).ToImmutableArray();
+            SyntaxNodes = grouping.OrderBy(static n => n.FullSpan.Start).ToImmutableArray();
         }
 
         public override int GetHashCode()

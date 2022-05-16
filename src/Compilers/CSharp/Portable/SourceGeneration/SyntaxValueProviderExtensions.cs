@@ -20,7 +20,7 @@ using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 internal static partial class SyntaxValueProviderExtensions
 {
-    private static readonly ObjectPool<Stack<string>> s_stackPool = new(() => new());
+    private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
@@ -47,8 +47,8 @@ internal static partial class SyntaxValueProviderExtensions
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
-            (n, _) => n is CompilationUnitSyntax,
-            (context, _) => GetGlobalAliasesInCompilationUnit((CompilationUnitSyntax)context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
+            static (n, _) => n is CompilationUnitSyntax,
+            static (context, _) => GetGlobalAliasesInCompilationUnit((CompilationUnitSyntax)context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
         // file changes its global aliases.
@@ -57,13 +57,13 @@ internal static partial class SyntaxValueProviderExtensions
             .WithTrackingName("collectedGlobalAliases_ForAttribute");
 
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
-            .Select((arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
+            .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
         var compilationUnitProvider = provider.CreateSyntaxProvider(
-            (n, _) => n is CompilationUnitSyntax,
-            (context, _) => (CompilationUnitSyntax)context.Node).WithTrackingName("compilationUnit_ForAttribute");
+            static (n, _) => n is CompilationUnitSyntax,
+            static (context, _) => (CompilationUnitSyntax)context.Node).WithTrackingName("compilationUnit_ForAttribute");
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
