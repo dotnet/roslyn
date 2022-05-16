@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration;
@@ -32,6 +33,12 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(typeof(CLSCompliantAttribute).FullName)</c>
     /// will find the <c>C</c> class.</para>
     /// </summary>
+    /// <remarks>
+    /// The <typeparamref name="T"/> should be given the type of the syntax node that owns the <see
+    /// cref="AttributeListSyntax"/> that contains the matching attribute.  For the example above, that would be a <see
+    /// cref="ClassDeclarationSyntax"/>.  <see cref="SyntaxNode"/> can be used as the type argument to return every
+    /// syntax node of any type that has such a matching attribute on it.
+    /// </remarks>
     public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
         where T : SyntaxNode
     {
