@@ -6120,5 +6120,31 @@ public unsafe struct S2
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
+
+        [Fact]
+        public void TestERR_ManagedAddr2()
+        {
+            var comp = CreateCompilation(@"
+public unsafe struct S1
+{
+    public object s;
+    public S1* P { get => field; }
+}
+public unsafe struct S2
+{
+    public int s;
+    public S2* P { get => field; }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     public S1* P { get => field; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S1").WithLocation(5, 16));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
     }
 }
