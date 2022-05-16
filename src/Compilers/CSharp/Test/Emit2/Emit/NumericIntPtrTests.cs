@@ -9883,7 +9883,7 @@ public class C
 {
     public nint M() { throw null; }
 }";
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateEmptyCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
             var image = comp.EmitToImageReference();
 
             var comp2 = CreateNumericIntPtrCompilation(source, references: new[] { image, MscorlibRefWithoutSharingCachedSymbols });
@@ -10135,6 +10135,14 @@ namespace System.Runtime.CompilerServices
         public static bool IsDynamicCodeCompiled => false;
         public static event Action MyEvent;
         public static bool Method(bool x) => true;
+
+        class Nested
+        {
+            public const string A = nameof(NumericIntPtr);
+            public static bool B => false;
+            public static event Action C;
+            public static bool D(bool x) => true;
+        }
     }
 }
 ";
