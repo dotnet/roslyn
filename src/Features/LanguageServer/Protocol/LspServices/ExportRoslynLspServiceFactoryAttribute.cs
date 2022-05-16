@@ -20,11 +20,3 @@ internal class ExportRoslynLspServiceFactoryAttribute : ExportLspServiceFactoryA
     {
     }
 }
-
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
-internal class ExportRoslynStatelessLspServiceAttribute : ExportStatelessLspServiceAttribute
-{
-    public ExportRoslynStatelessLspServiceAttribute(Type type, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.NotSpecified) : base(type, ProtocolConstants.RoslynLspLanguagesContract, serverKind)
-    {
-    }
-}
