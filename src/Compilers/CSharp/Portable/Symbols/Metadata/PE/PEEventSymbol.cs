@@ -95,11 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 const int targetSymbolCustomModifierCount = 0;
                 var typeSymbol = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
-                if (_containingType.SpecialType != SpecialType.System_Runtime_CompilerServices_RuntimeFeature)
-                {
-                    // We need to break the cycle when loading members of System.Runtime.CompilerServices.RuntimeFeature
-                    typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol);
-                }
+                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, _containingType);
 
                 // We start without annotation (they will be decoded below)
                 var type = TypeWithAnnotations.Create(typeSymbol);

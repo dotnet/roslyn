@@ -1981,7 +1981,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     addIfNotNull(builder, compilation.SynthesizeTupleNamesAttribute(type.Type));
                 }
-                if (compilation.ShouldEmitNativeIntegerAttributes() && type.Type.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
                 {
                     addIfNotNull(builder, moduleBuilder.SynthesizeNativeIntegerAttribute(declaringSymbol, type.Type));
                 }

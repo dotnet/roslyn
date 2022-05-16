@@ -4726,7 +4726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(baseType, customModifiersCount: 0));
                 }
 
-                if (compilation.ShouldEmitNativeIntegerAttributes() && baseType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(baseType))
                 {
                     AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, baseType));
                 }

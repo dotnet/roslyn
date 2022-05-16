@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ParameterHelpers.EnsureIsReadOnlyAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
 
-                if (compilation.ShouldEmitNativeIntegerAttributes() && ReturnType.ContainsNativeInteger())
+                if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }

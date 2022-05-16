@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// True if the type represents a native integer. In C#, the types represented
-        /// by language keywords 'nint' and 'nuint' on platforms where they were not unified
+        /// by language keywords 'nint' and 'nuint' on platforms where they are not unified
         /// with 'System.IntPtr' and 'System.UIntPtr'.
         /// </summary>
         internal virtual bool IsNativeIntegerWrapperType => false;

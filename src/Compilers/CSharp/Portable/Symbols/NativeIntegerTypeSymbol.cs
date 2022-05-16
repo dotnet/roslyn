@@ -189,7 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            Debug.Assert(!ContainingAssembly.RuntimeSupportsNumericIntPtr);
             return (comparison & TypeCompareKind.IgnoreNativeIntegers) != 0 ||
                 other.IsNativeIntegerWrapperType;
         }

@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             result.Free();
             return possiblyBest;
 
-            bool isNuint(TypeSymbol type)
+            static bool isNuint(TypeSymbol type)
             {
                 return type.SpecialType == SpecialType.System_UIntPtr
                     && type.IsNativeIntegerTypeOrNumericIntPtr;
