@@ -1940,7 +1940,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    InternalSyntax.Feature.InitOnlySettersUsage)
                         End If
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, setMethod, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, setMethod, node)
 
                         If ReportUseSite(diagnostics, op1.Syntax, setMethod) Then
                             isError = True
@@ -5191,7 +5191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If Not exceptionType.IsOrDerivedFromWellKnownClass(WellKnownType.System_Exception, Compilation, useSiteInfo) Then
                         hasError = True
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException, exceptionType)
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_CantThrowNonException)
                     End If
 
                     diagnostics.Add(node, useSiteInfo)

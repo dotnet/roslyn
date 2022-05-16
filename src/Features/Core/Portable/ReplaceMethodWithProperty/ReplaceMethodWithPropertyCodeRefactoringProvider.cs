@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.ReplaceMethodWithProperty), Shared]
-    internal class ReplaceMethodWithPropertyCodeRefactoringProvider : CodeRefactoringProvider
+    internal class ReplaceMethodWithPropertyCodeRefactoringProvider :
+        CodeRefactoringProvider,
+        IEqualityComparer<ReferenceLocation>
     {
         private const string GetPrefix = "Get";
 
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var nameChanged = hasGetPrefix;
 
             // Looks good!
-            context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
+            context.RegisterRefactoring(CodeAction.Create(
                 string.Format(FeaturesResources.Replace_0_with_property, methodName),
                 c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod: null, cancellationToken: c),
                 methodName),
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 var setMethod = FindSetMethod(methodSymbol);
                 if (setMethod != null)
                 {
-                    context.RegisterRefactoring(new ReplaceMethodWithPropertyCodeAction(
+                    context.RegisterRefactoring(CodeAction.Create(
                         string.Format(FeaturesResources.Replace_0_and_1_with_property, methodName, setMethod.Name),
                         c => ReplaceMethodsWithPropertyAsync(document, propertyName, nameChanged, methodSymbol, setMethod, cancellationToken: c),
                         methodName + "-get/set"),
@@ -91,9 +93,6 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 }
             }
         }
-
-        private static bool HasGetPrefix(SyntaxToken identifier)
-            => HasGetPrefix(identifier.ValueText);
 
         private static bool HasGetPrefix(string text)
             => HasPrefix(text, GetPrefix);
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 setMethod.DeclaringSyntaxReferences.Length == 1;
         }
 
-        private static async Task<Solution> ReplaceMethodsWithPropertyAsync(
+        private async Task<Solution> ReplaceMethodsWithPropertyAsync(
             Document document,
             string propertyName,
             bool nameChanged,
@@ -193,7 +192,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private static async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
+        private async Task<Solution> UpdateReferencesAsync(Solution updatedSolution, string propertyName, bool nameChanged, ILookup<Document, ReferenceLocation> getReferencesByDocument, ILookup<Document, ReferenceLocation> setReferencesByDocument, CancellationToken cancellationToken)
         {
             var allReferenceDocuments = getReferencesByDocument.Concat(setReferencesByDocument).Select(g => g.Key).Distinct();
             foreach (var referenceDocument in allReferenceDocuments)
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private static async Task<Solution> UpdateReferencesInDocumentAsync(
+        private async Task<Solution> UpdateReferencesInDocumentAsync(
             string propertyName,
             bool nameChanged,
             Solution updatedSolution,
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             var root = await originalDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace.Services);
             var service = originalDocument.GetRequiredLanguageService<IReplaceMethodWithPropertyService>();
 
             ReplaceGetReferences(propertyName, nameChanged, getReferences, root, editor, service, cancellationToken);
@@ -232,7 +231,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return updatedSolution;
         }
 
-        private static void ReplaceGetReferences(
+        private void ReplaceGetReferences(
             string propertyName, bool nameChanged,
             IEnumerable<ReferenceLocation> getReferences,
             SyntaxNode root, SyntaxEditor editor,
@@ -241,7 +240,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             if (getReferences != null)
             {
-                foreach (var referenceLocation in getReferences)
+                // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol
+                // is allowed to report the entire set of references it think it is compatible with.  So ensure we're 
+                // hitting each location only once.
+                // 
+                // Note Use DistinctBy (.Net6) once available.
+                foreach (var referenceLocation in getReferences.Distinct(this))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -267,7 +271,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             }
         }
 
-        private static void ReplaceSetReferences(
+        private void ReplaceSetReferences(
             string propertyName, bool nameChanged,
             IEnumerable<ReferenceLocation> setReferences,
             SyntaxNode root, SyntaxEditor editor,
@@ -276,7 +280,12 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         {
             if (setReferences != null)
             {
-                foreach (var referenceLocation in setReferences)
+                // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol
+                // is allowed to report the entire set of references it think it is compatible with.  So ensure we're 
+                // hitting each location only once.
+                // 
+                // Note Use DistinctBy (.Net6) once available.
+                foreach (var referenceLocation in setReferences.Distinct(this))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
@@ -354,7 +363,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             var syntaxTree = await updatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await updatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var editor = new SyntaxEditor(root, updatedSolution.Workspace);
+            var editor = new SyntaxEditor(root, updatedSolution.Workspace.Services);
 
             var documentOptions = await updatedDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var parseOptions = syntaxTree.Options;
@@ -474,12 +483,13 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
             return null;
         }
 
-        private class ReplaceMethodWithPropertyCodeAction : CodeAction.SolutionChangeAction
+        public bool Equals([AllowNull] ReferenceLocation x, [AllowNull] ReferenceLocation y)
         {
-            public ReplaceMethodWithPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
-            {
-            }
+            Contract.ThrowIfFalse(x.Document == y.Document);
+            return x.Location.SourceSpan == y.Location.SourceSpan;
         }
+
+        public int GetHashCode([DisallowNull] ReferenceLocation obj)
+            => obj.Location.SourceSpan.GetHashCode();
     }
 }

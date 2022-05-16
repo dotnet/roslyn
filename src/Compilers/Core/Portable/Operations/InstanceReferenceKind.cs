@@ -24,5 +24,9 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Reference to the value being matching in a property subpattern.
         /// </summary>
         PatternInput,
+        /// <summary>
+        /// Reference to the interpolated string handler instance created as part of a parent interpolated string handler conversion.
+        /// </summary>
+        InterpolatedStringHandler,
     }
 }

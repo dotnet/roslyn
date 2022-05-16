@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
             FoldingRangeProvider = new FoldingRangeOptions { },
             DocumentFormattingProvider = true,
             DocumentRangeFormattingProvider = true,
-            DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">", MoreTriggerCharacter = new string[] { "\n" } },
-            OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/", ">" } },
+            DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = ">" },
+            OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "=", "/" } },
             TextDocumentSync = new TextDocumentSyncOptions
             {
                 Change = TextDocumentSyncKind.None,

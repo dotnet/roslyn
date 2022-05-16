@@ -386,8 +386,8 @@ Class Customer1
     Dim a, b, c As Integer
 //[
     ' {ServicesVSResources.Prefer_colon}
-    // {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
-    Public Overrides Function GetHashCodeAsInteger()
+    ' {ServicesVSResources.Requires_System_HashCode_be_present_in_project}
+    Public Overrides Function GetHashCode() As Integer
         Return System.HashCode.Combine(a, b, c)
     End Function
 //]
@@ -396,7 +396,7 @@ Class Customer2
     Dim a, b, c As Integer
 //[
     ' {ServicesVSResources.Over_colon}
-    Public Overrides Function GetHashCodeAsInteger()
+    Public Overrides Function GetHashCode() As Integer
         Dim hashCode = 339610899
         hashCode = hashCode * -1521134295 + a.GetHashCode()
         hashCode = hashCode * -1521134295 + b.GetHashCode()

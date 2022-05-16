@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal sealed class SimpleNavigationBarItem : NavigationBarItem, IEquatable<SimpleNavigationBarItem>
     {
-        public SimpleNavigationBarItem(ITextVersion textVersion, string text, Glyph glyph, ImmutableArray<TextSpan> spans, TextSpan? navigationSpan, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
-            : base(textVersion, text, glyph, spans, navigationSpan, childItems, indent, bolded, grayed)
+        public SimpleNavigationBarItem(ITextVersion textVersion, string text, Glyph glyph, ImmutableArray<TextSpan> spans, ImmutableArray<NavigationBarItem> childItems, int indent, bool bolded, bool grayed)
+            : base(textVersion, text, glyph, spans, childItems, indent, bolded, grayed)
         {
         }
 

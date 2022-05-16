@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.ThrowIfNull(interfacesOrAbstractClasses);
             Contract.ThrowIfNull(isImplemented);
 
-            if (classOrStructType.TypeKind != TypeKind.Class && classOrStructType.TypeKind != TypeKind.Struct)
+            if (classOrStructType.TypeKind is not TypeKind.Class and not TypeKind.Struct)
             {
                 return ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)>.Empty;
             }
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var q = from m in interfaceMemberGetter(interfaceType, classOrStructType)
                     where m.Kind != SymbolKind.NamedType
-                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator
+                    where m.Kind != SymbolKind.Method || ((IMethodSymbol)m).MethodKind is MethodKind.Ordinary or MethodKind.UserDefinedOperator or MethodKind.Conversion
                     where m.Kind != SymbolKind.Property || ((IPropertySymbol)m).IsIndexer || ((IPropertySymbol)m).CanBeReferencedByName
                     where m.Kind != SymbolKind.Event || ((IEventSymbol)m).CanBeReferencedByName
                     where !isImplemented(classOrStructType, m, isValidImplementation, cancellationToken)
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 !containingType.IsImplicitClass &&
                 !containingType.IsStatic)
             {
-                if (containingType.TypeKind == TypeKind.Class || containingType.TypeKind == TypeKind.Struct)
+                if (containingType.TypeKind is TypeKind.Class or TypeKind.Struct)
                 {
                     var baseTypes = containingType.GetBaseTypes().Reverse();
                     foreach (var type in baseTypes)
@@ -612,8 +612,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 Name: nameof(Equals),
                 IsStatic: false,
-                ContainingType: { SpecialType: SpecialType.System_Object },
-                Parameters: { Length: 1 },
+                ContainingType.SpecialType: SpecialType.System_Object,
+                Parameters.Length: 1,
             };
         }
 

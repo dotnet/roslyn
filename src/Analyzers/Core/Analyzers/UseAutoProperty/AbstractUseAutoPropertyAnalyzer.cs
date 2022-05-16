@@ -222,9 +222,14 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             // Can't remove the field if it has attributes on it.
-            if (getterField.GetAttributes().Length > 0)
+            var attributes = getterField.GetAttributes();
+            var suppressMessageAttributeType = semanticModel.Compilation.SuppressMessageAttributeType();
+            foreach (var attribute in attributes)
             {
-                return;
+                if (attribute.AttributeClass != suppressMessageAttributeType)
+                {
+                    return;
+                }
             }
 
             if (!CanConvert(property))

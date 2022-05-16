@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
             SearchRoot(root, displayName, callback, scope, documents)
         End Sub
 
-        Private Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
+        Private Shared Sub SearchRoot(root As CallHierarchyItem, displayName As String, callback As MockSearchCallback, scope As CallHierarchySearchScope, documents As IImmutableSet(Of Document))
             ' Assert we have the category before we try to find it to give better diagnosing
             Assert.Contains(displayName, root.SupportedSearchCategories.Select(Function(c) c.DisplayName))
 

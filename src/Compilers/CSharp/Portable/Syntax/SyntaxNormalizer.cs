@@ -520,6 +520,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return false;
         }
 
+        private static bool NeedsSeparatorForListPattern(SyntaxToken token, SyntaxToken next)
+        {
+            var listPattern = token.Parent as ListPatternSyntax ?? next.Parent as ListPatternSyntax;
+            if (listPattern == null)
+            {
+                return false;
+            }
+
+            // is$$[1, 2]
+            if (next.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return true;
+            }
+
+            // is [1, 2]$$list
+            if (token.IsKind(SyntaxKind.OpenBracketToken))
+            {
+                return listPattern.Designation is not null;
+            }
+
+            return false;
+        }
+
         private static bool NeedsSeparator(SyntaxToken token, SyntaxToken next)
         {
             if (token.Parent == null || next.Parent == null)
@@ -806,13 +829,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.NotKeyword:
                     return true;
             }
+
             if (NeedsSeparatorForPropertyPattern(token, next))
             {
                 return true;
             }
+
             if (NeedsSeparatorForPositionalPattern(token, next))
             {
                 return true;
+            }
+
+            if (NeedsSeparatorForListPattern(token, next))
+            {
+                return true;
+            }
+
+            switch (token.Parent.Kind(), next.Parent.Kind())
+            {
+                case (SyntaxKind.LineSpanDirectiveTrivia, SyntaxKind.LineDirectivePosition):
+                case (SyntaxKind.LineDirectivePosition, SyntaxKind.LineSpanDirectiveTrivia):
+                    return true;
             }
 
             return false;
@@ -1227,6 +1264,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return base.VisitInterpolatedStringExpression(node);
+        }
+
+        public override SyntaxNode? VisitXmlTextAttribute(XmlTextAttributeSyntax node)
+        {
+            var attribute = (XmlTextAttributeSyntax?)base.VisitXmlTextAttribute(node);
+
+            if (attribute is null or { HasTrailingTrivia: true })
+            {
+                return attribute;
+            }
+
+            SyntaxKind nextTokenKind = GetNextRelevantToken(node.EndQuoteToken).Kind();
+            return nextTokenKind != SyntaxKind.GreaterThanToken && nextTokenKind != SyntaxKind.SlashGreaterThanToken
+                ? attribute.WithTrailingTrivia(GetSpace())
+                : attribute;
         }
     }
 }

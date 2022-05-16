@@ -5,15 +5,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -30,6 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
+        private static readonly Uri SourceGeneratedDocumentBaseUri = new("gen://");
 
         private static readonly Regex s_markdownEscapeRegex = new(@"([\\`\*_\{\}\[\]\(\)#+\-\.!])", RegexOptions.Compiled);
 
@@ -47,18 +51,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
             { WellKnownTags.Class, LSP.CompletionItemKind.Class },
             { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
-            { WellKnownTags.Delegate, LSP.CompletionItemKind.Method },
+            { WellKnownTags.Delegate, LSP.CompletionItemKind.Delegate },
             { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
             { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
             { WellKnownTags.Event, LSP.CompletionItemKind.Event },
-            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.Method },
+            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.ExtensionMethod },
             { WellKnownTags.Field, LSP.CompletionItemKind.Field },
             { WellKnownTags.Interface, LSP.CompletionItemKind.Interface },
             { WellKnownTags.Intrinsic, LSP.CompletionItemKind.Text },
             { WellKnownTags.Keyword, LSP.CompletionItemKind.Keyword },
             { WellKnownTags.Label, LSP.CompletionItemKind.Text },
             { WellKnownTags.Local, LSP.CompletionItemKind.Variable },
-            { WellKnownTags.Namespace, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Namespace, LSP.CompletionItemKind.Namespace },
             { WellKnownTags.Method, LSP.CompletionItemKind.Method },
             { WellKnownTags.Module, LSP.CompletionItemKind.Module },
             { WellKnownTags.Operator, LSP.CompletionItemKind.Operator },
@@ -141,14 +145,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static Uri GetUriFromFilePath(string? filePath)
+        public static Uri GetUriFromFilePath(string filePath)
         {
             if (filePath is null)
-            {
                 throw new ArgumentNullException(nameof(filePath));
-            }
 
             return new Uri(filePath, UriKind.Absolute);
+        }
+
+        public static Uri GetUriFromPartialFilePath(string? filePath)
+        {
+            if (filePath is null)
+                throw new ArgumentNullException(nameof(filePath));
+
+            return new Uri(SourceGeneratedDocumentBaseUri, filePath);
+        }
+
+        public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
+        {
+            if (Uri.TryCreate(filePath, UriKind.Absolute, out var uri))
+                return uri;
+
+            context?.TraceInformation($"Could not convert '{filePath}' to uri");
+            return null;
         }
 
         public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
@@ -289,38 +308,52 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return documentEdits;
         }
 
-        public static async Task<LSP.Location?> TextSpanToLocationAsync(
+        public static Task<LSP.Location?> TextSpanToLocationAsync(
             Document document,
             TextSpan textSpan,
             bool isStale,
             CancellationToken cancellationToken)
         {
+            return TextSpanToLocationAsync(document, textSpan, isStale, context: null, cancellationToken);
+        }
+
+        public static async Task<LSP.Location?> TextSpanToLocationAsync(
+            Document document,
+            TextSpan textSpan,
+            bool isStale,
+            RequestContext? context,
+            CancellationToken cancellationToken)
+        {
             var result = await GetMappedSpanResultAsync(document, ImmutableArray.Create(textSpan), cancellationToken).ConfigureAwait(false);
             if (result == null)
-            {
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
-            }
+                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
 
             var mappedSpan = result.Value.Single();
             if (mappedSpan.IsDefault)
-            {
-                return await ConvertTextSpanToLocation(document, textSpan, isStale, cancellationToken).ConfigureAwait(false);
-            }
+                return await TryConvertTextSpanToLocation(document, textSpan, isStale, context, cancellationToken).ConfigureAwait(false);
+
+            var uri = TryGetUriFromFilePath(mappedSpan.FilePath, context);
+            if (uri == null)
+                return null;
 
             return new LSP.Location
             {
-                Uri = GetUriFromFilePath(mappedSpan.FilePath),
+                Uri = uri,
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location> ConvertTextSpanToLocation(
+            static async Task<LSP.Location?> TryConvertTextSpanToLocation(
                 Document document,
                 TextSpan span,
                 bool isStale,
+                RequestContext? context,
                 CancellationToken cancellationToken)
             {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var uri = document.TryGetURI(context);
+                if (uri == null)
+                    return null;
 
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 if (isStale)
                 {
                     // in the case of a stale item, the span may be out of bounds of the document. Cap
@@ -331,7 +364,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         Math.Min(text.Length, span.End));
                 }
 
-                return ConvertTextSpanWithTextToLocation(span, text, document.GetURI());
+                return ConvertTextSpanWithTextToLocation(span, text, uri);
             }
 
             static LSP.Location ConvertTextSpanWithTextToLocation(TextSpan span, SourceText text, Uri documentUri)
@@ -346,18 +379,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLink)
-        {
-            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
-            {
-                return new LSP.CodeDescription
-                {
-                    Href = uri,
-                };
-            }
-
-            return null;
-        }
+        public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
+            => (uri != null) ? new LSP.CodeDescription { Href = uri } : null;
 
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {
@@ -551,16 +574,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.VSImageId GetImageIdFromGlyph(Glyph glyph)
-        {
-            var imageId = glyph.GetImageId();
-            return new LSP.VSImageId
-            {
-                Guid = imageId.Guid,
-                Id = imageId.Id
-            };
-        }
-
         // The mappings here are roughly based off of SymbolUsageInfoExtensions.ToSymbolReferenceKinds.
         public static LSP.VSInternalReferenceKind[] SymbolUsageInfoToReferenceKinds(SymbolUsageInfo symbolUsageInfo)
         {
@@ -647,19 +660,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 debugName: projectContext.Id.Substring(delimiter + 1));
         }
 
-        public static async Task<DocumentOptionSet> FormattingOptionsToDocumentOptionsAsync(
-            LSP.FormattingOptions options,
+        public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
+            LSP.FormattingOptions? options,
             Document document,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            // LSP doesn't currently support indent size as an option. However, except in special
-            // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-            var updatedOptions = documentOptions
-                .WithChangedOption(Formatting.FormattingOptions.UseTabs, !options.InsertSpaces)
-                .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
-                .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
-            return updatedOptions;
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+
+            if (options != null)
+            {
+                // LSP doesn't currently support indent size as an option. However, except in special
+                // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
+                formattingOptions = formattingOptions.With(new LineFormattingOptions(
+                    UseTabs: !options.InsertSpaces,
+                    TabSize: options.TabSize,
+                    IndentationSize: options.TabSize,
+                    NewLine: formattingOptions.NewLine));
+            }
+
+            return formattingOptions;
         }
 
         public static LSP.MarkupContent GetDocumentationMarkupContent(ImmutableArray<TaggedText> tags, Document document, bool featureSupportsMarkdown)

@@ -4,10 +4,16 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.Text.Editor;
@@ -24,10 +30,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCreateServicesOnTextViewConnection(
             VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : base(workspace, listenerProvider, threadingContext, LanguageNames.CSharp)
+            : base(workspace, globalOptions, listenerProvider, threadingContext, LanguageNames.CSharp)
         {
+        }
+
+        protected override async Task InitializeServiceForOpenedDocumentAsync(Document document)
+        {
+            // Only pre-populate cache if import completion is enabled
+            if (GlobalOptions.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
+                return;
+
+            var service = document.GetRequiredLanguageService<ITypeImportCompletionService>();
+            service.QueueCacheWarmUpTask(document.Project);
+            await ExtensionMethodImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

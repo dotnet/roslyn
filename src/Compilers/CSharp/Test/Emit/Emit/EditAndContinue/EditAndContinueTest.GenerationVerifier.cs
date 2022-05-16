@@ -50,6 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 AssertEx.Equal(expected, actual, message: GetAssertMessage("MemberRefs don't match"));
             }
 
+            internal void VerifyFieldDefNames(params string[] expected)
+            {
+                var actual = _readers.GetStrings(_metadataReader.GetFieldDefNames());
+                AssertEx.Equal(expected, actual, message: GetAssertMessage("FieldDefs don't match"));
+            }
+
+            internal void VerifyPropertyDefNames(params string[] expected)
+            {
+                var actual = _readers.GetStrings(_metadataReader.GetPropertyDefNames());
+                AssertEx.Equal(expected, actual, message: GetAssertMessage("PropertyDefs don't match"));
+            }
+
             internal void VerifyTableSize(TableIndex table, int expected)
             {
                 AssertEx.AreEqual(expected, _metadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));
@@ -73,6 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             internal void VerifyEncMapDefinitions(IEnumerable<EntityHandle> expected)
             {
                 AssertEx.Equal(expected, _metadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
+            }
+
+            internal void VerifyCustomAttributes(IEnumerable<CustomAttributeRow> expected)
+            {
+                AssertEx.Equal(expected, _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
             }
         }
     }

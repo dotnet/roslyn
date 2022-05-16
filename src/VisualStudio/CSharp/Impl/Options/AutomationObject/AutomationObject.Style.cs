@@ -69,6 +69,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferCoalesceExpression, value); }
         }
 
+        public string Style_PreferMethodGroupConversion
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferMethodGroupConversion); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferMethodGroupConversion, value); }
+        }
+
         public string Style_PreferNullPropagation
         {
             get { return GetXmlOption(CodeStyleOptions2.PreferNullPropagation); }
@@ -237,6 +243,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions2.PreferIsNullCheckOverReferenceEqualityMethod, value); }
         }
 
+        public string Style_PreferParameterNullChecking
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferParameterNullChecking, value); }
+        }
+
         public string Style_PreferNullCheckOverTypeCheck
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferNullCheckOverTypeCheck); }
@@ -351,10 +363,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.PreferSimpleUsingStatement, value); }
         }
 
+        public string Style_PreferTopLevelStatements
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTopLevelStatements); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTopLevelStatements, value); }
+        }
+
         public string Style_PreferLocalOverAnonymousFunction
         {
             get { return GetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction); }
             set { SetXmlOption(CSharpCodeStyleOptions.PreferLocalOverAnonymousFunction, value); }
+        }
+
+        public string Style_PreferTupleSwap
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTupleSwap, value); }
+        }
+
+        public string Style_PreferUTF8StringLiterals
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferUTF8StringLiterals, value); }
         }
 
         public string Style_PreferredUsingDirectivePlacement

@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (symbol.Locations.Any(l => l.IsInMetadata))
             {
                 var accessibility = symbol.DeclaredAccessibility;
-                return accessibility == Accessibility.Public ||
-                    accessibility == Accessibility.Protected ||
-                    accessibility == Accessibility.ProtectedOrInternal;
+                return accessibility is Accessibility.Public or
+                    Accessibility.Protected or
+                    Accessibility.ProtectedOrInternal;
             }
 
             return true;

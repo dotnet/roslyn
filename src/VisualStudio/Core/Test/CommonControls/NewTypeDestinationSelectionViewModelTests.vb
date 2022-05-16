@@ -211,7 +211,7 @@ class $$MyClass
             monitor.Detach()
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement,
+        Private Shared Async Function GetViewModelAsync(markup As XElement,
                               languageName As String,
                               defaultTypeName As String,
                               Optional defaultNamespace As String = "",

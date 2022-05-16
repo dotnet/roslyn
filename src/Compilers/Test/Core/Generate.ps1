@@ -168,34 +168,6 @@ Add-TargetFramework "Net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_ne
   'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "NetCoreApp" '$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0' @(
-  'mscorlib.dll',
-  'System.dll',
-  'System.Core.dll',
-  'System.Collections.dll',
-  'System.Console.dll',
-  'System.Linq.dll',
-  'System.Linq.Expressions.dll',
-  'System.Runtime.dll',
-  'System.Runtime.InteropServices.dll',
-  'System.Threading.Tasks.dll',
-  'netstandard.dll',
-  'Microsoft.CSharp.dll',
-  'Microsoft.VisualBasic.dll',
-  'Microsoft.VisualBasic.Core.dll'
-)
-
-Add-TargetFramework "NetStandard20" '$(NuGetPackageRoot)\netstandard.library\2.0.3\build\netstandard2.0\ref' @(
-  'mscorlib.dll',
-  'System.dll',
-  'System.Core.dll',
-  'System.Dynamic.Runtime.dll',
-  'System.Linq.dll',
-  'System.Linq.Expressions.dll',
-  'System.Runtime.dll',
-  'netstandard.dll'
-)
-
 Add-TargetFramework "MicrosoftCSharp" '$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)' @(
   'Netstandard10#ref\netstandard1.0\Microsoft.CSharp.dll'
   'Netstandard13Lib#lib\netstandard1.3\Microsoft.CSharp.dll'

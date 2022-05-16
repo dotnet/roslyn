@@ -464,7 +464,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     topLevelMethodId,
                     originalMethod,
                     nestedFunction.BlockSyntax,
-                    lambdaId);
+                    lambdaId,
+                    CompilationState);
                 nestedFunction.SynthesizedLoweredMethod = synthesizedMethod;
             });
 
@@ -551,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Assignment(
                                 F.Field(null, frame.SingletonCache),
                                 F.New(frame.Constructor)),
-                            new BoundReturnStatement(syntax, RefKind.None, null));
+                            new BoundReturnStatement(syntax, RefKind.None, null, @checked: false));
 
                     AddSynthesizedMethod(frame.StaticConstructor, body);
                 }
@@ -1308,6 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver,
                     method,
                     node.IsExtensionMethod,
+                    node.WasTargetTyped,
                     VisitType(node.Type));
             }
             return base.VisitDelegateCreationExpression(node);
@@ -1605,6 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver,
                 referencedMethod,
                 isExtensionMethod: false,
+                wasTargetTyped: false,
                 type: type);
 
             // if the block containing the lambda is not the innermost block,

@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -20,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private RefKindVector(int capacity)
         {
             _bits = BitVector.Create(capacity * 2);
+        }
+
+        private RefKindVector(BitVector bits)
+        {
+            _bits = bits;
         }
 
         internal bool IsNull => _bits.IsNull;
@@ -68,6 +75,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             return _bits.GetHashCode();
+        }
+
+        public string ToRefKindString()
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var builder = pooledBuilder.Builder;
+
+            builder.Append("{");
+
+            int i = 0;
+            foreach (var word in this.Words())
+            {
+                if (i > 0)
+                {
+                    builder.Append(",");
+                }
+
+                builder.AppendFormat("{0:x8}", word);
+                i++;
+            }
+
+            builder.Append("}");
+            Debug.Assert(i > 0);
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        public static bool TryParse(string refKindString, int capacity, out RefKindVector result)
+        {
+            ulong? firstWord = null;
+            ArrayBuilder<ulong>? otherWords = null;
+            foreach (var word in refKindString.Split(','))
+            {
+                ulong value;
+                try
+                {
+                    value = Convert.ToUInt64(word, 16);
+                }
+                catch (Exception)
+                {
+                    result = default;
+                    return false;
+                }
+
+                if (firstWord is null)
+                {
+                    firstWord = value;
+                }
+                else
+                {
+                    otherWords ??= ArrayBuilder<ulong>.GetInstance();
+                    otherWords.Add(value);
+                }
+            }
+
+            Debug.Assert(firstWord is not null);
+
+            var bitVector = BitVector.FromWords(firstWord.Value, otherWords?.ToArrayAndFree() ?? Array.Empty<ulong>(), capacity * 2);
+            result = new RefKindVector(bitVector);
+            return true;
         }
     }
 }

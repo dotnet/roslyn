@@ -79,12 +79,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 Solution solution, DocumentId sourceDocumentId, DocumentId documentWithMovedTypeId)
             {
                 var documentWithMovedType = solution.GetRequiredDocument(documentWithMovedTypeId);
+                var documentWithMovedTypeFormattingOptions = await documentWithMovedType.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
 
                 var syntaxFacts = documentWithMovedType.GetRequiredLanguageService<ISyntaxFactsService>();
                 var removeUnnecessaryImports = documentWithMovedType.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
                 // Remove all unnecessary imports from the new document we've created.
-                documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, CancellationToken).ConfigureAwait(false);
+                documentWithMovedType = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(documentWithMovedType, documentWithMovedTypeFormattingOptions, CancellationToken).ConfigureAwait(false);
 
                 solution = solution.WithDocumentSyntaxRoot(
                     documentWithMovedTypeId, await documentWithMovedType.GetRequiredSyntaxRootAsync(CancellationToken).ConfigureAwait(false));
@@ -97,9 +98,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                 // Now remove any unnecessary imports from the original doc that moved to the new doc.
                 var sourceDocument = solution.GetRequiredDocument(sourceDocumentId);
+                var sourceDocumentFormattingOptions = await sourceDocument.GetSyntaxFormattingOptionsAsync(State.FallbackOptions, CancellationToken).ConfigureAwait(false);
                 sourceDocument = await removeUnnecessaryImports.RemoveUnnecessaryImportsAsync(
                     sourceDocument,
                     n => movedImports.Contains(i => syntaxFacts.AreEquivalent(i, n)),
+                    sourceDocumentFormattingOptions,
                     CancellationToken).ConfigureAwait(false);
 
                 return solution.WithDocumentSyntaxRoot(
@@ -299,7 +302,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var withoutBlankLines = syntaxFacts.GetNodeWithoutLeadingBlankLines(currentTypeNode);
+                var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerFactsService>();
+
+                var withoutBlankLines = bannerService.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
                 // Add an elastic marker so the formatter can add any blank lines it thinks are
                 // important to have (i.e. after a block of usings/imports).

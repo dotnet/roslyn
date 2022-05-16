@@ -9,6 +9,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports System.Reflection.Metadata.Ecma335
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -280,6 +281,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property MetadataName As String
             Get
                 Return If(HasNameInMetadata, _name, String.Empty)
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property MetadataToken As Integer
+            Get
+                Return MetadataTokens.GetToken(_handle)
             End Get
         End Property
 

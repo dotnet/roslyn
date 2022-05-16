@@ -39,7 +39,7 @@ using System.Collections.Generic;
                 "Insert [global using D = System.Diagnostics;]@2",
                 "Insert [global using System.Collections;]@40");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -73,7 +73,7 @@ using System.Collections.Generic;
                 "Delete [using D = System.Diagnostics;]@2",
                 "Delete [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -93,7 +93,7 @@ using System.Collections.Generic;
                 "Insert [using D = System.Diagnostics;]@2",
                 "Insert [using System.Collections;]@33");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -114,7 +114,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Collections;]@29 -> [using X = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -135,7 +135,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using X1 = System.Collections;]@29 -> [using X2 = System.Collections;]@29");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -156,7 +156,7 @@ using System.Collections.Generic;
             edits.VerifyEdits(
                 "Update [using System.Diagnostics;]@2 -> [using System;]@2");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -394,7 +394,9 @@ namespace N
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2")));
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C.M2")) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         #endregion
@@ -412,7 +414,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [extern alias X;]@0 -> [extern alias Y;]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Update, "extern alias Y;", CSharpFeaturesResources.extern_alias));
         }
 
@@ -427,7 +429,7 @@ namespace N
             edits.VerifyEdits(
                 "Insert [extern alias Y;]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "extern alias Y;", CSharpFeaturesResources.extern_alias));
         }
 
@@ -442,7 +444,7 @@ namespace N
             edits.VerifyEdits(
                 "Delete [extern alias Y;]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.extern_alias));
         }
 
@@ -462,7 +464,7 @@ namespace N
                 "Insert [[assembly: System.Obsolete(\"2\")]]@0",
                 "Insert [System.Obsolete(\"2\")]@11");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "[assembly: System.Obsolete(\"2\")]", FeaturesResources.attribute));
         }
 
@@ -478,7 +480,7 @@ namespace N
                 "Delete [[assembly: System.Obsolete(\"2\")]]@0",
                 "Delete [System.Obsolete(\"2\")]@11");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, null, FeaturesResources.attribute));
         }
 
@@ -494,7 +496,7 @@ namespace N
                 "Update [[assembly: System.Obsolete(\"1\")]]@0 -> [[assembly: System.Obsolete(\"2\")]]@0",
                 "Update [System.Obsolete(\"1\")]@11 -> [System.Obsolete(\"2\")]@11");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Update, "System.Obsolete(\"2\")", FeaturesResources.attribute));
         }
 
@@ -509,7 +511,7 @@ namespace N
             edits.VerifyEdits(
                 "Reorder [[assembly: System.Obsolete(\"2\")]]@32 -> @0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         #endregion
@@ -532,7 +534,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [" + oldKeyword + " C { }]@0 -> [" + newKeyword + " C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeKindUpdate, newKeyword + " C"));
         }
 
@@ -553,7 +555,8 @@ namespace N
                 "Update [[CreateNewOnMetadataUpdate]" + oldKeyword + " C { }]@145 -> [[CreateNewOnMetadataUpdate]" + newKeyword + " C { }]@145");
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -567,7 +570,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [public static class C { }]@0 -> [public class C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public class C", FeaturesResources.class_));
         }
 
@@ -587,7 +590,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [" + accessibility + " class C { }]@0 -> [class C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAccessibility, "class C", FeaturesResources.class_));
         }
 
@@ -648,7 +651,8 @@ namespace N
                 "Update [[CreateNewOnMetadataUpdate]public class C { }]@145 -> [[CreateNewOnMetadataUpdate]internal class C { }]@145");
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Theory]
@@ -663,7 +667,7 @@ namespace N
             var src2 = "interface C { " + keyword + " S { } }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAccessibility, keyword + " S", GetResource(keyword)));
         }
 
@@ -708,7 +712,7 @@ namespace N
             edits.VerifyEdits(
                 "Update [public class C { }]@0 -> [public unsafe class C { }]@0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
@@ -755,7 +759,7 @@ class C
                 "Update [unsafe C() {}]@218 -> [C() {}]@176",
                 "Update [unsafe ~C() {}]@237 -> [~C() {}]@188");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact, WorkItem(48628, "https://github.com/dotnet/roslyn/issues/48628")]
@@ -789,7 +793,7 @@ class C
             edits.VerifyEdits(
                 "Update [public struct C { }]@0 -> [public ref struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public ref struct C", CSharpFeaturesResources.struct_));
         }
 
@@ -804,7 +808,7 @@ class C
             edits.VerifyEdits(
                 "Update [public ref struct C { }]@0 -> [public struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
         }
 
@@ -819,7 +823,7 @@ class C
             edits.VerifyEdits(
                 "Update [public struct C { }]@0 -> [public readonly struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly struct C", CSharpFeaturesResources.struct_));
         }
 
@@ -834,8 +838,52 @@ class C
             edits.VerifyEdits(
                 "Update [public readonly struct C { }]@0 -> [public struct C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public struct C", CSharpFeaturesResources.struct_));
+        }
+
+        [Theory]
+        [InlineData("[System.CLSCompliantAttribute]", "CLSCompliantAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.AllowNullAttribute]", "AllowNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.DisallowNullAttribute]", "DisallowNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.MaybeNullAttribute]", "MaybeNullAttribute")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.NotNullAttribute]", "NotNullAttribute")]
+        [InlineData("[System.NonSerializedAttribute]", "NonSerializedAttribute")]
+        [InlineData("[System.Reflection.AssemblyAlgorithmIdAttribute]", "AssemblyAlgorithmIdAttribute")]
+        [InlineData("[System.Reflection.AssemblyCultureAttribute]", "AssemblyCultureAttribute")]
+        [InlineData("[System.Reflection.AssemblyFlagsAttribute]", "AssemblyFlagsAttribute")]
+        [InlineData("[System.Reflection.AssemblyVersionAttribute]", "AssemblyVersionAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.DllImportAttribute]", "DllImportAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.IndexerNameAttribute]", "IndexerNameAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.MethodImplAttribute]", "MethodImplAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.SpecialNameAttribute]", "SpecialNameAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.TypeForwardedToAttribute]", "TypeForwardedToAttribute")]
+        [InlineData("[System.Runtime.InteropServices.ComImportAttribute]", "ComImportAttribute")]
+        [InlineData("[System.Runtime.InteropServices.DefaultParameterValueAttribute]", "DefaultParameterValueAttribute")]
+        [InlineData("[System.Runtime.InteropServices.FieldOffsetAttribute]", "FieldOffsetAttribute")]
+        [InlineData("[System.Runtime.InteropServices.InAttribute]", "InAttribute")]
+        [InlineData("[System.Runtime.InteropServices.MarshalAsAttribute]", "MarshalAsAttribute")]
+        [InlineData("[System.Runtime.InteropServices.OptionalAttribute]", "OptionalAttribute")]
+        [InlineData("[System.Runtime.InteropServices.OutAttribute]", "OutAttribute")]
+        [InlineData("[System.Runtime.InteropServices.PreserveSigAttribute]", "PreserveSigAttribute")]
+        [InlineData("[System.Runtime.InteropServices.StructLayoutAttribute]", "StructLayoutAttribute")]
+        [InlineData("[System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeImportAttribute]", "WindowsRuntimeImportAttribute")]
+        [InlineData("[System.Security.DynamicSecurityMethodAttribute]", "DynamicSecurityMethodAttribute")]
+        [InlineData("[System.SerializableAttribute]", "SerializableAttribute")]
+        [InlineData("[System.Runtime.CompilerServices.AsyncMethodBuilderAttribute]", "AsyncMethodBuilderAttribute")]
+        public void Type_Attribute_Insert_SupportedByRuntime_NonCustomAttribute(string attributeType, string attributeName)
+        {
+            var src1 = @"class C { public void M(int a) {} }";
+            var src2 = attributeType + @"class C { public void M(int a) {} } ";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Update [class C { public void M(int a) {} }]@0 -> [" + attributeType + "class C { public void M(int a) {} }]@0");
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "class C", attributeName, FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -852,8 +900,9 @@ class C
             edits.VerifyEdits(
                 "Update [[A1]class C { }]@98 -> [[A2]class C { }]@98");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -867,8 +916,9 @@ class C
             edits.VerifyEdits(
                 "Update [[System.Obsolete(\"1\")]class C { }]@0 -> [[System.Obsolete(\"2\")]class C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -885,8 +935,9 @@ class C
             edits.VerifyEdits(
                 "Update [[A, B]class C { }]@96 -> [[A]class C { }]@96");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -903,8 +954,9 @@ class C
             edits.VerifyEdits(
                 "Update [[B, A]class C { }]@96 -> [[A]class C { }]@96");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -925,7 +977,8 @@ public class A3 : System.Attribute { }
                 "Update [[CreateNewOnMetadataUpdate, A1, A2]class C { }]@267 -> [[CreateNewOnMetadataUpdate, A2, A3]class C { }]@267");
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -937,7 +990,8 @@ public class A3 : System.Attribute { }
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -951,7 +1005,7 @@ public class A3 : System.Attribute { }
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -963,7 +1017,8 @@ public class A3 : System.Attribute { }
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -983,7 +1038,7 @@ public class A3 : System.Attribute { }
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -1000,8 +1055,9 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [[A]class C { }]@96 -> [[A, B]class C { }]@96");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -1017,8 +1073,9 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [class C { }]@48 -> [[A]class C { }]@48");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -1032,7 +1089,7 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [[A(1), B(2), C(3)]class C { }]@0 -> [[C(3), A(1), B(2)]class C { }]@0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -1046,7 +1103,7 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [[A, B, C]class C { }]@0 -> [[B, C, A]class C { }]@0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -1063,8 +1120,9 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [[System.Obsolete(\"1\"), A, B]class C { }]@96 -> [[A, B, System.Obsolete(\"2\")]class C { }]@96");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Theory]
@@ -1083,7 +1141,7 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [" + keyword + " C { }]@0 -> [" + keyword + " D { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, keyword + " D", GetResource(keyword)));
         }
 
@@ -1103,7 +1161,7 @@ public class A3 : System.Attribute { }
                 "Delete [int x = 1]@10",
                 "Delete [x = 1]@14");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "class D", FeaturesResources.class_));
         }
 
@@ -1154,7 +1212,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1165,7 +1224,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1176,7 +1236,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1187,7 +1248,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1198,7 +1260,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1209,7 +1272,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1220,7 +1284,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1231,7 +1296,8 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1242,7 +1308,7 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -1270,7 +1336,7 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [class C { }]@0 -> [class C : D { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
@@ -1302,7 +1368,7 @@ public class A3 : System.Attribute { }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
@@ -1328,7 +1394,7 @@ public class A3 : System.Attribute { }
             edits.VerifyEdits(
                 "Update [class C { }]@0 -> [class C : IDisposable { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
@@ -1364,7 +1430,7 @@ class C : A {}
             edits.VerifyEdits(
                 "Update [class C : IGoo, IBar { }]@0 -> [class C : IBar, IGoo { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
@@ -1394,7 +1460,7 @@ class C : A {}
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "class C", FeaturesResources.class_));
         }
 
@@ -1485,9 +1551,9 @@ public class C
 }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "void F()", "CreateNewOnMetadataUpdateAttribute"));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "void F()", "CreateNewOnMetadataUpdateAttribute") },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -1503,7 +1569,8 @@ public abstract class C<T>
 }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1532,9 +1599,9 @@ public class D
 }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "public class D", FeaturesResources.class_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "public class D", FeaturesResources.class_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -1546,7 +1613,8 @@ public class D
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1561,7 +1629,8 @@ public interface I
 }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1575,7 +1644,8 @@ public interface I
             edits.VerifyEdits(
                 "Insert [ref struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1589,7 +1659,8 @@ public interface I
             edits.VerifyEdits(
                 "Insert [readonly struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -1603,7 +1674,7 @@ public interface I
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [ref struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", CSharpFeaturesResources.struct_));
         }
 
@@ -1618,7 +1689,7 @@ public interface I
             edits.VerifyEdits(
                 "Update [struct X { }]@0 -> [readonly struct X { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly struct X", SyntaxFacts.GetText(SyntaxKind.StructKeyword)));
         }
 
@@ -1704,7 +1775,8 @@ public class SubClass : BaseClass, IConflict
 
             // Here we add a class implementing an interface and a method inside it with explicit interface specifier.
             // We want to be sure that adding the method will not tirgger a rude edit as it happens if adding a single method with explicit interface specifier.
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [WorkItem(37128, "https://github.com/dotnet/roslyn/issues/37128")]
@@ -1901,7 +1973,8 @@ class C<T>
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2008,8 +2081,8 @@ interface I { void F() {} }
             var src2 = "partial class C { void F() {}  }";
 
             GetTopEdits(src1, src2).VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C"), preserveLocalVariables: false) });
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C"), preserveLocalVariables: false) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2031,7 +2104,8 @@ interface I { void F() {} }
                         {
                             SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("G"), preserveLocalVariables: false)
                         }),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2052,7 +2126,8 @@ interface I { void F() {} }
                         {
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
                         }),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2103,7 +2178,8 @@ interface I { void F() {} }
                         {
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")),
                         })
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2202,7 +2278,7 @@ interface I
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("I").GetMember("F")),
                         })
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -2331,6 +2407,96 @@ class C
                 });
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("interface")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Type_Move_NamespaceChange(string keyword)
+        {
+            var declaration = keyword + " C {}";
+            var src1 = $"namespace N {{{declaration,-20}}} namespace M {{             }}";
+            var src2 = $"namespace N {{                 }} namespace M {{{declaration}}}";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [" + declaration + "]@13 -> @45");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, keyword + " C", GetResource(keyword), "N", "M"));
+        }
+
+        [Fact]
+        public void Type_Move_NamespaceChange_Delegate()
+        {
+            var src1 = @"namespace N { delegate void F(); } namespace M {                    }";
+            var src2 = @"namespace N {                    } namespace M { delegate void F(); }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [delegate void F();]@14 -> @49");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "delegate void F()", GetResource("delegate"), "N", "M"));
+        }
+
+        [Fact]
+        public void Type_Move_NamespaceChange_Subnamespace()
+        {
+            var src1 = @"namespace N { class C {} } namespace M { namespace O {            } }";
+            var src2 = @"namespace N {            } namespace M { namespace O { class C {} } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [class C {}]@14 -> @55");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N", "M.O"));
+        }
+
+        [Fact]
+        public void Type_Move_SameEffectiveNamespace()
+        {
+            var src1 = @"namespace N.M { class C {} } namespace N { namespace M {            } }";
+            var src2 = @"namespace N.M {            } namespace N { namespace M { class C {} } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [class C {}]@16 -> @57");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Type_Move_MultiFile()
+        {
+            var srcA1 = @"namespace N { class C {} } namespace M {            }";
+            var srcB1 = @"namespace N {            } namespace M { class C {} }";
+            var srcA2 = @"namespace N {            } namespace M { class C {} }";
+            var srcB2 = @"namespace N { class C {} } namespace M {            }";
+
+            var editsA = GetTopEdits(srcA1, srcA2);
+            editsA.VerifyEdits(
+                "Move [class C {}]@14 -> @41");
+
+            var editsB = GetTopEdits(srcB1, srcB2);
+            editsB.VerifyEdits(
+                "Move [class C {}]@41 -> @14");
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { editsA, editsB },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                });
+        }
+
         #endregion
 
         #region Records
@@ -2349,7 +2515,7 @@ partial record C { }";
 
             edits.VerifySemantics();
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2363,7 +2529,7 @@ partial record C { }";
             edits.VerifyEdits(
                 "Update [record C { }]@0 -> [record D { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "record D", CSharpFeaturesResources.record_));
         }
 
@@ -2375,7 +2541,8 @@ partial record C { }";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2424,7 +2591,8 @@ record struct C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2435,7 +2603,8 @@ record struct C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2446,7 +2615,8 @@ record struct C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2460,7 +2630,7 @@ record struct C(int X)
             edits.VerifyEdits(
                 "Update [record C { }]@0 -> [record C : D { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
         }
 
@@ -2475,7 +2645,7 @@ record struct C(int X)
             edits.VerifyEdits(
                 "Update [record C : D1 { }]@0 -> [record C : D2 { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
         }
 
@@ -2490,7 +2660,7 @@ record struct C(int X)
             edits.VerifyEdits(
                 "Update [record C { }]@0 -> [record C : IDisposable { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
         }
 
@@ -2505,7 +2675,7 @@ record struct C(int X)
             edits.VerifyEdits(
                 "Update [record C : IGoo, IBar { }]@0 -> [record C : IGoo { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
         }
 
@@ -2520,7 +2690,7 @@ record struct C(int X)
             edits.VerifyEdits(
                 "Update [record C : IGoo, IBar { }]@0 -> [record C : IBar, IGoo { }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.BaseTypeOrInterfaceUpdate, "record C", CSharpFeaturesResources.record_));
         }
 
@@ -2537,7 +2707,8 @@ public abstract record C<T>
 }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -2557,7 +2728,7 @@ record C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2577,7 +2748,7 @@ record struct C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2598,7 +2769,7 @@ record C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2619,7 +2790,7 @@ record struct C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2647,12 +2818,15 @@ record C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "protected virtual bool PrintMembers(System.Text.StringBuilder sb)", "PrintMembers(System.Text.StringBuilder builder)"),
-                Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "public virtual bool Equals(C rhs)", "Equals(C other)"),
-                Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "protected C(C other)", "C(C original)"));
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "protected virtual bool PrintMembers(System.Text.StringBuilder sb)", "PrintMembers(System.Text.StringBuilder builder)"),
+                    Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "public virtual bool Equals(C rhs)", "Equals(C other)"),
+                    Diagnostic(RudeEditKind.ExplicitRecordMethodParameterNamesMustMatch, "protected C(C other)", "C(C original)")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
@@ -2660,7 +2834,7 @@ record C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.FirstOrDefault()?.Type.ToDisplayString() == "C"), preserveLocalVariables: true),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Length == 0), preserveLocalVariables: true),
                 },
-                EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact]
@@ -2681,7 +2855,7 @@ record C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.ToString")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2702,7 +2876,7 @@ record C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.ToString")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2713,7 +2887,7 @@ record C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "int Y", FeaturesResources.parameter));
         }
 
@@ -2734,7 +2908,7 @@ record C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2754,7 +2928,7 @@ record struct C
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.First(c => c.ToString() == "C.C()"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -2770,14 +2944,16 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2803,14 +2979,16 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2866,10 +3044,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2886,14 +3066,16 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.Y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -2905,14 +3087,16 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -2938,13 +3122,15 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true)
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -2957,14 +3143,16 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._y")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -2977,14 +3165,16 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), syntaxMap[0]),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), syntaxMap[0]),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -2997,14 +3187,16 @@ record C(int X)
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), syntaxMap[0]),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
-
-            edits.VerifyRudeDiagnostics();
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMembers("Equals").OfType<IMethodSymbol>().First(m => SymbolEqualityComparer.Default.Equals(m.Parameters[0].Type, m.ContainingType))),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C._z")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), syntaxMap[0]),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C"))
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -3015,7 +3207,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.field, "_y")));
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.field, "_y")));
         }
 
         [Fact]
@@ -3026,7 +3218,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.parameter, "int Y")));
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.parameter, "int Y")));
         }
 
         [Fact]
@@ -3037,7 +3229,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.auto_property, "P")));
         }
 
@@ -3056,7 +3248,7 @@ record C(int X)
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3090,7 +3282,7 @@ record C(int X)
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3114,7 +3306,7 @@ record C(int X)
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3129,7 +3321,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ImplementRecordParameterWithSet, "public int X", "X"));
         }
 
@@ -3145,7 +3337,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ImplementRecordParameterAsReadOnly, "public int X", "X"));
         }
 
@@ -3164,7 +3356,7 @@ record C(int X)
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3188,7 +3380,7 @@ record C(int X)
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3212,7 +3404,7 @@ record C(int X)
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true),
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "C")));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3398,7 +3590,7 @@ record C(int X)
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3416,7 +3608,7 @@ record C(int X)
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters[0].Type.ToDisplayString() == "int"), preserveLocalVariables: true));
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3431,7 +3623,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "record C", DeletedSymbolDisplay(FeaturesResources.auto_property, "Y")));
         }
 
@@ -3471,7 +3663,8 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -3482,7 +3675,8 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -3493,7 +3687,7 @@ record C(int X)
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -3509,8 +3703,9 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [enum E { }]@48 -> [[A]enum E { }]@48");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "enum E", FeaturesResources.enum_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "enum E", FeaturesResources.enum_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -3526,8 +3721,9 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [[A]X]@57 -> [X]@57");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "X", FeaturesResources.enum_value));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "X", FeaturesResources.enum_value) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -3543,8 +3739,9 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [X]@57 -> [[A]X]@57");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A]X", FeaturesResources.enum_value));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A]X", FeaturesResources.enum_value) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -3561,8 +3758,9 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [[A1]X]@107 -> [[A2]X]@107");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A2]X", FeaturesResources.enum_value));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "[A2]X", FeaturesResources.enum_value) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -3583,7 +3781,7 @@ record C(int X)
                     }),
                     DocumentResults()
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -3597,7 +3795,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [enum Color { Red = 1, Blue = 2, }]@0 -> [enum Colors { Red = 1, Blue = 2, }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Renamed, "enum Colors", FeaturesResources.enum_));
         }
 
@@ -3611,7 +3809,7 @@ record C(int X)
 
             edits.VerifyEdits("Update [enum Color { Red = 1, Blue = 2, }]@0 -> [enum Color : ushort { Red = 1, Blue = 2, }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.enum_));
         }
 
@@ -3638,7 +3836,7 @@ record C(int X)
 
             edits.VerifyEdits("Update [enum Color : ushort { Red = 1, Blue = 2, }]@0 -> [enum Color : long { Red = 1, Blue = 2, }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.enum_));
         }
 
@@ -3665,7 +3863,7 @@ record C(int X)
 
             edits.VerifyEdits("Update [enum Color : ushort { Red = 1, Blue = 2, }]@0 -> [enum Color { Red = 1, Blue = 2, }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.EnumUnderlyingTypeUpdate, "enum Color", FeaturesResources.enum_));
         }
 
@@ -3680,7 +3878,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [public enum Color { Red = 1, Blue = 2, }]@0 -> [enum Color { Red = 1, Blue = 2, }]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.ChangingAccessibility, "enum Color", FeaturesResources.enum_));
         }
 
@@ -3705,7 +3903,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [Blue = 2]@22 -> [Blue = 3]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 3", FeaturesResources.enum_value));
         }
 
@@ -3720,7 +3918,7 @@ record C(int X)
             edits.VerifyEdits("Update [Red = 1]@13 -> [Red = 1 << 0]@13",
                               "Update [Blue = 2]@22 -> [Blue = 2 << 1]@27");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.InitializerUpdate, "Blue = 2 << 1", FeaturesResources.enum_value));
         }
 
@@ -3734,7 +3932,7 @@ record C(int X)
 
             edits.VerifyEdits("Update [Red = int.MinValue]@13 -> [Red = int.MaxValue]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red = int.MaxValue", FeaturesResources.enum_value));
         }
 
@@ -3749,7 +3947,8 @@ record C(int X)
             edits.VerifyEdits("Update [Red = 1]@185 -> [Red = 2]@185");
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("Color")));
+                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("Color")) },
+                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -3763,7 +3962,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [Red]@13 -> [Red = 1]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red = 1", FeaturesResources.enum_value));
         }
 
@@ -3778,7 +3977,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [Red = 1]@13 -> [Red]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.InitializerUpdate, "Red", FeaturesResources.enum_value));
         }
 
@@ -3795,7 +3994,7 @@ record C(int X)
                 "Update [enum Color { Red }]@0 -> [enum Color { Red, Blue}]@0",
                 "Insert [Blue]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
@@ -3809,7 +4008,7 @@ record C(int X)
 
             edits.VerifyEdits("Insert [Blue]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
@@ -3825,7 +4024,7 @@ record C(int X)
             edits.VerifyEdits("Update [enum Color { Red, }]@0 -> [enum Color { Red, Blue,}]@0",
                               "Insert [Blue]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Insert, "Blue", FeaturesResources.enum_value));
         }
 
@@ -3840,7 +4039,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [Red]@13 -> [Orange]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Renamed, "Orange", FeaturesResources.enum_value));
         }
 
@@ -3857,7 +4056,7 @@ record C(int X)
                 "Update [enum Color { Red, Blue}]@0 -> [enum Color { Red }]@0",
                 "Delete [Blue]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Delete, "enum Color", DeletedSymbolDisplay(FeaturesResources.enum_value, "Blue")));
         }
 
@@ -3871,7 +4070,7 @@ record C(int X)
 
             edits.VerifyEdits("Delete [Blue]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Delete, "enum Color", DeletedSymbolDisplay(FeaturesResources.enum_value, "Blue")));
         }
 
@@ -3938,40 +4137,43 @@ record C(int X)
         #region Delegates
 
         [Fact]
-        public void Delegates_NoModifiers_Insert()
+        public void Delegate_NoModifiers_Insert()
         {
             var src1 = "";
             var src2 = "delegate void D();";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_NoModifiers_IntoNamespace_Insert()
+        public void Delegate_NoModifiers_IntoNamespace_Insert()
         {
             var src1 = "namespace N { }";
             var src2 = "namespace N { delegate void D(); }";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_NoModifiers_IntoType_Insert()
+        public void Delegate_NoModifiers_IntoType_Insert()
         {
             var src1 = "class C { }";
             var src2 = "class C { delegate void D(); }";
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_Public_IntoType_Insert()
+        public void Delegate_Public_IntoType_Insert()
         {
             var src1 = "class C { }";
             var src2 = "class C { public delegate void D(); }";
@@ -3982,11 +4184,12 @@ record C(int X)
                 "Insert [public delegate void D();]@10",
                 "Insert [()]@32");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_Generic_Insert()
+        public void Delegate_Generic_Insert()
         {
             var src1 = "class C { }";
             var src2 = "class C { private delegate void D<T>(T a); }";
@@ -4000,11 +4203,12 @@ record C(int X)
                 "Insert [T]@34",
                 "Insert [T a]@37");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_Delete()
+        public void Delegate_Delete()
         {
             var src1 = "class C { private delegate void D(); }";
             var src2 = "class C { }";
@@ -4020,7 +4224,7 @@ record C(int X)
         }
 
         [Fact]
-        public void Delegates_Rename()
+        public void Delegate_Rename()
         {
             var src1 = "public delegate void D();";
             var src2 = "public delegate void Z();";
@@ -4030,12 +4234,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [public delegate void D();]@0 -> [public delegate void Z();]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "public delegate void Z()", FeaturesResources.delegate_));
         }
 
         [Fact]
-        public void Delegates_Accessibility_Update()
+        public void Delegate_Accessibility_Update()
         {
             var src1 = "public delegate void D();";
             var src2 = "private delegate void D();";
@@ -4045,12 +4249,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [public delegate void D();]@0 -> [private delegate void D();]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingAccessibility, "private delegate void D()", FeaturesResources.delegate_));
         }
 
         [Fact]
-        public void Delegates_ReturnType_Update()
+        public void Delegate_ReturnType_Update()
         {
             var src1 = "public delegate int D();";
             var src2 = "public delegate void D();";
@@ -4060,12 +4264,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [public delegate int D();]@0 -> [public delegate void D();]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "public delegate void D()", FeaturesResources.delegate_));
         }
 
         [Fact]
-        public void Delegates_ReturnType_AddAttribute()
+        public void Delegate_ReturnType_AddAttribute()
         {
             var attribute = "public class A : System.Attribute { }\n\n";
 
@@ -4078,17 +4282,16 @@ record C(int X)
                 "Update [public delegate int D(int a);]@39 -> [[return: A]public delegate int D(int a);]@39");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
-        public void Delegates_Parameter_Insert()
+        public void Delegate_Parameter_Insert()
         {
             var src1 = "public delegate int D();";
             var src2 = "public delegate int D(int a);";
@@ -4098,12 +4301,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Insert [int a]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "int a", FeaturesResources.parameter));
         }
 
         [Fact]
-        public void Delegates_Parameter_Insert_Reloadable()
+        public void Delegate_Parameter_Insert_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]public delegate int D();";
             var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]internal delegate bool D(int a);";
@@ -4111,11 +4314,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("D")));
+                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("D")) },
+                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_Parameter_Delete()
+        public void Delegate_Parameter_Delete()
         {
             var src1 = "public delegate int D(int a);";
             var src2 = "public delegate int D();";
@@ -4125,12 +4329,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Delete [int a]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public delegate int D()", DeletedSymbolDisplay(FeaturesResources.parameter, "int a")));
         }
 
         [Fact]
-        public void Delegates_Parameter_Rename()
+        public void Delegate_Parameter_Rename()
         {
             var src1 = "public delegate int D(int a);";
             var src2 = "public delegate int D(int b);";
@@ -4140,21 +4344,21 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [int a]@22 -> [int b]@22");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                      SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                      SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact]
-        public void Delegates_Parameter_Update()
+        public void Delegate_Parameter_Update()
         {
             var src1 = "public delegate int D(int a);";
             var src2 = "public delegate int D(byte a);";
@@ -4164,12 +4368,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [int a]@22 -> [byte a]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "byte a", FeaturesResources.parameter));
         }
 
         [Fact]
-        public void Delegates_Parameter_AddAttribute_NotSupportedByRuntime()
+        public void Delegate_Parameter_AddAttribute_NotSupportedByRuntime()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";
 
@@ -4181,12 +4385,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [int a]@70 -> [[A]int a]@70");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
-        public void Delegates_Parameter_AddAttribute()
+        public void Delegate_Parameter_AddAttribute()
         {
             var attribute = "public class A : System.Attribute { }\n\n";
 
@@ -4205,11 +4410,11 @@ record C(int X)
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
-        public void Delegates_TypeParameter_Insert()
+        public void Delegate_TypeParameter_Insert()
         {
             var src1 = "public delegate int D();";
             var src2 = "public delegate int D<T>();";
@@ -4220,13 +4425,13 @@ record C(int X)
                 "Insert [<T>]@21",
                 "Insert [T]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "T", FeaturesResources.type_parameter));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/54881")]
         [WorkItem(54881, "https://github.com/dotnet/roslyn/issues/54881")]
-        public void Delegates_TypeParameter_Insert_Reloadable()
+        public void Delegate_TypeParameter_Insert_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]public delegate int D<out T>();";
             var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]internal delegate bool D<in T, out S>(int a);";
@@ -4238,7 +4443,7 @@ record C(int X)
         }
 
         [Fact]
-        public void Delegates_TypeParameter_Delete()
+        public void Delegate_TypeParameter_Delete()
         {
             var src1 = "public delegate int D<T>();";
             var src2 = "public delegate int D();";
@@ -4249,12 +4454,12 @@ record C(int X)
                 "Delete [<T>]@21",
                 "Delete [T]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public delegate int D()", DeletedSymbolDisplay(FeaturesResources.type_parameter, "T")));
         }
 
         [Fact]
-        public void Delegates_TypeParameter_Rename()
+        public void Delegate_TypeParameter_Rename()
         {
             var src1 = "public delegate int D<T>();";
             var src2 = "public delegate int D<S>();";
@@ -4264,13 +4469,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [T]@22 -> [S]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "S", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "S"));
         }
 
         [Fact]
-        public void Delegates_TypeParameter_Variance1()
+        public void Delegate_TypeParameter_Variance1()
         {
             var src1 = "public delegate int D<T>();";
             var src2 = "public delegate int D<in T>();";
@@ -4280,13 +4485,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [T]@22 -> [in T]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
         }
 
         [Fact]
-        public void Delegates_TypeParameter_Variance2()
+        public void Delegate_TypeParameter_Variance2()
         {
             var src1 = "public delegate int D<out T>();";
             var src2 = "public delegate int D<T>();";
@@ -4296,13 +4501,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [out T]@22 -> [T]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
         }
 
         [Fact]
-        public void Delegates_TypeParameter_Variance3()
+        public void Delegate_TypeParameter_Variance3()
         {
             var src1 = "public delegate int D<out T>();";
             var src2 = "public delegate int D<in T>();";
@@ -4312,13 +4517,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [out T]@22 -> [in T]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.VarianceUpdate, "T", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
         }
 
         [Fact]
-        public void Delegates_TypeParameter_AddAttribute()
+        public void Delegate_TypeParameter_AddAttribute()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";
 
@@ -4330,13 +4535,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [T]@70 -> [[A]T]@70");
 
-            edits.VerifyRudeDiagnostics(
-                EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.GenericTypeUpdate, "T") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
-        public void Delegates_Attribute_Add_NotSupportedByRuntime()
+        public void Delegate_Attribute_Add_NotSupportedByRuntime()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";
 
@@ -4348,12 +4553,13 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public delegate int D(int a)", FeaturesResources.delegate_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public delegate int D(int a)", FeaturesResources.delegate_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
-        public void Delegates_Attribute_Add()
+        public void Delegate_Attribute_Add()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";
 
@@ -4366,13 +4572,12 @@ record C(int X)
                 "Update [public delegate int D(int a);]@48 -> [[A]public delegate int D(int a);]@48");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
-        public void Delegates_Attribute_Add_WithReturnTypeAttribute()
+        public void Delegate_Attribute_Add_WithReturnTypeAttribute()
         {
             var attribute = "public class AAttribute : System.Attribute { }\n\n";
 
@@ -4385,18 +4590,17 @@ record C(int X)
                 "Update [public delegate int D(int a);]@48 -> [[return: A][A]public delegate int D(int a);]@48");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("D.BeginInvoke"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
-        public void Delegates_ReadOnlyRef_Parameter_InsertWhole()
+        public void Delegate_ReadOnlyRef_Parameter_InsertWhole()
         {
             var src1 = "";
             var src2 = "public delegate int D(in int b);";
@@ -4408,11 +4612,12 @@ record C(int X)
                 "Insert [(in int b)]@21",
                 "Insert [in int b]@22");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_ReadOnlyRef_Parameter_InsertParameter()
+        public void Delegate_ReadOnlyRef_Parameter_InsertParameter()
         {
             var src1 = "public delegate int D();";
             var src2 = "public delegate int D(in int b);";
@@ -4422,12 +4627,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Insert [in int b]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
-        public void Delegates_ReadOnlyRef_Parameter_Update()
+        public void Delegate_ReadOnlyRef_Parameter_Update()
         {
             var src1 = "public delegate int D(int b);";
             var src2 = "public delegate int D(in int b);";
@@ -4437,12 +4642,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [int b]@22 -> [in int b]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
         [Fact]
-        public void Delegates_ReadOnlyRef_ReturnType_Insert()
+        public void Delegate_ReadOnlyRef_ReturnType_Insert()
         {
             var src1 = "";
             var src2 = "public delegate ref readonly int D();";
@@ -4453,11 +4658,12 @@ record C(int X)
                 "Insert [public delegate ref readonly int D();]@0",
                 "Insert [()]@34");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void Delegates_ReadOnlyRef_ReturnType_Update()
+        public void Delegate_ReadOnlyRef_ReturnType_Update()
         {
             var src1 = "public delegate int D();";
             var src2 = "public delegate ref readonly int D();";
@@ -4467,7 +4673,7 @@ record C(int X)
             edits.VerifyEdits(
                 "Update [public delegate int D();]@0 -> [public delegate ref readonly int D();]@0");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "public delegate ref readonly int D()", FeaturesResources.delegate_));
         }
 
@@ -4476,7 +4682,21 @@ record C(int X)
         #region Nested Types
 
         [Fact]
-        public void NestedClass_ClassMove1()
+        public void NestedType_Move_Sideways()
+        {
+            var src1 = @"class N { class C {} } class M {            }";
+            var src2 = @"class N {            } class M { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Move [class C {}]@10 -> @33");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "class C", GetResource("class")));
+        }
+
+        [Fact]
+        public void NestedType_Move_Outside()
         {
             var src1 = @"class C { class D { } }";
             var src2 = @"class C { } class D { }";
@@ -4486,27 +4706,12 @@ record C(int X)
             edits.VerifyEdits(
                 "Move [class D { }]@10 -> @12");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.class_));
         }
 
         [Fact]
-        public void NestedClass_ClassMove2()
-        {
-            var src1 = @"class C { class D { }  class E { }  class F { } }";
-            var src2 = @"class C { class D { }  class F { } } class E { }  ";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Move [class E { }]@23 -> @37");
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "class E", FeaturesResources.class_));
-        }
-
-        [Fact]
-        public void NestedClass_ClassInsertMove1()
+        public void NestedType_Move_Insert()
         {
             var src1 = @"class C { class D { } }";
             var src2 = @"class C { class E { class D { } } }";
@@ -4517,12 +4722,77 @@ record C(int X)
                 "Insert [class E { class D { } }]@10",
                 "Move [class D { }]@10 -> @20");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.class_));
         }
 
         [Fact]
-        public void NestedClass_Insert1()
+        public void NestedType_MoveAndNamespaceChange()
+        {
+            var src1 = @"namespace N { class C { class D { } } } namespace M { }";
+            var src2 = @"namespace N { class C { } } namespace M { class D { } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [class D { }]@24 -> @42");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "class D", FeaturesResources.class_));
+        }
+
+        [Fact]
+        public void NestedType_Move_MultiFile()
+        {
+            var srcA1 = @"partial class N { class C {} } partial class M {            }";
+            var srcB1 = @"partial class N {            } partial class M { class C {} }";
+            var srcA2 = @"partial class N {            } partial class M { class C {} }";
+            var srcB2 = @"partial class N { class C {} } partial class M {            }";
+
+            var editsA = GetTopEdits(srcA1, srcA2);
+            editsA.VerifyEdits(
+                "Move [class C {}]@18 -> @49");
+
+            var editsB = GetTopEdits(srcB1, srcB2);
+            editsB.VerifyEdits(
+                "Move [class C {}]@49 -> @18");
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { editsA, editsB },
+                new[]
+                {
+                    DocumentResults(),
+                    DocumentResults(),
+                });
+        }
+
+        [Fact]
+        public void NestedType_Move_PartialTypesInSameFile()
+        {
+            var src1 = @"partial class N { class C {} class D {} } partial class N { }";
+            var src2 = @"partial class N { class C {}            } partial class N { class D {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifyEdits(
+                "Move [class D {}]@29 -> @60");
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void NestedType_Move_Reloadable()
+        {
+            var src1 = ReloadableAttributeSrc + "class N { [CreateNewOnMetadataUpdate]class C {} } class M { }";
+            var src2 = ReloadableAttributeSrc + "class N { } class M { [CreateNewOnMetadataUpdate]class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Move, "class C", GetResource("class")));
+        }
+
+        [Fact]
+        public void NestedType_Insert1()
         {
             var src1 = @"class C {  }";
             var src2 = @"class C { class D { class E { } } }";
@@ -4533,11 +4803,11 @@ record C(int X)
                 "Insert [class D { class E { } }]@10",
                 "Insert [class E { }]@20");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void NestedClass_Insert2()
+        public void NestedType_Insert2()
         {
             var src1 = @"class C {  }";
             var src2 = @"class C { protected class D { public class E { } } }";
@@ -4548,11 +4818,11 @@ record C(int X)
                 "Insert [protected class D { public class E { } }]@10",
                 "Insert [public class E { }]@30");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void NestedClass_Insert3()
+        public void NestedType_Insert3()
         {
             var src1 = @"class C {  }";
             var src2 = @"class C { private class D { public class E { } } }";
@@ -4563,11 +4833,11 @@ record C(int X)
                 "Insert [private class D { public class E { } }]@10",
                 "Insert [public class E { }]@28");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void NestedClass_Insert4()
+        public void NestedType_Insert4()
         {
             var src1 = @"class C {  }";
             var src2 = @"class C { private class D { public D(int a, int b) { } public int P { get; set; } } }";
@@ -4585,11 +4855,11 @@ record C(int X)
                 "Insert [get;]@70",
                 "Insert [set;]@75");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void NestedClass_Insert_ReloadableIntoReloadable1()
+        public void NestedType_Insert_ReloadableIntoReloadable1()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { }";
             var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { [CreateNewOnMetadataUpdate]class D { } }";
@@ -4597,11 +4867,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void NestedClass_Insert_ReloadableIntoReloadable2()
+        public void NestedType_Insert_ReloadableIntoReloadable2()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { }";
             var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { [CreateNewOnMetadataUpdate]class D { [CreateNewOnMetadataUpdate]class E { } } }";
@@ -4609,11 +4880,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void NestedClass_Insert_ReloadableIntoReloadable3()
+        public void NestedType_Insert_ReloadableIntoReloadable3()
         {
             var src1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { }";
             var src2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]class C { class D { [CreateNewOnMetadataUpdate]class E { } } }";
@@ -4621,11 +4893,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                 new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                 capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void NestedClass_Insert_ReloadableIntoReloadable4()
+        public void NestedType_Insert_ReloadableIntoReloadable4()
         {
             var src1 = ReloadableAttributeSrc + "class C { }";
             var src2 = ReloadableAttributeSrc + "class C { [CreateNewOnMetadataUpdate]class D { [CreateNewOnMetadataUpdate]class E { } } }";
@@ -4637,7 +4910,7 @@ record C(int X)
         }
 
         [Fact]
-        public void NestedClass_Insert_Member_Reloadable()
+        public void NestedType_Insert_Member_Reloadable()
         {
             var src1 = ReloadableAttributeSrc + "class C { [CreateNewOnMetadataUpdate]class D { } }";
             var src2 = ReloadableAttributeSrc + "class C { [CreateNewOnMetadataUpdate]class D { int x; } }";
@@ -4645,11 +4918,12 @@ record C(int X)
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                 SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C.D")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C.D")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
-        public void NestedClass_InsertMemberWithInitializer1()
+        public void NestedType_InsertMemberWithInitializer1()
         {
             var src1 = @"
 class C
@@ -4673,7 +4947,7 @@ class C
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         [Fact]
-        public void NestedClass_Insert_PInvoke()
+        public void NestedType_Insert_PInvoke()
         {
             var src1 = @"
 using System;
@@ -4718,7 +4992,7 @@ class C
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
         [Fact]
-        public void NestedClass_Insert_VirtualAbstract()
+        public void NestedType_Insert_VirtualAbstract()
         {
             var src1 = @"
 using System;
@@ -4748,11 +5022,11 @@ class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void NestedClass_TypeReorder1()
+        public void NestedType_TypeReorder1()
         {
             var src1 = @"class C { struct E { } class F { } delegate void D(); interface I {} }";
             var src2 = @"class C { class F { } interface I {} delegate void D(); struct E { } }";
@@ -4763,11 +5037,11 @@ class C
                 "Reorder [struct E { }]@10 -> @56",
                 "Reorder [interface I {}]@54 -> @22");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void NestedClass_MethodDeleteInsert()
+        public void NestedType_MethodDeleteInsert()
         {
             var src1 = @"public class C { public void goo() {} }";
             var src2 = @"public class C { private class D { public void goo() {} } }";
@@ -4786,7 +5060,7 @@ class C
         }
 
         [Fact]
-        public void NestedClass_ClassDeleteInsert()
+        public void NestedType_ClassDeleteInsert()
         {
             var src1 = @"public class C { public class X {} }";
             var src2 = @"public class C { public class D { public class X {} } }";
@@ -4797,7 +5071,7 @@ class C
                 "Insert [public class D { public class X {} }]@17",
                 "Move [public class X {}]@17 -> @34");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                  Diagnostic(RudeEditKind.Move, "public class X", FeaturesResources.class_));
         }
 
@@ -4830,7 +5104,8 @@ class D<T>
 }
 ";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -4844,7 +5119,7 @@ class D<T>
                 "Update [enum N { A = 1 }]@11 -> [enum N { A = 1, B = 2 }]@11",
                 "Insert [B = 2]@27");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "B = 2", FeaturesResources.enum_value));
         }
 
@@ -5061,7 +5336,7 @@ class D<T>
                         SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C"), partialType: "C")
                     }),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -5086,7 +5361,7 @@ class D<T>
                     }),
                     DocumentResults(),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -5115,7 +5390,8 @@ class D<T>
                         }),
 
                     DocumentResults(),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -5206,7 +5482,7 @@ class B : System.Attribute {}
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C"), partialType: "C")
                     }),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -5310,7 +5586,7 @@ class B : System.Attribute {}
         #region Namespaces
 
         [Fact]
-        public void Namespace_Insert()
+        public void Namespace_Empty_Insert()
         {
             var src1 = @"";
             var src2 = @"namespace C { }";
@@ -5320,12 +5596,11 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Insert [namespace C { }]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "namespace C", FeaturesResources.namespace_));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_InsertNested()
+        public void Namespace_Empty_InsertNested()
         {
             var src1 = @"namespace C { }";
             var src2 = @"namespace C { namespace D { } }";
@@ -5335,12 +5610,11 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Insert [namespace D { }]@14");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "namespace D", FeaturesResources.namespace_));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_DeleteNested()
+        public void Namespace_Empty_DeleteNested()
         {
             var src1 = @"namespace C { namespace D { } }";
             var src2 = @"namespace C { }";
@@ -5350,12 +5624,11 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Delete [namespace D { }]@14");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "namespace C", FeaturesResources.namespace_));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_Move()
+        public void Namespace_Empty_Move()
         {
             var src1 = @"namespace C { namespace D { } }";
             var src2 = @"namespace C { } namespace D { }";
@@ -5365,12 +5638,11 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Move [namespace D { }]@14 -> @16");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "namespace D", FeaturesResources.namespace_));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_Reorder1()
+        public void Namespace_Empty_Reorder1()
         {
             var src1 = @"namespace C { namespace D { } class T { } namespace E { } }";
             var src2 = @"namespace C { namespace E { } class T { } namespace D { } }";
@@ -5381,11 +5653,11 @@ class B : System.Attribute {}
                 "Reorder [class T { }]@30 -> @30",
                 "Reorder [namespace E { }]@42 -> @14");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_Reorder2()
+        public void Namespace_Empty_Reorder2()
         {
             var src1 = @"namespace C { namespace D1 { } namespace D2 { } namespace D3 { } class T { } namespace E { } }";
             var src2 = @"namespace C { namespace E { }                                    class T { } namespace D1 { } namespace D2 { } namespace D3 { } }";
@@ -5396,37 +5668,464 @@ class B : System.Attribute {}
                 "Reorder [class T { }]@65 -> @65",
                 "Reorder [namespace E { }]@77 -> @14");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_FileScoped_Insert()
+        public void Namespace_Empty_FileScoped_Insert()
         {
             var src1 = @"";
-            var src2 = @"namespace C;";
+            var src2 = @"namespace N;";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Insert [namespace C;]@0");
+                "Insert [namespace N;]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Insert, "namespace C", FeaturesResources.namespace_));
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
-        public void Namespace_FileScoped_Delete()
+        public void Namespace_Empty_FileScoped_Delete()
         {
-            var src1 = @"namespace C;";
+            var src1 = @"namespace N;";
             var src2 = @"";
 
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Delete [namespace C;]@0");
+                "Delete [namespace N;]@0");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, null, FeaturesResources.namespace_));
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("namespace N; class C {}")]
+        [InlineData("namespace N { class C {} }")]
+        public void Namespace_Insert_NewType(string src2)
+        {
+            var src1 = @"";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "class C", GetResource("class")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Theory]
+        [InlineData("namespace N.M { class C {} }")]
+        [InlineData("namespace N.M; class C {}")]
+        public void Namespace_Insert_NewType_Qualified(string src2)
+        {
+            var src1 = "";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "class C", GetResource("class")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
+
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("N.M.C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Namespace_Insert(string keyword)
+        {
+            var declaration = keyword + " X {}";
+            var src1 = declaration;
+            var src2 = "namespace N { " + declaration + " }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, keyword + " X", GetResource(keyword), "<global namespace>", "N") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Insert_Delegate()
+        {
+            var declaration = "delegate void X();";
+            var src1 = declaration;
+            var src2 = "namespace N { " + declaration + " }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "delegate void X()", GetResource("delegate"), "<global namespace>", "N") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Insert_MultipleDeclarations()
+        {
+            var src1 = @"class C {} class D {}";
+            var src2 = "namespace N { class C {} class D { } }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "<global namespace>", "N"),
+                    Diagnostic(RudeEditKind.ChangingNamespace, "class D", GetResource("class"), "<global namespace>", "N")
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Insert_FileScoped()
+        {
+            var src1 = @"class C {}";
+            var src2 = @"namespace N; class C {}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "<global namespace>", "N") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Insert_Nested()
+        {
+            var src1 = @"namespace N { class C {} }";
+            var src2 = @"namespace N { namespace M { class C {} } }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N", "N.M") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Insert_Qualified()
+        {
+            var src1 = @"class C {}";
+            var src2 = @"namespace N.M { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "<global namespace>", "N.M") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Insert_Qualified_FileScoped()
+        {
+            var src1 = @"class C {}";
+            var src2 = @"namespace N.M; class C {}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "<global namespace>", "N.M") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Namespace_Delete(string keyword)
+        {
+            var declaration = keyword + " X {}";
+            var src1 = "namespace N { " + declaration + " }";
+            var src2 = declaration;
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, keyword + " X", GetResource(keyword), "N", "<global namespace>") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Delete_Delegate()
+        {
+            var declaration = "delegate void X();";
+            var src1 = "namespace N { " + declaration + " }";
+            var src2 = declaration;
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "delegate void X()", GetResource("delegate"), "N", "<global namespace>") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Delete_MultipleDeclarations()
+        {
+            var src1 = @"namespace N { class C {} class D { } }";
+            var src2 = @"class C {} class D {}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N", "<global namespace>"),
+                    Diagnostic(RudeEditKind.ChangingNamespace, "class D", GetResource("class"), "N", "<global namespace>")
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Theory]
+        [InlineData("namespace N.M { class C {} }")]
+        [InlineData("namespace N.M; class C {}")]
+        public void Namespace_Delete_Qualified(string src1)
+        {
+            var src2 = @"class C {}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N.M", "<global namespace>") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Qualified_ToFileScoped()
+        {
+            var src1 = @"namespace N.M { class C {} }";
+            var src2 = @"namespace N.M; class C {}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("interface")]
+        [InlineData("enum")]
+        [InlineData("struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void Namespace_Update(string keyword)
+        {
+            var declaration = keyword + " X {}";
+            var src1 = "namespace N { " + declaration + " }";
+            var src2 = "namespace M { " + declaration + " }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, keyword + " X", GetResource(keyword), "N", "M") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_Delegate()
+        {
+            var declaration = "delegate void X();";
+            var src1 = "namespace N { " + declaration + " }";
+            var src2 = "namespace M { " + declaration + " }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "delegate void X()", GetResource("delegate"), "N", "M") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_Multiple()
+        {
+            var src1 = @"namespace N { class C {} class D {} }";
+            var src2 = @"namespace M { class C {} class D {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N", "M"),
+                    Diagnostic(RudeEditKind.ChangingNamespace, "class D", GetResource("class"), "N", "M"),
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_Qualified1()
+        {
+            var src1 = @"namespace N.M { class C {} }";
+            var src2 = @"namespace N.M.O { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N.M", "N.M.O") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_Qualified2()
+        {
+            var src1 = @"namespace N.M { class C {} }";
+            var src2 = @"namespace N { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N.M", "N") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_Qualified3()
+        {
+            var src1 = @"namespace N.M1.O { class C {} }";
+            var src2 = @"namespace N.M2.O { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N.M1.O", "N.M2.O") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_FileScoped()
+        {
+            var src1 = @"namespace N; class C {}";
+            var src2 = @"namespace M; class C {}";
+
+            var edits = GetTopEdits(src1, src2);
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N", "M") },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_MultiplePartials1()
+        {
+            var srcA1 = @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }";
+            var srcB1 = @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
+            var srcA2 = @"namespace N { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }";
+            var srcB2 = @"namespace M { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("M.C"), partialType: "M.C"),
+                        }),
+                    DocumentResults(
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("M.C"), partialType: "M.C"),
+                        }),
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_MultiplePartials2()
+        {
+            var srcA1 = @"namespace N { partial class/*1*/C {} } namespace N { partial class/*2*/C {} }";
+            var srcB1 = @"namespace N { partial class/*3*/C {} } namespace N { partial class/*4*/C {} }";
+            var srcA2 = @"namespace M { partial class/*1*/C {} } namespace M { partial class/*2*/C {} }";
+            var srcB2 = @"namespace M { partial class/*3*/C {} } namespace M { partial class/*4*/C {} }";
+
+            EditAndContinueValidation.VerifySemantics(
+                new[] { GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2) },
+                new[]
+                {
+                    DocumentResults(diagnostics: new[]
+                    {
+                        Diagnostic(RudeEditKind.ChangingNamespace, "partial class/*1*/C", GetResource("class"), "N", "M")
+                    }),
+                    DocumentResults(diagnostics: new[]
+                    {
+                        Diagnostic(RudeEditKind.ChangingNamespace, "partial class/*3*/C", GetResource("class"), "N", "M")
+                    }),
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+        }
+
+        [Fact]
+        public void Namespace_Update_MultiplePartials_MergeInNewNamspace()
+        {
+            var src1 = @"namespace N { partial class C {} } namespace M { partial class C {} }";
+            var src2 = @"namespace X { partial class C {} } namespace X { partial class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "partial class C", GetResource("class"), "M", "X"),
+                Diagnostic(RudeEditKind.Delete, "partial class C", DeletedSymbolDisplay(GetResource("class"), "C")));
+        }
+
+        [Fact]
+        public void Namespace_Update_MultipleTypesWithSameNameAndArity()
+        {
+            var src1 = @"namespace N1 { class C {} } namespace N2 { class C {} } namespace O { class C {} }";
+            var src2 = @"namespace M1 { class C {} } namespace M2 { class C {} } namespace O { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N2", "M2"),
+                Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N1", "M1"));
+        }
+
+        [Fact]
+        public void Namespace_UpdateAndInsert()
+        {
+            var src1 = @"namespace N.M { class C {} }";
+            var src2 = @"namespace N { namespace M { class C {} } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Namespace_UpdateAndDelete()
+        {
+            var src1 = @"namespace N { namespace M { class C {} } }";
+            var src2 = @"namespace N.M { class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemanticDiagnostics();
+        }
+
+        [Fact]
+        public void Namespace_Move1()
+        {
+            var src1 = @"namespace N { namespace M { class C {} class C<T> {} } class D {} }";
+            var src2 = @"namespace N { class D {} } namespace M { class C<T> {} class C {} }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [namespace M { class C {} class C<T> {} }]@14 -> @27",
+                "Reorder [class C<T> {}]@39 -> @41");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "class C", GetResource("class"), "N.M", "M"),
+                Diagnostic(RudeEditKind.ChangingNamespace, "class C<T>", GetResource("class"), "N.M", "M"));
+        }
+
+        [Fact]
+        public void Namespace_Move2()
+        {
+            var src1 = @"namespace N1 { namespace M { class C {} } namespace N2 { } }";
+            var src2 = @"namespace N1 { } namespace N2 { namespace M { class C {} } }";
+
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyEdits(
+                "Move [namespace N2 { }]@42 -> @17",
+                "Move [namespace M { class C {} }]@15 -> @32");
+
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.ChangingNamespace, "class C", "class", "N1.M", "N2.M"));
         }
 
         #endregion
@@ -5712,8 +6411,8 @@ partial class C
             var srcB2 = "partial class C { void F1() {} }";
 
             // current outcome:
-            GetTopEdits(srcA1, srcA2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "void F2()", FeaturesResources.method));
-            GetTopEdits(srcB1, srcB2).VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Renamed, "void F1()", FeaturesResources.method));
+            GetTopEdits(srcA1, srcA2).VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Renamed, "void F2()", FeaturesResources.method));
+            GetTopEdits(srcB1, srcB2).VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Renamed, "void F1()", FeaturesResources.method));
 
             // correct outcome:
             //EditAndContinueValidation.VerifySemantics(
@@ -5993,7 +6692,7 @@ partial class C
 
             edits.VerifyEdits("Update [" + oldModifiers + "int F() => 0;]@10 -> [" + newModifiers + "int F() => 0;]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "int F()", FeaturesResources.method));
         }
 
@@ -6041,7 +6740,7 @@ struct S
     public readonly int M() => 1;
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly int M()", FeaturesResources.method));
         }
 
@@ -6082,7 +6781,7 @@ struct S
     public readonly int M() => 1;
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "struct S", "struct"));
         }
 
@@ -6106,7 +6805,7 @@ class Test
     }
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "public Task<int> WaitAsync()", FeaturesResources.method));
         }
 
@@ -6131,7 +6830,8 @@ class Test
     }
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
@@ -6157,9 +6857,9 @@ class Test
     }
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.MakeMethodAsync, "public async Task<int> WaitAsync()"));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "public async Task<int> WaitAsync()") },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Theory]
@@ -6188,7 +6888,7 @@ class Test
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, newType + " M()", FeaturesResources.method));
         }
 
@@ -6231,7 +6931,7 @@ class C
         System.Console.WriteLine(a + b);
     }]@18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -6259,7 +6959,7 @@ class C
             edits.VerifyEdits(
                 @"Update [static int Main(string[] args) => F(1);]@18 -> [static int Main(string[] args) => F(2);]@18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
@@ -6290,7 +6990,7 @@ class C
             edits.VerifyEdits(
                 "Update [int M(int a) => new Func<int>(() => a + 1)();]@35 -> [int M(int a) => new Func<int>(() => 2)();]@35");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
@@ -6513,9 +7213,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "void goo()", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "void goo()", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -6546,7 +7246,8 @@ class C
                 "Insert [void goo() { }]@18",
                 "Insert [()]@26");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
@@ -6584,8 +7285,8 @@ class C
                 "Insert [int a]@44");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.goo")) });
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.goo")) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [WorkItem(755784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755784")]
@@ -6620,7 +7321,8 @@ class C
                 "Insert [(int a)]@49",
                 "Insert [int a]@50");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6802,7 +7504,7 @@ class C
                         SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.puts")),
                     })
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -6857,7 +7559,7 @@ class C
             edits.VerifyEdits(
                 "Insert [string[] args]@35");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "string[] args", FeaturesResources.parameter));
         }
 
@@ -6885,16 +7587,16 @@ class C
             edits.VerifyEdits(
                 "Update [string[] args]@35 -> [string[] b]@35");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact]
@@ -6918,16 +7620,16 @@ class C
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "string[] b", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.Main"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.UpdateParameters);
         }
 
         [Fact]
@@ -6961,7 +7663,7 @@ class C
 
             edits.VerifyEdits(expectedEdit);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "static void EntryPoint(string[] args)", FeaturesResources.method));
         }
 
@@ -6987,7 +7689,7 @@ class Test
     }
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
@@ -7038,7 +7740,7 @@ class Test
 
             edits.VerifyEdits(expectedEdit);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7076,8 +7778,9 @@ class Test
         System.Console.Write(5);
     }]@38");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7115,8 +7818,9 @@ class Test
         System.Console.Write(5);
     }]@38");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7157,7 +7861,7 @@ class Test
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("Test.Main")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -7194,7 +7898,7 @@ class C
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -7234,7 +7938,7 @@ class C
                 ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) });
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7256,7 +7960,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7264,8 +7968,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7288,7 +7993,7 @@ using System;
 class Test
 {
     [Obsolete]
-    [Serializable]
+    [STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7296,8 +8001,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7318,7 +8024,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7326,8 +8032,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                 Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7357,8 +8064,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -7388,8 +8096,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7400,7 +8109,7 @@ using System;
 
 class Test
 {
-    [Obsolete, Serializable]
+    [Obsolete, STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7419,8 +8128,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7432,7 +8142,7 @@ using System;
 class Test
 {
     [Obsolete]
-    [Serializable]
+    [STAThread]
     static void Main(string[] args)
     {
         System.Console.Write(5);
@@ -7451,8 +8161,9 @@ class Test
 }";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "static void Main(string[] args)", FeaturesResources.method) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7476,7 +8187,7 @@ class C : I, J
                 "Update [void I.Goo() { Console.WriteLine(2); }]@25 -> [void I.Goo() { Console.WriteLine(1); }]@25",
                 "Update [void J.Goo() { Console.WriteLine(1); }]@69 -> [void J.Goo() { Console.WriteLine(2); }]@69");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7499,7 +8210,7 @@ class C : I, J
             edits.VerifyEdits(
                 "Update [void I.Goo() { Console.WriteLine(1); }]@25 -> [void Goo() { Console.WriteLine(1); }]@25");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "void Goo()", FeaturesResources.method));
         }
 
@@ -7553,7 +8264,7 @@ class C
 
             edits.VerifyEdits(expectedEdit);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
@@ -7569,7 +8280,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", FeaturesResources.method));
         }
 
@@ -7581,7 +8292,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7592,7 +8303,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7603,7 +8314,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7614,7 +8325,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7625,7 +8336,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7636,7 +8347,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7647,7 +8358,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7658,7 +8369,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7669,7 +8380,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7680,7 +8391,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7691,7 +8402,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7702,7 +8413,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7713,7 +8424,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7724,7 +8435,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7735,7 +8446,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7746,7 +8457,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
@@ -7759,7 +8470,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: false);
         }
@@ -7772,9 +8484,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.MakeMethodIterator, "IEnumerable<int> M()"));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.MakeMethodIteratorNotSupportedByRuntime, "IEnumerable<int> M()") },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -7785,7 +8497,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
 
             VerifyPreserveLocalVariables(edits, preserveLocalVariables: true);
         }
@@ -7823,7 +8535,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -7861,7 +8573,8 @@ class C
                 "Insert [(in int b)]@18",
                 "Insert [in int b]@19");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -7875,7 +8588,7 @@ class C
             edits.VerifyEdits(
                 "Insert [in int b]@19");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
         }
 
@@ -7890,7 +8603,7 @@ class C
             edits.VerifyEdits(
                 "Update [int b]@19 -> [in int b]@19");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
@@ -7906,7 +8619,8 @@ class C
                 "Insert [ref readonly int M() => throw null;]@13",
                 "Insert [()]@31");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -7920,7 +8634,7 @@ class C
             edits.VerifyEdits(
                 "Update [int M() => throw null;]@13 -> [ref readonly int M() => throw null;]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int M()", FeaturesResources.method));
         }
 
@@ -8130,7 +8844,8 @@ public class SubClass : BaseClass, IConflict
 
                     DocumentResults(
                         semanticEdits: new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart) }),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8149,7 +8864,8 @@ public class SubClass : BaseClass, IConflict
                     DocumentResults(),
                     DocumentResults(
                         semanticEdits: new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C") }),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -8168,7 +8884,7 @@ public class SubClass : BaseClass, IConflict
 
             edits.VerifyEdits("Update [public static " + oldModifiers + " operator int (C c) => 0;]@10 -> [public static " + newModifiers + " operator int (C c) => 0;]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public static " + newModifiers + " operator int (C c)", CSharpFeaturesResources.conversion_operator));
         }
 
@@ -8181,7 +8897,8 @@ public class SubClass : BaseClass, IConflict
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -8192,7 +8909,7 @@ public class SubClass : BaseClass, IConflict
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "extern public static implicit operator bool (C c)", CSharpFeaturesResources.conversion_operator));
         }
 
@@ -8204,7 +8921,7 @@ public class SubClass : BaseClass, IConflict
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public static implicit operator bool (C c)", CSharpFeaturesResources.conversion_operator));
         }
 
@@ -8418,7 +9135,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [public static implicit operator int (C c) { return 1; }]@84 -> @18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -8442,7 +9159,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [public static C operator -(C c, C d) { return d; }]@74 -> @18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -8473,7 +9190,7 @@ class C
             edits.VerifyEdits(
                 "Update [Test b]@43 -> [in Test b]@43");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "in Test b", FeaturesResources.parameter));
         }
 
@@ -8515,7 +9232,7 @@ class C
                 {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -8532,7 +9249,7 @@ class C
                 "Insert [()]@25");
 
             // This can be allowed as the compiler generates an empty constructor, but it's not worth the complexity.
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public extern C()", FeaturesResources.constructor));
         }
 
@@ -8554,7 +9271,7 @@ class C
             edits.VerifyEdits(
                 "Update [public C(int a) : base(a) { }]@18 -> [public C(int a) : base(a + 1) { }]@18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -8575,7 +9292,7 @@ class C<T>
             edits.VerifyEdits(
                 "Update [public C(int a) : base(a) { }]@21 -> [public C(int a) { }]@21");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)"));
         }
 
@@ -8597,7 +9314,7 @@ class C
             edits.VerifyEdits(
                 "Update [public C(int a) { }]@18 -> [public C(int a) : base(a) { }]@18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -8618,7 +9335,7 @@ class C<T>
             edits.VerifyEdits(
                 "Update [public C(int a) : base(a) { }]@21 -> [public C(int a) : base(a + 1) { }]@21");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "public C(int a)"));
         }
 
@@ -8642,7 +9359,7 @@ class C
                 "Update [(int a)]@26 -> [(int a, int b)]@26",
                 "Insert [int b]@34");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "int b", FeaturesResources.parameter));
         }
 
@@ -8689,7 +9406,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -8713,7 +9430,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")));
+                new[] { SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -8725,8 +9443,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) });
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) },
+                EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8738,8 +9456,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true) });
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true));
         }
 
         [Theory]
@@ -8757,8 +9474,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")),
-                Diagnostic(RudeEditKind.ChangingAccessibility, "class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")),
+                    Diagnostic(RudeEditKind.ChangingAccessibility, "class C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -8825,11 +9546,11 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                expectedSemanticEdits: new[]
+                semanticEdits: new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(c => c.Parameters.IsEmpty))
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8853,7 +9574,8 @@ class C
 
                     // no change in document B
                     DocumentResults(),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8925,11 +9647,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[]
-                {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -8941,12 +9659,12 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C")
                         .InstanceConstructors.Single(ctor => ctor.DeclaredAccessibility == Accessibility.Private))
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8957,7 +9675,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8968,7 +9687,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -8979,7 +9699,8 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -9553,7 +10274,8 @@ partial class C
                            SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Single().Type.Name == "UInt32"), partialType: "C", syntaxMap: syntaxMapB),
                            SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters.Single().Type.Name == "Byte"), syntaxMap: null),
                         })
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -9690,10 +10412,8 @@ partial class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits: new[]
-            {
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("C").PartialImplementationPart)
-            });
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("C").PartialImplementationPart));
         }
 
         [Fact]
@@ -9769,7 +10489,8 @@ partial class C
                         {
                             SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
                         }),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Theory]
@@ -10029,7 +10750,8 @@ public class C
                 "Insert [(in int b)]@17",
                 "Insert [in int b]@18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -10043,7 +10765,7 @@ public class C
             edits.VerifyEdits(
                 "Insert [in int b]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "in int b", FeaturesResources.parameter));
         }
 
@@ -10058,7 +10780,7 @@ public class C
             edits.VerifyEdits(
                 "Update [int b]@18 -> [in int b]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "in int b", FeaturesResources.parameter));
         }
 
@@ -10113,7 +10835,7 @@ public class C
             edits.VerifyEdits(
                 "Update [a = 0]@14 -> [a]@14");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10234,8 +10956,12 @@ public class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, $"{typeKind} C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")),
-                Diagnostic(RudeEditKind.ChangingAccessibility, $"{typeKind} C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")));
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, $"{typeKind} C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()")),
+                    Diagnostic(RudeEditKind.ChangingAccessibility, $"{typeKind} C", DeletedSymbolDisplay(FeaturesResources.constructor, "C()"))
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Theory]
@@ -10514,8 +11240,8 @@ public class C
                 "Update [a]@21 -> [a = 0]@21");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) });
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single()) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Theory]
@@ -10559,7 +11285,7 @@ public class C
             edits.VerifyEdits(
                 "Update [a = 1]@17 -> [a = 2]@17");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "a = 2"),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "class C<T>"));
         }
@@ -10572,7 +11298,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "int a"),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "class C<T>"));
         }
@@ -10830,7 +11556,7 @@ public class C
             var src2 = "class C { int a = F(2, (x, y) => x + y); }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10841,7 +11567,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10852,7 +11578,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10863,7 +11589,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10874,7 +11600,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10885,7 +11611,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10896,7 +11622,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -10907,7 +11633,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -11604,11 +12330,9 @@ partial class C
 ";
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, expectedSemanticEdits: new[]
-            {
+            edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, c => ((IPropertySymbol)c.GetMember<INamedTypeSymbol>("C").GetMembers("P").First()).GetMethod),
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-            });
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true));
         }
 
         [Fact]
@@ -11670,7 +12394,7 @@ partial class C
             edits.VerifyEdits(
                 "Update [a = 0]@14 -> [b = 0]@14");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "b = 0", FeaturesResources.field));
         }
 
@@ -11685,7 +12409,7 @@ partial class C
             edits.VerifyEdits(
                 "Update [Action a;]@10 -> [event Action a;]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.FieldKindUpdate, "event Action a", FeaturesResources.event_));
         }
 
@@ -11712,7 +12436,7 @@ partial class C
 
             edits.VerifyEdits("Update [" + oldModifiers + "int F = 0;]@10 -> [" + newModifiers + "int F = 0;]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "int F = 0", FeaturesResources.field));
         }
 
@@ -11760,7 +12484,7 @@ partial class C
 
                     DocumentResults(),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -11775,7 +12499,7 @@ partial class C
                 "Update [a[1]]@36 -> [a[2]]@36",
                 "Update [b[2]]@42 -> [b[3]]@42");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.FixedSizeFieldUpdate, "a[2]", FeaturesResources.field),
                 Diagnostic(RudeEditKind.FixedSizeFieldUpdate, "b[3]", FeaturesResources.field));
         }
@@ -11791,7 +12515,7 @@ partial class C
 
             edits.VerifyEdits("Update [x = 0]@20 -> [x = 1]@20");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InitializerUpdate, "x = 1", FeaturesResources.const_field));
         }
 
@@ -11806,7 +12530,7 @@ partial class C
             edits.VerifyEdits(
                 "Update [a]@23 -> [a = () => { }]@23");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -11820,7 +12544,7 @@ partial class C
             edits.VerifyEdits(
                 "Reorder [int c = 2;]@32 -> @10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "int c = 2", FeaturesResources.field));
         }
 
@@ -11838,12 +12562,12 @@ partial class C
                 "Insert [a = 1]@14");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true)
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -11907,13 +12631,13 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.b")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.c")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.d")),
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
         }
 
         [Fact]
@@ -12026,12 +12750,12 @@ class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -12067,12 +12791,12 @@ class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(), syntaxMap[0])
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact, WorkItem(2504, "https://github.com/dotnet/roslyn/issues/2504")]
@@ -12199,12 +12923,12 @@ class C
             var syntaxMap = GetSyntaxMap(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[]
                 {
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.B")),
                     SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single())
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -12215,9 +12939,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | EditAndContinueCapabilities.AddStaticFieldToExistingType,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field) },
+                capabilities: EditAndContinueCapabilities.AddStaticFieldToExistingType);
         }
 
         [Fact]
@@ -12228,9 +12952,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "a = 1", FeaturesResources.field) },
+                capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
         }
 
         [Fact]
@@ -12252,9 +12976,13 @@ class C
             edits.VerifyEdits(
                 "Update [public int a = 1, x = 1;]@18 -> [[System.Obsolete]public int a = 1, x = 1;]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public int a = 1, x = 1", FeaturesResources.field),
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public int a = 1, x = 1", FeaturesResources.field));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public int a = 1, x = 1", FeaturesResources.field),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "public int a = 1, x = 1", FeaturesResources.field),
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -12280,7 +13008,7 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.b"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -12306,7 +13034,7 @@ class C
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.a")),
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), preserveLocalVariables: true),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -12330,7 +13058,7 @@ class C
                             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").InstanceConstructors.Single(), partialType: "C", preserveLocalVariables: true)
                         }),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -12360,7 +13088,7 @@ class C
 
             edits.VerifyEdits("Update [unsafe Node* left;]@14 -> [Node* left;]@14");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -12375,7 +13103,7 @@ class C
                 "Update [unsafe Node* left;]@14 -> [Node left;]@14",
                 "Update [Node* left]@21 -> [Node left]@14");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "Node left", FeaturesResources.field));
         }
 
@@ -12406,7 +13134,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, newType + " F, G", FeaturesResources.field),
                 Diagnostic(RudeEditKind.TypeUpdate, newType + " F, G", FeaturesResources.field));
         }
@@ -12438,7 +13166,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "event System.Action<" + newType + "> F, G", FeaturesResources.event_),
                 Diagnostic(RudeEditKind.TypeUpdate, "event System.Action<" + newType + "> F, G", FeaturesResources.event_));
         }
@@ -12458,7 +13186,7 @@ class C
                 "Insert [V]@30",
                 "Delete [H]@20");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "G", FeaturesResources.field),
                 Diagnostic(RudeEditKind.TypeUpdate, "string G, F", FeaturesResources.field),
                 Diagnostic(RudeEditKind.TypeUpdate, "string G, F", FeaturesResources.field),
@@ -12477,7 +13205,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [event int c = 2;]@32 -> @10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "event int c = 2", CSharpFeaturesResources.event_field));
         }
 
@@ -12533,7 +13261,7 @@ class C
 
             edits.VerifyEdits("Update [" + oldModifiers + "int F => 0;]@10 -> [" + newModifiers + "int F => 0;]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "int F", FeaturesResources.property_));
         }
 
@@ -12545,7 +13273,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_));
         }
 
@@ -12557,7 +13285,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyEdits("Update [int P => 1;]@10 -> [int P => 2;]@10");
+            edits.VerifyEdits(
+                "Update [int P => 1;]@10 -> [int P => 2;]@10",
+                "Update [=> 1]@16 -> [=> 2]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12575,7 +13305,7 @@ class C
 
             edits.VerifyEdits("Update [int P => 1;]@10 -> [unsafe int P => 1;]@10");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -12589,7 +13319,8 @@ class C
             edits.VerifyEdits(
                 "Update [int P => 1;]@10 -> [int P { get { return 2; } }]@10",
                 "Insert [{ get { return 2; } }]@16",
-                "Insert [get { return 2; }]@18");
+                "Insert [get { return 2; }]@18",
+                "Delete [=> 1]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12609,13 +13340,16 @@ class C
                 "Update [int P => 1;]@10 -> [int P { get { return 2; } set { } }]@10",
                 "Insert [{ get { return 2; } set { } }]@16",
                 "Insert [get { return 2; }]@18",
-                "Insert [set { }]@36");
+                "Insert [set { }]@36",
+                "Delete [=> 1]@16");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
-            });
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_P"), preserveLocalVariables: false),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_P"), preserveLocalVariables: false)
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -12628,6 +13362,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int P { get { return 2; } }]@10 -> [int P => 1;]@10",
+                "Insert [=> 1]@16",
                 "Delete [{ get { return 2; } }]@16",
                 "Delete [get { return 2; }]@18");
 
@@ -12647,11 +13382,12 @@ class C
 
             edits.VerifyEdits(
                 "Update [int P { get { return 2; } set { } }]@10 -> [int P => 1;]@10",
+                "Insert [=> 1]@16",
                 "Delete [{ get { return 2; } set { } }]@16",
                 "Delete [get { return 2; }]@18",
                 "Delete [set { }]@36");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.set")));
         }
 
@@ -12665,7 +13401,8 @@ class C
             edits.VerifyEdits(
                 "Update [int P => 1;]@10 -> [int P { get => 2; }]@10",
                 "Insert [{ get => 2; }]@16",
-                "Insert [get => 2;]@18");
+                "Insert [get => 2;]@18",
+                "Delete [=> 1]@16");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -12682,6 +13419,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             edits.VerifyEdits(
                 "Update [int P { get => 2; }]@10 -> [int P => 1;]@10",
+                "Insert [=> 1]@16",
                 "Delete [{ get => 2; }]@16",
                 "Delete [get => 2;]@18");
 
@@ -12796,7 +13534,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_));
         }
 
@@ -12808,7 +13546,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "int J.P", FeaturesResources.property_));
         }
 
@@ -12820,7 +13558,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "int Q", FeaturesResources.property_));
         }
 
@@ -12832,7 +13570,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.property_, "P")));
         }
 
@@ -12848,7 +13586,7 @@ class C
                 "Reorder [int Q { get { return 1; } }]@38 -> @10");
 
             // TODO: we can allow the move since the property doesn't have a backing field
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.property_));
         }
 
@@ -12863,7 +13601,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [int Q { get; set; }]@30 -> @10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.auto_property));
         }
 
@@ -12878,7 +13616,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [set { }]@36 -> @18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -12892,7 +13630,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [init { }]@36 -> @18");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -12906,7 +13644,7 @@ class C
             edits.VerifyEdits(
                 "Update [int P { get; set; }]@10 -> [char P { get; set; }]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "char P", FeaturesResources.property_));
         }
 
@@ -12918,8 +13656,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", FeaturesResources.property_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int P", FeaturesResources.property_) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -12931,11 +13670,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.P"))
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -12946,8 +13684,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "get", CSharpFeaturesResources.property_getter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "get", CSharpFeaturesResources.property_getter) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -12958,8 +13697,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "set", CSharpFeaturesResources.property_setter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "set", CSharpFeaturesResources.property_setter) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -12971,9 +13711,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").GetMethod) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -12985,9 +13724,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("P").SetMethod) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -12999,7 +13737,8 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")));
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember("P")) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13010,9 +13749,9 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.BaselineCapabilities,
-                Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", FeaturesResources.auto_property));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "int P", FeaturesResources.auto_property) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [WorkItem(835827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835827")]
@@ -13133,7 +13872,8 @@ class C
 
             edits.VerifyEdits("Insert [set { _p = value; }]@44");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
@@ -13147,7 +13887,7 @@ class C
 
             edits.VerifyEdits("Delete [set { _p = value; }]@44");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.set")));
         }
 
@@ -13161,7 +13901,8 @@ class C
 
             edits.VerifyEdits("Insert [set;]@23");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13174,7 +13915,8 @@ class C
 
             edits.VerifyEdits("Insert [private set;]@30");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13187,7 +13929,8 @@ class C
 
             edits.VerifyEdits("Insert [set;]@30");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13200,7 +13943,8 @@ class C
 
             edits.VerifyEdits("Insert [internal set;]@30");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13213,7 +13957,8 @@ class C
 
             edits.VerifyEdits("Insert [set;]@23");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13226,7 +13971,8 @@ class C
 
             edits.VerifyEdits("Insert [init;]@23");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [WorkItem(755975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755975")]
@@ -13240,7 +13986,7 @@ class C
 
             edits.VerifyEdits("Delete [get;]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_getter, "P.get")));
         }
 
@@ -13256,7 +14002,7 @@ class C
                 "Update [set;]@23 -> [init;]@23");
 
             // not allowed since it changes the backing field readonly-ness and the signature of the setter (modreq)
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.AccessorKindUpdate, "init", CSharpFeaturesResources.property_setter));
         }
 
@@ -13272,7 +14018,7 @@ class C
                 "Update [init;]@23 -> [set;]@23");
 
             // not allowed since it changes the backing field readonly-ness and the signature of the setter (modreq)
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
         }
 
@@ -13286,7 +14032,7 @@ class C
 
             edits.VerifyEdits("Delete [set;]@23");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.set")));
         }
 
@@ -13300,7 +14046,7 @@ class C
 
             edits.VerifyEdits("Delete [init;]@23");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "int P", DeletedSymbolDisplay(CSharpFeaturesResources.property_setter, "P.init")));
         }
 
@@ -13314,7 +14060,7 @@ class C
 
             edits.VerifyEdits("Update [get;]@18 -> [set;]@18");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.AccessorKindUpdate, "set", CSharpFeaturesResources.property_setter));
         }
 
@@ -13329,7 +14075,8 @@ class C
 
             edits.VerifyEdits("Insert [public int P { }]@10", "Insert [{ }]@23");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13345,7 +14092,8 @@ class C
                 "Insert [{ get; }]@32",
                 "Insert [get;]@34");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13359,7 +14107,7 @@ class C
             edits.VerifyEdits(
                 "Update [int P { get; }]@13 -> [ref readonly int P { get; }]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int P", FeaturesResources.property_));
         }
 
@@ -13522,7 +14270,7 @@ struct S
      readonly int P4 { get => 1; set {}}
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly int P1", CSharpFeaturesResources.property_getter),
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly int P4", CSharpFeaturesResources.property_getter),
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly int P4", CSharpFeaturesResources.property_setter),
@@ -13589,7 +14337,7 @@ readonly struct S
 
             edits.VerifyEdits("Update [" + oldModifiers + "int this[int a] => 0;]@10 -> [" + newModifiers + "int this[int a] => 0;]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "int this[int a]", FeaturesResources.indexer_));
         }
 
@@ -13653,7 +14401,8 @@ readonly struct S
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => 1;]@10 -> [int this[int a] => 2;]@10");
+                "Update [int this[int a] => 1;]@10 -> [int this[int a] => 2;]@10",
+                "Update [=> 1]@26 -> [=> 2]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -13683,9 +14432,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(() => a + 1)() + 10;]@35 -> [int this[int a] => new Func<int>(() => 2)() + 11;]@35");
+                "Update [int this[int a] => new Func<int>(() => a + 1)() + 10;]@35 -> [int this[int a] => new Func<int>(() => 2)() + 11;]@35",
+                "Update [=> new Func<int>(() => a + 1)() + 10]@51 -> [=> new Func<int>(() => 2)() + 11]@51");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
@@ -13711,9 +14461,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(() => a + 1)();]@35 -> [int this[int a] => new Func<int>(() => 2)();]@35");
+                "Update [int this[int a] => new Func<int>(() => a + 1)();]@35 -> [int this[int a] => new Func<int>(() => 2)();]@35",
+                "Update [=> new Func<int>(() => a + 1)()]@51 -> [=> new Func<int>(() => 2)()]@51");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
@@ -13739,9 +14490,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35");
+                "Update [int this[int a] => new Func<int>(() => { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(() => { return 2; })();]@35",
+                "Update [=> new Func<int>(() => { return a + 1; })()]@51 -> [=> new Func<int>(() => { return 2; })()]@51");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
@@ -13767,9 +14519,10 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits(
-                "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35");
+                "Update [int this[int a] => new Func<int>(delegate { return a + 1; })();]@35 -> [int this[int a] => new Func<int>(delegate { return 2; })();]@35",
+                "Update [=> new Func<int>(delegate { return a + 1; })()]@51 -> [=> new Func<int>(delegate { return 2; })()]@51");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.NotCapturingVariable, "a", "a"));
         }
 
@@ -13784,7 +14537,8 @@ class C
             edits.VerifyEdits(
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] { get { return 1; } }]@10",
                 "Insert [{ get { return 1; } }]@26",
-                "Insert [get { return 1; }]@28");
+                "Insert [get { return 1; }]@28",
+                "Delete [=> 1]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -13802,6 +14556,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] { get { return 1; } }]@10 -> [int this[int a] => 1;]@10",
+                "Insert [=> 1]@26",
                 "Delete [{ get { return 1; } }]@26",
                 "Delete [get { return 1; }]@28");
 
@@ -13835,7 +14590,7 @@ class C
             var edits = GetTopEdits(src1, src2);
 
             edits.VerifyEdits("Update [get { return 1; }]@28 -> [get => 1;]@28");
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
@@ -13848,6 +14603,7 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] { get => 1; }]@10 -> [int this[int a] => 1;]@10",
+                "Insert [=> 1]@26",
                 "Delete [{ get => 1; }]@26",
                 "Delete [get => 1;]@28");
 
@@ -13867,7 +14623,8 @@ class C
             edits.VerifyEdits(
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] { get => 1; }]@10",
                 "Insert [{ get => 1; }]@26",
-                "Insert [get => 1;]@28");
+                "Insert [get => 1;]@28",
+                "Delete [=> 1]@26");
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
             {
@@ -13951,11 +14708,12 @@ class C
 
             edits.VerifyEdits(
                 "Update [int this[int a] { get { return 1; } set { Console.WriteLine(0); } }]@10 -> [int this[int a] => 1;]@10",
+                "Insert [=> 1]@26",
                 "Delete [{ get { return 1; } set { Console.WriteLine(0); } }]@26",
                 "Delete [get { return 1; }]@28",
                 "Delete [set { Console.WriteLine(0); }]@46");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "int this[int a]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int a].set")));
         }
 
@@ -13971,13 +14729,16 @@ class C
                 "Update [int this[int a] => 1;]@10 -> [int this[int a] { get { return 1; } set { Console.WriteLine(0); } }]@10",
                 "Insert [{ get { return 1; } set { Console.WriteLine(0); } }]@26",
                 "Insert [get { return 1; }]@28",
-                "Insert [set { Console.WriteLine(0); }]@46");
+                "Insert [set { Console.WriteLine(0); }]@46",
+                "Delete [=> 1]@26");
 
-            edits.VerifySemantics(ActiveStatementsDescription.Empty, new[]
-            {
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
-            });
+            edits.VerifySemantics(
+                new[]
+                {
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_Item"), preserveLocalVariables: false),
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item"), preserveLocalVariables: false)
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -13988,7 +14749,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "int J.this[int a]", CSharpFeaturesResources.indexer));
         }
 
@@ -14003,7 +14764,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [int this[string a] { get { return 1; } }]@48 -> @10");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -14017,7 +14778,7 @@ class C
             edits.VerifyEdits(
                 "Reorder [set { }]@46 -> @28");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -14031,7 +14792,7 @@ class C
             edits.VerifyEdits(
                 "Update [int this[int a] { get; set; }]@10 -> [string this[int a] { get; set; }]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "string this[int a]", CSharpFeaturesResources.indexer));
         }
 
@@ -14046,7 +14807,7 @@ class C
             edits.VerifyEdits(
                 "Update [(int, int) M() { throw new System.Exception(); }]@10 -> [(string, int) M() { throw new System.Exception(); }]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "(string, int) M()", FeaturesResources.method));
         }
 
@@ -14061,7 +14822,7 @@ class C
             edits.VerifyEdits(
                 "Update [(int, int, int a) M() { return (1, 2, 3); }]@10 -> [(int, int) M() { return (1, 2); }]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "(int, int) M()", FeaturesResources.method));
         }
 
@@ -14076,7 +14837,7 @@ class C
             edits.VerifyEdits(
                 "Update [(int, int) M() { return (1, 2); }]@10 -> [(int, int, int a) M() { return (1, 2, 3); }]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "(int, int, int a) M()", FeaturesResources.method));
         }
 
@@ -14088,7 +14849,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "string a", FeaturesResources.parameter));
         }
 
@@ -14136,7 +14897,7 @@ class SampleCollection<T>
 
             edits.VerifyEdits("Insert [get { return arr[i]; }]@304");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InsertIntoGenericType, "get", CSharpFeaturesResources.indexer_getter));
         }
 
@@ -14158,7 +14919,8 @@ class C
             edits.VerifyEdits("Insert [set { }]@67");
 
             edits.VerifySemantics(
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("this[]").SetMethod));
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IPropertySymbol>("this[]").SetMethod) },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -14207,7 +14969,7 @@ class C<T>
 
             edits.VerifyEdits("Delete [get { return arr[i]; }]@58");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public T this[int i]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_getter, "this[int i].get")));
         }
 
@@ -14228,7 +14990,7 @@ class C
 
             edits.VerifyEdits("Delete [set { }]@61");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "public int this[int i]", DeletedSymbolDisplay(CSharpFeaturesResources.indexer_setter, "this[int i].set")));
         }
 
@@ -14239,7 +15001,8 @@ class C
             var src2 = "struct C { public int this[int x, int y] { get { return x + y; } } }";
 
             var edits = GetTopEdits(src1, src2);
-            edits.VerifySemanticDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -14253,9 +15016,11 @@ class C
             edits.VerifyEdits(
                 "Insert [int this[in int i] => throw null;]@13",
                 "Insert [[in int i]]@21",
+                "Insert [=> throw null]@32",
                 "Insert [in int i]@22");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -14269,7 +15034,7 @@ class C
             edits.VerifyEdits(
                 "Update [int i]@22 -> [in int i]@22");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "in int i", FeaturesResources.parameter));
         }
 
@@ -14284,9 +15049,11 @@ class C
             edits.VerifyEdits(
                 "Insert [ref readonly int this[int i] => throw null;]@13",
                 "Insert [[int i]]@34",
+                "Insert [=> throw null]@42",
                 "Insert [int i]@35");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics(
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -14300,7 +15067,7 @@ class C
             edits.VerifyEdits(
                 "Update [int this[int i] => throw null;]@13 -> [ref readonly int this[int i] => throw null;]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, "ref readonly int this[int i]", FeaturesResources.indexer_));
         }
 
@@ -14447,7 +15214,7 @@ struct S
      readonly int this[sbyte x] { get => 1; set {}}
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly int this[int x]", CSharpFeaturesResources.indexer_getter),
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly int this[sbyte x]", CSharpFeaturesResources.indexer_getter),
                 Diagnostic(RudeEditKind.ModifiersUpdate, "readonly int this[sbyte x]", CSharpFeaturesResources.indexer_setter),
@@ -14515,7 +15282,7 @@ readonly struct S
 
             edits.VerifyEdits("Update [" + oldModifiers + "event Action F { add {} remove {} }]@10 -> [" + newModifiers + "event Action F { add {} remove {} }]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, newModifiers + "event Action F", FeaturesResources.event_));
         }
 
@@ -14530,7 +15297,7 @@ readonly struct S
             edits.VerifyEdits(
                 "Reorder [remove { }]@32 -> @24");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -14706,7 +15473,7 @@ struct S
     public readonly event Action E { add {} remove {} }
 }";
             var edits = GetTopEdits(src1, src2);
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "public readonly event Action E", FeaturesResources.event_));
         }
 
@@ -14750,16 +15517,16 @@ class C
             edits.VerifyEdits(
                 "Update [event Action F;]@18 -> [[System.Obsolete]event Action F;]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               ActiveStatementsDescription.Empty,
                new[]
                {
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
                },
-               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+               capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -14781,17 +15548,18 @@ class C
             edits.VerifyEdits(
                 "Update [event Action F { add {} remove {} }]@18 -> [[System.Obsolete]event Action F { add {} remove {} }]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               ActiveStatementsDescription.Empty,
-               new[] {
+               new[]
+               {
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
                },
-               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+               capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -14813,15 +15581,13 @@ class C
             edits.VerifyEdits(
                 "Update [remove {}]@42 -> [[System.Obsolete]remove {}]@42");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
-                },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -14843,15 +15609,13 @@ class C
             edits.VerifyEdits(
                 "Update [[System.Obsolete]event Action F;]@18 -> [event Action F;]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
-                new[] {
-                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F"))
-                },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -14873,17 +15637,18 @@ class C
             edits.VerifyEdits(
                 "Update [[System.Obsolete]event Action F { add {} remove {} }]@18 -> [event Action F { add {} remove {} }]@18");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "event Action F", FeaturesResources.event_) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               ActiveStatementsDescription.Empty,
-               new[] {
+               new[]
+               {
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F")),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").AddMethod),
                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
                },
-               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+               capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -14905,15 +15670,16 @@ class C
             edits.VerifyEdits(
                 "Update [[System.Obsolete]remove {}]@42 -> [remove {}]@42");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "remove", FeaturesResources.event_accessor) },
+                capabilities: EditAndContinueCapabilities.Baseline);
 
             edits.VerifySemantics(
-               ActiveStatementsDescription.Empty,
-               new[] {
+               new[]
+               {
                     SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IEventSymbol>("C.F").RemoveMethod)
                },
-               capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+               capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         #endregion
@@ -15081,7 +15847,7 @@ class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.TypeUpdate, newType + " a", FeaturesResources.parameter));
         }
 
@@ -15114,7 +15880,7 @@ class C { static void M(string a) { } }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ModifiersUpdate, "int[] a", FeaturesResources.parameter));
         }
 
@@ -15132,7 +15898,7 @@ class C { static void M(string a) { } }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.InitializerUpdate, newParameter, FeaturesResources.parameter));
         }
 
@@ -15144,7 +15910,7 @@ class C { static void M(string a) { } }
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -15183,25 +15949,8 @@ class C { static void M(string a) { } }
                 "Update [int a]@63 -> [[A]int a]@63");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
-        }
-
-        [Fact]
-        public void Parameter_Attribute_Insert_SupportedByRuntime_NonCustomAttribute()
-        {
-            var src1 = @"class C { public void M(int a) {} }";
-            var src2 = @"class C { public void M([System.Runtime.InteropServices.InAttribute]int a) {} } ";
-
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyEdits(
-                "Update [int a]@24 -> [[System.Runtime.InteropServices.InAttribute]int a]@24");
-
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15217,9 +15966,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [int a]@101 -> [[A]int a]@101");
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15236,9 +15985,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [int a]@143 -> [[A]int a]@143");
 
-            edits.VerifyRudeDiagnostics(
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingNonCustomAttribute, "int a", "AAttribute", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15254,7 +16003,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [int a]@72 -> [[A]int a]@72");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15271,7 +16022,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A]int a]@120 -> [[A, B]int a]@120");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15287,7 +16040,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A]int a]@72 -> [int a]@72");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15304,8 +16059,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[System.Obsolete(\"1\"), B]int a]@120 -> [[System.Obsolete(\"2\"), A]int a]@120");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "int a", FeaturesResources.parameter) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15322,9 +16078,8 @@ class C { static void M(string a) { } }
                 "Update [[A(0)]int a]@67 -> [[A(1)]int a]@67");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15342,9 +16097,8 @@ class C { static void M(string a) { } }
                 "Update [[A(0)]int a]@67 -> [[A(1)]int a]@67");
 
             edits.VerifySemantics(
-                ActiveStatementsDescription.Empty,
                 new[] { SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")) },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         #endregion
@@ -15446,10 +16200,14 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [T]@72 -> [[A]T]@72");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "T"),
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericMethodUpdate, "T"),
+                    Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15466,10 +16224,14 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A]T]@120 -> [[A, B]T]@120");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "T"),
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericMethodUpdate, "T"),
+                    Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method)
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15485,10 +16247,14 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A]T]@72 -> [T]@72");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericMethodTriviaUpdate, "", FeaturesResources.method),
+                    Diagnostic(RudeEditKind.GenericMethodUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15505,9 +16271,13 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[System.Obsolete(\"1\"), B]T]@120 -> [[System.Obsolete(\"2\"), A]T]@120");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericMethodUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15523,9 +16293,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A(0)]T]@67 -> [[A(1)]T]@67");
 
-            edits.VerifyRudeDiagnostics(
-                EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.GenericMethodUpdate, "T") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15542,10 +16312,14 @@ class C { static void M(string a) { } }
                 "Update [void F<[A(0)]T>(T a) { F(0); }]@60 -> [void F<[A(1)]T>(T a) { F(1); }]@60",
                 "Update [[A(0)]T]@67 -> [[A(1)]T]@67");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "void F<[A(1)]T>(T a)"),
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericMethodUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.GenericMethodUpdate, "void F<[A(1)]T>(T a)"),
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericMethodUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         #endregion
@@ -15564,7 +16338,7 @@ class C { static void M(string a) { } }
                 "Insert [<A>]@7",
                 "Insert [A]@8");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "A", FeaturesResources.type_parameter));
         }
 
@@ -15580,7 +16354,7 @@ class C { static void M(string a) { } }
                 "Update [<A>]@7 -> [<A,B>]@7",
                 "Insert [B]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "B", FeaturesResources.type_parameter));
         }
 
@@ -15608,7 +16382,7 @@ class C { static void M(string a) { } }
                 "Update [<A,B>]@7 -> [<B>]@7",
                 "Delete [A]@8");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "class C<B>", DeletedSymbolDisplay(FeaturesResources.type_parameter, "A")));
         }
 
@@ -15623,7 +16397,7 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [A]@8 -> [B]@8");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Renamed, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "B"));
         }
@@ -15639,7 +16413,7 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Reorder [B]@10 -> @8");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter));
         }
 
@@ -15655,7 +16429,7 @@ class C { static void M(string a) { } }
                 "Reorder [B]@10 -> @8",
                 "Update [A]@8 -> [C]@10");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.Renamed, "C", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "C"));
@@ -15674,9 +16448,13 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [T]@56 -> [[A]T]@56");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15693,9 +16471,13 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A]T]@104 -> [[A, B]T]@104");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15711,9 +16493,9 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [T]@56 -> [[A]T]@56");
 
-            edits.VerifyRudeDiagnostics(
-                EditAndContinueTestHelpers.Net6RuntimeCapabilities,
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[] { Diagnostic(RudeEditKind.GenericTypeUpdate, "T") },
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15729,9 +16511,13 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[A]T]@56 -> [T]@56");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15748,9 +16534,13 @@ class C { static void M(string a) { } }
             edits.VerifyEdits(
                 "Update [[System.Obsolete(\"1\"), B]T]@104 -> [[System.Obsolete(\"2\"), A]T]@104");
 
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
-                Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
+            edits.VerifySemanticDiagnostics(
+                new[]
+                {
+                    Diagnostic(RudeEditKind.ChangingAttributesNotSupportedByRuntime, "T", FeaturesResources.type_parameter),
+                    Diagnostic(RudeEditKind.GenericTypeUpdate, "T")
+                },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -15780,7 +16570,7 @@ class B : System.Attribute {}
                         Diagnostic(RudeEditKind.GenericTypeUpdate, "T"),
                     }),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
         }
 
         [Fact]
@@ -15810,7 +16600,7 @@ class B : System.Attribute {}
                         SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")
                     }),
                 },
-                capabilities: EditAndContinueTestHelpers.Net6RuntimeCapabilities);
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         #endregion
@@ -15835,7 +16625,7 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Insert [where T : " + newConstraint + "]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "where T : " + newConstraint, FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "where T : " + newConstraint));
         }
@@ -15858,7 +16648,7 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Delete [where T : " + oldConstraint + "]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "T", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "T"));
         }
@@ -15874,7 +16664,7 @@ class B : System.Attribute {}
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "where T : System.Collections.Generic.List<" + newType + ">"));
         }
 
@@ -15889,7 +16679,7 @@ class B : System.Attribute {}
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "where T : System.Collections.Generic.List<" + newType + ">", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "where T : System.Collections.Generic.List<" + newType + ">"));
         }
@@ -15902,7 +16692,7 @@ class B : System.Attribute {}
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "class C<S>", DeletedSymbolDisplay(FeaturesResources.type_parameter, "T")));
         }
 
@@ -15917,7 +16707,7 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Insert [where S : unmanaged]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "where S : unmanaged", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "where S : unmanaged"));
         }
@@ -15933,7 +16723,7 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Delete [where S : new()]@13");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangingConstraints, "S", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "S"));
         }
@@ -15949,7 +16739,7 @@ class B : System.Attribute {}
             edits.VerifyEdits(
                 "Reorder [where T : class]@30 -> @13");
 
-            edits.VerifyRudeDiagnostics();
+            edits.VerifySemanticDiagnostics();
         }
 
         [Fact]
@@ -15966,7 +16756,7 @@ class B : System.Attribute {}
                 "Update [where T : class]@29 -> [where T : class, I]@13",
                 "Update [where S : new()]@13 -> [where S : class, new()]@32");
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Move, "T", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.ChangingConstraints, "where T : class, I", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.GenericTypeUpdate, "where T : class, I"),
@@ -16038,7 +16828,9 @@ Console.WriteLine(""Hello World"");
 
             edits.VerifyEdits("Insert [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Program.<Main>$")));
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("Program.<Main>$")) },
+                capabilities: EditAndContinueCapabilities.NewTypeDefinition);
         }
 
         [Fact]
@@ -16078,7 +16870,7 @@ using System;
 
             edits.VerifyEdits("Delete [Console.WriteLine(\"Hello World\");]@19");
 
-            edits.VerifyRudeDiagnostics(Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.global_statement));
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.global_statement));
         }
 
         [Fact]
@@ -16110,7 +16902,7 @@ Console.WriteLine(""Hello"");
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.StackAllocUpdate, "stackalloc", CSharpFeaturesResources.global_statement));
         }
 
@@ -16131,7 +16923,7 @@ return 1;
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
@@ -16154,7 +16946,7 @@ return 1;
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
@@ -16185,7 +16977,7 @@ int Goo()
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
@@ -16206,7 +16998,7 @@ await Task.Delay(200);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Insert, "await", CSharpFeaturesResources.await_expression));
         }
 
@@ -16227,7 +17019,7 @@ await Task.Delay(100);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
 
@@ -16250,7 +17042,7 @@ Console.Write(1);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "await Task.Delay(100);"));
         }
 
@@ -16275,7 +17067,7 @@ return 1;
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return 1;"));
         }
 
@@ -16303,7 +17095,7 @@ Task<int> GetInt()
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return await GetInt();"));
         }
 
@@ -16325,7 +17117,7 @@ Console.Write(1);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
@@ -16348,7 +17140,7 @@ return;
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "return;"));
         }
 
@@ -16379,7 +17171,7 @@ int Goo()
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "int Goo()\r\n{\r\n    return 1;\r\n}"));
         }
 
@@ -16416,7 +17208,7 @@ public class C
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
@@ -16439,7 +17231,7 @@ Console.Write(1);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }
@@ -16465,7 +17257,7 @@ Console.Write(1);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"));
         }
 
@@ -16493,7 +17285,7 @@ Console.Write(1);
 
             var edits = GetTopEdits(src1, src2);
 
-            edits.VerifyRudeDiagnostics(
+            edits.VerifySemanticDiagnostics(
                 Diagnostic(RudeEditKind.ChangeImplicitMainReturnType, "Console.Write(1);"),
                 Diagnostic(RudeEditKind.Delete, null, CSharpFeaturesResources.await_expression));
         }

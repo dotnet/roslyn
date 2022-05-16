@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackingTreeViewModel : INotifyPropertyChanged
+    internal sealed class ValueTrackingTreeViewModel : INotifyPropertyChanged
     {
         private Brush? _highlightBrush;
         public Brush? HighlightBrush
@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         public ClassificationTypeMap ClassificationTypeMap { get; }
         public IEditorFormatMapService FormatMapService { get; }
         public ObservableCollection<TreeItemViewModel> Roots { get; } = new();
+        public string AutomationName => ServicesVSResources.Value_Tracking;
 
         private TreeViewItemBase? _selectedItem;
         public TreeViewItemBase? SelectedItem

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalVariable != null);
             Debug.Assert(type.HasType);
             Debug.Assert(containingSymbol != null);
+            Debug.Assert(containingSymbol.DeclaringCompilation is not null);
 
             _originalVariable = originalVariable;
             _type = type;

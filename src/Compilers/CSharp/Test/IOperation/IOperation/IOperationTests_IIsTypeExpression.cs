@@ -163,7 +163,7 @@ class IsTest
         System.Console.WriteLine(b);
     }
 }
-enum color
+enum @color
 { }
 ";
             string expectedOperationTree = @"

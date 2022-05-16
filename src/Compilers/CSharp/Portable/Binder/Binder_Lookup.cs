@@ -1436,13 +1436,20 @@ symIsHidden:;
                     {
                         return false;
                     }
-                    foreach (ImmutableArray<byte> key in keys)
+
+                    ImmutableArray<byte> publicKey = this.Compilation.Assembly.PublicKey;
+
+                    if (!publicKey.IsDefault)
                     {
-                        if (key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey))
+                        foreach (ImmutableArray<byte> key in keys)
                         {
-                            return false;
+                            if (key.SequenceEqual(publicKey))
+                            {
+                                return false;
+                            }
                         }
                     }
+
                     return true;
                 }
                 return false;
@@ -1479,15 +1486,6 @@ symIsHidden:;
             return (((object)method1 != null) && ((object)method2 != null)) ?
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp2, symbol, method1, method2) :
                 new CSDiagnosticInfo(ErrorCode.ERR_BindToBogusProp1, symbol, method1 ?? method2);
-        }
-
-        internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved) where TSymbol : Symbol
-        {
-            foreach (var symbol in symbols)
-            {
-                var res = this.CheckViability(symbol, arity, options, accessThroughType, diagnose, ref useSiteInfo, basesBeingResolved);
-                result.MergeEqual(res);
-            }
         }
 
         /// <summary>
@@ -1585,6 +1583,14 @@ symIsHidden:;
         {
             bool failedThroughTypeCheck;
             return IsAccessible(symbol, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
+        }
+
+        internal bool IsAccessible(Symbol symbol, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+        {
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            var result = IsAccessible(symbol, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
+            return result;
         }
 
         /// <summary>
@@ -1749,7 +1755,7 @@ symIsHidden:;
             }
         }
 
-        protected virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
+        internal virtual void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo info, LookupOptions options, Binder originalBinder)
         {
             // overridden in other binders
         }

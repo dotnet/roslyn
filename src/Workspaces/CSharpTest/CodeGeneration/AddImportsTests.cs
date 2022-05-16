@@ -8,13 +8,12 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -60,10 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 
         private static Task TestNoImportsAddedAsync(
             string initialText,
-            bool useSymbolAnnotations,
-            Func<OptionSet, OptionSet> optionsTransform = null)
+            bool useSymbolAnnotations)
         {
-            return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, optionsTransform, performCheck: false);
+            return TestAsync(initialText, initialText, initialText, useSymbolAnnotations, performCheck: false);
         }
 
         private static async Task TestAsync(
@@ -71,31 +69,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
             string importsAddedText,
             string simplifiedText,
             bool useSymbolAnnotations,
-            Func<OptionSet, OptionSet> optionsTransform = null,
+            bool placeSystemNamespaceFirst = true,
+            bool placeImportsInsideNamespaces = false,
             bool performCheck = true)
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
-            OptionSet options = await doc.GetOptionsAsync();
-            if (optionsTransform != null)
-            {
-                options = optionsTransform(options);
-            }
+
+            var addImportOptions = new AddImportPlacementOptions(
+                PlaceSystemNamespaceFirst: placeSystemNamespaceFirst,
+                PlaceImportsInsideNamespaces: placeImportsInsideNamespaces,
+                AllowInHiddenRegions: false);
+
+            var formattingOptions = CSharpSyntaxFormattingOptions.Default;
+
+            var simplifierOptions = CSharpSimplifierOptions.Default;
 
             var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, options)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, options);
+                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(doc, addImportOptions, CancellationToken.None)
+                : await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None);
 
             if (importsAddedText != null)
             {
-                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, options);
+                var formatted = await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(importsAddedText, actualText);
             }
 
             if (simplifiedText != null)
             {
-                var reduced = await Simplifier.ReduceAsync(imported, options);
-                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, options);
+                var reduced = await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None);
+                var formatted = await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None);
 
                 var actualText = (await formatted.GetTextAsync()).ToString();
                 Assert.Equal(simplifiedText, actualText);
@@ -193,7 +196,7 @@ class C
     public List<int> F;
 }",
                 useSymbolAnnotations,
-                options => options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
+                placeSystemNamespaceFirst: false
 );
         }
 
@@ -783,8 +786,6 @@ class C
             project = project.AddDocument("duplicate.cs", externalCode).Project;
             var document = project.AddDocument("test.cs", code);
 
-            var options = document.Project.Solution.Workspace.Options;
-
             var compilation = await document.Project.GetCompilationAsync(CancellationToken.None);
             var compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
             Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
@@ -801,12 +802,15 @@ class C
             editor.AddAttribute(p1SyntaxNode, attributeSyntax);
             var documentWithAttribute = editor.GetChangedDocument();
 
+            var addImportOptions = new AddImportPlacementOptions();
+            var formattingOptions = CSharpSyntaxFormattingOptions.Default;
+
             // Add namespace import.
             var imported = useSymbolAnnotations
-                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, null, CancellationToken.None).ConfigureAwait(false)
-                : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, null, CancellationToken.None).ConfigureAwait(false);
+                ? await ImportAdder.AddImportsFromSymbolAnnotationAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false)
+                : await ImportAdder.AddImportsFromSyntaxesAsync(documentWithAttribute, addImportOptions, CancellationToken.None).ConfigureAwait(false);
 
-            var formatted = await Formatter.FormatAsync(imported, options);
+            var formatted = await Formatter.FormatAsync(imported, formattingOptions, CancellationToken.None);
             var actualText = (await formatted.GetTextAsync()).ToString();
 
             Assert.Equal(@"using System;
@@ -1241,8 +1245,7 @@ namespace N
     {
         public List<int> F;
     }
-}", useSymbolAnnotations,
-    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+}", useSymbolAnnotations, placeImportsInsideNamespaces: true);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
@@ -1267,8 +1270,7 @@ class C
 class C
 {
     public List<int> F;
-}", useSymbolAnnotations,
-    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+}", useSymbolAnnotations, placeImportsInsideNamespaces: true);
         }
 
         [Theory, MemberData(nameof(TestAllData))]
@@ -1311,8 +1313,7 @@ class C
             public List<int> F;
         }
     }
-}", useSymbolAnnotations,
-    optionsTransform: o => o.WithChangedOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error)));
+}", useSymbolAnnotations, placeImportsInsideNamespaces: true);
         }
 
         #endregion

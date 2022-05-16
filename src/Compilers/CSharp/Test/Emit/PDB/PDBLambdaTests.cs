@@ -554,7 +554,7 @@ class C
             c.VerifyDiagnostics();
 
             c.VerifyPdb(@"
-<symbols>
+ <symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
   </files>
@@ -589,14 +589,6 @@ class C
         <local name=""x"" il_index=""1"" il_start=""0x0"" il_end=""0x7a"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;M&gt;b__0"" parameterNames=""a"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""M"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""30"" document=""1"" />
-      </sequencePoints>
-    </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_1"" parameterNames=""&lt;&gt;h__TransparentIdentifier0"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName=""M"" />
@@ -611,6 +603,14 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;M&gt;b__0"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""M"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""25"" endLine=""10"" endColumn=""30"" document=""1"" />
       </sequencePoints>
     </method>
   </methods>

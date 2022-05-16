@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using EnvDTE;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.Win32;
 using Roslyn.Utilities;
@@ -68,7 +67,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var logDir = Path.Combine(assemblyDirectory, "TestResults", "Screenshots");
                 var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
                 var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
@@ -180,12 +179,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var instanceVersion = instance.GetInstallationVersion();
                 var majorVersion = int.Parse(instanceVersion.Substring(0, instanceVersion.IndexOf('.')));
                 hostProcess = StartNewVisualStudioProcess(installationPath, majorVersion, isUsingLspEditor);
-
-                var procDumpInfo = ProcDumpInfo.ReadFromEnvironment();
-                if (procDumpInfo != null)
-                {
-                    ProcDumpUtil.AttachProcDump(procDumpInfo.Value, hostProcess.Id);
-                }
 
                 // We wait until the DTE instance is up before we're good
                 dte = await IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).ConfigureAwait(true);
@@ -332,22 +325,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"")).WaitForExit();
 
-                // HACK: 16.10P2 contains an LSP client bug where on solution closed, server activation tasks that are not already completed / cancelled
-                // do not properly get cancelled.  When a new solution is opened these incomplete server ativation tasks are not cleared.
-                // Any feature that waits for LSP server activations to complete will hang on the old incomplete server activation tasks.
-                //
-                // The roslyn C# always active server and intellicode's refactorings LSP server are the only LSP servers active on C# files in 16.10p2.
-                // To work around potential hangs where the intellicode server activation does not complete before solution close, we disable their LSP server entirely.
-                // To work around potential hangs in the roslyn C# server, we wait for the async listener around the LSP server activation to complete before proceeding.
-                // Editor tracking bug (to be fixed in 16.10P3) - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1322125
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" Refactorings string \"0*System.Int32*2\"")).WaitForExit();
+                // Disable IntelliCode line completions to avoid interference with argument completion testing
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" wholeLineCompletions string \"0*System.Int32*2\"")).WaitForExit();
+
+                // Disable IntelliCode RepositoryAttachedModels since it requires authentication which can fail in CI
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\\IntelliCode\" repositoryAttachedModels string \"0*System.Int32*2\"")).WaitForExit();
 
                 // Disable background download UI to avoid toasts
                 Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Setup\\BackgroundDownload\" Value dword 0")).WaitForExit();
 
                 var lspRegistryValue = isUsingLspEditor ? "1" : "0";
-                var lspFeatureFlagName = VisualStudioWorkspaceContextService.LspEditorFeatureFlagName.Replace(".", "\\");
-                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\{lspFeatureFlagName}\" Value dword {lspRegistryValue}")).WaitForExit();
+                Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\LSP\\Editor\" Value dword {lspRegistryValue}")).WaitForExit();
                 Registry.SetValue(@"HKEY_CURRENT_USER\Software\Microsoft\VisualStudio\Telemetry\Channels", "fileLogger", 1, RegistryValueKind.DWord);
 
                 // Remove legacy experiment setting for controlling async completion to ensure it does not interfere.
@@ -367,6 +355,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOP64BIT"), "false", StringComparison.OrdinalIgnoreCase))
                 {
                     Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Features\" OOP64Bit dword 0")).WaitForExit();
+                }
+                else
+                {
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Roslyn\\Internal\\OnOff\\Features\" OOP64Bit dword 1")).WaitForExit();
+                }
+
+                // Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
+                if (string.Equals(Environment.GetEnvironmentVariable("ROSLYN_OOPCORECLR"), "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 1")).WaitForExit();
+                }
+                else
+                {
+                    Process.Start(CreateSilentStartInfo(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"FeatureFlags\\Roslyn\\ServiceHubCore\" Value dword 0")).WaitForExit();
                 }
 
                 _firstLaunch = false;

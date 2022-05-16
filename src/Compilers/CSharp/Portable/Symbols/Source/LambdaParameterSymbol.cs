@@ -20,14 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            RefKind refKind,
            string name,
            bool isDiscard,
+           bool isNullChecked,
            ImmutableArray<Location> locations)
            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false)
         {
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;
+            IsNullChecked = isNullChecked;
         }
 
         public override bool IsDiscard { get; }
+
+        public override bool IsNullChecked { get; }
 
         internal override bool IsMetadataOptional
         {

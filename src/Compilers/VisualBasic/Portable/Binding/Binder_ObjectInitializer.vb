@@ -465,7 +465,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(typeNode, methodResult, boundArguments, diagnostics)
                     boundArguments = argumentInfo.Arguments
 
-                    ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
+                    ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodResult.Candidate.UnderlyingSymbol, node)
 
                     ' If a coclass was instantiated, convert the class to the interface type.
                     If type0.IsInterfaceType() Then

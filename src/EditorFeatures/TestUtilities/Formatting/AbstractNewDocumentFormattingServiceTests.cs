@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
@@ -40,6 +41,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 parseOptions);
         }
 
+        internal Task TestAsync(string testCode, string expected, (OptionKey, object)[]? options = null, ParseOptions? parseOptions = null)
+        {
+            return TestCoreAsync(testCode,
+                expected,
+                options,
+                parseOptions);
+        }
+
         private async Task TestCoreAsync<T>(string testCode, string expected, (OptionKey, T)[]? options, ParseOptions? parseOptions)
         {
             using (var workspace = CreateTestWorkspace(testCode, parseOptions))
@@ -58,10 +67,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
                 var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
-                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, CancellationToken.None);
-
-                // Format to match what AbstractEditorFactory does
-                formattedDocument = await Formatter.FormatAsync(formattedDocument);
+                var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, CancellationToken.None).ConfigureAwait(false);
+                var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
 
                 var actual = await formattedDocument.GetTextAsync();
                 AssertEx.EqualOrDiff(expected, actual.ToString());

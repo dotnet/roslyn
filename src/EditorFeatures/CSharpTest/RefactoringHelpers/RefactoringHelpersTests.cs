@@ -323,7 +323,26 @@ class C
 
         [Fact]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestInEmptySyntaxNode()
+        public async Task TestInEmptySyntaxNode_AllowEmptyNodesTrue1()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, [||]{|result:|}); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, allowEmptyNodes: true);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInEmptySyntaxNode_AllowEmptyNodesTrue2()
         {
             var testText = @"
 class C
@@ -337,8 +356,47 @@ class C
     {
     }
 }";
-            await TestAsync<ArgumentSyntax>(testText);
+            await TestAsync<ArgumentSyntax>(testText, allowEmptyNodes: true);
         }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInEmptySyntaxNode_AllowEmptyNodesFalse1()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, [||], 0)); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestMissingAsync<ArgumentSyntax>(testText, allowEmptyNodes: false);
+        }
+
+        [Fact]
+        [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
+        public async Task TestInEmptySyntaxNode_AllowEmptyNodesFalse2()
+        {
+            var testText = @"
+class C
+{
+    void M()
+    {
+        N(0, {|result:N(0, [||], 0)|}); 
+    }
+
+    int N(int a, int b, int c)
+    {
+    }
+}";
+            await TestAsync<ArgumentSyntax>(testText, allowEmptyNodes: false);
+        }
+
         #endregion
 
         #region Selections

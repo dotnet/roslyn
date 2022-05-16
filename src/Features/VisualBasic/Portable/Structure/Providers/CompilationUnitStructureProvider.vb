@@ -15,9 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
         Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
                                                   compilationUnit As CompilationUnitSyntax,
                                                   ByRef spans As TemporaryArray(Of BlockSpan),
-                                                  optionProvider As BlockStructureOptionProvider,
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(compilationUnit, spans, optionProvider)
+            CollectCommentsRegions(compilationUnit, spans, options)
 
             If Not compilationUnit.Imports.IsEmpty Then
                 Dim startPos = compilationUnit.Imports.First().SpanStart
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 spans.AddIfNotNull(CreateBlockSpan(
                     span, span, bannerText:="Imports" & SpaceEllipsis,
                     autoCollapse:=True, type:=BlockTypes.Imports, isCollapsible:=True,
-                    isDefaultCollapsed:=False))
+                    isDefaultCollapsed:=options.CollapseImportsWhenFirstOpened))
             End If
 
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)

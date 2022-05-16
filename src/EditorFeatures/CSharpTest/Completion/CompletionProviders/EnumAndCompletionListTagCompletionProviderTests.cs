@@ -131,6 +131,8 @@ public enum Goo
 {
     Member
 }";
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -138,8 +140,9 @@ public enum Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -148,8 +151,7 @@ public enum Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(854099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
@@ -790,6 +792,33 @@ readonly struct Colors
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
         }
 
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterAsync1()
+        {
+            var markup = @"
+class Test
+{
+    public async $$
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [WorkItem(60341, "https://github.com/dotnet/roslyn/issues/60341")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NotAfterAsync2()
+        {
+            var markup = @"
+class Test
+{
+    public async $$
+    public void M() {}
+}";
+
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NotAfterDot()
         {
@@ -1095,6 +1124,8 @@ public readonly struct MyEnum
     public static readonly MyEnum Member;
 }";
 
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -1102,8 +1133,9 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1112,8 +1144,9 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1122,8 +1155,9 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1132,8 +1166,7 @@ public readonly struct MyEnum
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [Fact]
@@ -1715,9 +1748,11 @@ class C
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
+        [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
         public async Task TestNullableEnum(string typeName, string memberName)
         {
             var markup = $@"
+#nullable enable
 using System;
 class C
 {{
@@ -1736,9 +1771,11 @@ class C
         [Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(nameof(DayOfWeek), nameof(DayOfWeek.Friday))]
         [InlineData(nameof(DateTime), nameof(DateTime.Now))]
+        [InlineData(nameof(TimeZoneInfo), nameof(TimeZoneInfo.Local))]
         public async Task TestTypeAlias(string typeName, string memberName)
         {
             var markup = $@"
+#nullable enable
 using AT = System.{typeName};
 
 public class Program

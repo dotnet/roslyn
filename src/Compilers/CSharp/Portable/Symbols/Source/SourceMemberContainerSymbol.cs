@@ -434,33 +434,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (this.Name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
-            {
-                foreach (var syntaxRef in SyntaxReferences)
-                {
-                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
-                    {
-                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
-                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
-                        _ => null
-                    };
-
-                    ReportTypeNamedRecord(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
-                }
-            }
-
             return result;
         }
 
-        internal static void ReportTypeNamedRecord(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        internal static bool IsReservedTypeName(string? name)
         {
-            if (diagnostics is object && name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) &&
-                compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
-            {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
-            }
+            return name is { Length: > 0 } && name.All(c => c >= 'a' && c <= 'z');
         }
 
+        internal static void ReportReservedTypeName(string? name, CSharpCompilation compilation, DiagnosticBag? diagnostics, Location location)
+        {
+            if (diagnostics is null)
+            {
+                return;
+            }
+
+            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            {
+                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
+            }
+            else if (IsReservedTypeName(name))
+            {
+                diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
+            }
+        }
         #endregion
 
         #region Completion
@@ -889,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyLexicalSortKey;
         }
 
-        public override ImmutableArray<Location> Locations
+        public sealed override ImmutableArray<Location> Locations
         {
             get
             {
@@ -1491,13 +1488,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Conditional("DEBUG")]
         internal void AssertMemberExposure(Symbol member, bool forDiagnostics = false)
         {
-            if (member is FieldSymbol && forDiagnostics && this.IsTupleType)
-            {
-                // There is a problem with binding types of fields in tuple types.
-                // Skipping verification for them temporarily. 
-                return;
-            }
-
             if (member is NamedTypeSymbol type)
             {
                 RoslynDebug.AssertOrFailFast(forDiagnostics);
@@ -1659,6 +1649,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so the checking of all interfaces here involves some redundancy.
                 Binder.ReportMissingTupleElementNamesAttributesIfNeeded(compilation, location, diagnostics);
             }
+
+            if (IsReservedTypeName(Name))
+            {
+                foreach (var syntaxRef in SyntaxReferences)
+                {
+                    SyntaxToken? identifier = syntaxRef.GetSyntax() switch
+                    {
+                        BaseTypeDeclarationSyntax typeDecl => typeDecl.Identifier,
+                        DelegateDeclarationSyntax delegateDecl => delegateDecl.Identifier,
+                        _ => null
+                    };
+
+                    ReportReservedTypeName(identifier?.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, identifier?.GetLocation() ?? Location.None);
+                }
+            }
+
+            return;
 
             bool hasBaseTypeOrInterface(Func<NamedTypeSymbol, bool> predicate)
             {
@@ -2227,25 +2234,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.LessThanOperatorName, WellKnownMemberNames.GreaterThanOperatorName);
             CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.LessThanOrEqualOperatorName, WellKnownMemberNames.GreaterThanOrEqualOperatorName);
 
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDecrementOperatorName, WellKnownMemberNames.DecrementOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedIncrementOperatorName, WellKnownMemberNames.IncrementOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedUnaryNegationOperatorName, WellKnownMemberNames.UnaryNegationOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedAdditionOperatorName, WellKnownMemberNames.AdditionOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedDivisionOperatorName, WellKnownMemberNames.DivisionOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedMultiplyOperatorName, WellKnownMemberNames.MultiplyOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedSubtractionOperatorName, WellKnownMemberNames.SubtractionOperatorName, symmetricCheck: false);
+            CheckForUnmatchedOperator(diagnostics, WellKnownMemberNames.CheckedExplicitConversionName, WellKnownMemberNames.ExplicitConversionName, symmetricCheck: false);
+
             // We also produce a warning if == / != is overridden without also overriding
             // Equals and GetHashCode, or if Equals is overridden without GetHashCode.
 
             CheckForEqualityAndGetHashCode(diagnostics);
         }
 
-        private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2)
+        private void CheckForUnmatchedOperator(BindingDiagnosticBag diagnostics, string operatorName1, string operatorName2, bool symmetricCheck = true)
         {
-            var ops1 = this.GetOperators(operatorName1);
-            var ops2 = this.GetOperators(operatorName2);
-            CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2);
-            CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1);
+            ImmutableArray<MethodSymbol> ops1 = this.GetOperators(operatorName1);
+
+            if (symmetricCheck)
+            {
+                var ops2 = this.GetOperators(operatorName2);
+                CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportOperatorNeedsMatch);
+                CheckForUnmatchedOperator(diagnostics, ops2, ops1, operatorName1, reportOperatorNeedsMatch);
+            }
+            else if (!ops1.IsEmpty)
+            {
+                var ops2 = this.GetOperators(operatorName2);
+                CheckForUnmatchedOperator(diagnostics, ops1, ops2, operatorName2, reportCheckedOperatorNeedsMatch);
+            }
+
+            static void reportOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
+            {
+                // CS0216: The operator 'C.operator true(C)' requires a matching operator 'false' to also be defined
+                diagnostics.Add(ErrorCode.ERR_OperatorNeedsMatch, op1.Locations[0], op1,
+                    SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName2)));
+            }
+
+            static void reportCheckedOperatorNeedsMatch(BindingDiagnosticBag diagnostics, string operatorName2, MethodSymbol op1)
+            {
+                diagnostics.Add(ErrorCode.ERR_CheckedOperatorNeedsMatch, op1.Locations[0], op1);
+            }
         }
 
         private static void CheckForUnmatchedOperator(
             BindingDiagnosticBag diagnostics,
             ImmutableArray<MethodSymbol> ops1,
             ImmutableArray<MethodSymbol> ops2,
-            string operatorName2)
+            string operatorName2,
+            Action<BindingDiagnosticBag, string, MethodSymbol> reportMatchNotFoundError)
         {
             foreach (var op1 in ops1)
             {
@@ -2261,14 +2299,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!foundMatch)
                 {
-                    // CS0216: The operator 'C.operator true(C)' requires a matching operator 'false' to also be defined
-                    diagnostics.Add(ErrorCode.ERR_OperatorNeedsMatch, op1.Locations[0], op1,
-                        SyntaxFacts.GetText(SyntaxFacts.GetOperatorKind(operatorName2)));
+                    reportMatchNotFoundError(diagnostics, operatorName2, op1);
                 }
             }
         }
 
-        private static bool DoOperatorsPair(MethodSymbol op1, MethodSymbol op2)
+        internal static bool DoOperatorsPair(MethodSymbol op1, MethodSymbol op2)
         {
             if (op1.ParameterCount != op2.ParameterCount)
             {
@@ -2579,11 +2615,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 InstanceInitializers.Free();
             }
-
-            internal void AddOrWrapTupleMembers(SourceMemberContainerTypeSymbol type)
-            {
-                this.NonTypeMembers = type.AddOrWrapTupleMembers(this.NonTypeMembers.ToImmutableAndFree());
-            }
         }
 
         protected sealed class DeclaredMembersAndInitializers
@@ -2667,7 +2698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class MembersAndInitializersBuilder
         {
-            public ArrayBuilder<Symbol>? NonTypeMembers;
+            private ArrayBuilder<Symbol>? NonTypeMembers;
             private ArrayBuilder<FieldOrPropertyInitializer>? InstanceInitializersForPositionalMembers;
             private bool IsNullableEnabledForInstanceConstructorsAndFields;
             private bool IsNullableEnabledForStaticConstructorsAndFields;
@@ -2791,6 +2822,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 NonTypeMembers.Add(member);
             }
 
+            public void SetNonTypeMembers(ArrayBuilder<Symbol> members)
+            {
+                NonTypeMembers?.Free();
+                NonTypeMembers = members;
+            }
+
             public void UpdateIsNullableEnabledForConstructorsAndFields(bool useStatic, CSharpCompilation compilation, CSharpSyntaxNode syntax)
             {
                 ref bool isNullableEnabled = ref GetIsNullableEnabledForConstructorsAndFields(useStatic);
@@ -2909,11 +2946,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (IsTupleType)
-                {
-                    builder.AddOrWrapTupleMembers(this);
-                }
-
                 if (Volatile.Read(ref _lazyDeclaredMembersAndInitializers) != DeclaredMembersAndInitializers.UninitializedSentinel)
                 {
                     // _lazyDeclaredMembersAndInitializers is already computed. no point to continue.
@@ -3001,6 +3033,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 default:
                     break;
             }
+
+            AddSynthesizedTupleMembersIfNecessary(builder, declaredMembersAndInitializers);
         }
 
         private void AddDeclaredNontypeMembers(DeclaredMembersAndInitializersBuilder builder, BindingDiagnosticBag diagnostics)
@@ -3519,13 +3553,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            bool hasInitializers = false;
             foreach (var initializers in builder.InstanceInitializers)
             {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
                 {
+                    hasInitializers = true;
                     var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
                     MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
                 }
+            }
+
+            if (hasInitializers && !builder.NonTypeMembers.Any(member => member is MethodSymbol { MethodKind: MethodKind.Constructor }))
+            {
+                diagnostics.Add(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, Locations[0]);
             }
         }
 
@@ -3638,8 +3679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // We put synthesized record members first so that errors about conflicts show up on user-defined members rather than all
             // going to the record declaration
             members.AddRange(membersSoFar);
-            builder.NonTypeMembers?.Free();
-            builder.NonTypeMembers = members;
+            builder.SetNonTypeMembers(members);
 
             return;
 
@@ -4221,6 +4261,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private void AddSynthesizedTupleMembersIfNecessary(MembersAndInitializersBuilder builder, DeclaredMembersAndInitializers declaredMembersAndInitializers)
+        {
+            if (!this.IsTupleType)
+            {
+                return;
+            }
+
+            var synthesizedMembers = this.MakeSynthesizedTupleMembers(declaredMembersAndInitializers.NonTypeMembers);
+            if (synthesizedMembers is null)
+            {
+                return;
+            }
+
+            foreach (var synthesizedMember in synthesizedMembers)
+            {
+                builder.AddNonTypeMember(synthesizedMember, declaredMembersAndInitializers);
+            }
+
+            synthesizedMembers.Free();
+        }
+
         private void AddNonTypeMembers(
             DeclaredMembersAndInitializersBuilder builder,
             SyntaxList<MemberDeclarationSyntax> members,
@@ -4733,8 +4794,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
-
-        internal sealed override bool HasFieldInitializers() => InstanceInitializers.Length > 0;
 
         internal class SynthesizedExplicitImplementations
         {
