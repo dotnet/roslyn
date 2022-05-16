@@ -11,6 +11,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.MetadataReader;
+using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// <summary>
     /// Computes string representations of <see cref="DkmClrValue"/> instances.
     /// </summary>
-    internal abstract partial class Formatter : IDkmClrFormatter, IDkmClrFormatter2, IDkmClrFullNameProvider
+    internal abstract partial class Formatter : IDkmClrFormatter, IDkmClrFormatter2, IDkmClrFullNameProvider, IDkmClrFullNameProvider2
     {
         private readonly string _defaultFormat;
         private readonly string _nullString;
@@ -173,6 +175,34 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return _thisString;
         }
 
+        string IDkmClrFullNameProvider2.GetClrNameForLocalVariable(DkmInspectionContext inspectionContext, DkmClrModuleInstance moduleInstance, DkmClrMethodId methodId, DkmILRange iLRange, DkmClrLocalVariable localVariable)
+        {
+            return GetOriginalLocalVariableName(localVariable.Name);
+        }
+
+        string IDkmClrFullNameProvider2.GetClrNameForField(DkmInspectionContext inspectionContext, DkmClrModuleInstance moduleInstance, int fieldToken)
+        {
+            var import = (IMetadataImport)moduleInstance.GetMetaDataImport();
+
+            // Just get some of information about properties. Get rest later only if needed.
+            int hr = import.GetFieldProps(fieldToken, out _, null, 0, out var nameLength, out _, out _, out _, out _, out _, out _);
+            const int S_OK = 0;
+            if (hr != S_OK)
+            {
+                throw new ArgumentException("Invalid field token.", nameof(fieldToken));
+            }
+
+            var sb = new StringBuilder(nameLength);
+            hr = import.GetFieldProps(fieldToken, out _, sb, sb.Capacity, out _, out _, out _, out _, out _, out _, out _);
+            if (hr != S_OK)
+            {
+                throw new DkmException((DkmExceptionCode)hr);
+            }
+
+            string metadataName = sb.ToString();
+            return GetOriginalFieldName(metadataName);
+        }
+
         // CONSIDER: If the number or complexity of the "language-specific syntax helpers" grows (or if
         // we make this a public API, it would be good to consider abstracting them into a separate object
         // that can be passed to the ResultProvider on construction (a "LanguageSyntax" service of sorts).
@@ -187,6 +217,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         internal abstract bool IsPredefinedType(Type type);
 
         internal abstract bool IsWhitespace(char c);
+
+        internal abstract string GetOriginalLocalVariableName(string name);
+        internal abstract string GetOriginalFieldName(string name);
 
         // Note: We could be less conservative (e.g. "new C()").
         private bool NeedsParentheses(string expr)

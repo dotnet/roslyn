@@ -29,6 +29,18 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public RazorAutoFormattingOptions GetAutoFormattingOptions()
             => new(_globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp));
 
+        public bool UseTabs
+        {
+            get => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.UseTabs);
+            set => _globalOptions.SetGlobalOption(new OptionKey(RazorLineFormattingOptionsStorage.UseTabs), value);
+        }
+
+        public int TabSize
+        {
+            get => _globalOptions.GetOption(RazorLineFormattingOptionsStorage.TabSize);
+            set => _globalOptions.SetGlobalOption(new OptionKey(RazorLineFormattingOptionsStorage.TabSize), value);
+        }
+
 #pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// For testing purposes only. Razor does not use MEF composition for host services so we need to return a mock.

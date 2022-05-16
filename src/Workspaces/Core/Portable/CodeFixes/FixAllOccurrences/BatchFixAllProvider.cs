@@ -148,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-                var options = new NonBlockingCodeActionOptionsProvider(fixAllContext.State.CodeActionOptionsProvider);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Create a context that will add the reported code actions into this
                     using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                     var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, options, cancellationToken);
+                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, fixAllContext.State.CodeActionOptionsProvider, isBlocking: false, cancellationToken);
 
                     // Wait for the all the code actions to be reported for this diagnostic.
                     var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
@@ -189,17 +188,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 result.AddRange(await task.ConfigureAwait(false));
 
             return result.ToImmutable();
-        }
-
-        private sealed class NonBlockingCodeActionOptionsProvider : AbstractCodeActionOptionsProvider
-        {
-            private readonly CodeActionOptionsProvider _provider;
-
-            public NonBlockingCodeActionOptionsProvider(CodeActionOptionsProvider provider)
-                => _provider = provider;
-
-            public override CodeActionOptions GetOptions(HostLanguageServices languageService)
-                => _provider.GetOptions(languageService) with { IsBlocking = false };
         }
 
         /// <summary>

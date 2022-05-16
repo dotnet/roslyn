@@ -77,6 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
+                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -93,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
+                    isBlocking:=False,
                     CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
@@ -103,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
+                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -153,6 +156,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
+                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -169,6 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
                     CodeActionOptions.DefaultProvider,
+                    isBlocking:=False,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
