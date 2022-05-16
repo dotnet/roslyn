@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
-    [ExportRoslynLspServiceFactory(typeof(WorkspaceSpellCheckHandler)), Shared]
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceSpellCheckHandler)), Shared]
     internal class WorkspaceSpellCheckHandlerFactory : ILspServiceFactory
     {
         [ImportingConstructor]

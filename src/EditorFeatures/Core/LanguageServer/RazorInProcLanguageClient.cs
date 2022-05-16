@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
-            RoslynLspServiceProvider lspServiceProvider,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,

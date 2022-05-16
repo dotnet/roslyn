@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 
-[ExportRoslynLspServiceFactory(typeof(CompletionListCache)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(CompletionListCache)), Shared]
 internal class CompletionListCacheFactory : ILspServiceFactory
 {
     [ImportingConstructor]

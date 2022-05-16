@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportRoslynLspServiceFactory(typeof(RequestTelemetryLogger)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RequestTelemetryLogger)), Shared]
 internal class RequestTelemetryLoggerFactory : ILspServiceFactory
 {
     [ImportingConstructor]

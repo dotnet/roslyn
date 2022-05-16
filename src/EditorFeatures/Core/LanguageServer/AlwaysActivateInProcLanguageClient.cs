@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
         public AlwaysActivateInProcLanguageClient(
-            RoslynLspServiceProvider lspServiceProvider,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,

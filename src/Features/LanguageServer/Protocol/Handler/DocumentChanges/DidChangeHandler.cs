@@ -13,7 +13,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportRoslynStatelessLspService(typeof(DidChangeHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidChangeName)]
     internal class DidChangeHandler : IRequestHandler<LSP.DidChangeTextDocumentParams, object?>
     {

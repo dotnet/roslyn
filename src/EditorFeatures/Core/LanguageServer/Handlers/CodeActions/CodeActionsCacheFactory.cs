@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
-[ExportRoslynLspServiceFactory(typeof(CodeActionsCache)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(CodeActionsCache)), Shared]
 internal class CodeActionsCacheFactory : ILspServiceFactory
 {
     [ImportingConstructor]

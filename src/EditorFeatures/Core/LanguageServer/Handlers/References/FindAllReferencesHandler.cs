@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// we no longer reference VS classified text runs.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
     internal class FindAllReferencesHandler : IRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
     {

@@ -36,7 +36,7 @@ internal class LspServices : IDisposable
         var services = mefLspServices.Concat(servicesFromFactories);
 
         // Make sure that we only include services exported for the specified server kind (or NotSpecified).
-        services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.NotSpecified);
+        services = services.Where(lazyService => lazyService.Metadata.ServerKind == serverKind || lazyService.Metadata.ServerKind == WellKnownLspServerKinds.Any);
 
         // Include the base level services that were passed in.
         services = services.Concat(baseServices);

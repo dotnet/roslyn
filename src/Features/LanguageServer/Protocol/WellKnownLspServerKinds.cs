@@ -46,7 +46,7 @@ internal enum WellKnownLspServerKinds
     /// Flag representing any LSP server - used by <see cref="ExportLspServiceFactoryAttribute"/>
     /// to specify that something applies to any LSP server.
     /// </summary>
-    NotSpecified,
+    Any,
 }
 
 internal static class WellKnownLspServerExtensions

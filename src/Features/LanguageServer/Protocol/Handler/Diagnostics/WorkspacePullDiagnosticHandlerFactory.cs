@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportRoslynLspServiceFactory(typeof(WorkspacePullDiagnosticHandler)), Shared]
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspacePullDiagnosticHandler)), Shared]
     internal class WorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
     {
         private readonly IDiagnosticService _diagnosticService;

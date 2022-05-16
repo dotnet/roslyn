@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynStatelessLspService(typeof(FoldingRangesHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(FoldingRangesHandler)), Shared]
     [Method(Methods.TextDocumentFoldingRangeName)]
     internal sealed class FoldingRangesHandler : IRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {

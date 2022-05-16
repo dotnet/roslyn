@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    [ExportRoslynLspServiceFactory(typeof(SemanticTokensRangeHandler)), Shared]
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(SemanticTokensRangeHandler)), Shared]
     internal sealed class SemanticTokensRangeHandlerFactory : ILspServiceFactory
     {
         private readonly IGlobalOptionService _globalOptions;

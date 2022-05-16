@@ -12,7 +12,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
 {
-    [ExportRoslynStatelessLspService(typeof(DidCloseHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(DidCloseHandler)), Shared]
     [Method(LSP.Methods.TextDocumentDidCloseName)]
     internal class DidCloseHandler : IRequestHandler<LSP.DidCloseTextDocumentParams, object?>
     {

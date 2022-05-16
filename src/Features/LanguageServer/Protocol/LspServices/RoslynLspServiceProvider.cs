@@ -10,12 +10,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export(typeof(RoslynLspServiceProvider)), Shared]
-internal class RoslynLspServiceProvider : AbstractLspServiceProvider
+[Export(typeof(CSharpVisualBasicLspServiceProvider)), Shared]
+internal class CSharpVisualBasicLspServiceProvider : AbstractLspServiceProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RoslynLspServiceProvider(
+    public CSharpVisualBasicLspServiceProvider(
         [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
         [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories) : base(lspServices, lspServiceFactories)
     {

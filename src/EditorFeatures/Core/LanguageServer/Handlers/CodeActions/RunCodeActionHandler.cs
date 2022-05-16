@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// UI thread dependencies are resolved and <see cref="IThreadingContext"/> references are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynStatelessLspService(typeof(RunCodeActionHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(RunCodeActionHandler)), Shared]
     [Command(CodeActionsHandler.RunCodeActionCommandName)]
     internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
     {

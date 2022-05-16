@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            RoslynLspServiceProvider lspServiceProvider,
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _lspServiceProvider = lspServiceProvider;

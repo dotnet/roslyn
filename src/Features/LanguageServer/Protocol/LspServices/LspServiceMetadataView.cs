@@ -27,7 +27,7 @@ internal class LspServiceMetadataView
     public LspServiceMetadataView(Type type)
     {
         Type = type;
-        ServerKind = WellKnownLspServerKinds.NotSpecified;
+        ServerKind = WellKnownLspServerKinds.Any;
         IsStateless = false;
     }
 }

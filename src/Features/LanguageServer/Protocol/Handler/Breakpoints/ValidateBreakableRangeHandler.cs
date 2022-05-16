@@ -15,7 +15,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
+    [ExportCSharpVisualBasicStatelessLspService(typeof(ValidateBreakableRangeHandler)), Shared]
     [Method(LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName)]
     internal sealed class ValidateBreakableRangeHandler : IRequestHandler<LSP.VSInternalValidateBreakableRangeParams, LSP.Range?>
     {

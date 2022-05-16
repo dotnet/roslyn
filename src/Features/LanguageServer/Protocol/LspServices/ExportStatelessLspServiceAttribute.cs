@@ -36,7 +36,7 @@ internal class ExportStatelessLspServiceAttribute : ExportAttribute
     /// </summary>
     public bool IsStateless { get; } = true;
 
-    public ExportStatelessLspServiceAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.NotSpecified) : base(contractName, typeof(ILspService))
+    public ExportStatelessLspServiceAttribute(Type type, string contractName, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any) : base(contractName, typeof(ILspService))
     {
         Contract.ThrowIfFalse(type.GetInterfaces().Contains(typeof(ILspService)), $"{type.Name} does not inherit from {nameof(ILspService)}");
         Type = type;

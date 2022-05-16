@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
-[ExportRoslynLspServiceFactory(typeof(ExperimentalWorkspacePullDiagnosticsHandler)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(ExperimentalWorkspacePullDiagnosticsHandler)), Shared]
 internal class ExperimentalWorkspacePullDiagnosticHandlerFactory : ILspServiceFactory
 {
     private readonly IDiagnosticService _diagnosticService;

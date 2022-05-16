@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[ExportRoslynLspServiceFactory(typeof(LspMiscellaneousFilesWorkspace), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(LspMiscellaneousFilesWorkspace), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
 internal class LspMiscellaneousFilesWorkspaceFactory : ILspServiceFactory
 {
     [ImportingConstructor]

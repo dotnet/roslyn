@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.True(server.GetQueueAccessor().IsComplete());
         }
 
-        [ExportRoslynLspServiceFactory(typeof(StatefulLspService)), Shared]
+        [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
         internal class StatefulLspServiceFactory : ILspServiceFactory
         {
             [ImportingConstructor]
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             }
         }
 
-        [ExportRoslynStatelessLspService(typeof(StatelessLspService)), Shared]
+        [ExportCSharpVisualBasicStatelessLspService(typeof(StatelessLspService)), Shared]
         internal class StatelessLspService : ILspService, IDisposable
         {
             [ImportingConstructor]
