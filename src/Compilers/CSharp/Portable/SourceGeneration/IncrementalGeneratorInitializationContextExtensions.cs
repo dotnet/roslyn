@@ -13,12 +13,12 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
 
     /// <summary>
-    /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
-    /// possibly bind to the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
-    /// name="fullyQualifiedMetadataName"/> should be the full, qualified, metadata name of the attribute, including the
-    /// <c>Attribute</c> suffix.  For example <c>System.CLSCompliantAttribute</c> for <see
-    /// cref="System.CLSCompliantAttribute"/>.
-    /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
+    /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that binds to a
+    /// <see cref="INamedTypeSymbol"/> with the same fully-qualified metadata as the provided <paramref
+    /// name="fullyQualifiedMetadataName"/>. <paramref name="fullyQualifiedMetadataName"/> should be the
+    /// fully-qualified, metadata name of the attribute, including the <c>Attribute</c> suffix.  For example
+    /// <c>System.CLSCompliantAttribute</c> for <see cref="System.CLSCompliantAttribute"/>.
+    /// <para>This provider understands <see langword="using"/> aliases and will find matches even when the attribute
     /// references an alias name.  For example, given:
     /// <code>
     /// using XAttribute = System.CLSCompliantAttribute;
@@ -27,7 +27,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
     /// </code>
     /// Then
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(typeof(CLSCompliantAttribute).FullName)</c>
-    /// will find the <c>C</c> class.
+    /// will find the <c>C</c> class.</para>
     /// </summary>
     public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
         where T : SyntaxNode
