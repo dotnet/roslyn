@@ -516,7 +516,9 @@ namespace Microsoft.CodeAnalysis.Host
 
             public override string ReadToEnd()
             {
-                if (_position >= _end)
+                RoslynDebug.Assert(_position <= _end);
+
+                if (_position == _end)
                     return "";
 
                 var result = new string(_position, 0, (int)(_end - _position));
