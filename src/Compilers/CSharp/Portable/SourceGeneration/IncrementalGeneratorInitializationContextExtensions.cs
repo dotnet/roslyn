@@ -15,7 +15,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
     /// possibly bind to the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
-    /// name="fullyQualifiedMetadataName"/> should be the full, qualified, metadata name of the attribute, including the
+    /// name="fullyQualifiedMetadataName"/> should be the fully-qualified metadata name of the attribute, including the
     /// <c>Attribute</c> suffix.  For example <c>System.CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
     /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
