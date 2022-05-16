@@ -494,8 +494,8 @@ namespace Microsoft.CodeAnalysis.Host
                 return count;
             }
 
-            public override int ReadBlock(char[] buffer, int index, int count) =>
-                Read(buffer, index, count);
+            public override int ReadBlock(char[] buffer, int index, int count)
+                => Read(buffer, index, count);
 
 #if NETCOREAPP
             public override int Read(Span<char> buffer)
@@ -510,8 +510,8 @@ namespace Microsoft.CodeAnalysis.Host
                 return count;
             }
 
-            public override int ReadBlock(Span<char> buffer) =>
-                Read(buffer);
+            public override int ReadBlock(Span<char> buffer)
+                => Read(buffer);
 #endif
 
             public override string ReadToEnd()
