@@ -1801,11 +1801,7 @@ class Program
     }}
 }}";
 
-            // Avoid sharing mscorlib symbols with other tests since we are about to change
-            // RuntimeSupportsNumericIntPtr property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, parseOptions: TestOptions.Regular9);
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (15,17): error CS0266: Cannot implicitly convert type 'uint' to 'nint'. An explicit conversion exists (are you missing a cast?)
@@ -1906,11 +1902,8 @@ class Program
         }}
     }}
 }}";
-            // Avoid sharing mscorlib symbols with other tests since we are about to change
-            // RuntimeSupportsNumericIntPtr property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
 
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, parseOptions: TestOptions.Regular9);
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (9,24): error CS0266: Cannot implicitly convert type 'nint' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
@@ -2034,8 +2027,7 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
             comp.VerifyDiagnostics(
                 // (7,26): error CS0133: The expression being assigned to 'y' must be constant
@@ -2053,8 +2045,7 @@ class Program
         Console.WriteLine(y);
     }
 }";
-            mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-1" : "1152921504606846975");
         }
@@ -2169,8 +2160,7 @@ class Program
         Console.Write(y);
     }}
 }}";
-                var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
+                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 comp.VerifyDiagnostics(expectedError is null ? Array.Empty<DiagnosticDescription>() : new[] { expectedError });
                 if (expectedError == null || ErrorFacts.IsWarning((ErrorCode)expectedError.Code))
@@ -5213,8 +5203,7 @@ $@"class Program
 }}
 enum E {{ }}
 ";
-                var mscorlibRef = MscorlibRefWithoutSharingCachedSymbols;
-                var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorlibRef }, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9);
+                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseDll.WithAllowUnsafe(useUnsafeContext), parseOptions: TestOptions.Regular9);
 
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
@@ -8274,8 +8263,7 @@ class Program
         const UIntPtr y = checked(uint.MaxValue + (UIntPtr)42);
     }
 }";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
 
             comp.VerifyDiagnostics(
                 // (8,27): error CS0133: The expression being assigned to 'x' must be constant
@@ -8307,8 +8295,7 @@ class Program
         }
     }
 }";
-            mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe);
+            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "4294967337").VerifyDiagnostics(
                 // (10,29): warning CS8973: The operation may overflow 'nuint' at runtime (use 'unchecked' syntax to override)
                 //             var y = checked(uint.MaxValue + (UIntPtr)42);
@@ -8326,8 +8313,7 @@ class Program
         System.Console.WriteLine(y);
     }
 }";
-            mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe);
+            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "41" : "4294967337").VerifyDiagnostics();
         }
 
@@ -8345,8 +8331,7 @@ class Program
         const IntPtr y = checked(-(IntPtr)int.MinValue);
     }
 }";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (8,26): error CS0133: The expression being assigned to 'x' must be constant
                 //         const IntPtr x = unchecked(-(IntPtr)int.MinValue);
@@ -8377,8 +8362,7 @@ class Program
         }
     }
 }";
-            mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe);
+            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "System.OverflowException" : "2147483648").VerifyDiagnostics(
                 // (10,29): warning CS8973: The operation may overflow 'nint' at runtime (use 'unchecked' syntax to override)
                 //             var y = checked(-(IntPtr)int.MinValue);
@@ -8396,8 +8380,7 @@ class Program
         System.Console.WriteLine(y);
     }
 }";
-            mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            comp = CreateNumericIntPtrCompilation(source, references: new[] { mscorLibRef }, options: TestOptions.ReleaseExe);
+            comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-2147483648" : "2147483648").VerifyDiagnostics();
         }
 
