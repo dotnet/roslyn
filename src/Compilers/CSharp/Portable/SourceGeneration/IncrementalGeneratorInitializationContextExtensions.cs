@@ -9,6 +9,9 @@ using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration;
 
@@ -49,7 +52,10 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         var simpleTypeName = metadataName.UnmangledTypeName;
         var nodesWithAttributesMatchingSimpleName = context.SyntaxProvider.CreateSyntaxProviderForAttribute<T>(simpleTypeName);
 
-        var collectedNodes = nodesWithAttributesMatchingSimpleName.Collect().WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
+        var collectedNodes = nodesWithAttributesMatchingSimpleName
+            .Collect()
+            .WithComparer(SyntaxNodeArrayComparer<T>.Instance)
+            .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
 
         // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
         // the required semantic model for it once, instead of potentially many times (in the rare, but possible case of
@@ -108,33 +114,35 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         return false;
     }
 
-    /// <summary>
-    /// Wraps a grouping of nodes within a syntax tree so we can have value-semantics around them usable by the
-    /// incremental driver.  Note: we do something very sneaky here.  Specifically, as long as we have the same <see
-    /// cref="SyntaxTree"/> from before, then we know we must have the same nodes as before (since the nodes are
-    /// entirely determined from the text+options which is exactly what the syntax tree represents).  Similarly, if the
-    /// syntax tree changes, we will always get different nodes (since they point back at the syntax tree).  So we can
-    /// just use the syntax tree itself to determine value semantics here.
-    /// </summary>
-    private class SyntaxNodeGrouping<TSyntaxNode> : IEquatable<SyntaxNodeGrouping<TSyntaxNode>>
+    private class SyntaxNodeArrayComparer<TSyntaxNode> : IEqualityComparer<ImmutableArray<TSyntaxNode>>
         where TSyntaxNode : SyntaxNode
     {
-        public readonly SyntaxTree SyntaxTree;
-        public readonly ImmutableArray<TSyntaxNode> SyntaxNodes;
+        public static readonly IEqualityComparer<ImmutableArray<TSyntaxNode>> Instance = new SyntaxNodeArrayComparer<TSyntaxNode>();
 
-        public SyntaxNodeGrouping(IGrouping<SyntaxTree, TSyntaxNode> grouping)
+        public bool Equals([AllowNull] ImmutableArray<TSyntaxNode> x, [AllowNull] ImmutableArray<TSyntaxNode> y)
         {
-            SyntaxTree = grouping.Key;
-            SyntaxNodes = grouping.OrderBy(static n => n.FullSpan.Start).ToImmutableArray();
+            if (x == y)
+                return true;
+
+            if (x.Length != y.Length)
+                return false;
+
+            for (int i = 0, n = x.Length; i < n; i++)
+            {
+                if (x[i] != y[i])
+                    return false;
+            }
+
+            return true;
         }
 
-        public override int GetHashCode()
-            => SyntaxTree.GetHashCode();
+        public int GetHashCode([DisallowNull] ImmutableArray<TSyntaxNode> obj)
+        {
+            var hashCode = 0;
+            foreach (var node in obj)
+                hashCode = Hash.Combine(hashCode, node.GetHashCode());
 
-        public override bool Equals(object? obj)
-            => Equals(obj as SyntaxNodeGrouping<TSyntaxNode>);
-
-        public bool Equals(SyntaxNodeGrouping<TSyntaxNode>? obj)
-            => this.SyntaxTree == obj?.SyntaxTree;
+            return hashCode;
+        }
     }
 }
