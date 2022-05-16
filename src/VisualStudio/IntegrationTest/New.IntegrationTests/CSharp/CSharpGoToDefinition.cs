@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeFact]
         public async Task GoToClassDeclaration()
         {
             var project = ProjectName;
@@ -48,7 +48,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeFact]
         public async Task GoToDefinitionOpensProvisionalTabIfDocumentNotAlreadyOpen()
         {
             var project = ProjectName;
@@ -74,7 +74,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             Assert.True(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeFact]
         public async Task GoToDefinitionWithMultipleResults()
         {
             await SetUpEditorAsync(

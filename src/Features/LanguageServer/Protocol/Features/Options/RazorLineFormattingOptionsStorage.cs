@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// <summary>
 /// Formatting options for Razor design-time documents.
 /// </summary>
-internal class RazorLineFormattingOptionsStorage
+internal static class RazorLineFormattingOptionsStorage
 {
     internal static readonly Option2<bool> UseTabs = new(
         "RazorDesignTimeDocumentFormattingOptions", "UseTabs", LineFormattingOptions.Default.UseTabs);

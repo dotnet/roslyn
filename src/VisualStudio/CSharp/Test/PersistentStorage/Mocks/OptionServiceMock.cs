@@ -84,11 +84,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices.Mocks
             throw new NotImplementedException();
         }
 
-        public void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();

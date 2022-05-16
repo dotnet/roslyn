@@ -78,17 +78,6 @@ namespace Microsoft.CodeAnalysis.Options
         event EventHandler<OptionChangedEventArgs> OptionChanged;
 
         /// <summary>
-        /// Registers a provider that can modify the result of <see cref="Document.GetOptionsAsync(CancellationToken)"/>. Providers registered earlier are queried first
-        /// for options, and the first provider to give a value wins.
-        /// </summary>
-        void RegisterDocumentOptionsProvider(IDocumentOptionsProvider documentOptionsProvider);
-
-        /// <summary>
-        /// Returns the <see cref="OptionSet"/> that applies to a specific document, given that document and the global options.
-        /// </summary>
-        Task<OptionSet> GetUpdatedOptionSetForDocumentAsync(Document document, OptionSet optionSet, CancellationToken cancellationToken);
-
-        /// <summary>
         /// Registers a workspace with the option service.
         /// </summary>
         void RegisterWorkspace(Workspace workspace);
