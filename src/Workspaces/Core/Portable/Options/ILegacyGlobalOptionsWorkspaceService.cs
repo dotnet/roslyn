@@ -26,6 +26,9 @@ namespace Microsoft.CodeAnalysis.Options
         public bool GetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language);
         public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value);
 
+        public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language);
+        public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value);
+
         public AutoFormattingOptions GetAutoFormattingOptions(HostLanguageServices languageServices);
         public CleanCodeGenerationOptionsProvider CleanCodeGenerationOptionsProvider { get; }
     }

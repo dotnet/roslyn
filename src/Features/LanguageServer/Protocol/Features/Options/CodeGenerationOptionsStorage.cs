@@ -29,8 +29,7 @@ internal static class CodeGenerationOptionsStorage
     public static CodeGenerationOptions.CommonOptions GetCommonCodeGenerationOptions(this IGlobalOptionService globalOptions, string language)
         => new()
         {
-            NamingStyle = globalOptions.GetNamingStylePreferences(language),
-            AddNullChecksToConstructorsGeneratedFromMembers = globalOptions.GetOption(AddNullChecksToConstructorsGeneratedFromMembers, language)
+            NamingStyle = globalOptions.GetNamingStylePreferences(language)
         };
 
     public static CodeGenerationOptions GetCodeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
@@ -41,9 +40,4 @@ internal static class CodeGenerationOptionsStorage
 
     public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => new(globalOptions.GetCodeGenerationOptions(languageServices), globalOptions.GetCodeCleanupOptions(languageServices));
-
-    public static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
-        "GenerateConstructorFromMembersOptions",
-        "AddNullChecks", CodeGenerationOptions.CommonOptions.Default.AddNullChecksToConstructorsGeneratedFromMembers,
-        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
 }

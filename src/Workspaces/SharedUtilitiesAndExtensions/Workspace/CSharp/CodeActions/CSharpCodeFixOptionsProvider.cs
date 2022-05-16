@@ -123,8 +123,7 @@ internal static class CSharpCodeFixOptionsProviders
 {
     public static async ValueTask<CSharpCodeFixOptionsProvider> GetCSharpCodeFixOptionsProviderAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new CSharpCodeFixOptionsProvider(configOptions, fallbackOptions, document.Project.GetExtendedLanguageServices());
     }
 }

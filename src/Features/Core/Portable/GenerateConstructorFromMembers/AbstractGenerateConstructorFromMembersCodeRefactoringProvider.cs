@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -221,12 +222,13 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
 
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,
                     FeaturesResources.Add_null_checks,
-                    options.AddNullChecksToConstructorsGeneratedFromMembers));
+                    optionValue));
             }
 
             return (new GenerateConstructorWithDialogCodeAction(

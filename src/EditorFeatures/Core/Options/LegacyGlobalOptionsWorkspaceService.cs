@@ -38,6 +38,17 @@ namespace Microsoft.CodeAnalysis.Options
             storageLocation: new RoamingProfileStorageLocation(
                 "TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable"));
 
+        private static readonly PerLanguageOption2<bool> s_addNullChecks = new(
+            "GenerateConstructorFromMembersOptions",
+            "AddNullChecks", defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation(
+                $"TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
+
+        internal static readonly PerLanguageOption2<bool> AddNullChecksToConstructorsGeneratedFromMembers = new(
+            "GenerateConstructorFromMembersOptions",
+            "AddNullChecks", defaultValue: false,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.GenerateConstructorFromMembersOptions.AddNullChecks"));
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LegacyGlobalOptionsWorkspaceService(IGlobalOptionService globalOptions)
@@ -82,5 +93,11 @@ namespace Microsoft.CodeAnalysis.Options
 
         public void SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(string language, bool value)
             => _globalOptions.SetGlobalOption(new OptionKey(s_implementIEquatable, language), value);
+
+        public bool GetGenerateConstructorFromMembersOptionsAddNullChecks(string language)
+            => _globalOptions.GetOption(s_addNullChecks, language);
+
+        public void SetGenerateConstructorFromMembersOptionsAddNullChecks(string language, bool value)
+            => _globalOptions.SetGlobalOption(new OptionKey(s_addNullChecks, language), value);
     }
 }

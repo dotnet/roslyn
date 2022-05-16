@@ -30,14 +30,12 @@ internal abstract class CodeGenerationOptions
         public static readonly CommonOptions Default = new();
 
         [DataMember] public NamingStylePreferences NamingStyle { get; init; } = NamingStylePreferences.Default;
-        [DataMember] public bool AddNullChecksToConstructorsGeneratedFromMembers { get; init; } = false;
     }
 
     [DataMember]
     public CommonOptions Common { get; init; } = CommonOptions.Default;
 
     public NamingStylePreferences NamingStyle => Common.NamingStyle;
-    public bool AddNullChecksToConstructorsGeneratedFromMembers => Common.AddNullChecksToConstructorsGeneratedFromMembers;
 
 #if !CODE_STYLE
     public static CodeGenerationOptions GetDefault(HostLanguageServices languageServices)
@@ -112,8 +110,7 @@ internal static class CodeGenerationOptionsProviders
 
         return new()
         {
-            NamingStyle = options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle),
-            AddNullChecksToConstructorsGeneratedFromMembers = fallbackOptions.AddNullChecksToConstructorsGeneratedFromMembers, // not stored in editorconfig
+            NamingStyle = options.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, fallbackOptions.NamingStyle)
         };
     }
 
