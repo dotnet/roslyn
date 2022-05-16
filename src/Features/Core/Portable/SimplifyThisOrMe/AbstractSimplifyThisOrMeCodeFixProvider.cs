@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(),
-                GetDocumentUpdater(context),
-                IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId), context.Diagnostics);
+            context.RegisterCodeFix(
+                CodeAction.Create(
+                    GetTitle(),
+                    GetDocumentUpdater(context),
+                    IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
+                context.Diagnostics);
 
             return Task.CompletedTask;
         }
@@ -51,15 +53,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
 
             var newRoot = Rewrite(root, memberAccessNodes);
             editor.ReplaceNode(root, newRoot);
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(
-                string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
         }
     }
 }

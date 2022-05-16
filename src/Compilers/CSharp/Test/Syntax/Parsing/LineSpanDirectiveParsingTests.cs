@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // #line (1
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,13): error CS1003: Syntax error, '-' expected
                 // #line (1, 2)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("-", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("-").WithLocation(1, 13));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,15): error CS1003: Syntax error, '(' expected
                 // #line (1, 2) -
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(1, 15));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,18): error CS1003: Syntax error, ',' expected
                 // #line (1, 2) - (3
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",", "").WithLocation(1, 18));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 18));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,10): error CS1003: Syntax error, ',' expected
                 // #line (1 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",", "").WithLocation(1, 10));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(1, 10));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,14): error CS1003: Syntax error, '-' expected
                 // #line (1, 2) (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("-", "(").WithLocation(1, 14));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("-").WithLocation(1, 14));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,16): error CS1003: Syntax error, '(' expected
                 // #line (1, 2) - 3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("(", "").WithLocation(1, 16));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "3").WithArguments("(").WithLocation(1, 16));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // #line (1, 2) - (3 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",", "").WithLocation(1, 19));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "4").WithArguments(",").WithLocation(1, 19));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingLineDirective(source, options: null,
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // #line (1u, 2) - (3, 4) "file.cs"
-                Diagnostic(ErrorCode.ERR_SyntaxError, "u").WithArguments(",", "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "u").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.LineSpanDirectiveTrivia);
             {

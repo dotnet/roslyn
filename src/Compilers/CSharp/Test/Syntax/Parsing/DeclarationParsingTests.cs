@@ -7336,7 +7336,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(string name!) { }", options: TestOptions.RegularPreview,
                     // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 19));
 
             N(SyntaxKind.LocalFunctionStatement);
             {
@@ -7375,7 +7375,7 @@ class C<T> where T : struct? {}
                 /*comment1*/!/*comment2*/) { }", options: TestOptions.RegularPreview,
                 // (2,1): error CS1003: Syntax error, '!!' expected
                 //                 /*comment1*/!/*comment2*/) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, " ").WithArguments("!!", "!").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_SyntaxError, " ").WithArguments("!!").WithLocation(2, 1));
 
             N(SyntaxKind.LocalFunctionStatement);
             {
@@ -7495,7 +7495,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7527,7 +7527,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!!) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!!) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7559,7 +7559,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!! = null) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!! = null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7591,7 +7591,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist!!= null) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist!!= null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",", "!").WithLocation(1, 17));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 17));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7623,7 +7623,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist[]!!= null) { }", options: TestOptions.RegularPreview,
                 // (1,17): error CS1003: Syntax error, ',' expected
                 // void M(__arglist[]!!= null) { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 17),
                 // (1,18): error CS1001: Identifier expected
                 // void M(__arglist[]!!= null) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
@@ -7694,7 +7694,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist[]) { }", options: TestOptions.RegularPreview,
                     // (1,17): error CS1003: Syntax error, ',' expected
                     // void M(__arglist[]) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 17),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",").WithLocation(1, 17),
                     // (1,18): error CS1001: Identifier expected
                     // void M(__arglist[]) { }
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 18),
@@ -7756,7 +7756,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(__arglist = null) { }", options: TestOptions.RegularPreview,
                     // (1,18): error CS1003: Syntax error, ',' expected
                     // void M(__arglist = null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",", "=").WithLocation(1, 18));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(",").WithLocation(1, 18));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7952,7 +7952,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
                     // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name! !=null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 19));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8038,7 +8038,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(string name! ! =null) { }", options: TestOptions.RegularPreview,
                     // (1,19): error CS1003: Syntax error, '!!' expected
                     // void M(string name! ! =null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(1, 19));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!").WithLocation(1, 19));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8083,7 +8083,7 @@ class C<T> where T : struct? {}
             UsingStatement(@"void M(string name ! !=null) { }", options: TestOptions.RegularPreview,
                     // (1,20): error CS1003: Syntax error, '!!' expected
                     // void M(string name ! !=null) { }
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!", "!").WithLocation(1, 20));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! !=").WithArguments("!!").WithLocation(1, 20));
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8476,7 +8476,7 @@ class B : A<int
 ", TestOptions.Regular7_3,
                 // (2,16): error CS1003: Syntax error, '>' expected
                 // class B : A<int
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "{").WithLocation(2, 16));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(2, 16));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8569,7 +8569,7 @@ class B<X, Y> : A<int
 ", TestOptions.Regular7_3,
                 // (2,22): error CS1003: Syntax error, '>' expected
                 // class B<X, Y> : A<int
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">", "").WithLocation(2, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(">").WithLocation(2, 22));
 
             N(SyntaxKind.CompilationUnit);
             {

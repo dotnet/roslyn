@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>().GlobalOptions;
 
             var indentationOptions = new IndentationOptions(
-               SyntaxFormattingOptions.Create(documentOptions, services, globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices), document.Project.Language),
+               SyntaxFormattingOptions.Create(documentOptions, globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices), document.Project.LanguageServices),
                globalOptions.GetAutoFormattingOptions(document.Project.Language));
 
             return await formattingService.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);

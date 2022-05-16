@@ -103,6 +103,29 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return -1;
         }
 
+        public VirtualChar? FirstOrNull(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (predicate(ch))
+                    return ch;
+            }
+
+            return null;
+        }
+
+        public VirtualChar? LastOrNull(Func<VirtualChar, bool> predicate)
+        {
+            for (var i = this.Length - 1; i >= 0; i--)
+            {
+                var ch = this[i];
+                if (predicate(ch))
+                    return ch;
+            }
+
+            return null;
+        }
+
         public bool Any(Func<VirtualChar, bool> predicate)
         {
             foreach (var ch in this)

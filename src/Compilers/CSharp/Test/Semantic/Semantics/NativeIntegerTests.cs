@@ -9971,20 +9971,84 @@ class Program
 }");
         }
 
-        [Theory]
-        [InlineData("nint")]
-        [InlineData("nuint")]
-        [InlineData("nint?")]
-        [InlineData("nuint?")]
-        public void UnaryAndBinaryOperators_UserDefinedConversions(string type)
+        [Fact]
+        public void UnaryAndBinaryOperators_UserDefinedConversions()
         {
-            string sourceA =
+            verify("nint",
+                // (5,9): error CS0266: Cannot implicitly convert type 'long' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "++x").WithArguments("long", "MyInt").WithLocation(5, 9),
+                // (6,9): error CS0266: Cannot implicitly convert type 'long' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x++;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x++").WithArguments("long", "MyInt").WithLocation(6, 9),
+                // (7,9): error CS0266: Cannot implicitly convert type 'long' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         --x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "--x").WithArguments("long", "MyInt").WithLocation(7, 9),
+                // (8,9): error CS0266: Cannot implicitly convert type 'long' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x--;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x--").WithArguments("long", "MyInt").WithLocation(8, 9)
+                );
+
+            verify("nint?",
+                // (5,9): error CS0266: Cannot implicitly convert type 'long?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "++x").WithArguments("long?", "MyInt").WithLocation(5, 9),
+                // (6,9): error CS0266: Cannot implicitly convert type 'long?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x++;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x++").WithArguments("long?", "MyInt").WithLocation(6, 9),
+                // (7,9): error CS0266: Cannot implicitly convert type 'long?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         --x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "--x").WithArguments("long?", "MyInt").WithLocation(7, 9),
+                // (8,9): error CS0266: Cannot implicitly convert type 'long?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x--;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x--").WithArguments("long?", "MyInt").WithLocation(8, 9)
+                );
+
+            verify("nuint",
+                // (5,9): error CS0266: Cannot implicitly convert type 'ulong' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "++x").WithArguments("ulong", "MyInt").WithLocation(5, 9),
+                // (6,9): error CS0266: Cannot implicitly convert type 'ulong' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x++;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x++").WithArguments("ulong", "MyInt").WithLocation(6, 9),
+                // (7,9): error CS0266: Cannot implicitly convert type 'ulong' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         --x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "--x").WithArguments("ulong", "MyInt").WithLocation(7, 9),
+                // (8,9): error CS0266: Cannot implicitly convert type 'ulong' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x--;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x--").WithArguments("ulong", "MyInt").WithLocation(8, 9),
+                // (10,13): error CS0035: Operator '-' is ambiguous on an operand of type 'MyInt'
+                //         _ = -x;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "MyInt").WithLocation(10, 13)
+                );
+
+            verify("nuint?",
+                // (5,9): error CS0266: Cannot implicitly convert type 'ulong?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         ++x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "++x").WithArguments("ulong?", "MyInt").WithLocation(5, 9),
+                // (6,9): error CS0266: Cannot implicitly convert type 'ulong?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x++;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x++").WithArguments("ulong?", "MyInt").WithLocation(6, 9),
+                // (7,9): error CS0266: Cannot implicitly convert type 'ulong?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         --x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "--x").WithArguments("ulong?", "MyInt").WithLocation(7, 9),
+                // (8,9): error CS0266: Cannot implicitly convert type 'ulong?' to 'MyInt'. An explicit conversion exists (are you missing a cast?)
+                //         x--;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x--").WithArguments("ulong?", "MyInt").WithLocation(8, 9),
+                // (10,13): error CS0035: Operator '-' is ambiguous on an operand of type 'MyInt'
+                //         _ = -x;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "MyInt").WithLocation(10, 13)
+                );
+
+            void verify(string type, params DiagnosticDescription[] expected)
+            {
+                string sourceA =
 $@"class MyInt
 {{
     public static implicit operator {type}(MyInt i) => throw null;
     public static implicit operator MyInt({type} i) => throw null;
 }}";
-            string sourceB =
+                string sourceB =
 @"class Program
 {
     static void F(MyInt x, MyInt y)
@@ -10003,44 +10067,9 @@ $@"class MyInt
         _ = x << 1;
     }
 }";
-            var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (5,9): error CS0023: Operator '++' cannot be applied to operand of type 'MyInt'
-                //         ++x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "++x").WithArguments("++", "MyInt").WithLocation(5, 9),
-                // (6,9): error CS0023: Operator '++' cannot be applied to operand of type 'MyInt'
-                //         x++;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "x++").WithArguments("++", "MyInt").WithLocation(6, 9),
-                // (7,9): error CS0023: Operator '--' cannot be applied to operand of type 'MyInt'
-                //         --x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--x").WithArguments("--", "MyInt").WithLocation(7, 9),
-                // (8,9): error CS0023: Operator '--' cannot be applied to operand of type 'MyInt'
-                //         x--;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "x--").WithArguments("--", "MyInt").WithLocation(8, 9),
-                // (9,13): error CS0023: Operator '+' cannot be applied to operand of type 'MyInt'
-                //         _ = +x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+x").WithArguments("+", "MyInt").WithLocation(9, 13),
-                // (10,13): error CS0023: Operator '-' cannot be applied to operand of type 'MyInt'
-                //         _ = -x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x").WithArguments("-", "MyInt").WithLocation(10, 13),
-                // (11,13): error CS0023: Operator '~' cannot be applied to operand of type 'MyInt'
-                //         _ = ~x;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~x").WithArguments("~", "MyInt").WithLocation(11, 13),
-                // (12,13): error CS0019: Operator '+' cannot be applied to operands of type 'MyInt' and 'MyInt'
-                //         _ = x + y;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "MyInt", "MyInt").WithLocation(12, 13),
-                // (13,13): error CS0019: Operator '*' cannot be applied to operands of type 'MyInt' and 'MyInt'
-                //         _ = x * y;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x * y").WithArguments("*", "MyInt", "MyInt").WithLocation(13, 13),
-                // (14,13): error CS0019: Operator '<' cannot be applied to operands of type 'MyInt' and 'MyInt'
-                //         _ = x < y;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x < y").WithArguments("<", "MyInt", "MyInt").WithLocation(14, 13),
-                // (15,13): error CS0019: Operator '&' cannot be applied to operands of type 'MyInt' and 'MyInt'
-                //         _ = x & y;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x & y").WithArguments("&", "MyInt", "MyInt").WithLocation(15, 13),
-                // (16,13): error CS0019: Operator '<<' cannot be applied to operands of type 'MyInt' and 'int'
-                //         _ = x << 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x << 1").WithArguments("<<", "MyInt", "int").WithLocation(16, 13));
+                var comp = CreateCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
+                comp.VerifyDiagnostics(expected);
+            }
         }
 
         [Fact]
@@ -14365,6 +14394,238 @@ class C5 : I<(System.IntPtr A, System.UIntPtr[]? B)> { }
             verifier.VerifyIL("NativeInts.Checked3", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked4", expectedCheckedIL);
             verifier.VerifyIL("NativeInts.Checked5", expectedCheckedIL);
+        }
+
+        [Fact]
+        public void StandardConversions()
+        {
+            // Note: A standard explicit conversion is derived from opposite standard implicit conversion
+
+            // type to nint
+            verify(sourceType: "object", destType: "nint", isExplicit: true);
+            verify(sourceType: "string", destType: "nint", noConversion: true);
+            verify(sourceType: "void*", destType: "nint", noConversion: true);
+            verify(sourceType: "delegate*<void>", destType: "nint", noConversion: true);
+            verify(sourceType: "E", destType: "nint", noConversion: true);
+            verify(sourceType: "bool", destType: "nint", noConversion: true);
+            verify(sourceType: "sbyte", destType: "nint");
+            verify(sourceType: "byte", destType: "nint");
+            verify(sourceType: "short", destType: "nint");
+            verify(sourceType: "ushort", destType: "nint");
+            verify(sourceType: "int", destType: "nint");
+            verify(sourceType: "uint", destType: "nint", noConversion: true);
+            verify(sourceType: "long", destType: "nint", isExplicit: true);
+            verify(sourceType: "ulong", destType: "nint", noConversion: true);
+            verify(sourceType: "char", destType: "nint");
+            verify(sourceType: "float", destType: "nint", isExplicit: true);
+            verify(sourceType: "double", destType: "nint", isExplicit: true);
+            verify(sourceType: "decimal", destType: "nint", isExplicit: true);
+            verify(sourceType: "nint", destType: "nint");
+            verify(sourceType: "nuint", destType: "nint", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "nint");
+            verify(sourceType: "System.UIntPtr", destType: "nint", noConversion: true);
+
+            // nint to type
+            verify(sourceType: "nint", destType: "string", noConversion: true);
+            verify(sourceType: "nint", destType: "void*", noConversion: true);
+            verify(sourceType: "nint", destType: "delegate*<void>", noConversion: true);
+            verify(sourceType: "nint", destType: "E", noConversion: true);
+            verify(sourceType: "nint", destType: "bool", noConversion: true);
+            verify(sourceType: "nint", destType: "sbyte", isExplicit: true);
+            verify(sourceType: "nint", destType: "byte", isExplicit: true);
+            verify(sourceType: "nint", destType: "short", isExplicit: true);
+            verify(sourceType: "nint", destType: "ushort", isExplicit: true);
+            verify(sourceType: "nint", destType: "int", isExplicit: true);
+            verify(sourceType: "nint", destType: "uint", noConversion: true);
+            verify(sourceType: "nint", destType: "long");
+            verify(sourceType: "nint", destType: "ulong", noConversion: true);
+            verify(sourceType: "nint", destType: "char", isExplicit: true);
+            verify(sourceType: "nint", destType: "float");
+            verify(sourceType: "nint", destType: "double");
+            verify(sourceType: "nint", destType: "decimal");
+            verify(sourceType: "nint", destType: "nint");
+            verify(sourceType: "nint", destType: "nuint", noConversion: true);
+            verify(sourceType: "nint", destType: "System.IntPtr");
+            verify(sourceType: "nint", destType: "System.UIntPtr", noConversion: true);
+
+            // type to nuint
+            verify(sourceType: "object", destType: "nuint", isExplicit: true);
+            verify(sourceType: "string", destType: "nuint", noConversion: true);
+            verify(sourceType: "void*", destType: "nuint", noConversion: true);
+            verify(sourceType: "delegate*<void>", destType: "nuint", noConversion: true);
+            verify(sourceType: "E", destType: "nuint", noConversion: true);
+            verify(sourceType: "bool", destType: "nuint", noConversion: true);
+            verify(sourceType: "sbyte", destType: "nuint", noConversion: true);
+            verify(sourceType: "byte", destType: "nuint");
+            verify(sourceType: "short", destType: "nuint", noConversion: true);
+            verify(sourceType: "ushort", destType: "nuint");
+            verify(sourceType: "int", destType: "nuint", noConversion: true);
+            verify(sourceType: "uint", destType: "nuint");
+            verify(sourceType: "long", destType: "nuint", noConversion: true);
+            verify(sourceType: "ulong", destType: "nuint", isExplicit: true);
+            verify(sourceType: "char", destType: "nuint");
+            verify(sourceType: "float", destType: "nuint", isExplicit: true);
+            verify(sourceType: "double", destType: "nuint", isExplicit: true);
+            verify(sourceType: "decimal", destType: "nuint", isExplicit: true);
+            verify(sourceType: "nint", destType: "nuint", noConversion: true);
+            verify(sourceType: "nuint", destType: "nuint");
+            verify(sourceType: "System.IntPtr", destType: "nuint", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "nuint");
+
+            // nuint to type
+            verify(sourceType: "nuint", destType: "string", noConversion: true);
+            verify(sourceType: "nuint", destType: "void*", noConversion: true);
+            verify(sourceType: "nuint", destType: "delegate*<void>", noConversion: true);
+            verify(sourceType: "nuint", destType: "E", noConversion: true);
+            verify(sourceType: "nuint", destType: "bool", noConversion: true);
+            verify(sourceType: "nuint", destType: "sbyte", noConversion: true);
+            verify(sourceType: "nuint", destType: "byte", isExplicit: true);
+            verify(sourceType: "nuint", destType: "short", noConversion: true);
+            verify(sourceType: "nuint", destType: "ushort", isExplicit: true);
+            verify(sourceType: "nuint", destType: "int", noConversion: true);
+            verify(sourceType: "nuint", destType: "uint", isExplicit: true);
+            verify(sourceType: "nuint", destType: "long", noConversion: true);
+            verify(sourceType: "nuint", destType: "ulong");
+            verify(sourceType: "nuint", destType: "char", isExplicit: true);
+            verify(sourceType: "nuint", destType: "float");
+            verify(sourceType: "nuint", destType: "double");
+            verify(sourceType: "nuint", destType: "decimal");
+            verify(sourceType: "nuint", destType: "nint", noConversion: true);
+            verify(sourceType: "nuint", destType: "nuint");
+            verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "nuint", destType: "System.UIntPtr");
+
+
+            // type to System.IntPtr
+            verify(sourceType: "object", destType: "System.IntPtr", isExplicit: true);
+            verify(sourceType: "string", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "void*", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "delegate*<void>", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "E", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "bool", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "sbyte", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "byte", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "short", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "ushort", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "int", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "uint", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "long", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "ulong", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "char", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "float", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "double", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "decimal", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "nint", destType: "System.IntPtr");
+            verify(sourceType: "nuint", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "System.IntPtr");
+            verify(sourceType: "System.UIntPtr", destType: "System.IntPtr", noConversion: true);
+
+            // System.IntPtr to type
+            verify(sourceType: "System.IntPtr", destType: "string", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "void*", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "delegate*<void>", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "E", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "bool", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "sbyte", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "byte", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "short", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "ushort", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "int", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "uint", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "long", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "ulong", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "char", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "float", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "double", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "decimal", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "nint");
+            verify(sourceType: "System.IntPtr", destType: "nuint", noConversion: true);
+            verify(sourceType: "System.IntPtr", destType: "System.IntPtr");
+            verify(sourceType: "System.IntPtr", destType: "System.UIntPtr", noConversion: true);
+
+            // type to System.UIntPtr
+            verify(sourceType: "object", destType: "System.UIntPtr", isExplicit: true);
+            verify(sourceType: "string", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "void*", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "delegate*<void>", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "E", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "bool", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "sbyte", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "byte", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "short", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "ushort", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "int", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "uint", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "long", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "ulong", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "char", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "float", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "double", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "decimal", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "nint", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "nuint", destType: "System.UIntPtr");
+            verify(sourceType: "System.IntPtr", destType: "System.UIntPtr", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "System.UIntPtr");
+
+            // System.UIntPtr to type
+            verify(sourceType: "System.UIntPtr", destType: "string", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "void*", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "delegate*<void>", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "E", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "bool", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "sbyte", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "byte", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "short", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "ushort", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "int", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "uint", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "long", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "ulong", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "char", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "float", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "double", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "decimal", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "nint", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "nuint");
+            verify(sourceType: "System.UIntPtr", destType: "System.IntPtr", noConversion: true);
+            verify(sourceType: "System.UIntPtr", destType: "System.UIntPtr");
+
+            void verify(string sourceType, string destType, bool noConversion = false, bool isExplicit = false)
+            {
+                var source = $$"""
+unsafe class FinalType
+{
+    FinalType M({{sourceType}} x) => x;
+    FinalType M2({{sourceType}} x) => (FinalType)x;
+    public static implicit operator FinalType({{destType}} i) => throw null;
+}
+enum E { }
+""";
+                var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+                if (noConversion)
+                {
+                    comp.VerifyDiagnostics(
+                        // (3,30): error CS0029: Cannot implicitly convert type 'sourceType' to 'FinalType'
+                        //     FinalType M(sourceType x) => x;
+                        Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments(sourceType, "FinalType"),
+                        // (4,31): error CS0030: Cannot convert type 'sourceType' to 'FinalType'
+                        //     FinalType M2(sourceType x) => (FinalType)x;
+                        Diagnostic(ErrorCode.ERR_NoExplicitConv, "(FinalType)x").WithArguments(sourceType, "FinalType")
+                        );
+                }
+                else if (isExplicit)
+                {
+                    comp.VerifyDiagnostics(
+                        // (3,30): error CS0266: Cannot implicitly convert type 'sourceType' to 'FinalType'. An explicit conversion exists (are you missing a cast?)
+                        //     FinalType M(sourceType x) => x;
+                        Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments(sourceType, "FinalType")
+                        );
+                }
+                else
+                {
+                    comp.VerifyDiagnostics();
+                }
+            }
         }
     }
 }

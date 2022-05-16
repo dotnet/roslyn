@@ -373,18 +373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var newName = nameNode;
             if (nameChanged)
             {
-                if (invocation == null)
-                {
-                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
-                        .WithTriviaFrom(nameToken));
-                }
-                else
-                {
-                    newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName)
-                        .WithLeadingTrivia(nameToken.LeadingTrivia)
-                        .WithTrailingTrivia(invocation.ArgumentList.CloseParenToken.TrailingTrivia));
-                }
+                newName = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(propertyName));
             }
+
+            newName = newName.WithTriviaFrom(invocation is null ? nameToken.Parent : invocation);
 
             var invocationExpression = invocation?.Expression;
             if (!IsInvocationName(nameNode, invocationExpression))

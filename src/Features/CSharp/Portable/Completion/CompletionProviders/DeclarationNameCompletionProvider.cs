@@ -53,15 +53,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = completionContext.Position;
                 var document = completionContext.Document;
                 var cancellationToken = completionContext.CancellationToken;
-                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
 
                 if (!completionContext.CompletionOptions.ShowNameSuggestions)
                 {
                     return;
                 }
 
-                var context = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+                var context = (CSharpSyntaxContext)await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
                 if (context.IsInNonUserCode)
+                {
+                    return;
+                }
+
+                // Do not show name suggestions for unbound "async" identifier.
+                // Most likely user is writing an async method, so name suggestion will just interfere him
+                if (context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.AsyncKeyword) &&
+                    context.SemanticModel.GetSymbolInfo(context.TargetToken).GetAnySymbol() is null)
                 {
                     return;
                 }
@@ -77,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         AddNamesFromExistingOverloads(context, partialSemanticModel, result, cancellationToken);
                 }
 
-                var baseNames = GetBaseNames(semanticModel, nameInfo);
+                var baseNames = GetBaseNames(context.SemanticModel, nameInfo);
                 if (baseNames != default)
                 {
                     await GetRecommendedNamesAsync(baseNames, nameInfo, context, document, result, cancellationToken).ConfigureAwait(false);

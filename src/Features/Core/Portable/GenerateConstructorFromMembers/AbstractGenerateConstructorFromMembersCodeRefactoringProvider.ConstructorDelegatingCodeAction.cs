@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -23,17 +24,20 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _addNullChecks;
+            private readonly CodeAndImportGenerationOptionsProvider _fallbackOptions;
 
             public ConstructorDelegatingCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
                 Document document,
                 State state,
-                bool addNullChecks)
+                bool addNullChecks,
+                CodeAndImportGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _state = state;
                 _addNullChecks = addNullChecks;
+                _fallbackOptions = fallbackOptions;
             }
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
@@ -88,7 +92,12 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
                 var statements = nullCheckStatements.ToImmutable().Concat(assignStatements.ToImmutable());
                 var result = await codeGenerationService.AddMethodAsync(
-                    _document.Project.Solution,
+                    new CodeGenerationSolutionContext(
+                        _document.Project.Solution,
+                        new CodeGenerationContext(
+                            contextLocation: syntaxTree.GetLocation(_state.TextSpan),
+                            afterThisLocation: afterThisLocation),
+                        _fallbackOptions),
                     _state.ContainingType,
                     CodeGenerationSymbolFactory.CreateConstructorSymbol(
                         attributes: default,
@@ -98,9 +107,6 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                         parameters: _state.Parameters,
                         statements: statements,
                         thisConstructorArguments: thisConstructorArguments),
-                    new CodeGenerationContext(
-                        contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: afterThisLocation),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);

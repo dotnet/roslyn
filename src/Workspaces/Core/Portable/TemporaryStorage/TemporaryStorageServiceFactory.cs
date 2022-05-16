@@ -23,12 +23,17 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(ITemporaryStorageService), ServiceLayer.Default), Shared]
     internal partial class TemporaryStorageServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TemporaryStorageServiceFactory()
+        public TemporaryStorageServiceFactory(
+            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService)
         {
+            _workspaceThreadingService = workspaceThreadingService;
         }
 
+        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Host
             // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
             // until https://github.com/dotnet/runtime/issues/30878 is fixed.
             return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                ? new TemporaryStorageService(textFactory)
+                ? new TemporaryStorageService(_workspaceThreadingService, textFactory)
                 : TrivialTemporaryStorageService.Instance;
         }
 
@@ -67,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <seealso cref="_weakFileReference"/>
             private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
+            private readonly IWorkspaceThreadingService? _workspaceThreadingService;
             private readonly ITextFactoryService _textFactory;
 
             /// <summary>
@@ -112,8 +118,12 @@ namespace Microsoft.CodeAnalysis.Host
             /// <seealso cref="_weakFileReference"/>
             private long _offset;
 
-            public TemporaryStorageService(ITextFactoryService textFactory)
-                => _textFactory = textFactory;
+            [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+            public TemporaryStorageService(IWorkspaceThreadingService? workspaceThreadingService, ITextFactoryService textFactory)
+            {
+                _workspaceThreadingService = workspaceThreadingService;
+                _textFactory = textFactory;
+            }
 
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
                 => new TemporaryTextStorage(this);
@@ -242,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
+                public async Task<SourceText> ReadTextAsync(CancellationToken cancellationToken)
                 {
                     // There is a reason for implementing it like this: proper async implementation
                     // that reads the underlying memory mapped file stream in an asynchronous fashion
@@ -254,7 +264,13 @@ namespace Microsoft.CodeAnalysis.Host
                     // of a page fault. Therefore, if we're going to be blocking a thread, we should
                     // just block one thread and do the whole thing at once vs. a fake "async"
                     // implementation which will continue to requeue work back to the thread pool.
-                    return Task.Factory.StartNew(() => ReadText(cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+                    if (_service._workspaceThreadingService is { IsOnMainThread: true })
+                    {
+                        await Task.Yield().ConfigureAwait(false);
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    return ReadText(cancellationToken);
                 }
 
                 public void WriteText(SourceText text, CancellationToken cancellationToken)
@@ -281,10 +297,16 @@ namespace Microsoft.CodeAnalysis.Host
                     }
                 }
 
-                public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
+                public async Task WriteTextAsync(SourceText text, CancellationToken cancellationToken)
                 {
                     // See commentary in ReadTextAsync for why this is implemented this way.
-                    return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
+                    if (_service._workspaceThreadingService is { IsOnMainThread: true })
+                    {
+                        await Task.Yield().ConfigureAwait(false);
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+
+                    WriteText(text, cancellationToken);
                 }
 
                 private static unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
