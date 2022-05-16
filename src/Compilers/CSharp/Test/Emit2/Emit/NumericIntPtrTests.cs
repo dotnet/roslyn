@@ -531,11 +531,11 @@ class Program
                 var actualMembers = members.SelectAsArray(m => m.ToTestDisplayString());
                 var expectedMembers = new[]
                 {
-                $"System.Boolean {type}.Equals(System.Object obj)",
-                $"System.Int32 {type}.GetHashCode()",
-                $"System.String {type}.ToString()",
-                $"{type}..ctor()",
-            };
+                    $"System.Boolean {type}.Equals(System.Object obj)",
+                    $"System.Int32 {type}.GetHashCode()",
+                    $"System.String {type}.ToString()",
+                    $"{type}..ctor()",
+                };
                 AssertEx.Equal(expectedMembers, actualMembers);
             }
         }
@@ -652,15 +652,15 @@ class Program
             var actualLocals = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Select(d => model.GetDeclaredSymbol(d).ToTestDisplayString());
             var expectedLocals = new[]
             {
-            "nint x1",
-            "nint x2",
-            "nuint y1",
-            "nuint y2",
-            "nint z1",
-            "nint z2",
-            "nuint t1",
-            "nuint t2",
-        };
+                "nint x1",
+                "nint x2",
+                "nuint y1",
+                "nuint y2",
+                "nint z1",
+                "nint z2",
+                "nuint t1",
+                "nuint t2",
+            };
             AssertEx.Equal(expectedLocals, actualLocals);
         }
 
@@ -922,19 +922,19 @@ class B4 : A
 
             var diagnostics = new[]
             {
-            // (8,17): warning CS0108: 'B2.F1(nint)' hides inherited member 'A.F1(nint)'. Use the new keyword if hiding was intended.
-            //     public void F1(nint x) { base.F1(x); }
-            Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B2.F1(nint)", "A.F1(nint)").WithLocation(8, 17),
-            // (9,17): warning CS0108: 'B2.F2(nuint)' hides inherited member 'A.F2(nuint)'. Use the new keyword if hiding was intended.
-            //     public void F2(System.UIntPtr y) { base.F2(y); }
-            Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B2.F2(nuint)", "A.F2(nuint)").WithLocation(9, 17),
-            // (13,21): warning CS0109: The member 'B3.F1(nuint)' does not hide an accessible member. The new keyword is not required.
-            //     public new void F1(nuint x) { }
-            Diagnostic(ErrorCode.WRN_NewNotRequired, "F1").WithArguments("B3.F1(nuint)").WithLocation(13, 21),
-            // (14,21): warning CS0109: The member 'B3.F2(nint)' does not hide an accessible member. The new keyword is not required.
-            //     public new void F2(System.IntPtr y) { }
-            Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(nint)").WithLocation(14, 21)
-        };
+                // (8,17): warning CS0108: 'B2.F1(nint)' hides inherited member 'A.F1(nint)'. Use the new keyword if hiding was intended.
+                //     public void F1(nint x) { base.F1(x); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F1").WithArguments("B2.F1(nint)", "A.F1(nint)").WithLocation(8, 17),
+                // (9,17): warning CS0108: 'B2.F2(nuint)' hides inherited member 'A.F2(nuint)'. Use the new keyword if hiding was intended.
+                //     public void F2(System.UIntPtr y) { base.F2(y); }
+                Diagnostic(ErrorCode.WRN_NewRequired, "F2").WithArguments("B2.F2(nuint)", "A.F2(nuint)").WithLocation(9, 17),
+                // (13,21): warning CS0109: The member 'B3.F1(nuint)' does not hide an accessible member. The new keyword is not required.
+                //     public new void F1(nuint x) { }
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F1").WithArguments("B3.F1(nuint)").WithLocation(13, 21),
+                // (14,21): warning CS0109: The member 'B3.F2(nint)' does not hide an accessible member. The new keyword is not required.
+                //     public new void F2(System.IntPtr y) { }
+                Diagnostic(ErrorCode.WRN_NewNotRequired, "F2").WithArguments("B3.F2(nint)").WithLocation(14, 21)
+            };
 
             var comp = CreateNumericIntPtrCompilation(new[] { sourceA, sourceB }, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(diagnostics);
@@ -1023,19 +1023,19 @@ class AAttribute : System.Attribute
 }";
             var expectedDiagnostics = new[]
             {
-            // (1,2): error CS0246: The type or namespace name 'nintAttribute' could not be found (are you missing a using directive or an assembly reference?)
-            // [nint]
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nintAttribute").WithLocation(1, 2),
-            // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
-            // [nint]
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
-            // (2,5): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
-            // [A, nuint]
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 5),
-            // (2,5): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
-            // [A, nuint]
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
-        };
+                // (1,2): error CS0246: The type or namespace name 'nintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nintAttribute").WithLocation(1, 2),
+                // (1,2): error CS0246: The type or namespace name 'nint' could not be found (are you missing a using directive or an assembly reference?)
+                // [nint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nint").WithArguments("nint").WithLocation(1, 2),
+                // (2,5): error CS0246: The type or namespace name 'nuintAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuintAttribute").WithLocation(2, 5),
+                // (2,5): error CS0246: The type or namespace name 'nuint' could not be found (are you missing a using directive or an assembly reference?)
+                // [A, nuint]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "nuint").WithArguments("nuint").WithLocation(2, 5)
+            };
 
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(expectedDiagnostics);
@@ -1655,7 +1655,7 @@ public class A
         {
             string typeQualifier = lifted ? "?" : "";
             var source =
-    $@"class Program
+$@"class Program
 {{
     static void F(nint{typeQualifier} x, nuint{typeQualifier} y)
     {{
@@ -1696,7 +1696,7 @@ public class A
         {
             string typeQualifier = lifted ? "?" : "";
             var source =
-    $@"class Program
+$@"class Program
 {{
     static void F({type}{typeQualifier} x, {type}{typeQualifier} y)
     {{
@@ -1727,23 +1727,23 @@ public class A
             var nativeType = AsNative(type);
             var expectedOperators = new[]
             {
-            $"{nativeType} {nativeType}.op_Addition({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_Subtraction({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_Multiply({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_Division({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_Modulus({nativeType} left, {nativeType} right)",
-            $"System.Boolean {nativeType}.op_LessThan({nativeType} left, {nativeType} right)",
-            $"System.Boolean {nativeType}.op_LessThanOrEqual({nativeType} left, {nativeType} right)",
-            $"System.Boolean {nativeType}.op_GreaterThan({nativeType} left, {nativeType} right)",
-            $"System.Boolean {nativeType}.op_GreaterThanOrEqual({nativeType} left, {nativeType} right)",
-            $"System.Boolean {nativeType}.op_Equality({nativeType} left, {nativeType} right)",
-            $"System.Boolean {nativeType}.op_Inequality({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_BitwiseAnd({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_BitwiseOr({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_ExclusiveOr({nativeType} left, {nativeType} right)",
-            $"{nativeType} {nativeType}.op_LeftShift({nativeType} left, System.Int32 right)",
-            $"{nativeType} {nativeType}.op_RightShift({nativeType} left, System.Int32 right)",
-        };
+                $"{nativeType} {nativeType}.op_Addition({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_Subtraction({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_Multiply({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_Division({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_Modulus({nativeType} left, {nativeType} right)",
+                $"System.Boolean {nativeType}.op_LessThan({nativeType} left, {nativeType} right)",
+                $"System.Boolean {nativeType}.op_LessThanOrEqual({nativeType} left, {nativeType} right)",
+                $"System.Boolean {nativeType}.op_GreaterThan({nativeType} left, {nativeType} right)",
+                $"System.Boolean {nativeType}.op_GreaterThanOrEqual({nativeType} left, {nativeType} right)",
+                $"System.Boolean {nativeType}.op_Equality({nativeType} left, {nativeType} right)",
+                $"System.Boolean {nativeType}.op_Inequality({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_BitwiseAnd({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_BitwiseOr({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_ExclusiveOr({nativeType} left, {nativeType} right)",
+                $"{nativeType} {nativeType}.op_LeftShift({nativeType} left, System.Int32 right)",
+                $"{nativeType} {nativeType}.op_RightShift({nativeType} left, System.Int32 right)",
+            };
             AssertEx.Equal(expectedOperators, actualOperators);
         }
 
@@ -1754,7 +1754,7 @@ public class A
         public void ConstantConversions_ToNativeInt(string context)
         {
             var source =
-    $@"#pragma warning disable 219
+$@"#pragma warning disable 219
 class Program
 {{
     static void F1()
@@ -1862,7 +1862,7 @@ class Program
         public void ConstantConversions_FromNativeInt(string context)
         {
             var source =
-    $@"#pragma warning disable 219
+$@"#pragma warning disable 219
 class Program
 {{
     static void F1()
@@ -2151,7 +2151,7 @@ class Program
             void constantConversion(string sourceType, string destinationType, string sourceValue, bool useChecked, DiagnosticDescription expectedError, string expectedOutput)
             {
                 var source =
-    $@"using System;
+$@"using System;
 class Program
 {{
     static void Main()
@@ -2186,7 +2186,7 @@ class Program
         public void Constants_NInt(string type)
         {
             string source =
-    $@"class Program
+$@"class Program
 {{
     static void Main()
     {{
@@ -2334,7 +2334,7 @@ class Program
         public void Constants_NUInt(string type)
         {
             string source =
-    $@"class Program
+$@"class Program
 {{
     static void Main()
     {{
@@ -2899,107 +2899,107 @@ case 9999: 1
 default: 0
 0");
             verifier.VerifyIL("Program.M", @"
-        {
-          // Code size      201 (0xc9)
-          .maxstack  3
-          .locals init (long V_0)
-          IL_0000:  ldarg.0
-          IL_0001:  conv.i8
-          IL_0002:  stloc.0
-          IL_0003:  ldloc.0
-          IL_0004:  ldc.i4.6
-          IL_0005:  conv.i8
-          IL_0006:  bgt.s      IL_0031
-          IL_0008:  ldloc.0
-          IL_0009:  ldc.i4.m1
-          IL_000a:  conv.i8
-          IL_000b:  sub
-          IL_000c:  dup
-          IL_000d:  ldc.i4.3
-          IL_000e:  conv.i8
-          IL_000f:  ble.un.s   IL_0014
-          IL_0011:  pop
-          IL_0012:  br.s       IL_002a
-          IL_0014:  conv.u4
-          IL_0015:  switch    (
-                IL_00b4,
-                IL_0045,
-                IL_009f,
-                IL_0057)
-          IL_002a:  ldloc.0
-          IL_002b:  ldc.i4.6
-          IL_002c:  conv.i8
-          IL_002d:  beq.s      IL_0069
-          IL_002f:  br.s       IL_009f
-          IL_0031:  ldloc.0
-          IL_0032:  ldc.i4     0xff
-          IL_0037:  conv.i8
-          IL_0038:  beq.s      IL_008d
-          IL_003a:  ldloc.0
-          IL_003b:  ldc.i4     0x270f
-          IL_0040:  conv.i8
-          IL_0041:  beq.s      IL_007b
-          IL_0043:  br.s       IL_009f
-          IL_0045:  ldarg.0
-          IL_0046:  ldc.i4.1
-          IL_0047:  sub
-          IL_0048:  starg.s    V_0
-          IL_004a:  ldstr      ""case 0: ""
-          IL_004f:  ldarg.0
-          IL_0050:  call       ""void Program.Report(string, nint)""
-          IL_0055:  br.s       IL_007b
-          IL_0057:  ldarg.0
-          IL_0058:  ldc.i4.1
-          IL_0059:  sub
-          IL_005a:  starg.s    V_0
-          IL_005c:  ldstr      ""case 2: ""
-          IL_0061:  ldarg.0
-          IL_0062:  call       ""void Program.Report(string, nint)""
-          IL_0067:  br.s       IL_008d
-          IL_0069:  ldarg.0
-          IL_006a:  ldc.i4.1
-          IL_006b:  sub
-          IL_006c:  starg.s    V_0
-          IL_006e:  ldstr      ""case 6: ""
-          IL_0073:  ldarg.0
-          IL_0074:  call       ""void Program.Report(string, nint)""
-          IL_0079:  br.s       IL_0057
-          IL_007b:  ldarg.0
-          IL_007c:  ldc.i4.1
-          IL_007d:  sub
-          IL_007e:  starg.s    V_0
-          IL_0080:  ldstr      ""case 9999: ""
-          IL_0085:  ldarg.0
-          IL_0086:  call       ""void Program.Report(string, nint)""
-          IL_008b:  br.s       IL_009f
-          IL_008d:  ldarg.0
-          IL_008e:  ldc.i4.1
-          IL_008f:  sub
-          IL_0090:  starg.s    V_0
-          IL_0092:  ldstr      ""case 0xff: ""
-          IL_0097:  ldarg.0
-          IL_0098:  call       ""void Program.Report(string, nint)""
-          IL_009d:  br.s       IL_0045
-          IL_009f:  ldarg.0
-          IL_00a0:  ldc.i4.1
-          IL_00a1:  sub
-          IL_00a2:  starg.s    V_0
-          IL_00a4:  ldstr      ""default: ""
-          IL_00a9:  ldarg.0
-          IL_00aa:  call       ""void Program.Report(string, nint)""
-          IL_00af:  ldarg.0
-          IL_00b0:  ldc.i4.0
-          IL_00b1:  conv.i
-          IL_00b2:  ble.s      IL_00c7
-          IL_00b4:  ldc.i4     0x3e7
-          IL_00b9:  conv.i
-          IL_00ba:  starg.s    V_0
-          IL_00bc:  ldstr      ""case -1: ""
-          IL_00c1:  ldarg.0
-          IL_00c2:  call       ""void Program.Report(string, nint)""
-          IL_00c7:  ldarg.0
-          IL_00c8:  ret
-        }
+    {
+      // Code size      201 (0xc9)
+      .maxstack  3
+      .locals init (long V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  conv.i8
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  ldc.i4.6
+      IL_0005:  conv.i8
+      IL_0006:  bgt.s      IL_0031
+      IL_0008:  ldloc.0
+      IL_0009:  ldc.i4.m1
+      IL_000a:  conv.i8
+      IL_000b:  sub
+      IL_000c:  dup
+      IL_000d:  ldc.i4.3
+      IL_000e:  conv.i8
+      IL_000f:  ble.un.s   IL_0014
+      IL_0011:  pop
+      IL_0012:  br.s       IL_002a
+      IL_0014:  conv.u4
+      IL_0015:  switch    (
+            IL_00b4,
+            IL_0045,
+            IL_009f,
+            IL_0057)
+      IL_002a:  ldloc.0
+      IL_002b:  ldc.i4.6
+      IL_002c:  conv.i8
+      IL_002d:  beq.s      IL_0069
+      IL_002f:  br.s       IL_009f
+      IL_0031:  ldloc.0
+      IL_0032:  ldc.i4     0xff
+      IL_0037:  conv.i8
+      IL_0038:  beq.s      IL_008d
+      IL_003a:  ldloc.0
+      IL_003b:  ldc.i4     0x270f
+      IL_0040:  conv.i8
+      IL_0041:  beq.s      IL_007b
+      IL_0043:  br.s       IL_009f
+      IL_0045:  ldarg.0
+      IL_0046:  ldc.i4.1
+      IL_0047:  sub
+      IL_0048:  starg.s    V_0
+      IL_004a:  ldstr      ""case 0: ""
+      IL_004f:  ldarg.0
+      IL_0050:  call       ""void Program.Report(string, nint)""
+      IL_0055:  br.s       IL_007b
+      IL_0057:  ldarg.0
+      IL_0058:  ldc.i4.1
+      IL_0059:  sub
+      IL_005a:  starg.s    V_0
+      IL_005c:  ldstr      ""case 2: ""
+      IL_0061:  ldarg.0
+      IL_0062:  call       ""void Program.Report(string, nint)""
+      IL_0067:  br.s       IL_008d
+      IL_0069:  ldarg.0
+      IL_006a:  ldc.i4.1
+      IL_006b:  sub
+      IL_006c:  starg.s    V_0
+      IL_006e:  ldstr      ""case 6: ""
+      IL_0073:  ldarg.0
+      IL_0074:  call       ""void Program.Report(string, nint)""
+      IL_0079:  br.s       IL_0057
+      IL_007b:  ldarg.0
+      IL_007c:  ldc.i4.1
+      IL_007d:  sub
+      IL_007e:  starg.s    V_0
+      IL_0080:  ldstr      ""case 9999: ""
+      IL_0085:  ldarg.0
+      IL_0086:  call       ""void Program.Report(string, nint)""
+      IL_008b:  br.s       IL_009f
+      IL_008d:  ldarg.0
+      IL_008e:  ldc.i4.1
+      IL_008f:  sub
+      IL_0090:  starg.s    V_0
+      IL_0092:  ldstr      ""case 0xff: ""
+      IL_0097:  ldarg.0
+      IL_0098:  call       ""void Program.Report(string, nint)""
+      IL_009d:  br.s       IL_0045
+      IL_009f:  ldarg.0
+      IL_00a0:  ldc.i4.1
+      IL_00a1:  sub
+      IL_00a2:  starg.s    V_0
+      IL_00a4:  ldstr      ""default: ""
+      IL_00a9:  ldarg.0
+      IL_00aa:  call       ""void Program.Report(string, nint)""
+      IL_00af:  ldarg.0
+      IL_00b0:  ldc.i4.0
+      IL_00b1:  conv.i
+      IL_00b2:  ble.s      IL_00c7
+      IL_00b4:  ldc.i4     0x3e7
+      IL_00b9:  conv.i
+      IL_00ba:  starg.s    V_0
+      IL_00bc:  ldstr      ""case -1: ""
+      IL_00c1:  ldarg.0
+      IL_00c2:  call       ""void Program.Report(string, nint)""
+      IL_00c7:  ldarg.0
+      IL_00c8:  ret
+    }
     ");
         }
 
@@ -3067,101 +3067,102 @@ case 9999: 1
 default: 0
 0");
             verifier.VerifyIL("Program.M", @"
-        {
-          // Code size      184 (0xb8)
-          .maxstack  2
-          .locals init (ulong V_0)
-          IL_0000:  ldarg.0
-          IL_0001:  conv.u8
-          IL_0002:  stloc.0
-          IL_0003:  ldloc.0
-          IL_0004:  ldc.i4.6
-          IL_0005:  conv.i8
-          IL_0006:  bgt.un.s   IL_0017
-          IL_0008:  ldloc.0
-          IL_0009:  brfalse.s  IL_0034
-          IL_000b:  ldloc.0
-          IL_000c:  ldc.i4.2
-          IL_000d:  conv.i8
-          IL_000e:  beq.s      IL_0046
-          IL_0010:  ldloc.0
-          IL_0011:  ldc.i4.6
-          IL_0012:  conv.i8
-          IL_0013:  beq.s      IL_0058
-          IL_0015:  br.s       IL_008e
-          IL_0017:  ldloc.0
-          IL_0018:  ldc.i4     0xff
-          IL_001d:  conv.i8
-          IL_001e:  beq.s      IL_007c
-          IL_0020:  ldloc.0
-          IL_0021:  ldc.i4     0x270f
-          IL_0026:  conv.i8
-          IL_0027:  beq.s      IL_006a
-          IL_0029:  ldloc.0
-          IL_002a:  ldc.i4     0x7fffffff
-          IL_002f:  conv.i8
-          IL_0030:  beq.s      IL_00a3
-          IL_0032:  br.s       IL_008e
-          IL_0034:  ldarg.0
-          IL_0035:  ldc.i4.1
-          IL_0036:  sub
-          IL_0037:  starg.s    V_0
-          IL_0039:  ldstr      ""case 0: ""
-          IL_003e:  ldarg.0
-          IL_003f:  call       ""void Program.Report(string, nuint)""
-          IL_0044:  br.s       IL_006a
-          IL_0046:  ldarg.0
-          IL_0047:  ldc.i4.1
-          IL_0048:  sub
-          IL_0049:  starg.s    V_0
-          IL_004b:  ldstr      ""case 2: ""
-          IL_0050:  ldarg.0
-          IL_0051:  call       ""void Program.Report(string, nuint)""
-          IL_0056:  br.s       IL_007c
-          IL_0058:  ldarg.0
-          IL_0059:  ldc.i4.1
-          IL_005a:  sub
-          IL_005b:  starg.s    V_0
-          IL_005d:  ldstr      ""case 6: ""
-          IL_0062:  ldarg.0
-          IL_0063:  call       ""void Program.Report(string, nuint)""
-          IL_0068:  br.s       IL_0046
-          IL_006a:  ldarg.0
-          IL_006b:  ldc.i4.1
-          IL_006c:  sub
-          IL_006d:  starg.s    V_0
-          IL_006f:  ldstr      ""case 9999: ""
-          IL_0074:  ldarg.0
-          IL_0075:  call       ""void Program.Report(string, nuint)""
-          IL_007a:  br.s       IL_008e
-          IL_007c:  ldarg.0
-          IL_007d:  ldc.i4.1
-          IL_007e:  sub
-          IL_007f:  starg.s    V_0
-          IL_0081:  ldstr      ""case 0xff: ""
-          IL_0086:  ldarg.0
-          IL_0087:  call       ""void Program.Report(string, nuint)""
-          IL_008c:  br.s       IL_0034
-          IL_008e:  ldarg.0
-          IL_008f:  ldc.i4.1
-          IL_0090:  sub
-          IL_0091:  starg.s    V_0
-          IL_0093:  ldstr      ""default: ""
-          IL_0098:  ldarg.0
-          IL_0099:  call       ""void Program.Report(string, nuint)""
-          IL_009e:  ldarg.0
-          IL_009f:  ldc.i4.0
-          IL_00a0:  conv.i
-          IL_00a1:  ble.un.s   IL_00b6
-          IL_00a3:  ldc.i4     0x3e7
-          IL_00a8:  conv.i
-          IL_00a9:  starg.s    V_0
-          IL_00ab:  ldstr      ""case int.MaxValue: ""
-          IL_00b0:  ldarg.0
-          IL_00b1:  call       ""void Program.Report(string, nuint)""
-          IL_00b6:  ldarg.0
-          IL_00b7:  ret
-        }");
+    {
+      // Code size      184 (0xb8)
+      .maxstack  2
+      .locals init (ulong V_0)
+      IL_0000:  ldarg.0
+      IL_0001:  conv.u8
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  ldc.i4.6
+      IL_0005:  conv.i8
+      IL_0006:  bgt.un.s   IL_0017
+      IL_0008:  ldloc.0
+      IL_0009:  brfalse.s  IL_0034
+      IL_000b:  ldloc.0
+      IL_000c:  ldc.i4.2
+      IL_000d:  conv.i8
+      IL_000e:  beq.s      IL_0046
+      IL_0010:  ldloc.0
+      IL_0011:  ldc.i4.6
+      IL_0012:  conv.i8
+      IL_0013:  beq.s      IL_0058
+      IL_0015:  br.s       IL_008e
+      IL_0017:  ldloc.0
+      IL_0018:  ldc.i4     0xff
+      IL_001d:  conv.i8
+      IL_001e:  beq.s      IL_007c
+      IL_0020:  ldloc.0
+      IL_0021:  ldc.i4     0x270f
+      IL_0026:  conv.i8
+      IL_0027:  beq.s      IL_006a
+      IL_0029:  ldloc.0
+      IL_002a:  ldc.i4     0x7fffffff
+      IL_002f:  conv.i8
+      IL_0030:  beq.s      IL_00a3
+      IL_0032:  br.s       IL_008e
+      IL_0034:  ldarg.0
+      IL_0035:  ldc.i4.1
+      IL_0036:  sub
+      IL_0037:  starg.s    V_0
+      IL_0039:  ldstr      ""case 0: ""
+      IL_003e:  ldarg.0
+      IL_003f:  call       ""void Program.Report(string, nuint)""
+      IL_0044:  br.s       IL_006a
+      IL_0046:  ldarg.0
+      IL_0047:  ldc.i4.1
+      IL_0048:  sub
+      IL_0049:  starg.s    V_0
+      IL_004b:  ldstr      ""case 2: ""
+      IL_0050:  ldarg.0
+      IL_0051:  call       ""void Program.Report(string, nuint)""
+      IL_0056:  br.s       IL_007c
+      IL_0058:  ldarg.0
+      IL_0059:  ldc.i4.1
+      IL_005a:  sub
+      IL_005b:  starg.s    V_0
+      IL_005d:  ldstr      ""case 6: ""
+      IL_0062:  ldarg.0
+      IL_0063:  call       ""void Program.Report(string, nuint)""
+      IL_0068:  br.s       IL_0046
+      IL_006a:  ldarg.0
+      IL_006b:  ldc.i4.1
+      IL_006c:  sub
+      IL_006d:  starg.s    V_0
+      IL_006f:  ldstr      ""case 9999: ""
+      IL_0074:  ldarg.0
+      IL_0075:  call       ""void Program.Report(string, nuint)""
+      IL_007a:  br.s       IL_008e
+      IL_007c:  ldarg.0
+      IL_007d:  ldc.i4.1
+      IL_007e:  sub
+      IL_007f:  starg.s    V_0
+      IL_0081:  ldstr      ""case 0xff: ""
+      IL_0086:  ldarg.0
+      IL_0087:  call       ""void Program.Report(string, nuint)""
+      IL_008c:  br.s       IL_0034
+      IL_008e:  ldarg.0
+      IL_008f:  ldc.i4.1
+      IL_0090:  sub
+      IL_0091:  starg.s    V_0
+      IL_0093:  ldstr      ""default: ""
+      IL_0098:  ldarg.0
+      IL_0099:  call       ""void Program.Report(string, nuint)""
+      IL_009e:  ldarg.0
+      IL_009f:  ldc.i4.0
+      IL_00a0:  conv.i
+      IL_00a1:  ble.un.s   IL_00b6
+      IL_00a3:  ldc.i4     0x3e7
+      IL_00a8:  conv.i
+      IL_00a9:  starg.s    V_0
+      IL_00ab:  ldstr      ""case int.MaxValue: ""
+      IL_00b0:  ldarg.0
+      IL_00b1:  call       ""void Program.Report(string, nuint)""
+      IL_00b6:  ldarg.0
+      IL_00b7:  ret
+    }
+");
         }
 
         [Fact]
@@ -3175,7 +3176,7 @@ default: 0
   IL_0001:  ret
 }";
             static string conv(string conversion) =>
-    $@"{{
+$@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -3183,7 +3184,7 @@ default: 0
   IL_0002:  ret
 }}";
             static string convFromNullableT(string conversion, string sourceType) =>
-    $@"{{
+$@"{{
   // Code size        9 (0x9)
   .maxstack  1
   IL_0000:  ldarga.s   V_0
@@ -3192,7 +3193,7 @@ default: 0
   IL_0008:  ret
 }}";
             static string convToNullableT(string conversion, string destType) =>
-    $@"{{
+$@"{{
   // Code size        8 (0x8)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -3201,7 +3202,7 @@ default: 0
   IL_0007:  ret
 }}";
             static string convFromToNullableT(string conversion, string sourceType, string destType) =>
-    $@"{{
+$@"{{
   // Code size       35 (0x23)
   .maxstack  1
   .locals init ({sourceType}? V_0,
@@ -3222,7 +3223,7 @@ default: 0
   IL_0022:  ret
 }}";
             static string convExplicitFromNullableT(string sourceType, string method) =>
-    $@"{{
+$@"{{
   // Code size       27 (0x1b)
   .maxstack  1
   .locals init ({sourceType}? V_0)
@@ -5203,7 +5204,7 @@ default: 0
                     value = $"checked({value})";
                 }
                 string source =
-    $@"class Program
+$@"class Program
 {{
     static {(useUnsafeContext ? "unsafe " : "")}{destType} Convert({sourceType} value)
     {{
@@ -5439,7 +5440,7 @@ enum E {{ }}
             void unaryOperator(string op, string opType, string resultType, string expectedSymbol, string operand, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
-    $@"class Program
+$@"class Program
 {{
     static {resultType} Evaluate({opType} operand)
     {{
@@ -5788,7 +5789,7 @@ enum E {{ }}
             void incrementOperator(string op, string opType, bool isPrefix, string expectedSymbol, bool useChecked, string values, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
                 var source =
-    $@"using System;
+$@"using System;
 class Program
 {{
     static {opType} Evaluate({opType} operand)
@@ -6025,7 +6026,7 @@ class Program
             void incrementOperator(string op, string opType, string expectedSymbol, string values, string expectedResult, string expectedIL, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
-    $@"using System;
+$@"using System;
 class Program
 {{
     static void Evaluate(ref {opType} operand)
@@ -6080,52 +6081,52 @@ class Program
         {
             string sourceA =
 @"namespace System
+{
+    public class Object { }
+    public class String { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Enum { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
     {
-        public class Object { }
-        public class String { }
-        public abstract class ValueType { }
-        public struct Void { }
-        public struct Boolean { }
-        public struct Int32 { }
-        public struct Enum { }
-        public class Attribute { }
-        public class AttributeUsageAttribute : Attribute
-        {
-            public AttributeUsageAttribute(AttributeTargets validOn) { }
-            public bool AllowMultiple { get; set; }
-            public bool Inherited { get; set; }
-        }
-        public enum AttributeTargets { }
-        public struct IntPtr
-        {
-            public static IntPtr operator-(IntPtr i) => i;
-        }
-    }";
+        public AttributeUsageAttribute(AttributeTargets validOn) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public enum AttributeTargets { }
+    public struct IntPtr
+    {
+        public static IntPtr operator-(IntPtr i) => i;
+    }
+}";
             string sourceB =
 @"class Program
-    {
-        static System.IntPtr F1(System.IntPtr i) => -i;
-        static nint F2(nint i) => -i;
-    }";
+{
+    static System.IntPtr F1(System.IntPtr i) => -i;
+    static nint F2(nint i) => -i;
+}";
             var comp = CreateEmptyCompilation(new[] { sourceA, sourceB }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, emitOptions: EmitOptions.Default.WithRuntimeMetadataVersion("0.0.0.0"), verify: Verification.Skipped);
             verifier.VerifyIL("Program.F1",
 @"{
-      // Code size        7 (0x7)
-      .maxstack  1
-      IL_0000:  ldarg.0
-      IL_0001:  call       ""System.IntPtr System.IntPtr.op_UnaryNegation(System.IntPtr)""
-      IL_0006:  ret
-    }");
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.IntPtr System.IntPtr.op_UnaryNegation(System.IntPtr)""
+  IL_0006:  ret
+}");
             verifier.VerifyIL("Program.F2",
 @"{
-      // Code size        3 (0x3)
-      .maxstack  1
-      IL_0000:  ldarg.0
-      IL_0001:  neg
-      IL_0002:  ret
-    }");
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  neg
+  IL_0002:  ret
+}");
         }
 
         [Fact]
@@ -6206,7 +6207,7 @@ class Program
             void verify(string type, params DiagnosticDescription[] expected)
             {
                 string sourceA =
-    $@"class MyInt
+$@"class MyInt
 {{
     public static implicit operator {type}(MyInt i) => throw null;
     public static implicit operator MyInt({type} i) => throw null;
@@ -6283,38 +6284,38 @@ class Program
 
             var arithmeticOperators = new[]
             {
-            ("-", "op_Subtraction"),
-            ("*", "op_Multiply"),
-            ("/", "op_Division"),
-            ("%", "op_Modulus"),
-        };
+                ("-", "op_Subtraction"),
+                ("*", "op_Multiply"),
+                ("/", "op_Division"),
+                ("%", "op_Modulus"),
+            };
             var additionOperators = new[]
             {
-            ("+", "op_Addition"),
-        };
+                ("+", "op_Addition"),
+            };
             var comparisonOperators = new[]
             {
-            ("<", "op_LessThan"),
-            ("<=", "op_LessThanOrEqual"),
-            (">", "op_GreaterThan"),
-            (">=", "op_GreaterThanOrEqual"),
-        };
+                ("<", "op_LessThan"),
+                ("<=", "op_LessThanOrEqual"),
+                (">", "op_GreaterThan"),
+                (">=", "op_GreaterThanOrEqual"),
+            };
             var shiftOperators = new[]
             {
-            ("<<", "op_LeftShift"),
-            (">>", "op_RightShift"),
-        };
+                ("<<", "op_LeftShift"),
+                (">>", "op_RightShift"),
+            };
             var equalityOperators = new[]
             {
-            ("==", "op_Equality"),
-            ("!=", "op_Inequality"),
-        };
+                ("==", "op_Equality"),
+                ("!=", "op_Inequality"),
+            };
             var logicalOperators = new[]
             {
-            ("&", "op_BitwiseAnd"),
-            ("|", "op_BitwiseOr"),
-            ("^", "op_ExclusiveOr"),
-        };
+                ("&", "op_BitwiseAnd"),
+                ("|", "op_BitwiseOr"),
+                ("^", "op_ExclusiveOr"),
+            };
 
             foreach ((string symbol, string name) in arithmeticOperators)
             {
@@ -7324,7 +7325,7 @@ class Program
             {
                 bool useUnsafeContext = useUnsafe(leftType) || useUnsafe(rightType);
                 string source =
-    $@"class Program
+$@"class Program
 {{
     static {(useUnsafeContext ? "unsafe " : "")}object Evaluate({leftType} x, {rightType} y)
     {{
@@ -8107,13 +8108,13 @@ class Program
                 var expr = $"{op}A";
                 constantDeclaration(opType, declarations, expr, null,
                     new[] {
-                    Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative( opType)),
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative( opType)),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
                     });
                 constantDeclaration(opType, declarations, $"checked({expr})", null,
                     new[] {
-                    Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative(opType)),
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative(opType)),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
                     });
                 constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
 
@@ -8161,13 +8162,13 @@ class Program
                 var expr = $"A {op} B";
                 constantDeclaration(opType, declarations, expr, null,
                     new[] {
-                    Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative(opType)),
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative(opType)),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, expr).WithArguments("Library.F")
                     });
                 constantDeclaration(opType, declarations, $"checked({expr})", null,
                     new[] {
-                    Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative(opType)),
-                    Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
+                        Diagnostic(ErrorCode.WRN_CompileTimeCheckedOverflow, expr).WithArguments(AsNative(opType)),
+                        Diagnostic(ErrorCode.ERR_NotConstantExpression, $"checked({expr})").WithArguments("Library.F")
                     });
                 constantDeclaration(opType, declarations, $"unchecked({expr})", null, new[] { Diagnostic(ErrorCode.ERR_NotConstantExpression, $"unchecked({expr})").WithArguments("Library.F") });
 
@@ -8194,7 +8195,7 @@ class Program
             void constantDeclaration(string opType, string declarations, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string sourceA =
-    $@"public class Library
+$@"public class Library
 {{
     {declarations}
     public const {opType} F = {expr};
@@ -8227,7 +8228,7 @@ class Program
             void constantExpression(string opType, string expr, string expectedResult, DiagnosticDescription[] expectedDiagnostics)
             {
                 string source =
-    $@"using System;
+$@"using System;
 class Program
 {{
     static void Main()
@@ -8438,7 +8439,7 @@ class Program
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
             CompileAndVerify(comp, expectedOutput:
-    $@"2147483647
+$@"2147483647
 System.OverflowException
 0
 System.OverflowException
@@ -8468,7 +8469,7 @@ class Program
 
             var expectedValue = IntPtr.Size == 4 ? "fffffffffffffffe" : "fffffffe";
             CompileAndVerify(comp, expectedOutput:
-    $@"{expectedValue}
+$@"{expectedValue}
 {expectedValue}");
         }
 
@@ -8492,7 +8493,7 @@ class Program
 
             var expectedValue = IntPtr.Size == 4 ? "fffffffe" : "1fffffffe";
             CompileAndVerify(comp, expectedOutput:
-    $@"{expectedValue}
+$@"{expectedValue}
 {expectedValue}");
         }
 
@@ -8594,7 +8595,7 @@ class B : A
             void convert(string fromType, string toType, string fromValue, string toValueUnchecked, string toConvUnchecked, string toValueChecked, string toConvChecked)
             {
                 string source =
-    $@"using System;
+$@"using System;
 class Program
 {{
     static {toType} Convert({fromType} value) => ({toType})(value);
@@ -8620,11 +8621,11 @@ class Program
                 var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
 
                 var verifier = CompileAndVerify(comp, expectedOutput:
-    $@"{toValueUnchecked}
+$@"{toValueUnchecked}
 {toValueChecked}");
 
                 verifier.VerifyIL("Program.Convert",
-    $@"{{
+$@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -8632,7 +8633,7 @@ class Program
   IL_0002:  ret
 }}");
                 verifier.VerifyIL("Program.ConvertChecked",
-    $@"{{
+$@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -8649,7 +8650,7 @@ class Program
         public void PointerConversions(string pointerType)
         {
             string source =
-    $@"using System;
+$@"using System;
 unsafe class Program
 {{
     static {pointerType} ToPointer1(nint i) => ({pointerType})i;
@@ -8693,7 +8694,7 @@ unsafe class Program
 }}";
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular9);
             string expectedOutput =
-    $@"-42
+$@"-42
 -42
 {(IntPtr.Size == 4 ? "4294967254" : "18446744073709551574")}
 System.OverflowException
@@ -8792,7 +8793,7 @@ System.OverflowException
         {
             if (baseType != null) baseType = " : " + baseType;
             string sourceA =
-    $@"enum E{baseType} {{ A = 0, B = 1 }}";
+$@"enum E{baseType} {{ A = 0, B = 1 }}";
 
             string sourceB =
 @"#pragma warning disable 219
@@ -8867,7 +8868,7 @@ class Program
         {
             if (baseType != null) baseType = " : " + baseType;
             string sourceA =
-    $@"enum E{baseType} {{ A = -1, B = 1 }}";
+$@"enum E{baseType} {{ A = -1, B = 1 }}";
 
             string sourceB =
 @"using static System.Console;
@@ -8991,7 +8992,7 @@ B
             {
                 if (baseType != null) baseType = " : " + baseType;
                 string source =
-    $@"using System;
+$@"using System;
 enum E{baseType} {{ A, B }}
 class Program
 {{
@@ -9018,11 +9019,11 @@ class Program
                 var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
 
                 var verifier = CompileAndVerify(comp, expectedOutput:
-    $@"{toValueUnchecked}
+$@"{toValueUnchecked}
 {toValueChecked}");
 
                 verifier.VerifyIL("Program.Convert",
-    $@"{{
+$@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -9030,7 +9031,7 @@ class Program
   IL_0002:  ret
 }}");
                 verifier.VerifyIL("Program.ConvertChecked",
-    $@"{{
+$@"{{
   // Code size        3 (0x3)
   .maxstack  1
   IL_0000:  ldarg.0
@@ -9046,7 +9047,7 @@ class Program
         public void MethodTypeInference(string nativeIntegerType, string underlyingType)
         {
             var source =
-    $@"interface I<T>
+$@"interface I<T>
 {{
     T P {{ get; }}
 }}
@@ -9099,7 +9100,7 @@ unsafe class Program
 class C1<T, U> where U : I<nint>, I<nint> { }
 class C2<T, U> where U : I<nint>, I<System.IntPtr> { }
 class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
-    ";
+";
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,35): error CS0405: Duplicate constraint 'I<nint>' for type parameter 'U'
@@ -9121,7 +9122,7 @@ class C3<T, U> where U : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
 class C1 : I<nint>, I<nint> { }
 class C2 : I<nint>, I<System.IntPtr> { }
 class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
-    ";
+";
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
                 // (2,21): error CS0528: 'I<nint>' is already listed in interface list
@@ -9141,7 +9142,7 @@ class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
         public void SignedToUnsignedConversions_Implicit(string type)
         {
             string source =
-    $@"static class NativeInts
+$@"static class NativeInts
 {{
     static {type} Implicit1(sbyte x) => x; // 1
     static {type} Implicit2(short x) => x; // 2
@@ -9194,7 +9195,7 @@ class C3 : I<System.UIntPtr>, I<System.IntPtr>, I<nuint> { }
         public void SignedToUnsignedConversions_Explicit(string type)
         {
             string source =
-    $@"static class NativeInts
+$@"static class NativeInts
 {{
     static {type} Explicit1(sbyte x) => ({type})x;
     static {type} Explicit2(short x) => ({type})x;
