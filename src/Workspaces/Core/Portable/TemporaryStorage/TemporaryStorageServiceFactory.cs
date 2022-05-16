@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        internal unsafe class DirectMemoryAccessStreamReader : TextReaderWithLength
+        internal sealed unsafe class DirectMemoryAccessStreamReader : TextReaderWithLength
         {
             private char* _position;
             private readonly char* _end;
@@ -468,14 +469,19 @@ namespace Microsoft.CodeAnalysis.Host
                     throw new ArgumentNullException(nameof(buffer));
                 }
 
-                if (index < 0 || index >= buffer.Length)
+                if (index < 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
 
-                if (count < 0 || (index + count) > buffer.Length)
+                if (count < 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(count));
+                }
+
+                if (index + count > buffer.Length)
+                {
+                    throw new ArgumentException(ExceptionResource.Argument_InvalidOffLen.GetResourceString());
                 }
 
                 count = Math.Min(count, (int)(_end - _position));
@@ -487,7 +493,36 @@ namespace Microsoft.CodeAnalysis.Host
 
                 return count;
             }
+
+            public override int ReadBlock(char[] buffer, int index, int count) =>
+                Read(buffer, index, count);
+
+#if NETCOREAPP
+            public override int Read(Span<char> buffer)
+            {
+                var count = Math.Min(buffer.Length, (int)(_end - _position));
+                if (count > 0)
+                {
+                    new ReadOnlySpan<char>(_position, count).CopyTo(buffer);
+                    _position += count;
+                }
+
+                return count;
+            }
+
+            public override int ReadBlock(Span<char> buffer) =>
+                Read(buffer);
+#endif
+
+            public override string ReadToEnd()
+            {
+                if (_position >= _end)
+                    return "";
+
+                var result = new string(_position, 0, (int)(_end - _position));
+                _position = _end;
+                return result;
+            }
         }
     }
 }
-
