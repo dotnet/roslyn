@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
+        public static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
             Project project,
             Document? document,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
         }
 
-        private async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsInProcessAsync(
+        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsInProcessAsync(
             Project project,
             Document? document,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,

@@ -53,9 +53,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var project = solution.GetRequiredProject(projectId);
                 var document = solution.GetDocument(documentId);
-                var service = (AbstractInheritanceMarginService)project.GetRequiredLanguageService<IInheritanceMarginService>();
 
-                return service.GetSymbolItemsAsync(project, document, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken);
+                return AbstractInheritanceMarginService.GetSymbolItemsAsync(project, document, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken);
             }, cancellationToken);
         }
     }
