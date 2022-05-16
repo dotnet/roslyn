@@ -2633,7 +2633,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(5, 19),
                 // (7,19): error CS8050: Only auto-implemented properties can have initializers.
                 //     public string P3 { } = string.Empty;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithArguments("C.P3").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(7, 19),
                 // (7,19): error CS0548: 'C.P3': property or indexer must have at least one accessor
                 //     public string P3 { } = string.Empty;
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P3").WithArguments("C.P3").WithLocation(7, 19),
