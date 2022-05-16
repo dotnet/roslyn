@@ -26,6 +26,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting;
 
+[UseExportProvider]
 public class RazorLineFormattingOptionsTests
 {
     private static readonly TestComposition s_composition = EditorTestCompositions.EditorFeatures;
@@ -42,7 +43,6 @@ public class RazorLineFormattingOptionsTests
     }
 
     [Fact]
-    [UseExportProvider]
     public async Task FormatAsync()
     {
         var hostServices = s_composition.GetHostServices();

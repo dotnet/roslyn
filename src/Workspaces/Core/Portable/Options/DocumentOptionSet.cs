@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Options
         {
         }
 
-        internal DocumentOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions, string language, ImmutableDictionary<OptionKey, object?> values)
+        private DocumentOptionSet(StructuredAnalyzerConfigOptions? configOptions, OptionSet underlyingOptions, string language, ImmutableDictionary<OptionKey, object?> values)
         {
             _language = language;
             _configOptions = configOptions;
