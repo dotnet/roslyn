@@ -26,7 +26,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
         }
 
-        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeTheory]
         [CombinatorialData]
         public async Task SimpleGoToImplementation(bool asyncNavigation)
         {
@@ -75,7 +75,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
             Assert.False(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
         }
 
-        [IdeTheory, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [IdeTheory]
         [CombinatorialData]
         public async Task GoToImplementationOpensProvisionalTabIfDocumentNotOpen(bool asyncNavigation)
         {
