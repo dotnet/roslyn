@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections.Internal;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -481,7 +480,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                 if (index + count > buffer.Length)
                 {
-                    throw new ArgumentException(ExceptionResource.Argument_InvalidOffLen.GetResourceString());
+                    throw new ArgumentException();
                 }
 
                 count = Math.Min(count, (int)(_end - _position));

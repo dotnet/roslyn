@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
         }
 
-        public static string GetResourceString(this ExceptionResource resource)
+        private static string GetResourceString(ExceptionResource resource)
         {
             switch (resource)
             {
