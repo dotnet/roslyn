@@ -58,7 +58,7 @@ public interface I1
 
         private static bool Execute(bool isStatic, bool haveImplementationInDerivedInterface = false)
         {
-            // PROTOTYPE(DefaultInterfaceImplementation) : Enable execution for isStatic and haveImplementationInDerivedInterface once runtime can handle it.
+            // https://github.com/dotnet/roslyn/issues/61321 : Enable execution for isStatic and haveImplementationInDerivedInterface once runtime can handle it.
             if (!ExecutionConditionUtil.IsMonoOrCoreClr || (isStatic && haveImplementationInDerivedInterface))
             {
                 return false;
@@ -34913,7 +34913,6 @@ class Test1 : I2
                 }
                 else
                 {
-                    // PROTOTYPE(DefaultInterfaceImplementation): Should we have similar warning for cast in the non-static scenario? Bug in nullability analysis?
                     compilation2.VerifyDiagnostics(
                         // (9,9): warning CS8631: The type 'Test1' cannot be used as type parameter 'i11' in the generic type or method 'Test1.Test<i11, i12>()'. Nullability of type argument 'Test1' doesn't match constraint type 'I1<string?>'.
                         //         Test<Test1, Test1>();
@@ -35110,7 +35109,6 @@ class Test1 : I2, I1<string?>
                 }
                 else
                 {
-                    // PROTOTYPE(DefaultInterfaceImplementation): Should we have similar warning for cast in the non-static scenario? Bug in nullability analysis?
                     compilation2.VerifyDiagnostics(
                         // (9,9): warning CS8631: The type 'Test1' cannot be used as type parameter 'i12' in the generic type or method 'Test1.Test<i11, i12>()'. Nullability of type argument 'Test1' doesn't match constraint type 'I1<string>'.
                         //         Test<Test1, Test1>();
