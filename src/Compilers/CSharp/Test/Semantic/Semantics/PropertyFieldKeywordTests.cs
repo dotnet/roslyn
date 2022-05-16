@@ -167,7 +167,7 @@ public class Derived4 : Base
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(17, 25),
                 // (25,30): error CS8051: Auto-implemented properties must have get accessors.
                 //     public override int P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("Derived3.P1.set").WithLocation(25, 30)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(25, 30)
                 );
             Assert.Equal(callGetFieldsToEmit ? 5 : 0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -215,13 +215,13 @@ public interface I
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(8, 61),
                 // (10,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P4 { get => field; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithArguments("I.P4").WithLocation(10, 16),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(10, 16),
                 // (10,28): error CS0525: Interfaces cannot contain instance fields
                 //     public int P4 { get => field; } = 0;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(10, 28),
                 // (12,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P5 { get => field; set => field = value; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithArguments("I.P5").WithLocation(12, 16),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(12, 16),
                 // (12,28): error CS0525: Interfaces cannot contain instance fields
                 //     public int P5 { get => field; set => field = value; } = 0;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 28),
@@ -230,7 +230,7 @@ public interface I
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(12, 42),
                 // (14,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P6 { get { _ = field; return field; } set => field = value; } = 0;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P6").WithArguments("I.P6").WithLocation(14, 16),
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P6").WithLocation(14, 16),
                 // (14,31): error CS0525: Interfaces cannot contain instance fields
                 //     public int P6 { get { _ = field; return field; } set => field = value; } = 0;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field").WithLocation(14, 31),
@@ -3024,7 +3024,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,21): error CS8051: Auto-implemented properties must have get accessors.
                 //     public int P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 21)
             );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
