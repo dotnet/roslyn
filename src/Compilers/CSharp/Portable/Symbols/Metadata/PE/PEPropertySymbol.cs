@@ -784,13 +784,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                deriveCompilerFeatureRequiredUseSiteInfo(ref result);
+                var diag = deriveCompilerFeatureRequiredUseSiteInfo();
+                MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
+                result = result.AdjustDiagnosticInfo(diag);
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
             return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
 
-            void deriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+            DiagnosticInfo deriveCompilerFeatureRequiredUseSiteInfo()
             {
                 var containingType = (PENamedTypeSymbol)ContainingType;
                 PEModuleSymbol containingPEModule = _containingType.ContainingPEModule;
@@ -802,17 +804,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     allowedFeatures: CompilerFeatureRequiredFeatures.None,
                     decoder);
 
-                foreach (var param in Parameters)
-                {
-                    diag ??= ((PEParameterSymbol)param).DeriveCompilerFeatureRequiredDiagnostic(decoder);
-                }
-
-                diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
-
                 if (diag != null)
                 {
-                    result = new UseSiteInfo<AssemblySymbol>(diag);
+                    return diag;
                 }
+
+                foreach (var param in Parameters)
+                {
+                    diag = ((PEParameterSymbol)param).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+                    if (diag != null)
+                    {
+                        return diag;
+                    }
+                }
+
+                return containingType.GetCompilerFeatureRequiredDiagnostic();
             }
         }
 
