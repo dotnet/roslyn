@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var endOfLineTrivia = generator.EndOfLine(options.NewLine);

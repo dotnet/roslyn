@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var fixedDocument = await ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
             var fixedRoot = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

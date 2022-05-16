@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 #else
             var provider = document.Project.Solution.Workspace.Services;
 #endif
-            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
             var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, formattingOptions, rules, cancellationToken);
 

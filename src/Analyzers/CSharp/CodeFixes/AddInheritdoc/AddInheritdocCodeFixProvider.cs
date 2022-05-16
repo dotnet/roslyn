@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
 
                 if (newLine == null)
                 {
-                    var optionsProvider = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                     newLine = optionsProvider.GetLineFormattingOptions().NewLine;
                 }
 

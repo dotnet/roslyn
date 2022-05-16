@@ -82,7 +82,7 @@ internal readonly struct CodeFixOptionsProvider
 
 internal static class CodeFixOptionsProviders
 {
-    public static async ValueTask<CodeFixOptionsProvider> GetCodeFixOptionsProviderAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public static async ValueTask<CodeFixOptionsProvider> GetCodeFixOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new CodeFixOptionsProvider(configOptions, fallbackOptions, document.Project.GetExtendedLanguageServices());

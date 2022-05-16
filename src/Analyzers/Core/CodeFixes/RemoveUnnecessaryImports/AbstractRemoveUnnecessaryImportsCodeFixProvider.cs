@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         {
             var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
 
-            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
             return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
         }

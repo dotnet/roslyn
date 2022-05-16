@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FileHeaders
 
         private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var newLineTrivia = generator.EndOfLine(options.NewLine);
 

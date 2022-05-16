@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
         protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var options = await document.GetCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
             var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
             var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
             var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
