@@ -167,7 +167,7 @@ public class Derived4 : Base
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(17, 25),
                 // (25,30): error CS8051: Auto-implemented properties must have get accessors.
                 //     public override int P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("Derived3.P1.set").WithLocation(25, 30)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(25, 30)
                 );
             Assert.Equal(callGetFieldsToEmit ? 5 : 0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -3024,7 +3024,7 @@ class C
             comp.VerifyDiagnostics(
                 // (4,21): error CS8051: Auto-implemented properties must have get accessors.
                 //     public int P1 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithArguments("C.P1.set").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 21)
             );
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
