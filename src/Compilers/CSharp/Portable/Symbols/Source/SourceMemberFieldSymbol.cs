@@ -590,7 +590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override void AfterAccessorBindingChecks()
+        internal void AfterAccessorBindingChecks()
         {
             // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
             if (!IsFixedSizeBuffer)

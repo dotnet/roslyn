@@ -218,31 +218,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void addAfterAccessorBindingDiagnostics(Symbol symbol)
+            void addAfterAccessorBindingDiagnostics(NamespaceOrTypeSymbol symbol)
             {
-                if (PassesFilter(filterOpt, symbol))
+                if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol && PassesFilter(filterOpt, symbol))
                 {
-                    symbol.AfterAccessorBindingChecks();
+                    sourceMemberContainerTypeSymbol.AfterAccessorBindingChecks();
                 }
 
-                if (symbol is NamespaceOrTypeSymbol namespaceOrType)
+                foreach (var member in symbol.GetMembersUnordered())
                 {
-                    foreach (var member in namespaceOrType.GetMembersUnordered())
+                    if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
                     {
                         if (compilation.Options.ConcurrentBuild)
                         {
-                            Task worker = addAfterAccessorBindingDiagnosticsAsAsync(member);
+                            Task worker = addAfterAccessorBindingDiagnosticsAsAsync(namespaceOrTypeSymbol);
                             methodCompiler._compilerTasks.Push(worker);
                         }
                         else
                         {
-                            addAfterAccessorBindingDiagnostics(member);
+                            addAfterAccessorBindingDiagnostics(namespaceOrTypeSymbol);
                         }
+                    }
+                    else if (member is SourceMemberFieldSymbolFromDeclarator fieldSymbol)
+                    {
+                        fieldSymbol.AfterAccessorBindingChecks();
                     }
                 }
             }
 
-            Task addAfterAccessorBindingDiagnosticsAsAsync(Symbol symbol)
+            Task addAfterAccessorBindingDiagnosticsAsAsync(NamespaceOrTypeSymbol symbol)
             {
                 return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {

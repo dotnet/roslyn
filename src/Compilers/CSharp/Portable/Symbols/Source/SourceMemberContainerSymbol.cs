@@ -2118,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AfterAccessorBindingChecks()
+        internal void AfterAccessorBindingChecks()
         {
             _ = KnownCircularStruct;
         }
