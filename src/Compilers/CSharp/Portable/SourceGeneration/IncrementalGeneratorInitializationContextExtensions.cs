@@ -18,8 +18,8 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
     /// name="fullyQualifiedMetadataName"/> should be the fully-qualified metadata name of the attribute, including the
     /// <c>Attribute</c> suffix.  For example <c>System.CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
-    /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
-    /// references an alias name.  For example, given:
+    /// <para>This provider understands <see langword="using"/> aliases and will find matches even when the attribute
+    /// references an alias name.  For example, given:</para>
     /// <code>
     /// using XAttribute = System.CLSCompliantAttribute;
     /// [X]
