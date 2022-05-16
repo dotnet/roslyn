@@ -43,6 +43,10 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         var nodesWithAttributesMatchingSimpleName = context.SyntaxProvider.CreateSyntaxProviderForAttribute<T>(simpleTypeName);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName.Collect().WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
+
+        // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
+        // the required semantic model for it once, instead of potentially many times (in the rare, but possible case of
+        // a single file with a ton of matching nodes in it).
         var groupedNodes = collectedNodes.SelectMany(
             (array, cancellationToken) => array.GroupBy(n => n.SyntaxTree).Select(g => new SyntaxNodeGrouping<T>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
