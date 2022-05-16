@@ -1362,9 +1362,35 @@ $$";
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_StillShowStaticClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"static class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClause_NotSealedClass()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : $$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_StillShowSealedClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"sealed class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : $$", @"Test");
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
@@ -1383,9 +1409,35 @@ $$";
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_StillShowStaticClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"static class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : A, $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClauseList_NotSealedClass()
         {
             await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_StillShowSealedClassWhenHaveInternalType()
+        {
+            await VerifyItemExistsAsync(
+@"sealed class Test
+{
+    public interface IInterface {}
+}
+
+class CL<T> where T : A, $$", @"Test");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
