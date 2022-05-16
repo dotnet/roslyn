@@ -405,7 +405,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Check return type.
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency)
-            
 
             If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type)) Then
                 Return useSiteInfo

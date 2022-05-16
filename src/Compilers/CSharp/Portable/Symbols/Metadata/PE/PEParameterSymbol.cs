@@ -1085,9 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     _ => throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol.Kind)
                 };
 
-                return DeriveCompilerFeatureRequiredDiagnostic(decoder) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature }
-                    ? true
-                    : base.HasUnsupportedMetadata;
+                return DeriveCompilerFeatureRequiredDiagnostic(decoder) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } || base.HasUnsupportedMetadata;
             }
         }
     }

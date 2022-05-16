@@ -279,7 +279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer)
                 End If
 
-                Return False
+                Return MyBase.HasUnsupportedMetadata
             End Get
         End Property
     End Class

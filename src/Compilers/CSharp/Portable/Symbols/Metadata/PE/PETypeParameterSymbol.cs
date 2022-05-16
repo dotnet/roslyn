@@ -718,9 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 MetadataDecoder decoder = ContainingSymbol is PEMethodSymbol method
                     ? new MetadataDecoder(containingModule, method)
                     : new MetadataDecoder(containingModule, (PENamedTypeSymbol)ContainingSymbol);
-                return DeriveCompilerFeatureRequiredDiagnostic(decoder)?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature
-                    ? true
-                    : base.HasUnsupportedMetadata;
+                return DeriveCompilerFeatureRequiredDiagnostic(decoder) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } || base.HasUnsupportedMetadata;
             }
         }
     }
