@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             else if (context.IsGenericConstraintContext)
             {
                 // Just filter valid symbols. Nothing to preselect
-                return recommendedSymbols.NamedSymbols.SelectAsArray(s => IsValidForGenericConstraintContext(s, context), s => (s, preselect: false));
+                return recommendedSymbols.NamedSymbols.SelectAsArray(IsValidForGenericConstraintContext, s => (s, preselect: false));
             }
             else
             {
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return symbol.IsAwaitableNonDynamic(context.SemanticModel, context.Position);
         }
 
-        private static bool IsValidForGenericConstraintContext(ISymbol symbol, TSyntaxContext context)
+        private static bool IsValidForGenericConstraintContext(ISymbol symbol)
         {
             if (symbol.IsNamespace() ||
                 symbol.IsKind(SymbolKind.TypeParameter))
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // However it can contain other valid constraint types and if this is true we should show it
             if (namedType.IsStatic || namedType.IsSealed)
             {
-                return context.SemanticModel.LookupSymbols(context.Position, namedType).Any(s => IsValidForGenericConstraintContext(s, context));
+                return namedType.GetTypeMembers().Any(IsValidForGenericConstraintContext);
             }
 
             return true;
