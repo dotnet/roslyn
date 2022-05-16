@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Get
                 Dim info = GetCompilerFeatureRequiredDiagnosticInfo()
                 If info IsNot Nothing Then
-                    Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer)
+                    Return info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer) OrElse MyBase.HasUnsupportedMetadata
                 End If
 
                 Return MyBase.HasUnsupportedMetadata

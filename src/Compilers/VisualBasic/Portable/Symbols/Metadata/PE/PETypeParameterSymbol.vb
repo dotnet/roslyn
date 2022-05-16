@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     New MetadataDecoder(containingModule, DirectCast(ContainingSymbol, PENamedTypeSymbol)))
                 Dim info As DiagnosticInfo = DeriveCompilerFeatureRequiredDiagnostic(decoder)
 
-                Return If(info IsNot Nothing AndAlso info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer), True, MyBase.HasUnsupportedMetadata)
+                Return info IsNot Nothing AndAlso info.Code = DirectCast(ERRID.ERR_UnsupportedCompilerFeature, Integer) OrElse MyBase.HasUnsupportedMetadata
             End Get
         End Property
 
