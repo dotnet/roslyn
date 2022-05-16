@@ -505,9 +505,10 @@ namespace Microsoft.CodeAnalysis
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
             {
-                var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                var documentOptionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, solutionOptions, c).ConfigureAwait(false);
-                return new DocumentOptionSet(documentOptionSet, Project.Language);
+                var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+                var options = await provider.GetOptionsAsync(DocumentState, c).ConfigureAwait(false);
+
+                return new DocumentOptionSet(options, solutionOptions, Project.Language);
             }, cacheResult: true);
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);

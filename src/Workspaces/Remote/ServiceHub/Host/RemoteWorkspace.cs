@@ -56,8 +56,6 @@ namespace Microsoft.CodeAnalysis.Remote
         internal RemoteWorkspace(HostServices hostServices, string? workspaceKind)
             : base(hostServices, workspaceKind)
         {
-            var exportProvider = (IMefHostExportProvider)Services.HostServices;
-            RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
 
         protected override void Dispose(bool finalize)
