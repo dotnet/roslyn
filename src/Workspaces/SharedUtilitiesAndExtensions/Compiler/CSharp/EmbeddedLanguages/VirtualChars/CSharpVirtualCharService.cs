@@ -78,7 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                 case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
-                    return TryConvertMultiLineRawStringToVirtualChars(token, (LiteralExpressionSyntax)token.GetRequiredParent(), tokenIncludeDelimiters: true);
+                    return token.GetRequiredParent() is LiteralExpressionSyntax literalExpression
+                        ? TryConvertMultiLineRawStringToVirtualChars(token, literalExpression, tokenIncludeDelimiters: true)
+                        : default;
 
                 case SyntaxKind.InterpolatedStringTextToken:
                     {

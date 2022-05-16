@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var recommendationOptions = options.ToRecommendationServiceOptions();
             var recommender = context.GetRequiredLanguageService<IRecommendationService>();
-            var recommendedSymbols = recommender.GetRecommendedSymbolsAtPosition(context.Document, context.SemanticModel, position, recommendationOptions, cancellationToken);
+            var recommendedSymbols = recommender.GetRecommendedSymbolsInContext(context, recommendationOptions, cancellationToken);
 
             if (context.IsInTaskLikeTypeContext)
             {

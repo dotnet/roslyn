@@ -15,18 +15,18 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal class DashboardViewModel : INotifyPropertyChanged, IDisposable
+    internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly InlineRenameSession _session;
 
-        private DashboardSeverity _severity = DashboardSeverity.None;
+        private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private string _searchText;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private string _errorText;
         private bool _isReplacementTextValid;
 
-        public DashboardViewModel(InlineRenameSession session)
+        public RenameDashboardViewModel(InlineRenameSession session)
         {
             _session = session;
             _searchText = EditorFeaturesResources.Searching;
@@ -141,21 +141,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_errorText != null ||
                 _unresolvableConflictCount > 0)
             {
-                _severity = DashboardSeverity.Error;
+                _severity = RenameDashboardSeverity.Error;
             }
             else if (_resolvableConflictCount > 0)
             {
-                _severity = DashboardSeverity.Info;
+                _severity = RenameDashboardSeverity.Info;
             }
             else
             {
-                _severity = DashboardSeverity.None;
+                _severity = RenameDashboardSeverity.None;
             }
         }
 
         public InlineRenameSession Session => _session;
 
-        public DashboardSeverity Severity => _severity;
+        public RenameDashboardSeverity Severity => _severity;
 
         public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
