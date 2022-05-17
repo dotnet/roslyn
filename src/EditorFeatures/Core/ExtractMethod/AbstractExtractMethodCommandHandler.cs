@@ -151,10 +151,18 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // apply the change to buffer
             // get method name token
-            ApplyChangesToBuffer(result, textBuffer, cleanupOptions, cancellationToken);
+            SyntaxToken methodNameAtInvocation;
+            using (var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method"))
+            {
+                // apply extract method code to buffer
+                (var formattedDocument, methodNameAtInvocation) = result.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).WaitAndGetResult(cancellationToken);
+                formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, cancellationToken);
+
+                // apply changes
+                undoTransaction.Complete();
+            }
 
             // start inline rename
-            var methodNameAtInvocation = result.InvocationNameToken;
             var snapshotAfterFormatting = textBuffer.CurrentSnapshot;
             var documentAfterFormatting = snapshotAfterFormatting.GetOpenDocumentInCurrentContextWithChanges();
             _renameService.StartInlineSession(documentAfterFormatting, methodNameAtInvocation.Span, cancellationToken);
@@ -243,21 +251,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Applies an ExtractMethodResult to the editor.
-        /// </summary>
-        private void ApplyChangesToBuffer(ExtractMethodResult extractMethodResult, ITextBuffer subjectBuffer, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
-        {
-            using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
-
-            // apply extract method code to buffer
-            var (document, _) = extractMethodResult.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).WaitAndGetResult(cancellationToken);
-            document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
-
-            // apply changes
-            undoTransaction.Complete();
         }
     }
 }
