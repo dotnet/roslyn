@@ -1557,17 +1557,24 @@ next:;
                 var obsoleteData = ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
 
-                // If user specified an Obsolete attribute, we cannot emit ours.
-                // NB: we do not check the kind of deprecation. 
-                //     we will not emit Obsolete even if Deprecated or Experimental was used.
-                //     we do not want to get into a scenario where different kinds of deprecation are combined together.
-                //
-                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
+                if (!this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
-                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
-                        ImmutableArray.Create(
-                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
-                            new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                    // If user specified an Obsolete attribute, we cannot emit ours.
+                    // NB: we do not check the kind of deprecation. 
+                    //     we will not emit Obsolete even if Deprecated or Experimental was used.
+                    //     we do not want to get into a scenario where different kinds of deprecation are combined together.
+                    //
+                    if (obsoleteData == null)
+                    {
+                        AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                            ImmutableArray.Create(
+                                new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker), // message
+                                new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)), // error=true
+                            isOptionalUse: true));
+                    }
+
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                        ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RefStructs))),
                         isOptionalUse: true));
                 }
             }
