@@ -28,6 +28,36 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
             Assert.Equal(-1, reader.Read());
         }
 
+        [Theory]
+        [InlineData(5, 0, 5, "bcdef", 5, 'g')]
+        [InlineData(5, 0, 2, "bc\0\0\0", 2, 'd')]
+        [InlineData(10, 1, 6, "\0bcdefg\0\0\0", 6, 'h')]
+        [InlineData(10, 1, 7, "\0bcdefgh\0\0", 7, -1)]
+        [InlineData(10, 1, 9, "\0bcdefgh\0\0", 7, -1)]
+        [InlineData(10, 3, 7, "\0\0\0bcdefgh", 7, -1)]
+        [InlineData(10, 3, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
+        [InlineData(10, 10, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
+        [InlineData(0, 0, 0, "", 0, 'b')]
+        public void ReadToArray(int bufferLength, int index, int count, string expected, int expectedResult, int expectedPeek)
+        {
+            TestWithMethod(reader => reader.Read);
+            TestWithMethod(reader => reader.ReadBlock);
+
+            void TestWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
+            {
+                using var _ = CreateReader("abcdefgh", out var reader);
+                var readMethod = readMethodAccessor(reader);
+
+                Assert.Equal('a', reader.Read());
+
+                var buffer = new char[bufferLength];
+                Assert.Equal(expectedResult, readMethod(buffer, index, count));
+                Assert.Equal(expected, new string(buffer));
+
+                Assert.Equal(expectedPeek, reader.Peek());
+            }
+        }
+
         [Fact]
         public void ReadToArrayErrors()
         {
