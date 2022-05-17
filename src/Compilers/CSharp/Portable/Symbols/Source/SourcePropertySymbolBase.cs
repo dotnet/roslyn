@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties. Consider also the BackingField?.GetAttributes() call in GetAttributesBag. Should it handle FieldKeywordBackingField? Add a test.
                 return _getMethod?.BodyShouldBeSynthesized == true ||
                     _setMethod?.BodyShouldBeSynthesized == true;
             }
