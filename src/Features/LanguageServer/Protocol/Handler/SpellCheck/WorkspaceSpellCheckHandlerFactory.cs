@@ -3,22 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentSpellCheckHandler)), Shared]
-    internal class DocumentSpellCheckHandlerProvider : IRequestHandlerProvider
+    [ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceSpellCheckHandler)), Shared]
+    internal class WorkspaceSpellCheckHandlerFactory : ILspServiceFactory
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentSpellCheckHandlerProvider()
+        public WorkspaceSpellCheckHandlerFactory()
         {
         }
 
-        public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-            => ImmutableArray.Create<IRequestHandler>(new DocumentSpellCheckHandler());
+        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+            => new WorkspaceSpellCheckHandler();
     }
 }

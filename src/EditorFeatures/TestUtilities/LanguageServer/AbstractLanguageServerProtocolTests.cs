@@ -556,25 +556,18 @@ namespace Roslyn.Test.Utilities
 
             private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
-                var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-                var lspWorkspaceRegistrationService = workspace.ExportProvider.GetExportedValue<LspWorkspaceRegistrationService>();
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
+                var servicesProvider = workspace.ExportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
 
                 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, CreateJsonMessageFormatter()))
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
-                var globalOptions = workspace.GetService<IGlobalOptionService>();
-
                 var languageServer = new LanguageServerTarget(
-                    dispatcherFactory,
-                    jsonRpc,
+                    servicesProvider, jsonRpc,
                     capabilitiesProvider,
-                    lspWorkspaceRegistrationService,
-                    new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
-                    globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     ProtocolConstants.RoslynLspLanguages,
@@ -667,13 +660,15 @@ namespace Roslyn.Test.Utilities
 
             internal RequestExecutionQueue.TestAccessor GetQueueAccessor() => _languageServer.GetTestAccessor().GetQueueAccessor();
 
-            internal RequestDispatcher.TestAccessor GetDispatcherAccessor() => _languageServer.GetTestAccessor().GetDispatcherAccessor();
+            internal LspWorkspaceManager.TestAccessor GetManagerAccessor() => GetRequiredLspService<LspWorkspaceManager>().GetTestAccessor();
 
-            internal LspWorkspaceManager.TestAccessor GetManagerAccessor() => _languageServer.GetTestAccessor().GetManagerAccessor();
-
-            internal LspWorkspaceManager GetManager() => _languageServer.GetTestAccessor().GetQueueAccessor().GetLspWorkspaceManager();
+            internal LspWorkspaceManager GetManager() => GetRequiredLspService<LspWorkspaceManager>();
 
             internal LanguageServerTarget.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
+
+            internal T GetRequiredLspService<T>() where T : class, ILspService => _languageServer.GetTestAccessor().GetRequiredLspService<T>();
+
+            internal ImmutableArray<SourceText> GetTrackedTexts() => GetManager().GetTrackedLspText().Values.ToImmutableArray();
 
             public void Dispose()
             {
