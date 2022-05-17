@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         [Fact]
         public void PeakRead()
         {
-            using var _ = CreateFromText("text", out var reader);
+            using var _ = CreateReader("text", out var reader);
             Assert.Equal('t', reader.Read());
             Assert.Equal('e', reader.Peek());
             Assert.Equal('e', reader.Read());
@@ -43,12 +43,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         [InlineData(0, 0, 0, "", 0, 'b')]
         public void ReadToArray(int bufferLength, int index, int count, string expected, int expectedResult, int expectedPeek)
         {
-            testWithMethod(reader => reader.Read);
-            testWithMethod(reader => reader.ReadBlock);
+            TestWithMethod(reader => reader.Read);
+            TestWithMethod(reader => reader.ReadBlock);
 
-            void testWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
+            void TestWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
             {
-                using var _ = CreateFromText("abcdefgh", out var reader);
+                using var _ = CreateReader("abcdefgh", out var reader);
                 var readMethod = readMethodAccessor(reader);
 
                 Assert.Equal('a', reader.Read());
@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         [InlineData(0, "", 0, 'b')]
         public void ReadToSpan(int bufferLength, string expected, int expectedResult, int expectedPeek)
         {
-            testWithMethod(reader => reader.Read);
-            testWithMethod(reader => reader.ReadBlock);
+            TestWithMethod(reader => reader.Read);
+            TestWithMethod(reader => reader.ReadBlock);
 
-            void testWithMethod(Func<TextReader, ReadToSpanDelegate> readMethodAccessor)
+            void TestWithMethod(Func<TextReader, ReadToSpanDelegate> readMethodAccessor)
             {
-                using var _ = CreateFromText("abcdefgh", out var reader);
+                using var _ = CreateReader("abcdefgh", out var reader);
                 var readMethod = readMethodAccessor(reader);
 
                 Assert.Equal('a', reader.Read());
@@ -91,12 +91,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         [Fact]
         public void ReadToArrayErrors()
         {
-            testWithMethod(reader => reader.Read);
-            testWithMethod(reader => reader.ReadBlock);
+            TestWithMethod(reader => reader.Read);
+            TestWithMethod(reader => reader.ReadBlock);
 
-            void testWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
+            void TestWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
             {
-                using var _ = CreateFromText("abcdefgh", out var reader);
+                using var _ = CreateReader("abcdefgh", out var reader);
                 var readMethod = readMethodAccessor(reader);
 
                 var buffer = new char[3];
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         [Fact]
         public void ReadToEnd()
         {
-            using (CreateFromText("text", out var reader1))
+            using (CreateReader("text", out var reader1))
             {
                 Assert.Equal("text", reader1.ReadToEnd());
                 Assert.Equal(-1, reader1.Peek());
                 Assert.Equal("", reader1.ReadToEnd());
             }
 
-            using (CreateFromText("text", out var reader2))
+            using (CreateReader("text", out var reader2))
             {
                 Assert.Equal('t', reader2.Read());
                 Assert.Equal("ext", reader2.ReadToEnd());
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
             }
         }
 
-        private static unsafe Disposer CreateFromText(string text, out TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader reader)
+        private static unsafe Disposer CreateReader(string text, out TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader reader)
         {
             var pointer = Marshal.AllocHGlobal(text.Length * sizeof(char));
             text.AsSpan().CopyTo(new Span<char>((char*)pointer, text.Length));
