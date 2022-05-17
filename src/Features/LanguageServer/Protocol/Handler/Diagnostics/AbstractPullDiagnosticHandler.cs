@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int DocumentDiagnosticIdentifier = 2;
 
         private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
-        private readonly IGlobalOptionService _globalOptions;
+        protected readonly IGlobalOptionService GlobalOptions;
 
-        protected readonly IDiagnosticService DiagnosticService;
+        protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService;
 
         /// <summary>
         /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
@@ -63,13 +63,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
-            IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService diagnosticAnalyzerService,
             EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
             IGlobalOptionService globalOptions)
         {
-            DiagnosticService = diagnosticService;
+            DiagnosticAnalyzerService = diagnosticAnalyzerService;
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
-            _globalOptions = globalOptions;
+            GlobalOptions = globalOptions;
             _versionedCache = new(this.GetType().Name);
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 
-            var diagnosticMode = _globalOptions.GetDiagnosticMode(diagnosticModeOption);
+            var diagnosticMode = GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
             var isPull = diagnosticMode == DiagnosticMode.Pull;
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
