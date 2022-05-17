@@ -2464,5 +2464,63 @@ partial class C
                 CodeActionIndex = 1
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        [WorkItem(60816, "https://github.com/dotnet/roslyn/issues/60816")]
+        public async Task TestAddMultipleParametersWithWrapping()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"namespace M
+{
+    public class C
+    {
+        public int original { get; }
+
+        public int original2 { get; }
+
+        [|public int a1 { get; }
+
+        public int a2 { get; }|]
+
+        public C(
+            int original,
+            int original2)
+        {
+            this.original = original;
+            this.original2 = original2;
+        }
+    }
+}",
+                FixedCode =
+@"namespace M
+{
+    public class C
+    {
+        public int original { get; }
+
+        public int original2 { get; }
+
+        public int a1 { get; }
+
+        public int a2 { get; }
+
+        public C(
+            int original,
+            int original2,
+            int a1,
+            int a2)
+        {
+            this.original = original;
+            this.original2 = original2;
+            this.a1 = a1;
+            this.a2 = a2;
+        }
+    }
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "C(int, int)"), codeAction.Title)
+            }.RunAsync();
+        }
     }
 }

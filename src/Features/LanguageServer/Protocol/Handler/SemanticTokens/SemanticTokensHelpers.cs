@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             return classifiedSpans.ToArray();
         }
 
-        private static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
+        public static ClassifiedSpan[] ConvertMultiLineToSingleLineSpans(SourceText text, ClassifiedSpan[] classifiedSpans)
         {
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var updatedClassifiedSpans);
 

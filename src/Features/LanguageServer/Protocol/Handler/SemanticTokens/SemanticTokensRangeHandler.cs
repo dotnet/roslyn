@@ -22,18 +22,16 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
-    /// <summary>
-    /// Computes the semantic tokens for a given range.
-    /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(SemanticTokensRangeHandler)), Shared]
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
+    internal class SemanticTokensRangeHandler : IRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>, IDisposable
     {
         private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        private readonly CancellationTokenSource _disposalTokenSource;
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         #region Semantic Tokens Refresh state
 
@@ -55,36 +53,46 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
-        // initialized when first request comes in.
-
-        /// <summary>
-        /// Initially null.  Set to true/false when first initialized.  The other following fields will be set if this
-        /// is true.
-        /// </summary>
-        private bool? _supportsRefresh;
-
         /// <summary>
         /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
+        /// 
+        /// Null when the client does not support sending refresh notifications.
         /// </summary>
-        private AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
+        private readonly AsyncBatchingWorkQueue? _semanticTokenRefreshQueue;
 
         #endregion
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SemanticTokensRangeHandler(
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService)
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            ILanguageServerNotificationManager notificationManager,
+            ClientCapabilities clientCapabilities)
         {
             _globalOptions = globalOptions;
             _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
 
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-            _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+
+            _disposalTokenSource = new();
+
+            if (clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
+            {
+                // Only send a refresh notification to the client every 0.5s (if needed) in order to avoid
+                // sending too many notifications at once.  This ensures we batch up workspace notifications,
+                // but also means we send soon enough after a compilation-computation to not make the user wait
+                // an enormous amount of time.
+                _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
+                    delay: TimeSpan.FromMilliseconds(500),
+                    processBatchAsync: c => notificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, c),
+                    asyncListener: _asyncListener,
+                    _disposalTokenSource.Token);
+
+                _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
+            }
         }
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
         {
             Contract.ThrowIfNull(request.TextDocument);
             return request.TextDocument;
@@ -103,35 +111,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             foreach (var eventSource in eventSources)
                 eventSource.Dispose();
-        }
 
-        /// <summary>
-        /// Returns true/false if refresh is supported for semantic tokens.
-        /// </summary>
-        private bool InitializeIfFirstRequest(RequestContext context)
-        {
-            lock (_gate)
-            {
-                if (_supportsRefresh == null)
-                {
-                    _supportsRefresh = context.ClientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true;
-
-                    if (_supportsRefresh.Value)
-                    {
-                        // Only send a refresh notification to the client every 0.5s (if needed) in order to avoid
-                        // sending too many notifications at once.  This ensures we batch up workspace notifications,
-                        // but also means we send soon enough after a compilation-computation to not make the user wait
-                        // an enormous amount of time.
-                        _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue(
-                            delay: TimeSpan.FromMilliseconds(500),
-                            processBatchAsync: c => context.NotificationManager.SendNotificationAsync(Methods.WorkspaceSemanticTokensRefreshName, c),
-                            asyncListener: _asyncListener,
-                            context.QueueCancellationToken);
-                    }
-                }
-
-                return _supportsRefresh.Value;
-            }
+            _disposalTokenSource.Cancel();
+            _disposalTokenSource.Dispose();
         }
 
         private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
@@ -139,21 +121,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         private void EnqueueSemanticTokenRefreshNotification()
         {
-            // We should only get here if refresh was enabled, which only happens in a codepath that ensured the queue
-            // was instantiated.
+            // We should have only gotten here if semantic tokens refresh is supported.
             Contract.ThrowIfNull(_semanticTokenRefreshQueue);
             _semanticTokenRefreshQueue.AddWork();
         }
 
-        public override async Task<LSP.SemanticTokens> HandleRequestAsync(
+        public async Task<LSP.SemanticTokens> HandleRequestAsync(
             SemanticTokensRangeParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
-            // If this is the first time getting a request, initialize our state with information about the
-            // server/manager we're owned by.
-            var supportsRefresh = InitializeIfFirstRequest(context);
-
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
@@ -179,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             // off a request to ensure that the OOP side gets a fully up to compilation for this project.  Once it does
             // we can optionally choose to notify our caller to do a refresh if we computed a compilation for a new
             // solution snapshot.
-            if (supportsRefresh)
+            if (_semanticTokenRefreshQueue != null)
                 await TryEnqueueRefreshComputationAsync(project, cancellationToken).ConfigureAwait(false);
 
             return new LSP.SemanticTokens { Data = tokensData };
