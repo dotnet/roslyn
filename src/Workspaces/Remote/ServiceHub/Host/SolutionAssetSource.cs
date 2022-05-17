@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _client = client;
         }
 
-        public async ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(int scopeId, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
+        public async ValueTask<ImmutableArray<(Checksum, object)>> GetAssetsAsync(Checksum solutionChecksum, ISet<Checksum> checksums, ISerializerService serializerService, CancellationToken cancellationToken)
         {
             // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
             await TaskScheduler.Default;
@@ -32,21 +32,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(provider.Proxy);
 
             return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
-                (proxy, pipeWriter, cancellationToken) => proxy.GetAssetsAsync(pipeWriter, scopeId, checksums.ToArray(), cancellationToken),
-                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, scopeId, checksums, serializerService, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask<bool> IsExperimentEnabledAsync(string experimentName, CancellationToken cancellationToken)
-        {
-            // Make sure we are on the thread pool to avoid UI thread dependencies if external code uses ConfigureAwait(true)
-            await TaskScheduler.Default;
-
-            using var provider = await _client.GetProxyAsync<ISolutionAssetProvider>(SolutionAssetProvider.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(provider.Proxy);
-
-            return await new RemoteCallback<ISolutionAssetProvider>(provider.Proxy).InvokeAsync(
-                (self, cancellationToken) => provider.Proxy.IsExperimentEnabledAsync(experimentName, cancellationToken),
+                (proxy, pipeWriter, cancellationToken) => proxy.GetAssetsAsync(pipeWriter, solutionChecksum, checksums.ToArray(), cancellationToken),
+                (pipeReader, cancellationToken) => RemoteHostAssetSerialization.ReadDataAsync(pipeReader, solutionChecksum, checksums, serializerService, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
         }
     }

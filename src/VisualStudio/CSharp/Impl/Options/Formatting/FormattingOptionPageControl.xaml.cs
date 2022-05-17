@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using System.Runtime.CompilerServices;
@@ -33,11 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             FormatOnReturnCheckBox.Content = CSharpVSResources.Automatically_format_on_return;
             FormatOnPasteCheckBox.Content = CSharpVSResources.Automatically_format_on_paste;
 
-            BindToOption(FormatWhenTypingCheckBox, FormattingOptions2.AutoFormattingOnTyping, LanguageNames.CSharp);
-            BindToOption(FormatOnCloseBraceCheckBox, BraceCompletionOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp);
-            BindToOption(FormatOnSemicolonCheckBox, FormattingOptions2.AutoFormattingOnSemicolon, LanguageNames.CSharp);
-            BindToOption(FormatOnReturnCheckBox, FormattingOptions2.AutoFormattingOnReturn, LanguageNames.CSharp);
-            BindToOption(FormatOnPasteCheckBox, FormattingOptions2.FormatOnPaste, LanguageNames.CSharp);
+            BindToOption(FormatWhenTypingCheckBox, AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp);
+            BindToOption(FormatOnCloseBraceCheckBox, AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp);
+            BindToOption(FormatOnSemicolonCheckBox, AutoFormattingOptionsStorage.FormatOnSemicolon, LanguageNames.CSharp);
+            BindToOption(FormatOnReturnCheckBox, AutoFormattingOptionsStorage.FormatOnReturn, LanguageNames.CSharp);
+            BindToOption(FormatOnPasteCheckBox, FormattingOptionsMetadata.FormatOnPaste, LanguageNames.CSharp);
         }
     }
 }

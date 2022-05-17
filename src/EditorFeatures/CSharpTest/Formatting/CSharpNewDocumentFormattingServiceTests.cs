@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -35,8 +36,7 @@ namespace Goo;
 
 internal class C
 {
-}
-",
+}",
             options: new[]
             {
                 (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
@@ -172,6 +172,30 @@ namespace Goo
         }
 
         [Fact]
+        public async Task TestAccessibilityModifiers_FileScopedNamespace()
+        {
+            await TestAsync(testCode: @"using System;
+
+namespace Goo
+{
+    class C
+    {
+    }
+}",
+            expected: @"using System;
+
+namespace Goo;
+internal class C
+{
+}",
+            options: new (OptionKey, object)[]
+            {
+                (new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations), new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error)),
+                (new OptionKey(CodeStyleOptions2.RequireAccessibilityModifiers, Language), new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+            });
+        }
+
+        [Fact]
         [WorkItem(55703, "https://github.com/dotnet/roslyn/issues/55703")]
         public async Task TestAccessibilityModifiers_IgnoresPartial()
         {
@@ -229,6 +253,45 @@ namespace Goo
             options: new[]
             {
                 (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error))
+            });
+        }
+
+        [Fact]
+        public async Task TestPreferTopLevelStatements()
+        {
+            await TestAsync(testCode: @"using System;
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");",
+            expected: @"using System;
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");",
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion))
+            });
+        }
+
+        [Fact]
+        public async Task TestPreferProgramMain()
+        {
+            await TestAsync(testCode: @"using System;
+
+// See https://aka.ms/new-console-template for more information
+Console.WriteLine(""Hello, World!"");",
+            expected: @"using System;
+
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.WriteLine(""Hello, World!"");
+    }
+}",
+            options: new[]
+            {
+                (CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Suggestion))
             });
         }
     }

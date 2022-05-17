@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         private readonly ISymbol? _selectedMember;
         private readonly INamedTypeSymbol _selectedType;
         private readonly IMoveStaticMembersOptionsService _service;
+        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
         public TextSpan Span { get; }
         public override string Title => FeaturesResources.Move_static_members_to_another_type;
@@ -37,11 +38,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             TextSpan span,
             IMoveStaticMembersOptionsService service,
             INamedTypeSymbol selectedType,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             ISymbol? selectedMember = null)
         {
             _document = document;
             _service = service;
             _selectedType = selectedType;
+            _fallbackOptions = fallbackOptions;
             _selectedMember = selectedMember;
             Span = span;
         }
@@ -59,6 +62,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             }
 
             // Find the original doc root
+            var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             // add annotations to the symbols that we selected so we can find them later to pull up
@@ -97,13 +101,13 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 .Where(i => typeParameters.Contains(_selectedType.TypeParameters[i]))
                 .ToImmutableArrayOrEmpty();
 
-            // even though we can move members here, we will move them later because of refactoring
+            // even though we can move members here, we will move them by calling PullMembersUp
             var newType = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
                 ImmutableArray.Create<AttributeData>(),
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
                 GetNewTypeKind(_selectedType),
-                moveOptions.TypeName!,
+                moveOptions.TypeName,
                 typeParameters: typeParameters);
 
             var (newDoc, annotation) = await ExtractTypeHelpers.AddTypeToNewFileAsync(
@@ -114,6 +118,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 _document.Folders,
                 newType,
                 _document,
+                _fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // get back type declaration in the newly created file
@@ -121,15 +126,23 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             var destSemanticModel = await newDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             newType = (INamedTypeSymbol)destSemanticModel.GetRequiredDeclaredSymbol(destRoot.GetAnnotatedNodes(annotation).Single(), cancellationToken);
 
-            var movedSolution = await RefactorAndMoveAsync(
-                moveOptions.SelectedMembers,
-                memberNodes,
-                newDoc.Project.Solution,
-                newType,
-                typeArgIndices,
-                sourceDoc.Id,
-                newDoc.Id,
-                cancellationToken).ConfigureAwait(false);
+            // refactor references across the entire solution
+            var memberReferenceLocations = await FindMemberReferencesAsync(moveOptions.SelectedMembers, newDoc.Project.Solution, cancellationToken).ConfigureAwait(false);
+            var projectToLocations = memberReferenceLocations.ToLookup(loc => loc.location.Document.Project.Id);
+            var solutionWithFixedReferences = await RefactorReferencesAsync(projectToLocations, newDoc.Project.Solution, newType, typeArgIndices, cancellationToken).ConfigureAwait(false);
+
+            sourceDoc = solutionWithFixedReferences.GetRequiredDocument(sourceDoc.Id);
+
+            // get back nodes from our changes
+            root = await sourceDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await sourceDoc.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var members = memberNodes
+                .Select(node => root.GetCurrentNode(node))
+                .WhereNotNull()
+                .SelectAsArray(node => (semanticModel.GetDeclaredSymbol(node, cancellationToken), false));
+
+            var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
+            var movedSolution = await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             return new CodeActionOperation[] { new ApplyChangesOperation(movedSolution) };
         }
@@ -155,7 +168,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
         /// <param name="typeArgIndices">generic type arg indices to keep when refactoring generic class access to the new type. Empty if not relevant</param>
         /// <param name="sourceDocId">Id of the document where the mebers are being moved from</param>
         /// <returns>The solution with references refactored and members moved to the newType</returns>
-        private static async Task<Solution> RefactorAndMoveAsync(
+        private async Task<Solution> RefactorAndMoveAsync(
             ImmutableArray<ISymbol> selectedMembers,
             ImmutableArray<SyntaxNode> oldMemberNodes,
             Solution oldSolution,
@@ -195,7 +208,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             newType = (INamedTypeSymbol)newTypeSemanticModel.GetRequiredDeclaredSymbol(newTypeRoot.GetCurrentNode(newTypeNode)!, cancellationToken);
 
             var pullMembersUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, members);
-            return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, cancellationToken).ConfigureAwait(false);
+            return await MembersPuller.PullMembersUpAsync(sourceDoc, pullMembersUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Solution> RefactorReferencesAsync(
@@ -263,11 +276,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                     // extension methods should be changed into their static class versions with
                     // full qualifications, then the qualification changed to the new type
                     if (syntaxFacts.IsNameOfAnyMemberAccessExpression(refNode) &&
-                        syntaxFacts.IsAnyMemberAccessExpression(refNode?.Parent) &&
-                        syntaxFacts.IsInvocationExpression(refNode.Parent?.Parent))
+                        syntaxFacts.IsMemberAccessExpression(refNode.Parent) &&
+                        syntaxFacts.IsInvocationExpression(refNode.Parent.Parent))
                     {
                         // get the entire expression, guaranteed not null based on earlier checks
-                        var extensionMethodInvocation = refNode.GetRequiredParent().GetRequiredParent();
+                        var extensionMethodInvocation = refNode.Parent.Parent;
                         // expand using our (possibly outdated) document/syntaxes
                         var expandedExtensionInvocation = await Simplifier.ExpandAsync(
                             extensionMethodInvocation,
@@ -288,7 +301,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 {
                     // static member access should never be pointer or conditional member access,
                     // so syntax in this block should be of the form 'Class.Member' or 'Class<TArg>.Member'
-                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.Parent);
+                    var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(refNode.GetRequiredParent());
                     if (expression != null)
                     {
                         SyntaxNode replacement;

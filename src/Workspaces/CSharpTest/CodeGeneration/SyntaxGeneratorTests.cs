@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -922,6 +924,10 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
                 "bool operator >>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
             VerifySyntax<OperatorDeclarationSyntax>(
+                Generator.OperatorDeclaration(OperatorKind.UnsignedRightShift, parameters, returnType),
+                "bool operator >>>(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
+
+            VerifySyntax<OperatorDeclarationSyntax>(
                 Generator.OperatorDeclaration(OperatorKind.Subtraction, parameters, returnType),
                 "bool operator -(global::System.Int32 p0, global::System.String p1)\r\n{\r\n}");
 
@@ -1586,6 +1592,14 @@ public interface IFace
                     Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
                     Generator.Attribute("a")),
                 "[assembly: a]\r\nnamespace n\r\n{\r\n}");
+
+            VerifySyntax<CompilationUnitSyntax>(
+                Generator.AddAttributes(
+                    Generator.AddAttributes(
+                        Generator.CompilationUnit(Generator.NamespaceDeclaration("n")),
+                        Generator.Attribute("a")),
+                    Generator.Attribute("b")),
+                "[assembly: a]\r\n[assembly: b]\r\nnamespace n\r\n{\r\n}");
         }
 
         [Fact]
@@ -3536,7 +3550,7 @@ public class C : IDisposable
             var newDecl = Generator.AddInterfaceType(decl, Generator.IdentifierName("IDisposable"));
             var newRoot = root.ReplaceNode(decl, newDecl);
 
-            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace).ToFullString();
+            var elasticOnlyFormatted = Formatter.Format(newRoot, SyntaxAnnotation.ElasticAnnotation, _workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ToFullString();
             Assert.Equal(expected, elasticOnlyFormatted);
         }
 

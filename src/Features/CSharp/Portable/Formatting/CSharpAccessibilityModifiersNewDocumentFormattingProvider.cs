@@ -8,7 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddAccessibilityModifiers;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
-        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CancellationToken cancellationToken)
+        public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, document.Project.Language);
@@ -38,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Formatting
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var typeDeclarations = root.DescendantNodes().Where(node => syntaxFacts.IsTypeDeclaration(node));
-            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var editor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
 
             var service = document.GetRequiredLanguageService<IAddAccessibilityModifiersService>();
 
             foreach (var declaration in typeDeclarations)
             {
-                if (!service.ShouldUpdateAccessibilityModifier(syntaxFacts, declaration, accessibilityPreferences.Value, out _))
+                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences.Value, out _))
                     continue;
 
                 // Since we format each document as they are added to a project we can't assume we know about all
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 // When we see File1, we don't know about File2, so would add an internal modifier, which would result in a compile
                 // error.
                 var modifiers = syntaxFacts.GetModifiers(declaration);
-                syntaxFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
+                CSharpAccessibilityFacts.GetAccessibilityAndModifiers(modifiers, out _, out var declarationModifiers, out _);
                 if (declarationModifiers.IsPartial)
                     continue;
 

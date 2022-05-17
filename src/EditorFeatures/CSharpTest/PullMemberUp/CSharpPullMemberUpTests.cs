@@ -6,8 +6,10 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -17,6 +19,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -31,10 +35,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 
         private async Task TestQuickActionNotProvidedAsync(
             string initialMarkup,
-            TestParameters parameters = default)
+            TestParameters parameters = null)
         {
-            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
-            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            var service = new TestPullMemberUpService(null, null);
+            var parametersValue = (parameters ?? TestParameters.Default).WithFixProviderData(service);
+
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parametersValue);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parametersValue);
             if (actions.Length == 1)
             {
                 // The dialog shows up, not quick action
@@ -48,6 +55,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             {
                 Assert.True(true);
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestNoRefactoringProvidedWhenNoOptionsService()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+    }
+
+    public class TestClass : IInterface
+    {
+        public void TestM[||]ethod()
+        {
+            System.Console.WriteLine(""Hello World"");
+        }
+    }
+}";
+            await TestActionCountAsync(testText, 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -188,7 +217,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -220,7 +249,7 @@ namespace PushUpTest
         public abstract void TestMethod();
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -258,7 +287,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -312,7 +341,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -346,7 +375,7 @@ namespace PushUpTest
         public event EventHandler Event1, Event2, Event3;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -400,7 +429,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -434,7 +463,7 @@ namespace PushUpTest
         public int TestProperty { get; private set; }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -468,7 +497,7 @@ namespace PushUpTest
         public int TestProperty{ private get; set; }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -501,7 +530,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -542,7 +571,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -583,7 +612,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -631,7 +660,7 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -687,7 +716,7 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -741,7 +770,7 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -797,7 +826,7 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -865,7 +894,7 @@ public class Derived : IBase
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -911,7 +940,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -955,7 +984,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1004,7 +1033,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1066,7 +1095,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1118,7 +1147,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1190,7 +1219,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1258,7 +1287,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1318,7 +1347,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1373,7 +1402,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1425,7 +1454,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1477,7 +1506,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1536,7 +1565,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1596,7 +1625,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1674,7 +1703,7 @@ namespace A_TestNs2
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1751,7 +1780,7 @@ namespace A_TestNs2
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1841,7 +1870,7 @@ namespace TestNs2
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1956,7 +1985,7 @@ namespace TestNs4
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2017,7 +2046,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2075,7 +2104,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2131,7 +2160,7 @@ namespace TestNs2
     }
 }
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2216,7 +2245,7 @@ namespace TestNs2
     }
 }
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2278,7 +2307,7 @@ namespace X.Y
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2334,7 +2363,7 @@ class Other
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2395,7 +2424,7 @@ namespace X.Y
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2456,7 +2485,7 @@ namespace TestNs2
     }
 }
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2520,7 +2549,7 @@ namespace TestNs2
     }
 }
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2590,7 +2619,7 @@ namespace ClassLibrary1
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2662,7 +2691,7 @@ namespace ClassLibrary1
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2714,7 +2743,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2768,7 +2797,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2824,7 +2853,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2890,7 +2919,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2936,7 +2965,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2982,7 +3011,7 @@ public class Derived : Base
     </Project>
 </Workspace>
 ";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3124,7 +3153,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3155,7 +3184,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3192,7 +3221,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3224,7 +3253,7 @@ namespace PushUpTest
         public int you, someone = 10086;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3255,7 +3284,7 @@ namespace PushUpTest
         public int you, someone = 10086;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3290,7 +3319,7 @@ namespace PushUpTest
         private static event EventHandler Event1, Event4;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3324,7 +3353,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3378,7 +3407,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3411,7 +3440,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3452,7 +3481,7 @@ namespace PushUpTest
         private int j;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3512,7 +3541,7 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3574,7 +3603,7 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3628,7 +3657,7 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -3822,6 +3851,417 @@ public class TestClass : VBInterface
             await TestQuickActionNotProvidedAsync(input);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+        public Uri En[||]dpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(
+                testText,
+                expected,
+                options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+        public Goo Ge[||]tGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using N2;
+using System;
+
+namespace N1
+{
+    public class Base
+    {
+        public Goo GetGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(
+                testText,
+                expected,
+                options: new(GetLanguage())
+                {
+                    { GenerationOptions.PlaceSystemNamespaceFirst, false },
+                });
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassWithDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void H[||]ello() { }
+    #region Hello
+    public void Goo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Hello() { }
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void Goo() { }
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective1()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int ba[||]r = 10;
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int bar = 10;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+    #region Hello
+    public int Go[||]o = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int G[||]oo = 100, Hoo;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 100;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Hoo;
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullEventToClassBeforeDirective()
+        {
+            var text = @"
+using System;
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public event EventHandler e[||]1;
+    #endregion
+}";
+            var expected = @"
+using System;
+public class BaseClass
+{
+    public event EventHandler e1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullPropertyToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Go[||]o => 1;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo => 1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
         #endregion Quick Action
 
         #region Dialog
@@ -3832,14 +4272,14 @@ public class TestClass : VBInterface
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            TestParameters parameters = default)
+            TestParameters parameters = null,
+            OptionsCollection options = null)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index,
-                parameters.WithFixProviderData(service));
+                (parameters ?? TestParameters.Default).WithFixProviderData(service).WithOptions(options).WithIndex(index));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -4798,7 +5238,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -4846,7 +5286,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -4917,7 +5357,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -4961,7 +5401,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5006,7 +5446,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5208,7 +5648,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5260,7 +5700,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5296,7 +5736,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5332,7 +5772,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5370,7 +5810,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5412,7 +5852,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -5454,7 +5894,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         #endregion

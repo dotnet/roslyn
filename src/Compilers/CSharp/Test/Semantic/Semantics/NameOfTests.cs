@@ -267,7 +267,7 @@ class Test<T>
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "Something").WithArguments("object", "Something").WithLocation(24, 27),
                 // (25,28): error CS0400: The type or namespace name 'Something' could not be found in the global namespace (are you missing an assembly reference?)
                 //         s = nameof(global::Something);
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "Something").WithArguments("Something", "<global namespace>").WithLocation(25, 28),
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "Something").WithArguments("Something").WithLocation(25, 28),
                 // (26,20): error CS0432: Alias 'global2' not found
                 //         s = nameof(global2::Something);
                 Diagnostic(ErrorCode.ERR_AliasNotFound, "global2").WithArguments("global2").WithLocation(26, 20),
@@ -1465,9 +1465,6 @@ class Program
                 // (4,34): error CS8081: Expression does not have a name.
                 //     static string F1() => nameof(typeof(int));
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
-                // (5,34): warning CS8959: Type 'nint' cannot be used in this context because it cannot be represented in metadata.
-                //     static string F2() => nameof(typeof(nint));
-                Diagnostic(ErrorCode.WRN_AttrDependentTypeNotAllowed, "typeof(nint)").WithArguments("nint").WithLocation(5, 34),
                 // (5,34): error CS8081: Expression does not have a name.
                 //     static string F2() => nameof(typeof(nint));
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(nint)").WithLocation(5, 34),

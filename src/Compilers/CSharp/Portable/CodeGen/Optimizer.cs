@@ -874,6 +874,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         break;
 
                     case ExprContext.Sideeffects:
+                        if (node.LocalSymbol.RefKind != RefKind.None)
+                        {
+                            // Reading from a ref has a side effect since the read
+                            // may result in a NullReferenceException.
+                            RecordVarRead(node.LocalSymbol);
+                        }
                         break;
 
                     case ExprContext.Value:
@@ -1355,7 +1361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 RecordBranch(label);
             }
 
-            return node.Update(boundExpression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+            return node.Update(boundExpression, node.Cases, node.DefaultLabel);
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -1476,6 +1482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
+            Debug.Assert(node.LeftPlaceholder is null);
+            Debug.Assert(node.LeftConversion is null);
             var origStack = StackDepth();
             BoundExpression left = (BoundExpression)this.Visit(node.LeftOperand);
 
@@ -1488,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             EnsureStackState(cookie);   // implicit label here
 
-            return node.Update(left, right, node.LeftConversion, node.OperatorResultKind, node.Type);
+            return node.Update(left, right, node.LeftPlaceholder, node.LeftConversion, node.OperatorResultKind, @checked: node.Checked, node.Type);
         }
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
@@ -1694,7 +1702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // must not have locals on stack when returning
             EnsureOnlyEvalStack();
 
-            return node.Update(node.RefKind, expressionOpt);
+            return node.Update(node.RefKind, expressionOpt, @checked: node.Checked);
         }
 
         // Ensures that there are no stack locals.

@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -384,6 +385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _handle;
             }
+        }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
         }
 
         internal sealed override bool IsInterpolatedStringHandlerType
@@ -999,9 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var method = (MethodSymbol)members[index];
 
                     // Don't emit the default value type constructor - the runtime handles that.
-                    // For parameterless struct constructors from metadata, IsDefaultValueTypeConstructor()
-                    // ignores requireZeroInit and simply checks if the method is implicitly declared.
-                    if (!method.IsDefaultValueTypeConstructor(requireZeroInit: false))
+                    if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;
                     }
@@ -1342,8 +1346,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (IsTupleType)
                 {
                     int originalCount = members.Count;
-                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
-                    membersCount += (members.Count - originalCount); // account for added tuple error fields
+                    var peMembers = members.ToImmutableAndFree();
+                    members = MakeSynthesizedTupleMembers(peMembers);
+                    membersCount += members.Count; // account for added tuple error fields
+                    members.AddRange(peMembers);
                     Debug.Assert(members is object);
                 }
 
@@ -1734,9 +1740,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private static ExtendedErrorTypeSymbol CyclicInheritanceError(PENamedTypeSymbol type, TypeSymbol declaredBase)
+        private static ExtendedErrorTypeSymbol CyclicInheritanceError(TypeSymbol declaredBase)
         {
-            var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase, type);
+            var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase);
             return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable, info, true);
         }
 
@@ -1752,7 +1758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (BaseTypeAnalysis.TypeDependsOn(declaredBase, this))
             {
-                return CyclicInheritanceError(this, declaredBase);
+                return CyclicInheritanceError(declaredBase);
             }
 
             this.SetKnownToHaveNoDeclaredBaseCycles();
@@ -1769,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return declaredInterfaces
-                .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+                .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(t) : t);
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))

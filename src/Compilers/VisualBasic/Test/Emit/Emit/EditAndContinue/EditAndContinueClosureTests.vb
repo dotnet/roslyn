@@ -439,11 +439,11 @@ End Module
                 Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(6, TableIndex.Param, EditAndContinueOperation.Default),
                 Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                 Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                Row(12, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
         End Sub
 
         <WorkItem(1067140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067140")>
@@ -1456,9 +1456,9 @@ End Class
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim reader0 = md0.MetadataReader
-            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "_Closure$__1-0`1", "_Closure$__1`1")
-            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", "_Lambda$__1-1", ".ctor", "_Lambda$__2", ".ctor", ".cctor", "_Lambda$__1-0")
-            CheckNames(reader0, reader0.GetFieldDefNames(), "$VB$Local_a", "$I", "$I1-0")
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "_Closure$__1`1", "_Closure$__1-0`1")
+            CheckNames(reader0, reader0.GetMethodDefNames(), ".ctor", "F", "_Lambda$__1-1", ".ctor", ".cctor", "_Lambda$__1-0", ".ctor", "_Lambda$__2")
+            CheckNames(reader0, reader0.GetFieldDefNames(), "$I", "$I1-0", "$VB$Local_a")
 
             Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
@@ -1468,12 +1468,12 @@ End Class
 
             Dim reader1 = diff1.GetMetadata().Reader
 
-            CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "_Closure$__1#1-0#1`1", "_Closure$__1#1`1")
-            CheckNames({reader0, reader1}, reader1.GetMethodDefNames(), "F", "_Lambda$__1#1-1#1", ".ctor", "_Lambda$__2#1", ".ctor", ".cctor", "_Lambda$__1#1-0#1")
-            CheckNames({reader0, reader1}, reader1.GetFieldDefNames(), "$VB$Local_a", "$I", "$I1#1-0#1")
+            CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "_Closure$__1#1`1", "_Closure$__1#1-0#1`1")
+            CheckNames({reader0, reader1}, reader1.GetMethodDefNames(), "F", "_Lambda$__1#1-1#1", ".ctor", ".cctor", "_Lambda$__1#1-0#1", ".ctor", "_Lambda$__2#1")
+            CheckNames({reader0, reader1}, reader1.GetFieldDefNames(), "$I", "$I1#1-0#1", "$VB$Local_a")
 
             diff1.VerifySynthesizedMembers(
-                "C: {_Lambda$__1#1-1#1, _Closure$__1#1-0#1, _Closure$__1#1}",
+                "C: {_Lambda$__1#1-1#1, _Closure$__1#1, _Closure$__1#1-0#1}",
                 "C._Closure$__1#1(Of $CLS0): {$I1#1-0#1, _Lambda$__1#1-0#1}",
                 "C._Closure$__1#1-0#1(Of $CLS0): {_Lambda$__2#1}")
 
@@ -1483,9 +1483,9 @@ End Class
 
             Dim reader2 = diff2.GetMetadata().Reader
 
-            CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames(), "_Closure$__2#2-0#2`1", "_Closure$__2#2`1")
-            CheckNames({reader0, reader1, reader2}, reader2.GetMethodDefNames(), "F", "_Lambda$__2#2-1#2", ".ctor", "_Lambda$__2#2", ".ctor", ".cctor", "_Lambda$__2#2-0#2")
-            CheckNames({reader0, reader1, reader2}, reader2.GetFieldDefNames(), "$VB$Local_a", "$I", "$I2#2-0#2")
+            CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames(), "_Closure$__2#2`1", "_Closure$__2#2-0#2`1")
+            CheckNames({reader0, reader1, reader2}, reader2.GetMethodDefNames(), "F", "_Lambda$__2#2-1#2", ".ctor", ".cctor", "_Lambda$__2#2-0#2", ".ctor", "_Lambda$__2#2")
+            CheckNames({reader0, reader1, reader2}, reader2.GetFieldDefNames(), "$I", "$I2#2-0#2", "$VB$Local_a")
         End Sub
 
         <Fact>
@@ -1850,7 +1850,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.VerifySynthesizedMembers(
-                "C: {_Closure$__1-0, _Closure$__}",
+                "C: {_Closure$__, _Closure$__1-0}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C._Closure$__1-0: {_Lambda$__1}")
 
@@ -1891,7 +1891,7 @@ End Class
                     New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
 
             diff2.VerifySynthesizedMembers(
-                "C: {_Closure$__1-0, _Closure$__}",
+                "C: {_Closure$__, _Closure$__1-0}",
                 "C._Closure$__: {$I1-0, _Lambda$__1-0}",
                 "C._Closure$__1-0: {_Lambda$__1}")
 

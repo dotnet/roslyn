@@ -36,14 +36,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers
             var selectedMembers = selectedType.GetMembers().WhereAsArray(symbol => SelectedMembers.Contains(symbol.Name));
             if (CreateNew)
             {
-                var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
-                    ? string.Empty
-                    : selectedType.ContainingNamespace.ToDisplayString();
-                return new MoveStaticMembersOptions(
-                    Filename!,
+            var namespaceDisplay = selectedType.ContainingNamespace.IsGlobalNamespace
+                ? string.Empty
+                : selectedType.ContainingNamespace.ToDisplayString();
+            // just return all the selected members
+            return new MoveStaticMembersOptions(
+                Filename!,
                     string.Join(".", namespaceDisplay, DestinationName!),
-                    selectedMembers);
-            }
+                selectedMembers);
+        }
 
             var destination = selectedType.ContainingNamespace.GetAllTypes(CancellationToken.None).First(t => t.ToDisplayString() == DestinationName);
             var destinationFile = Filename ?? destination.DeclaringSyntaxReferences.Single().SyntaxTree.FilePath;

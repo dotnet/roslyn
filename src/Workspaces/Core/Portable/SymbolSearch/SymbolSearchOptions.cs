@@ -2,24 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Options;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal static class SymbolSearchOptions
+    [DataContract]
+    internal readonly record struct SymbolSearchOptions(
+        [property: DataMember(Order = 0)] bool SearchReferenceAssemblies = true,
+        [property: DataMember(Order = 1)] bool SearchNuGetPackages = true)
     {
-        private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
+        public SymbolSearchOptions()
+            : this(SearchReferenceAssemblies: true)
+        {
+        }
 
-        public static readonly Option2<bool> Enabled = new(
-            nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
-
-        public static PerLanguageOption2<bool> SuggestForTypesInReferenceAssemblies =
-            new(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
-
-        public static PerLanguageOption2<bool> SuggestForTypesInNuGetPackages =
-            new(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
+        public static readonly SymbolSearchOptions Default = new();
     }
 }

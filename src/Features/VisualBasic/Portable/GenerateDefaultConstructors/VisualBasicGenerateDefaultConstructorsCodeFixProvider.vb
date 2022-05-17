@@ -7,6 +7,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.GenerateDefaultConstructors
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateDefaultConstructors), [Shared]>
@@ -23,5 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As Immutable.ImmutableArray(Of String) =
             ImmutableArray.Create(BC30387, BC40056)
+
+        Protected Overrides Function TryGetTypeName(typeDeclaration As SyntaxNode) As SyntaxToken?
+            Return TryCast(typeDeclaration, TypeBlockSyntax)?.BlockStatement.Identifier
+        End Function
     End Class
 End Namespace

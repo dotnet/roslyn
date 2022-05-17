@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Test.EditorUtilities
 Imports Xunit.Abstractions
@@ -58,11 +59,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 End If
 
                 Dim rules = formattingRuleProvider.CreateRule(document, 0).Concat(Formatter.GetDefaultFormattingRules(document))
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 Dim changes = Formatter.GetFormattedTextChanges(
                     Await syntaxTree.GetRootAsync(),
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
-                    workspace, Await document.GetOptionsAsync(CancellationToken.None), rules, CancellationToken.None)
+                    workspace.Services,
+                    options,
+                    rules,
+                    CancellationToken.None)
+
                 AssertResult(expected, clonedBuffer, changes)
             End Using
         End Function

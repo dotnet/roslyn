@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         methodSym = DirectCast(methodResult.Candidate.UnderlyingSymbol, MethodSymbol)
                         Dim errorsReported As Boolean = False
 
-                        ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodSym, node)
+                        ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodSym, node)
 
                         ' Check that all formal parameters have attribute-compatible types and are public
                         For Each param In methodSym.Parameters
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isReadOnly As Boolean = False
                 Dim hasErrors As Boolean = False
 
-                ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, sym, namedArg)
+                ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, sym, namedArg)
 
                 Select Case sym.Kind
                     Case SymbolKind.Field
@@ -794,7 +794,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    Not _binder.IsValidTypeForAttributeArgument(conv.Operand.Type) Then
 
                                     If Not conv.HasErrors Then
-                                        ReportDiagnostic(diagBag, conv.Operand.Syntax, ERRID.ERR_RequiredAttributeConstConversion2, conv.Operand.Type, conv.Type)
+                                        ' BC30934: Conversion from '{0}' to '{1}' cannot occur in a constant expression used as an argument to an attribute.
+                                        ReportDiagnostic(diagBag, conv.Operand.Syntax, ERRID.ERR_RequiredAttributeConstConversion2, If(conv.Operand.Type, _binder.Compilation.GetSpecialType(SpecialType.System_Object)), conv.Type)
                                     End If
                                     Return CreateErrorTypedConstant(node.Type)
                                 Else

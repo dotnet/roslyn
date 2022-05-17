@@ -155,9 +155,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterRootAttribute()
+        public async Task TestAfterRootAttribute()
         {
-            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"[goo]
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[goo]
 $$");
         }
 

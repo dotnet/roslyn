@@ -18,15 +18,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public bool IsOriginalInput => this.Source is null;
 
-        public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, null, 0);
+        public static BoundDagTemp ForOriginalInput(SyntaxNode syntax, TypeSymbol type) => new BoundDagTemp(syntax, type, source: null, 0);
 
         public override bool Equals(object? obj) => obj is BoundDagTemp other && this.Equals(other);
 
         public bool Equals(BoundDagTemp other)
         {
-            return other is { } &&
+            return
                 this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
-                object.Equals(this.Source, other.Source) && this.Index == other.Index;
+                object.Equals(this.Source, other.Source) &&
+                this.Index == other.Index;
+        }
+
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the source.
+        /// </summary>
+        public bool IsEquivalentTo(BoundDagTemp other)
+        {
+            return
+                this.Type.Equals(other.Type, TypeCompareKind.AllIgnoreOptions) &&
+                this.Index == other.Index;
         }
 
         public override int GetHashCode()

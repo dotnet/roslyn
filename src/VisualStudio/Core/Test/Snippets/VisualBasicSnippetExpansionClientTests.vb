@@ -5,13 +5,16 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
@@ -361,13 +364,14 @@ End Class</Test>
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
         End Sub
 
-        Private Async Function TestSnippetAddImportsAsync(
+        Private Shared Async Function TestSnippetAddImportsAsync(
                 markupCode As String,
                 namespacesToAdd As String(),
                 placeSystemNamespaceFirst As Boolean,
@@ -404,14 +408,24 @@ End Class</Test>
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
+                    workspace.GetService(Of IGlobalOptionService))
+
+                Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
+
+                Dim addImportOptions = New AddImportPlacementOptions(
+                    PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
+                    PlaceImportsInsideNamespaces:=False,
+                    AllowInHiddenRegions:=False)
+
+                Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
 
                 Dim updatedDocument = expansionClient.AddImports(
-                    workspace.CurrentSolution.Projects.Single().Documents.Single(),
+                    document,
+                    addImportOptions,
+                    formattingOptions,
                     If(position, 0),
                     snippetNode,
-                    placeSystemNamespaceFirst,
-                    allowInHiddenRegions:=False,
                     CancellationToken.None)
 
                 Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
@@ -436,7 +450,8 @@ End Class</Test>
                     signatureHelpControllerProvider:=Nothing,
                     editorCommandHandlerServiceFactory:=Nothing,
                     Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray())
+                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
+                    workspace.GetService(Of IGlobalOptionService))
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using

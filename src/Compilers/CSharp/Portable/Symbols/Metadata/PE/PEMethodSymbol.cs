@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -389,6 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public override NamedTypeSymbol ContainingType => _containingType;
 
         public override string Name => _name;
+
+        public override int MetadataToken => MetadataTokens.GetToken(_handle);
 
         private bool HasFlag(MethodAttributes flag)
         {
@@ -1115,9 +1118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     switch (_name)
                     {
+                        case WellKnownMemberNames.CheckedAdditionOperatorName:
                         case WellKnownMemberNames.AdditionOperatorName:
                         case WellKnownMemberNames.BitwiseAndOperatorName:
                         case WellKnownMemberNames.BitwiseOrOperatorName:
+                        case WellKnownMemberNames.CheckedDivisionOperatorName:
                         case WellKnownMemberNames.DivisionOperatorName:
                         case WellKnownMemberNames.EqualityOperatorName:
                         case WellKnownMemberNames.ExclusiveOrOperatorName:
@@ -1128,21 +1133,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.LessThanOperatorName:
                         case WellKnownMemberNames.LessThanOrEqualOperatorName:
                         case WellKnownMemberNames.ModulusOperatorName:
+                        case WellKnownMemberNames.CheckedMultiplyOperatorName:
                         case WellKnownMemberNames.MultiplyOperatorName:
                         case WellKnownMemberNames.RightShiftOperatorName:
+                        case WellKnownMemberNames.UnsignedRightShiftOperatorName:
+                        case WellKnownMemberNames.CheckedSubtractionOperatorName:
                         case WellKnownMemberNames.SubtractionOperatorName:
                             return IsValidUserDefinedOperatorSignature(2) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
+                        case WellKnownMemberNames.CheckedDecrementOperatorName:
                         case WellKnownMemberNames.DecrementOperatorName:
                         case WellKnownMemberNames.FalseOperatorName:
+                        case WellKnownMemberNames.CheckedIncrementOperatorName:
                         case WellKnownMemberNames.IncrementOperatorName:
                         case WellKnownMemberNames.LogicalNotOperatorName:
                         case WellKnownMemberNames.OnesComplementOperatorName:
                         case WellKnownMemberNames.TrueOperatorName:
+                        case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                         case WellKnownMemberNames.UnaryNegationOperatorName:
                         case WellKnownMemberNames.UnaryPlusOperatorName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.UserDefinedOperator : MethodKind.Ordinary;
                         case WellKnownMemberNames.ImplicitConversionName:
                         case WellKnownMemberNames.ExplicitConversionName:
+                        case WellKnownMemberNames.CheckedExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
 
                             //case WellKnownMemberNames.ConcatenateOperatorName:

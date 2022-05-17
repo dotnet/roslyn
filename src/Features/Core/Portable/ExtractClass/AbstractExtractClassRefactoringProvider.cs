@@ -4,6 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -87,7 +88,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var containingTypeDeclarationNode = selectedMemberNode.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsTypeDeclaration);
 
-            return new ExtractClassWithDialogCodeAction(document, span, optionsService, containingType, containingTypeDeclarationNode!, selectedMember);
+            return new ExtractClassWithDialogCodeAction(document, span, optionsService, containingType, containingTypeDeclarationNode!, context.Options, selectedMember);
         }
 
         private async Task<ExtractClassWithDialogCodeAction?> TryGetClassActionAsync(CodeRefactoringContext context, IExtractClassOptionsService optionsService)
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.ExtractClass
                 return null;
             }
 
-            return new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType, selectedClassNode);
+            return new ExtractClassWithDialogCodeAction(document, span, optionsService, originalType, selectedClassNode, context.Options);
         }
     }
 }

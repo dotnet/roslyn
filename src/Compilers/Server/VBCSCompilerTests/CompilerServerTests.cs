@@ -14,10 +14,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -112,7 +114,7 @@ End Module")
         {
 #if !NET472
             var filePath = Path.Combine(currentDirectory.Path, "netstandard.dll");
-            File.WriteAllBytes(filePath, TestMetadata.ResourcesNetStandard20.netstandard);
+            File.WriteAllBytes(filePath, NetStandard20.Resources.netstandard);
             arguments.Add("/nostdlib");
             arguments.Add("/r:netstandard.dll");
 #endif
@@ -303,7 +305,7 @@ End Module")
             var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
             await ApplyEnvironmentVariables(
                 new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path) },
-                async () =>
+                async () => await Task.Run(async () =>
             {
                 using var serverData = await ServerUtil.CreateServer(_logger);
                 var result = RunCommandLineCompiler(
@@ -316,7 +318,7 @@ End Module")
 
                 var listener = await serverData.Complete();
                 Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
-            });
+            }));
         }
 
         [Fact]
@@ -948,7 +950,8 @@ class Hello
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
                             result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
-                            Assert.Equal("", result.Output);
+                            // Instrumenting to assist investigation of flakiness. Tracked by https://github.com/dotnet/roslyn/issues/19763
+                            RoslynDebug.AssertOrFailFast("" == result.Output);
                             Assert.Equal(0, result.ExitCode);
 
                             // Run hello3.exe. Should work.

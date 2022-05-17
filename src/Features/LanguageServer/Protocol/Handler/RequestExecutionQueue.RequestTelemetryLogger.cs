@@ -4,8 +4,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// Logs metadata on LSP requests (duration, success / failure metrics)
         /// for this particular LSP server instance.
         /// </summary>
-        internal class RequestTelemetryLogger : IDisposable
+        internal sealed class RequestTelemetryLogger : IDisposable
         {
             private const string QueuedDurationKey = "QueuedDuration";
 
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// <summary>
             /// Histogram to aggregate the time in queue metrics.
             /// </summary>
-            private HistogramLogAggregator? _queuedDurationLogAggregator;
+            private readonly HistogramLogAggregator _queuedDurationLogAggregator;
 
             /// <summary>
             /// Histogram to aggregate total request duration metrics.
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// This provides highly detailed buckets when duration is in MS, but less detailed
             /// when the duration is in terms of seconds or minutes.
             /// </summary>
-            private HistogramLogAggregator? _requestDurationLogAggregator;
+            private readonly HistogramLogAggregator _requestDurationLogAggregator;
 
             /// <summary>
             /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -46,11 +44,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             private readonly LogAggregator _findDocumentResults;
 
+            private readonly LogAggregator _usedForkedSolutionCounter;
+
+            private int _disposed;
+
             public RequestTelemetryLogger(string serverTypeName)
             {
                 _serverTypeName = serverTypeName;
                 _requestCounters = new();
                 _findDocumentResults = new();
+                _usedForkedSolutionCounter = new();
 
                 // Buckets queued duration into 10ms buckets with the last bucket starting at 1000ms.
                 // Queue times are relatively short and fall under 50ms, so tracking past 1000ms is not useful.
@@ -71,6 +74,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 }
             }
 
+            public void UpdateUsedForkedSolutionCounter(bool usedForkedSolution)
+            {
+                _usedForkedSolutionCounter.IncreaseCount(usedForkedSolution);
+            }
+
             public void UpdateTelemetryData(
                 string methodName,
                 TimeSpan queuedDuration,
@@ -79,10 +87,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 // Find the bucket corresponding to the queued duration and update the count of durations in that bucket.
                 // This is not broken down per method as time in queue is not specific to an LSP method.
-                _queuedDurationLogAggregator?.IncreaseCount(QueuedDurationKey, Convert.ToDecimal(queuedDuration.TotalMilliseconds));
+                _queuedDurationLogAggregator.IncreaseCount(QueuedDurationKey, Convert.ToDecimal(queuedDuration.TotalMilliseconds));
 
                 // Store the request time metrics per LSP method.
-                _requestDurationLogAggregator?.IncreaseCount(methodName, Convert.ToDecimal(ComputeLogValue(requestDuration.TotalMilliseconds)));
+                _requestDurationLogAggregator.IncreaseCount(methodName, Convert.ToDecimal(ComputeLogValue(requestDuration.TotalMilliseconds)));
                 _requestCounters.GetOrAdd(methodName, (_) => new Counter()).IncrementCount(result);
             }
 
@@ -103,8 +111,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             /// </summary>
             public void Dispose()
             {
-                if (_queuedDurationLogAggregator is null || _queuedDurationLogAggregator.IsEmpty
-                    || _requestDurationLogAggregator is null || _requestDurationLogAggregator.IsEmpty)
+                if (Interlocked.Exchange(ref _disposed, 1) != 0)
+                {
+                    return;
+                }
+
+                if (_queuedDurationLogAggregator.IsEmpty || _requestDurationLogAggregator.IsEmpty)
                 {
                     return;
                 }
@@ -145,15 +157,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     m["server"] = _serverTypeName;
                     foreach (var kvp in _findDocumentResults)
                     {
-                        var info = kvp.Key.ToString();
+                        var info = kvp.Key.ToString()!;
                         m[info] = kvp.Value.GetCount();
                     }
                 }));
 
-                // Clear telemetry we've published in case dispose is called multiple times.
+                Logger.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
+                {
+                    m["server"] = _serverTypeName;
+                    foreach (var kvp in _usedForkedSolutionCounter)
+                    {
+                        var info = kvp.Key.ToString()!;
+                        m[info] = kvp.Value.GetCount();
+                    }
+                }));
+
                 _requestCounters.Clear();
-                _queuedDurationLogAggregator = null;
-                _requestDurationLogAggregator = null;
             }
 
             private class Counter

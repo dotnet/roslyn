@@ -5,14 +5,16 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -22,25 +24,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Service to compute and apply <see cref="FixMultipleCodeAction"/> code fixes.
     /// </summary>
     [ExportWorkspaceService(typeof(IFixMultipleOccurrencesService), ServiceLayer.Host), Shared]
-    internal class FixMultipleOccurrencesService : IFixMultipleOccurrencesService
+    internal sealed class FixMultipleOccurrencesService : IFixMultipleOccurrencesService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
-            => listenerProvider.GetListener(FeatureAttribute.LightBulb);
+        {
+            listenerProvider.GetListener(FeatureAttribute.LightBulb);
+        }
 
         public Solution GetFix(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
+            CodeActionOptionsProvider optionsProvider,
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
-                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
+                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
 
             return GetFixedSolution(
                 fixMultipleState, workspace, waitDialogTitle,
@@ -52,13 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
+            CodeActionOptionsProvider optionsProvider,
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
-                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
+                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
 
             return GetFixedSolution(
                 fixMultipleState, workspace, waitDialogTitle,

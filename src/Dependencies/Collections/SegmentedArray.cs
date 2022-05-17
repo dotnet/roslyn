@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 // Special case for 0 length List
                 // accept -1 and 0 as valid startIndex for compatibility reason.
-                if (startIndex != -1 && startIndex != 0)
+                if (startIndex is not (-1) and not 0)
                 {
                     ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
                 }

@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.QuickInfo;
 
@@ -50,8 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             if (token.IsKind(SyntaxKind.CloseBracketToken, SyntaxKind.OpenBracketToken) &&
                 token.Parent?.Parent.IsKind(SyntaxKind.ElementAccessExpression) == true)
             {
-                // Suppression is due to issue https://github.com/dotnet/roslyn/issues/41107
-                found = token.Parent.Parent!;
+                found = token.Parent.Parent;
                 return true;
             }
 
@@ -59,10 +59,23 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
             return false;
         }
 
+        protected override bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found)
+        {
+            if (token.IsKind(SyntaxKind.DotToken) &&
+                token.Parent is MemberAccessExpressionSyntax memberAccess)
+            {
+                found = memberAccess.Name.Identifier;
+                return true;
+            }
+
+            found = default;
+            return false;
+        }
+
         protected override bool ShouldCheckPreviousToken(SyntaxToken token)
             => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-        protected override NullableFlowState GetNullabilityAnalysis(Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
+        protected override NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Anything less than C# 8 we just won't show anything, even if the compiler could theoretically give analysis
             var parseOptions = (CSharpParseOptions)semanticModel.SyntaxTree!.Options;

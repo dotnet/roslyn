@@ -15,11 +15,14 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class SourceGeneratorAdaptor : IIncrementalGenerator
     {
+        private readonly string _sourceExtension;
+
         internal ISourceGenerator SourceGenerator { get; }
 
-        public SourceGeneratorAdaptor(ISourceGenerator generator)
+        public SourceGeneratorAdaptor(ISourceGenerator generator, string sourceExtension)
         {
             SourceGenerator = generator;
+            _sourceExtension = sourceExtension;
         }
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -27,9 +30,9 @@ namespace Microsoft.CodeAnalysis
             GeneratorInitializationContext generatorInitContext = new GeneratorInitializationContext(CancellationToken.None);
             SourceGenerator.Initialize(generatorInitContext);
 
-            if (generatorInitContext.InfoBuilder.PostInitCallback is object)
+            if (generatorInitContext.Callbacks.PostInitCallback is object)
             {
-                context.RegisterPostInitializationOutput(generatorInitContext.InfoBuilder.PostInitCallback);
+                context.RegisterPostInitializationOutput(generatorInitContext.Callbacks.PostInitCallback);
             }
 
             var contextBuilderSource = context.CompilationProvider
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                                         .Combine(context.AnalyzerConfigOptionsProvider).Select((p, _) => p.Item1 with { ConfigOptions = p.Item2 })
                                         .Combine(context.AdditionalTextsProvider.Collect()).Select((p, _) => p.Item1 with { AdditionalTexts = p.Item2 });
 
-            var syntaxContextReceiverCreator = generatorInitContext.InfoBuilder.SyntaxContextReceiverCreator;
+            var syntaxContextReceiverCreator = generatorInitContext.Callbacks.SyntaxContextReceiverCreator;
             if (syntaxContextReceiverCreator is object)
             {
                 contextBuilderSource = contextBuilderSource
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis
 
             context.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>
             {
-                var generatorExecutionContext = contextBuilder.ToExecutionContext(productionContext.CancellationToken);
+                var generatorExecutionContext = contextBuilder.ToExecutionContext(_sourceExtension, productionContext.CancellationToken);
                 SourceGenerator.Execute(generatorExecutionContext);
 
                 // copy the contents of the old context to the new
@@ -67,10 +70,10 @@ namespace Microsoft.CodeAnalysis
 
             public ISyntaxContextReceiver? Receiver;
 
-            public GeneratorExecutionContext ToExecutionContext(CancellationToken cancellationToken)
+            public GeneratorExecutionContext ToExecutionContext(string sourceExtension, CancellationToken cancellationToken)
             {
                 Debug.Assert(ParseOptions is object && ConfigOptions is object);
-                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, cancellationToken);
+                return new GeneratorExecutionContext(Compilation, ParseOptions, AdditionalTexts, ConfigOptions, Receiver, sourceExtension, cancellationToken);
             }
         }
     }

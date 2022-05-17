@@ -23,15 +23,18 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(PinnedSolutionInfo solutionInfo, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(Checksum solutionChecksum, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async cancellationToken =>
+            return RunServiceAsync(solutionChecksum, async solution =>
             {
-                var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-
+                // Read specified references with dependency information from the project assets file.
                 var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);
 
-                return await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
+                // Determine unused references
+                var unusedReferences = await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
+
+                // Remove dependency information before returning.
+                return unusedReferences.SelectAsArray(reference => reference.WithDependencies(null));
             }, cancellationToken);
         }
     }

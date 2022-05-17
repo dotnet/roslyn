@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis
                     return result;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -447,13 +447,11 @@ namespace Microsoft.CodeAnalysis
             var solution = this.Project.Solution;
             var workspace = solution.Workspace;
 
-            // only produce doc with frozen semantics if this document is part of the workspace's
-            // primary branch and there is actual background compilation going on, since w/o
+            // only produce doc with frozen semantics if this workspace has support for that, as without
             // background compilation the semantics won't be moving toward completeness.  Also,
             // ensure that the project that this document is part of actually supports compilations,
             // as partial semantics don't make sense otherwise.
-            if (solution.BranchId == workspace.PrimaryBranchId &&
-                workspace.PartialSemanticsEnabled &&
+            if (workspace.PartialSemanticsEnabled &&
                 this.Project.SupportsCompilation)
             {
                 var newSolution = this.Project.Solution.WithFrozenPartialCompilationIncludingSpecificDocument(this.Id, cancellationToken);
@@ -496,50 +494,24 @@ namespace Microsoft.CodeAnalysis
             return _cachedOptions.GetValueAsync(cancellationToken);
         }
 
+        internal async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(CancellationToken cancellationToken)
+        {
+            var optionService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var documentOptions = await GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            return documentOptions.AsAnalyzerConfigOptions(optionService, Project.Language);
+        }
+
         private void InitializeCachedOptions(OptionSet solutionOptions)
         {
             var newAsyncLazy = new AsyncLazy<DocumentOptionSet>(async c =>
             {
-                var optionsService = Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
-                var documentOptionSet = await optionsService.GetUpdatedOptionSetForDocumentAsync(this, solutionOptions, c).ConfigureAwait(false);
-                return new DocumentOptionSet(documentOptionSet, Project.Language);
+                var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
+                var options = await provider.GetOptionsAsync(DocumentState, c).ConfigureAwait(false);
+
+                return new DocumentOptionSet(options, solutionOptions, Project.Language);
             }, cacheResult: true);
 
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
-        }
-
-        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
-        {
-            var projectFilePath = Project.FilePath;
-            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
-            // as a part of a code action, but haven't been written to disk yet.
-            string? effectiveFilePath = null;
-
-            if (FilePath != null)
-            {
-                effectiveFilePath = FilePath;
-            }
-            else if (Name != null && projectFilePath != null)
-            {
-                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
-
-                if (!RoslynString.IsNullOrEmpty(projectPath) &&
-                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
-                {
-                    effectiveFilePath = PathUtilities.CombinePathsUnchecked(directory, Name);
-                }
-            }
-
-            if (effectiveFilePath != null)
-            {
-                return Project.State.GetAnalyzerOptionsForPathAsync(effectiveFilePath, cancellationToken);
-            }
-            else
-            {
-                // Really no idea where this is going, so bail
-                // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
-                return Task.FromResult(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer));
-            }
         }
     }
 }

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -79,11 +81,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
             var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
 
-            var rules = formattingRuleProvider.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
+            var rules = ImmutableArray.Create(formattingRuleProvider.CreateRule(document, position)).AddRange(Formatter.GetDefaultFormattingRules(document));
 
-            var documentOptions = await document.GetOptionsAsync();
-            var formatter = new CSharpSmartTokenFormatter(documentOptions, rules, root);
-            var changes = await formatter.FormatTokenAsync(workspace, token, CancellationToken.None);
+            var options = new IndentationOptions(
+                await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, CancellationToken.None).ConfigureAwait(false),
+                AutoFormattingOptions.Default);
+
+            var formatter = new CSharpSmartTokenFormatter(options, rules, root);
+            var changes = await formatter.FormatTokenAsync(token, CancellationToken.None);
 
             ApplyChanges(buffer, changes);
         }

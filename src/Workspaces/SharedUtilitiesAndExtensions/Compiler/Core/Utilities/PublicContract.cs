@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
         // while keeping the rarely executed code in a separate method.
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
+        internal static IEnumerable<T> RequireNonNullItems<T>([NotNull] IEnumerable<T>? sequence, string argumentName) where T : class
         {
             if (sequence == null)
             {
@@ -35,6 +35,8 @@ namespace Microsoft.CodeAnalysis
             {
                 ThrowArgumentItemNullException(sequence, argumentName);
             }
+
+            return sequence;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

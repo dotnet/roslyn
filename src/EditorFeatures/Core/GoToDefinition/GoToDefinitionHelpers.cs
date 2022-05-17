@@ -2,26 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
+namespace Microsoft.CodeAnalysis.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static ImmutableArray<DefinitionItem> GetDefinitions(
+        public static async Task<ImmutableArray<DefinitionItem>> GetDefinitionsAsync(
             ISymbol symbol,
             Solution solution,
             bool thirdPartyNavigationAllowed,
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 }
             }
 
-            var definition = SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).WaitAndGetResult(cancellationToken);
+            var definition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             symbol = definition ?? symbol;
@@ -88,15 +90,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             if (thirdPartyNavigationAllowed)
             {
                 var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
+                if (factory != null)
+                {
+                    var thirdPartyItem = await factory.GetThirdPartyDefinitionItemAsync(solution, definitionItem, cancellationToken).ConfigureAwait(false);
+                    definitions.AddIfNotNull(thirdPartyItem);
+                }
             }
 
             definitions.Add(definitionItem);
             return definitions.ToImmutable();
         }
 
-        public static bool TryGoToDefinition(
+        public static async Task<bool> TryNavigateToLocationAsync(
             ISymbol symbol,
             Solution solution,
             IThreadingContext threadingContext,
@@ -104,27 +109,42 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {
-            var definitions = GetDefinitions(symbol, solution, thirdPartyNavigationAllowed, cancellationToken);
+            var location = await GetDefinitionLocationAsync(
+                symbol, solution, threadingContext, streamingPresenter, cancellationToken, thirdPartyNavigationAllowed).ConfigureAwait(false);
+            return await location.TryNavigateToAsync(
+                threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
+        }
 
+        public static async Task<INavigableLocation?> GetDefinitionLocationAsync(
+            ISymbol symbol,
+            Solution solution,
+            IThreadingContext threadingContext,
+            IStreamingFindUsagesPresenter streamingPresenter,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true)
+        {
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return threadingContext.JoinableTaskFactory.Run(
-                () => streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
+            var definitions = await GetDefinitionsAsync(symbol, solution, thirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
+
+            return await streamingPresenter.GetStreamingLocationAsync(
+                threadingContext, solution.Workspace, title, definitions, cancellationToken).ConfigureAwait(false);
         }
 
-        public static bool TryGoToDefinition(
-            ImmutableArray<DefinitionItem> definitions,
-            Solution solution,
-            string title,
-            IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            CancellationToken cancellationToken)
+        public static async Task<IEnumerable<INavigableItem>?> GetDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            return threadingContext.JoinableTaskFactory.Run(() =>
-                streamingPresenter.TryNavigateToOrPresentItemsAsync(
-                    threadingContext, solution.Workspace, title, definitions, cancellationToken));
+            // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
+            var findDefinitionService = document.GetLanguageService<IFindDefinitionService>();
+            if (findDefinitionService != null)
+            {
+                return await findDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            }
+
+            // Removal of this codepath is tracked by https://github.com/dotnet/roslyn/issues/50391. Once it is removed, this GetDefinitions method should
+            // be inlined into call sites.
+            var goToDefinitionsService = document.GetRequiredLanguageService<IGoToDefinitionService>();
+            return await goToDefinitionsService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
         }
     }
 }

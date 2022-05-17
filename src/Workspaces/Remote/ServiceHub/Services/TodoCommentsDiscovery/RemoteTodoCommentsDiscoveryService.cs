@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TodoComments;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -19,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private readonly RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> _callback;
 
+        private RemoteTodoCommentsIncrementalAnalyzer? _lazyAnalyzer;
+
         public RemoteTodoCommentsDiscoveryService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteTodoCommentsDiscoveryService.ICallback> callback)
             : base(arguments)
         {
@@ -31,16 +34,36 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 var workspace = GetWorkspace();
                 var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>();
-                var analyzerProvider = new RemoteTodoCommentsIncrementalAnalyzerProvider(_callback, callbackId);
+
+                // This method should only be called once.
+                Contract.ThrowIfFalse(Interlocked.Exchange(ref _lazyAnalyzer, new RemoteTodoCommentsIncrementalAnalyzer(_callback, callbackId)) == null);
 
                 registrationService.AddAnalyzerProvider(
-                    analyzerProvider,
+                    new RemoteTodoCommentsIncrementalAnalyzerProvider(_lazyAnalyzer),
                     new IncrementalAnalyzerProviderMetadata(
                         nameof(RemoteTodoCommentsIncrementalAnalyzerProvider),
                         highPriorityForActiveFile: false,
                         workspaceKinds: WorkspaceKind.RemoteWorkspace));
 
-                return default;
+                return ValueTaskFactory.CompletedTask;
+            }, cancellationToken);
+        }
+
+        public ValueTask ReanalyzeAsync(CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                if (_lazyAnalyzer == null)
+                {
+                    // ComputeTodoCommentsAsync hasn't been called yet
+                    return ValueTaskFactory.CompletedTask;
+                }
+
+                var workspace = GetWorkspace();
+                var registrationService = workspace.Services.GetRequiredService<ISolutionCrawlerService>();
+                registrationService.Reanalyze(workspace, _lazyAnalyzer, projectIds: null, documentIds: null, highPriority: false);
+
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
     }

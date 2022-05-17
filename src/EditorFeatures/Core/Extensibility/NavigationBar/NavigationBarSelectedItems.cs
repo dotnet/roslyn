@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class NavigationBarSelectedTypeAndMember : IEquatable<NavigationBarSelectedTypeAndMember>
     {
+        public static readonly NavigationBarSelectedTypeAndMember Empty = new(typeItem: null, memberItem: null);
+
         public NavigationBarItem? TypeItem { get; }
         public bool ShowTypeItemGrayed { get; }
         public NavigationBarItem? MemberItem { get; }

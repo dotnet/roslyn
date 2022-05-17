@@ -1854,5 +1854,140 @@ class TestClass
 
             await TestMissingInRegularAndScriptAsync(code);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestReferenceInDifferentDocumentWithUsings()
+        {
+            var code =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+
+namespace Foo
+{
+    public class Bar
+    {
+        public Bar()
+        {
+            [|var x = 2|];
+        }
+    }
+}
+        </Document>
+
+        <Document>
+namespace Refactorings
+{
+    using Foo;
+    class Program
+    {
+        public Program(int x)
+        {
+            var bar = new Bar();
+
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+
+            var expected =
+@"<Workspace>
+    <Project Language= ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+using System;
+using System.Linq;
+
+namespace Foo
+{
+    public class Bar
+    {
+        public Bar(int x)
+        {
+        }
+    }
+}
+        </Document>
+
+        <Document>
+namespace Refactorings
+{
+    using Foo;
+    class Program
+    {
+        public Program(int x)
+        {
+            var bar = new Bar(2);
+
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestIntroduceParameterOnParameter()
+        {
+            var code =
+@"
+using System;
+
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine([|args|]);
+    }
+}
+";
+
+            await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
+        public async Task TestIntroduceParameterOnExpressionContainingParameter()
+        {
+            var code =
+@"
+public class C
+{
+    public void M(string s)
+    {
+        localFunction();
+
+        void localFunction()
+        {
+            _ = [|s|].ToString();
+        }
+    }
+}
+";
+
+            var expected =
+@"
+public class C
+{
+    public void M(string s)
+    {
+        localFunction(s);
+
+        void localFunction(string s)
+        {
+            _ = {|Rename:s|}.ToString();
+        }
+    }
+}
+";
+
+            await TestInRegularAndScriptAsync(code, expected, 0);
+        }
     }
 }

@@ -35,19 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId);
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
+            RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_default_expression, nameof(CSharpAnalyzersResources.Simplify_default_expression));
             return Task.CompletedTask;
         }
 
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
+            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             // Fix-All for this feature is somewhat complicated.  Each time we fix one case, it
             // may make the next case unfixable.  For example:
@@ -74,14 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                     defaultExpression,
                     SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),
                 cancellationToken).ConfigureAwait(false);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Simplify_default_expression, createChangedDocument, CSharpAnalyzersResources.Simplify_default_expression)
-            {
-            }
         }
     }
 }

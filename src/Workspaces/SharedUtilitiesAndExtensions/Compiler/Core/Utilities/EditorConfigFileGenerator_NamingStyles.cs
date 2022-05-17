@@ -10,23 +10,60 @@ using System.Text;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.CodeAnalysis.NamingStyles;
 
 namespace Microsoft.CodeAnalysis.Options
 {
     internal static partial class EditorConfigFileGenerator
     {
+        public static void AppendNamingStylePreferencesToEditorConfig(IEnumerable<NamingRule> namingRules, StringBuilder editorconfig, string? language = null)
+        {
+            var symbolSpecifications = namingRules.Select(x => x.SymbolSpecification).ToImmutableArray();
+            var namingStyles = namingRules.Select(x => x.NamingStyle).ToImmutableArray();
+            var serializedNamingRules = namingRules.Select(x => new SerializableNamingRule()
+            {
+                EnforcementLevel = x.EnforcementLevel,
+                NamingStyleID = x.NamingStyle.ID,
+                SymbolSpecificationID = x.SymbolSpecification.ID
+            }).ToImmutableArray();
+
+            language ??= LanguageNames.CSharp;
+
+            AppendNamingStylePreferencesToEditorConfig(
+                symbolSpecifications,
+                namingStyles,
+                serializedNamingRules,
+                language,
+                editorconfig);
+        }
+
         public static void AppendNamingStylePreferencesToEditorConfig(NamingStylePreferences namingStylePreferences, string language, StringBuilder editorconfig)
+        {
+            AppendNamingStylePreferencesToEditorConfig(
+                namingStylePreferences.SymbolSpecifications,
+                namingStylePreferences.NamingStyles,
+                namingStylePreferences.NamingRules,
+                language,
+                editorconfig);
+        }
+
+        public static void AppendNamingStylePreferencesToEditorConfig(
+            ImmutableArray<SymbolSpecification> symbolSpecifications,
+            ImmutableArray<NamingStyle> namingStyles,
+            ImmutableArray<SerializableNamingRule> serializableNamingRules,
+            string language,
+            StringBuilder editorconfig)
         {
             editorconfig.AppendLine($"#### {CompilerExtensionsResources.Naming_styles} ####");
 
-            var serializedNameMap = AssignNamesToNamingStyleElements(namingStylePreferences);
-            var ruleNameMap = AssignNamesToNamingStyleRules(namingStylePreferences, serializedNameMap);
+            var serializedNameMap = AssignNamesToNamingStyleElements(symbolSpecifications, namingStyles);
+            var ruleNameMap = AssignNamesToNamingStyleRules(serializableNamingRules, serializedNameMap);
             var referencedElements = new HashSet<Guid>();
 
             editorconfig.AppendLine();
             editorconfig.AppendLine($"# {CompilerExtensionsResources.Naming_rules}");
 
-            foreach (var namingRule in namingStylePreferences.NamingRules)
+            foreach (var namingRule in serializableNamingRules)
             {
                 referencedElements.Add(namingRule.SymbolSpecificationID);
                 referencedElements.Add(namingRule.NamingStyleID);
@@ -40,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Options
             editorconfig.AppendLine();
             editorconfig.AppendLine($"# {CompilerExtensionsResources.Symbol_specifications}");
 
-            foreach (var symbolSpecification in namingStylePreferences.SymbolSpecifications)
+            foreach (var symbolSpecification in symbolSpecifications)
             {
                 if (!referencedElements.Contains(symbolSpecification.ID))
                 {
@@ -56,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Options
             editorconfig.AppendLine();
             editorconfig.AppendLine($"# {CompilerExtensionsResources.Naming_styles}");
 
-            foreach (var namingStyle in namingStylePreferences.NamingStyles)
+            foreach (var namingStyle in namingStyles)
             {
                 if (!referencedElements.Contains(namingStyle.ID))
                 {
@@ -71,11 +108,13 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private static ImmutableDictionary<Guid, string> AssignNamesToNamingStyleElements(NamingStylePreferences namingStylePreferences)
+        private static ImmutableDictionary<Guid, string> AssignNamesToNamingStyleElements(
+            ImmutableArray<SymbolSpecification> symbolSpecifications,
+            ImmutableArray<NamingStyle> namingStyles)
         {
             var symbolSpecificationNames = new HashSet<string>();
             var builder = ImmutableDictionary.CreateBuilder<Guid, string>();
-            foreach (var symbolSpecification in namingStylePreferences.SymbolSpecifications)
+            foreach (var symbolSpecification in symbolSpecifications)
             {
                 var name = ToSnakeCaseName(symbolSpecification.Name);
                 if (!symbolSpecificationNames.Add(name))
@@ -87,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Options
             }
 
             var namingStyleNames = new HashSet<string>();
-            foreach (var namingStyle in namingStylePreferences.NamingStyles)
+            foreach (var namingStyle in namingStyles)
             {
                 var name = ToSnakeCaseName(namingStyle.Name);
                 if (!namingStyleNames.Add(name))
@@ -95,7 +134,10 @@ namespace Microsoft.CodeAnalysis.Options
                     name = namingStyle.ID.ToString("n");
                 }
 
-                builder.Add(namingStyle.ID, name);
+                if (!builder.TryGetKey(namingStyle.ID, out _))
+                {
+                    builder.Add(namingStyle.ID, name);
+                }
             }
 
             return builder.ToImmutable();
@@ -118,10 +160,10 @@ namespace Microsoft.CodeAnalysis.Options
             }
         }
 
-        private static ImmutableDictionary<SerializableNamingRule, string> AssignNamesToNamingStyleRules(NamingStylePreferences namingStylePreferences, ImmutableDictionary<Guid, string> serializedNameMap)
+        private static ImmutableDictionary<SerializableNamingRule, string> AssignNamesToNamingStyleRules(ImmutableArray<SerializableNamingRule> namingRules, ImmutableDictionary<Guid, string> serializedNameMap)
         {
             var builder = ImmutableDictionary.CreateBuilder<SerializableNamingRule, string>();
-            foreach (var rule in namingStylePreferences.NamingRules)
+            foreach (var rule in namingRules)
             {
                 builder.Add(rule, $"{serializedNameMap[rule.SymbolSpecificationID]}_should_be_{serializedNameMap[rule.NamingStyleID]}");
             }

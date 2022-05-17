@@ -490,6 +490,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitField(Me)
         End Function
 
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitField(Me, argument)
+        End Function
+
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
             visitor.VisitField(Me)
         End Sub

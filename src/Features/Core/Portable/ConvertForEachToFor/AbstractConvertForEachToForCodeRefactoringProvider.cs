@@ -76,9 +76,10 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             }
 
             context.RegisterRefactoring(
-                new ForEachToForCodeAction(
+                CodeAction.Create(
                     Title,
-                    c => ConvertForeachToForAsync(document, foreachInfo, c)),
+                    c => ConvertForeachToForAsync(document, foreachInfo, c),
+                    Title),
                 foreachStatement.Span);
         }
 
@@ -120,8 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var collectionStatement = generator.LocalDeclarationStatement(
                 type,
                 collectionVariableToken,
-                foreachInfo.RequireExplicitCastInterface
-                    ? generator.CastExpression(foreachInfo.ExplicitCastInterface, expression) : expression);
+                (foreachInfo.ExplicitCastInterface != null) ? generator.CastExpression(foreachInfo.ExplicitCastInterface, expression) : expression);
 
             // attach trivia to right place
             collectionStatement = collectionStatement.WithLeadingTrivia(foreachInfo.ForEachStatement.GetFirstToken().LeadingTrivia);
@@ -422,8 +422,8 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             CancellationToken cancellationToken)
         {
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var workspace = document.Project.Solution.Workspace;
-            var editor = new SyntaxEditor(model.SyntaxTree.GetRoot(cancellationToken), workspace);
+            var services = document.Project.Solution.Workspace.Services;
+            var editor = new SyntaxEditor(model.SyntaxTree.GetRoot(cancellationToken), services);
 
             ConvertToForStatement(model, foreachInfo, editor, cancellationToken);
 
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected class ForEachInfo
+        protected sealed class ForEachInfo
         {
             public ForEachInfo(
                 ISemanticFactsService semanticFacts, string collectionNameSuggestion, string countName,
@@ -439,8 +439,6 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
                 bool requireCollectionStatement, TForEachStatement forEachStatement)
             {
                 SemanticFacts = semanticFacts;
-
-                RequireExplicitCastInterface = explicitCastInterface != null;
 
                 CollectionNameSuggestion = collectionNameSuggestion;
                 CountName = countName;
@@ -455,22 +453,12 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
 
             public ISemanticFactsService SemanticFacts { get; }
 
-            public bool RequireExplicitCastInterface { get; }
             public string CollectionNameSuggestion { get; }
             public string CountName { get; }
             public ITypeSymbol? ExplicitCastInterface { get; }
             public ITypeSymbol ForEachElementType { get; }
             public bool RequireCollectionStatement { get; }
             public TForEachStatement ForEachStatement { get; }
-        }
-
-        private class ForEachToForCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ForEachToForCodeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument, title)
-            {
-            }
         }
     }
 }

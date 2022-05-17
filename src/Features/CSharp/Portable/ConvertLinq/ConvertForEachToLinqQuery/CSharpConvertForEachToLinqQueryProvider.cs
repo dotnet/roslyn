@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             variable,
                             i == 0 ? localDeclarationLeadingTrivia : separators[i - 1].TrailingTrivia,
                             i == localDeclarationStatement.Declaration.Variables.Count - 1
-                                ? (IEnumerable<SyntaxTrivia>)localDeclarationTrailingTrivia
+                                ? localDeclarationTrailingTrivia
                                 : separators[i].LeadingTrivia));
                         identifiersBuilder.Add(variable.Identifier);
                     }

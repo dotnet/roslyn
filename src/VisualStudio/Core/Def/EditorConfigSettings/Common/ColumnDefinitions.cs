@@ -31,6 +31,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common
             public const string Location = Prefix + CodeStylePrefix + "location";
         }
 
+        internal static class NamingStyle
+        {
+            private const string NamingStylePrefix = "namingstyle.";
+            public const string Type = Prefix + NamingStylePrefix + "type";
+            public const string Style = Prefix + NamingStylePrefix + "style";
+            public const string Severity = Prefix + NamingStylePrefix + "severityname";
+            public const string Location = Prefix + NamingStylePrefix + "location";
+        }
+
         internal static class Whitespace
         {
             private const string FormattingPrefix = "whitespace.";

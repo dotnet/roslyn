@@ -202,22 +202,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Diagnostic.InfoAndHiddenWarningLevel;
             }
 
+            // Warning wave warnings (warning level > 4) should be documented in
+            // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_LowerCaseTypeName:
+                    // Warning level 7 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 7 (C# 11) and that can be reported for pre-existing code.
+                    return 7;
                 case ErrorCode.WRN_PartialMethodTypeDifference:
-                case ErrorCode.WRN_AttrDependentTypeNotAllowed:
                     // Warning level 6 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 6 (C# 10) and that can be reported for pre-existing code.
                     return 6;
                 case ErrorCode.WRN_NubExprIsConstBool2:
                 case ErrorCode.WRN_StaticInAsOrIs:
                 case ErrorCode.WRN_PrecedenceInversion:
-                case ErrorCode.WRN_UnassignedThisAutoProperty:
-                case ErrorCode.WRN_UnassignedThis:
+                case ErrorCode.WRN_UseDefViolationPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldUnsupportedVersion:
+                case ErrorCode.WRN_UnassignedThisAutoPropertyUnsupportedVersion:
+                case ErrorCode.WRN_UnassignedThisUnsupportedVersion:
                 case ErrorCode.WRN_ParamUnassigned:
                 case ErrorCode.WRN_UseDefViolationProperty:
                 case ErrorCode.WRN_UseDefViolationField:
-                case ErrorCode.WRN_UseDefViolationThis:
+                case ErrorCode.WRN_UseDefViolationThisUnsupportedVersion:
                 case ErrorCode.WRN_UseDefViolationOut:
                 case ErrorCode.WRN_UseDefViolation:
                 case ErrorCode.WRN_SyncAndAsyncEntryPoints:
@@ -450,6 +457,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                 case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
+                case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                case ErrorCode.WRN_NullCheckingOnNullableType:
                 case ErrorCode.WRN_ParameterConditionallyDisallowsNull:
                 case ErrorCode.WRN_NullReferenceInitializer:
                 case ErrorCode.WRN_ShouldNotReturn:
@@ -485,6 +494,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                 case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
                 case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                case ErrorCode.WRN_MethGrpToNonDel:
+                case ErrorCode.WRN_UseDefViolationPropertySupportedVersion:
+                case ErrorCode.WRN_UseDefViolationFieldSupportedVersion:
+                case ErrorCode.WRN_UseDefViolationThisSupportedVersion:
+                case ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion:
+                case ErrorCode.WRN_UnassignedThisSupportedVersion:
                     return 1;
                 default:
                     return 0;

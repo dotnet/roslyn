@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
         {
             private readonly SuppressionTargetInfo _suppressionTargetInfo;
             private readonly Document _document;
+            private readonly SyntaxFormattingOptions _options;
             private readonly Diagnostic _diagnostic;
             private readonly bool _forFixMultipleContext;
 
             public static PragmaWarningCodeAction Create(
                 SuppressionTargetInfo suppressionTargetInfo,
                 Document document,
+                SyntaxFormattingOptions options,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer)
             {
@@ -29,12 +31,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 // the trailing trivia on its previous token (and similarly normalize trailing trivia for end token).
                 PragmaHelpers.NormalizeTriviaOnTokens(fixer, ref document, ref suppressionTargetInfo);
 
-                return new PragmaWarningCodeAction(suppressionTargetInfo, document, diagnostic, fixer);
+                return new PragmaWarningCodeAction(suppressionTargetInfo, document, options, diagnostic, fixer);
             }
 
             private PragmaWarningCodeAction(
                 SuppressionTargetInfo suppressionTargetInfo,
                 Document document,
+                SyntaxFormattingOptions options,
                 Diagnostic diagnostic,
                 AbstractSuppressionCodeFixProvider fixer,
                 bool forFixMultipleContext = false)
@@ -42,12 +45,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 _suppressionTargetInfo = suppressionTargetInfo;
                 _document = document;
+                _options = options;
                 _diagnostic = diagnostic;
                 _forFixMultipleContext = forFixMultipleContext;
             }
 
             public PragmaWarningCodeAction CloneForFixMultipleContext()
-                => new(_suppressionTargetInfo, _document, _diagnostic, Fixer, forFixMultipleContext: true);
+                => new(_suppressionTargetInfo, _document, _options, _diagnostic, Fixer, forFixMultipleContext: true);
+
             protected override string DiagnosticIdForEquivalenceKey =>
                 _forFixMultipleContext ? string.Empty : _diagnostic.Id;
 
@@ -63,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     (startToken, currentDiagnosticSpan) =>
                     {
                         return includeStartTokenChange
-                            ? PragmaHelpers.GetNewStartTokenWithAddedPragma(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode)
+                            ? PragmaHelpers.GetNewStartTokenWithAddedPragma(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: false, cancellationToken)
                             : startToken;
                     },
                     (endToken, currentDiagnosticSpan) =>
                     {
                         return includeEndTokenChange
-                            ? PragmaHelpers.GetNewEndTokenWithAddedPragma(endToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode)
+                            ? PragmaHelpers.GetNewEndTokenWithAddedPragma(endToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: false, cancellationToken)
                             : endToken;
                     },
                     cancellationToken).ConfigureAwait(false);
@@ -78,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             public SyntaxToken StartToken_TestOnly => _suppressionTargetInfo.StartToken;
             public SyntaxToken EndToken_TestOnly => _suppressionTargetInfo.EndToken;
 
-            private SyntaxNode FormatNode(SyntaxNode node)
-                => Formatter.Format(node, _document.Project.Solution.Workspace);
+            private SyntaxNode FormatNode(SyntaxNode node, CancellationToken cancellationToken)
+                => Formatter.Format(node, _document.Project.Solution.Workspace.Services, _options, cancellationToken);
         }
     }
 }
