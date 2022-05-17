@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             VSTypeScriptLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
             : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)
