@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         }
 
 #if NETCOREAPP
-        [ConditionalTheory(typeof(CoreClrOnly))]
+        [Theory]
         [InlineData(2, "bc", 2, 'd')]
         [InlineData(7, "bcdefgh", 7, -1)]
         [InlineData(10, "bcdefgh\0\0\0", 7, -1)]
