@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory;
 
-namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
+namespace Microsoft.CodeAnalysis.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public sealed class DirectMemoryAccessStreamReaderTests
+    public sealed class DMASRTests
     {
         [Fact]
         public void PeakRead()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         //[InlineData(10, 3, 7, "\0\0\0bcdefgh", 7, -1)]
         //[InlineData(10, 3, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
         //[InlineData(10, 10, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
-        [InlineData(0, 0, 0, "", 0, 'b')]
+        //[InlineData(0, 0, 0, "", 0, 'b')]
         public void ReadToArray(int bufferLength, int index, int count, string expected, int expectedResult, int expectedPeek)
         {
             TestWithMethod(reader => reader.Read);
