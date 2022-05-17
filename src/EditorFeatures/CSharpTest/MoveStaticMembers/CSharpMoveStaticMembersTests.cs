@@ -3005,7 +3005,7 @@ namespace TestNs1
         public static int TestField = 1;[||]
     }
 }";
-            await TestNoRefactoringAsync(initialMarkup, hostServices: FeaturesTestCompositions.Features.GetHostServices()).ConfigureAwait(false);
+            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
         }
 
         private class Test : VerifyCS.Test

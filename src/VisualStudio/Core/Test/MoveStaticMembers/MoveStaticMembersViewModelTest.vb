@@ -418,7 +418,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
-            Assert.Equal(-1, viewModel.SelectedIndex)
+            Assert.Equal(-1, viewModel.MemberSelectionViewModel.)
 
             ' We can't really test searchtext or selected index behavior because it is
             ' handled by the combobox, and doesn't update in the same way
@@ -788,7 +788,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
-            Assert.Equal(-1, viewModel.SelectedIndex)
+            Assert.Equal(-1, viewModel.MemberSelection)
 
             ' We can't really test searchtext or selected index behavior because it is
             ' handled by the combobox, and doesn't update in the same way

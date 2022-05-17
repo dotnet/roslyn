@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.MoveStaticMembers
         Private Shared ReadOnly s_testServices As TestComposition = FeaturesTestCompositions.Features.AddParts(GetType(TestMoveStaticMembersService))
 
 #Region "Perform New Type Action From Options"
-#Region "Perform New Type Action From Options"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
         Public Async Function TestMoveField() As Task
             Dim initialMarkup = "
@@ -2672,9 +2671,7 @@ End Namespace"
             Inherits VerifyVB.Test
 
             Public Sub New(destinationType As String,
-                           newFileName As String,
-                           Optional newType As Boolean = True)
-                members As ImmutableArray(Of String),
+                           members As ImmutableArray(Of String),
                            newFileName As String,
                            Optional newType As Boolean = True)
                 _destinationType = destinationType
@@ -2715,30 +2712,7 @@ End Namespace"
 
             Dim test = New Test(newTypeName, selectedMembers, newFileName) With
             {
-            Await test.RunAsync().ConfigureAwait(False)
-        End Function
-
-        Private Shared Async Function TestMovementExistingFileAsync(initialSourceMarkup As String,
-                                                                    initialDestinationMarkup As String,
-                                                                    fixedSourceMarkup As String,
-                                                                    fixedDestinationMarkup As String,
-                                                                    destinationName As String,
-                                                                    selectedMembers As ImmutableArray(Of String),
-                                                                    Optional destinationFileName As String = Nothing) As Task
-            Dim test = New Test(destinationName, selectedMembers, destinationFileName, newType:=False)
-            test.TestState.Sources.Add(initialSourceMarkup)
-            test.FixedState.Sources.Add(fixedSourceMarkup)
-
-            If destinationFileName IsNot Nothing Then
-                test.TestState.Sources.Add((destinationFileName, initialDestinationMarkup))
-                test.FixedState.Sources.Add((destinationFileName, fixedDestinationMarkup))
-            Else
-                test.TestState.Sources.Add(initialDestinationMarkup)
-                test.FixedState.Sources.Add(fixedDestinationMarkup)
-            End If
-
-            Await test.RunAsync().ConfigureAwait(False)
-            .TestCode = initialMarkup
+                .TestCode = initialMarkup
             }
             test.FixedState.Sources.Add(expectedSource)
             test.FixedState.Sources.Add((newFileName, expectedNewFile))
