@@ -7561,7 +7561,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, ',' expected
                 //         var (p2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 16),
                 // (6,16): error CS1001: Identifier expected
                 //         var (p2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 16)

@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
@@ -920,7 +921,7 @@ namespace N1
             var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
             Assert.NotNull(moveTypeService);
 
-            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, SyntaxFormattingOptions.GetDefaultAsync, CancellationToken.None).ConfigureAwait(false);
+            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CodeActionOptions.DefaultProvider, CancellationToken.None).ConfigureAwait(false);
 
             if (expectOperation)
             {

@@ -9,11 +9,14 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
@@ -63,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
                     location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
-                    CodeCleanupOptions.GetDefaultAsync);
+                    CodeActionOptions.DefaultProvider);
 
             return Task.FromResult(result);
         }

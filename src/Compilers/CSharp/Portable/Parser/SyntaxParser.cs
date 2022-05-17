@@ -621,9 +621,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         protected virtual SyntaxDiagnosticInfo GetExpectedTokenError(SyntaxKind expected, SyntaxKind actual, int offset, int width)
         {
             var code = GetExpectedTokenErrorCode(expected, actual);
-            if (code == ErrorCode.ERR_SyntaxError || code == ErrorCode.ERR_IdentifierExpectedKW)
+            if (code == ErrorCode.ERR_SyntaxError)
             {
-                return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected), SyntaxFacts.GetText(actual));
+                return new SyntaxDiagnosticInfo(offset, width, code, SyntaxFacts.GetText(expected));
+            }
+            else if (code == ErrorCode.ERR_IdentifierExpectedKW)
+            {
+                return new SyntaxDiagnosticInfo(offset, width, code, /*unused*/string.Empty, SyntaxFacts.GetText(actual));
             }
             else
             {

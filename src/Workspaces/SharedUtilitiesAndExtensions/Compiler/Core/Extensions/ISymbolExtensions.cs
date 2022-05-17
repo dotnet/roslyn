@@ -685,8 +685,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return x is
                 {
                     Name: WellKnownMemberNames.MoveNextMethodName,
-                    ReturnType: { SpecialType: SpecialType.System_Boolean },
-                    Parameters: { Length: 0 },
+                    ReturnType.SpecialType: SpecialType.System_Boolean,
+                    Parameters.Length: 0,
                 };
             }))
             {

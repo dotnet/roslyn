@@ -150,6 +150,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+#if DEBUG
+        internal abstract bool ShouldAssertExpectedMessageArgumentsLength(int errorCode);
+#endif
+
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }

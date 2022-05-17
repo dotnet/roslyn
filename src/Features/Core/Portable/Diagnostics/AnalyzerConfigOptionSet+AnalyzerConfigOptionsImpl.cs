@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -28,6 +31,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 return _fallbackOptions.TryGetValue(key, out value);
             }
+
+            public override IEnumerable<string> Keys
+                => _options.Keys.Concat(_fallbackOptions.Keys.Where(key => !_options.TryGetValue(key, out _)));
         }
     }
 }

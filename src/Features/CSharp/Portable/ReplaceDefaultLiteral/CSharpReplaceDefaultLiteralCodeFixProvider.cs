@@ -59,9 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 if (newExpression != null)
                 {
                     context.RegisterCodeFix(
-                        new MyCodeAction(
+                        CodeAction.Create(
+                            string.Format(CSharpFeaturesResources.Use_0, displayText),
                             c => ReplaceAsync(context.Document, context.Span, newExpression, c),
-                            displayText),
+                            nameof(CSharpFeaturesResources.Use_0)),
                         context.Diagnostics);
                 }
             }
@@ -146,14 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                     return true;
                 default:
                     return false;
-            }
-        }
-
-        private sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string literal)
-                : base(string.Format(CSharpFeaturesResources.Use_0, literal), createChangedDocument, CSharpFeaturesResources.Use_0)
-            {
             }
         }
     }

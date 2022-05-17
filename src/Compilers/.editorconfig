@@ -15,6 +15,9 @@ dotnet_diagnostic.RS0101.severity = none
 # RS0102: Braces must not have blank lines between them
 dotnet_diagnostic.RS0102.severity = none
 
+# IDE0170: Prefer extended property pattern
+dotnet_diagnostic.IDE0170.severity = suggestion
+
 # CSharp code style settings:
 [*.cs]
 csharp_style_var_for_built_in_types = false:none

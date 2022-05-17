@@ -16,6 +16,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Formatters;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -124,6 +125,20 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             types.Remove(typeof(CancellationToken));
 
             return types;
+        }
+
+        [Fact]
+        public void OptionsAreMessagePackSerializable()
+        {
+            var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
+
+            foreach (var original in new[] { NamingStylePreferences.Default })
+            {
+                using var stream = new MemoryStream();
+                MessagePackSerializer.Serialize(stream, original, messagePackOptions);
+                stream.Position = 0;
+                Assert.Equal(original, MessagePackSerializer.Deserialize(original.GetType(), stream, messagePackOptions));
+            }
         }
 
         [Fact]

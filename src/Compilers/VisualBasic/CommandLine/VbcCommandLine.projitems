@@ -30,10 +30,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\Vbc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
 
-    <None Include="$(MSBuildThisFileDirectory)App.config" />
-    <None Include="$(MSBuildThisFileDirectory)vbc.rsp" Condition="'$(TargetFramework)' == 'net472'">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />
 
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
 

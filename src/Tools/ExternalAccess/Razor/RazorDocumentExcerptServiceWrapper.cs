@@ -28,6 +28,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             };
 
             var result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
+
+            if (result is null)
+                return null;
+
             var razorExcerpt = result.Value;
             return new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
         }

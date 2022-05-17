@@ -547,6 +547,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Refactoring_FixAllOccurrencesComputation = 562,
         Refactoring_FixAllOccurrencesPreviewChanges = 563,
 
-        OptionsLogger_LogOptions = 570,
+        LSP_UsedForkedSolution = 571,
+
+        OptionsLogger_LogOptions = 580,
     }
 }

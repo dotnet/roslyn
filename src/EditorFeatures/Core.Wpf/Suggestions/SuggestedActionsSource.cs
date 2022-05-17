@@ -177,18 +177,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Func<string, IDisposable?> addOperationScope =
                         description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
 
-                    var options = GlobalOptions.GetBlockingCodeActionOptionsProvider();
+                    var options = GlobalOptions.GetCodeActionOptionsProvider();
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
                     var fixesTask = GetCodeFixesAsync(
                         state, supportsFeatureService, requestedActionCategories, workspace, document, range,
                         addOperationScope, CodeActionRequestPriority.None,
-                        options, cancellationToken);
+                        options, isBlocking: true, cancellationToken);
 
                     var refactoringsTask = GetRefactoringsAsync(
                         state, supportsFeatureService, requestedActionCategories, GlobalOptions, workspace, document, selection,
-                        addOperationScope, CodeActionRequestPriority.None, options, cancellationToken);
+                        addOperationScope, CodeActionRequestPriority.None, options, isBlocking: true, cancellationToken);
 
                     Task.WhenAll(fixesTask, refactoringsTask).WaitAndGetResult(cancellationToken);
 
@@ -271,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
                 CodeActionOptionsProvider options,
+                bool isBlocking,
                 CancellationToken cancellationToken)
             {
                 if (state.Target.Owner._codeFixService == null ||
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                     workspace, state.Target.Owner._codeFixService, document, range.Span.ToTextSpan(),
-                    priority, options, addOperationScope, cancellationToken).AsTask();
+                    priority, options, isBlocking, addOperationScope, cancellationToken).AsTask();
             }
 
             private static string GetFixCategory(DiagnosticSeverity severity)
@@ -311,6 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 Func<string, IDisposable?> addOperationScope,
                 CodeActionRequestPriority priority,
                 CodeActionOptionsProvider options,
+                bool isBlocking,
                 CancellationToken cancellationToken)
             {
                 if (!selection.HasValue)
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                 return UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, priority, options,
+                    workspace, state.Target.Owner._codeRefactoringService, document, selection.Value, priority, options, isBlocking,
                     addOperationScope, filterOutsideSelection, cancellationToken);
             }
 
@@ -439,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                            document, range.Span.ToTextSpan(), priority, options, cancellationToken).ConfigureAwait(false);
+                            document, range.Span.ToTextSpan(), priority, options, isBlocking: false, cancellationToken).ConfigureAwait(false);
 
                         if (result.HasFix)
                         {
