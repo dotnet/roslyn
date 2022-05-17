@@ -552,7 +552,6 @@ public enum Goo
 }");
         }
 
-        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterParenthesizedPattern1()
         {
@@ -561,15 +560,13 @@ public enum Goo
 expr is (not []) $$");
         }
 
-        [WorkItem(51431, "https://github.com/dotnet/roslyn/issues/51431")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterParenthesizedPattern2()
         {
+            // expr is (not []) and var x
             await VerifyKeywordAsync(
 @"
 expr is (not []) $$ var x");
         }
-
-        // expr is (not []) and var x
     }
 }
