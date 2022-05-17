@@ -679,7 +679,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     IsReadOnly ? AttributeDescription.IsReadOnlyAttribute : default,
                     out _,
                     // Filter out [IsByRefLike]
-                    IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default);
+                    IsRefLikeType ? AttributeDescription.IsByRefLikeAttribute : default,
+                    out _,
+                    // Filter out [CompilerFeatureRequired]
+                    (IsRefLikeType && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default);
 
                 ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCustomAttributes, loadedCustomAttributes);
             }

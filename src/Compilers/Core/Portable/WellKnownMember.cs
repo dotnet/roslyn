@@ -525,6 +525,8 @@ namespace Microsoft.CodeAnalysis
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
 
+        System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

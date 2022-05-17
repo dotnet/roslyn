@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out CustomAttributeHandle filteredOutAttribute1,
             AttributeDescription filterOut1)
         {
-            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default);
+            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default, out _, default);
         }
 
         /// <summary>
@@ -318,12 +318,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             out CustomAttributeHandle filteredOutAttribute3,
             AttributeDescription filterOut3,
             out CustomAttributeHandle filteredOutAttribute4,
-            AttributeDescription filterOut4)
+            AttributeDescription filterOut4,
+            out CustomAttributeHandle filteredOutAttribute5,
+            AttributeDescription filterOut5)
         {
             filteredOutAttribute1 = default;
             filteredOutAttribute2 = default;
             filteredOutAttribute3 = default;
             filteredOutAttribute4 = default;
+            filteredOutAttribute5 = default;
             ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
 
             try
@@ -354,6 +357,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     if (matchesFilter(customAttributeHandle, filterOut4))
                     {
                         filteredOutAttribute4 = customAttributeHandle;
+                        continue;
+                    }
+
+                    if (matchesFilter(customAttributeHandle, filterOut5))
+                    {
+                        filteredOutAttribute5 = customAttributeHandle;
                         continue;
                     }
 
@@ -438,7 +447,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
                 filterOut2: AttributeDescription.IsReadOnlyAttribute,
                 filteredOutAttribute3: out _, filterOut3: default,
-                filteredOutAttribute4: out _, filterOut4: default);
+                filteredOutAttribute4: out _, filterOut4: default,
+                filteredOutAttribute5: out _, filterOut5: default);
 
             foundExtension = !extensionAttribute.IsNil;
             foundReadOnly = !isReadOnlyAttribute.IsNil;
