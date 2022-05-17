@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -18,19 +19,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         private readonly ISyntaxFacts _syntaxFacts;
 
-        private readonly ImmutableArray<string> _existingNames;
+        private readonly ImmutableArray<INamedTypeSymbol> _conflictingTypeNames;
 
         public MoveStaticMembersDialogViewModel(
             StaticMemberSelectionViewModel memberSelectionViewModel,
             string defaultType,
-            ImmutableArray<string> existingNames,
+            ImmutableArray<TypeNameItem> availableTypes,
+            ImmutableArray<INamedTypeSymbol> conflictingTypeNames,
             string prependedNamespace,
             ISyntaxFacts syntaxFacts)
         {
             MemberSelectionViewModel = memberSelectionViewModel;
             _syntaxFacts = syntaxFacts ?? throw new ArgumentNullException(nameof(syntaxFacts));
-            _destinationName = defaultType;
-            _existingNames = existingNames;
+            _searchText = defaultType;
+            _destinationName = new TypeNameItem(defaultType);
+            _conflictingTypeNames = conflictingTypeNames;
+            AvailableTypes = availableTypes;
             PrependedNamespace = string.IsNullOrEmpty(prependedNamespace) ? prependedNamespace : prependedNamespace + ".";
 
             PropertyChanged += MoveMembersToTypeDialogViewModel_PropertyChanged;
@@ -49,10 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         public void OnDestinationUpdated()
         {
-            // TODO change once we allow movement to existing types
-            var fullyQualifiedTypeName = PrependedNamespace + DestinationName;
-            var isNewType = !_existingNames.Contains(fullyQualifiedTypeName);
-            CanSubmit = isNewType && IsValidType(fullyQualifiedTypeName);
+            CanSubmit = _destinationName.IsNew && IsValidType(_destinationName.TypeName);
 
             if (CanSubmit)
             {
@@ -89,9 +90,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         }
 
         public string PrependedNamespace { get; }
+        public ImmutableArray<TypeNameItem> AvailableTypes { get; }
 
-        private string _destinationName;
-        public string DestinationName
+        private TypeNameItem _destinationName;
+        public TypeNameItem DestinationName
         {
             get => _destinationName;
             set => SetProperty(ref _destinationName, value);
@@ -123,6 +125,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
         {
             get => _canSubmit;
             set => SetProperty(ref _canSubmit, value);
+        }
+
+        private string _searchText;
+        public string SearchText
+        {
+            get => _searchText;
+            set => SetProperty(ref _searchText, value);
         }
     }
 }

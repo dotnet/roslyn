@@ -42,14 +42,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         End Using
         End Function
 
-        Private Function Submit(viewModel As MoveStaticMembersDialogViewModel, cSharp As Boolean) As MoveStaticMembersOptions
+        Private Shared Function Submit(viewModel As MoveStaticMembersDialogViewModel, cSharp As Boolean) As MoveStaticMembersOptions
             Assert.True(viewModel.CanSubmit)
             Dim language = If(cSharp, LanguageNames.CSharp, LanguageNames.VisualBasic)
 
-            Return VisualStudioMoveStaticMembersOptionsService.GenerateOptions(language, viewModel)
+            Return VisualStudioMoveStaticMembersOptionsService.GenerateOptions(language, viewModel, True)
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.Symbol.Name.Equals(name))
             Assert.NotNull(member)
             Return member
@@ -93,9 +93,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' We can call the method, but we need the document still to test submission
             Dim viewModel = Await GetViewModelAsync(markUp).ConfigureAwait(False)
 
-            Assert.Equal("TestClassHelpers", viewModel.DestinationName)
+            Assert.Equal("TestClassHelpers", viewModel.DestinationName.TypeName)
             viewModel.DestinationName = "ExtraNs.TestClassHelpers"
-            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName)
+            Assert.Equal("ExtraNs.TestClassHelpers", viewModel.DestinationName.TypeName)
             Assert.Equal("TestNs.", viewModel.PrependedNamespace)
             Assert.True(viewModel.CanSubmit)
 
@@ -418,7 +418,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
-            Assert.Equal(-1, viewModel.MemberSelectionViewModel.)
+            Assert.Equal(0, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
 
             ' We can't really test searchtext or selected index behavior because it is
             ' handled by the combobox, and doesn't update in the same way
@@ -788,7 +788,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
-            Assert.Equal(-1, viewModel.MemberSelection)
+            Assert.Equal(0, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
 
             ' We can't really test searchtext or selected index behavior because it is
             ' handled by the combobox, and doesn't update in the same way

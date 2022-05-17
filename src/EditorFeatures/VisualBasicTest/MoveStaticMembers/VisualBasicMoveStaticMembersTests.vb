@@ -2690,8 +2690,6 @@ End Namespace"
 
             Protected Overrides Function CreateWorkspaceImpl() As Workspace
                 Dim hostServices = s_testServices.GetHostServices()
-                optionsService.DestinationName = _destinationType
-
                 Dim workspace = New AdhocWorkspace(hostServices)
                 Dim optionsService = DirectCast(workspace.Services.GetRequiredService(Of IMoveStaticMembersOptionsService)(), TestMoveStaticMembersService)
                 optionsService.DestinationName = _destinationType
