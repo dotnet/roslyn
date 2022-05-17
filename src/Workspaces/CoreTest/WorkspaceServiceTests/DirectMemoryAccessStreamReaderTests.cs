@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
             }
         }
 
+#if NETCOREAPP
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData(2, "bc", 2, 'd')]
         [InlineData(7, "bcdefgh", 7, -1)]
@@ -69,7 +70,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
         [InlineData(0, "", 0, 'b')]
         public void ReadToSpan(int bufferLength, string expected, int expectedResult, int expectedPeek)
         {
-#if NETCOREAPP
             TestWithMethod(reader => reader.Read);
             TestWithMethod(reader => reader.ReadBlock);
 
@@ -86,15 +86,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
 
                 Assert.Equal(expectedPeek, reader.Peek());
             }
-#else
-            _ = bufferLength;
-            _ = expected;
-            _ = expectedResult;
-            _ = expectedPeek;
-
-            throw new NotSupportedException();
-#endif
         }
+#endif
 
         [Fact]
         public void ReadToArrayErrors()
