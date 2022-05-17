@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
         {
-            Debug.Assert(!underlyingType.IsNativeIntegerTypeOrNumericIntPtr);
+            Debug.Assert(!underlyingType.IsNativeIntegerType);
 
             if (_lazyNativeIntegerTypes == null)
             {

@@ -1426,7 +1426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isNuint(TypeSymbol type)
             {
                 return type.SpecialType == SpecialType.System_UIntPtr
-                    && type.IsNativeIntegerTypeOrNumericIntPtr;
+                    && type.IsNativeIntegerType;
             }
         }
 

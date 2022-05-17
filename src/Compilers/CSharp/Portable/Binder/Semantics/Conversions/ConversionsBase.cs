@@ -1336,10 +1336,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return sbyte.MinValue <= value && value <= sbyte.MaxValue;
                     case SpecialType.System_Int16:
                         return short.MinValue <= value && value <= short.MaxValue;
-                    case SpecialType.System_IntPtr when destination.IsNativeIntegerTypeOrNumericIntPtr:
+                    case SpecialType.System_IntPtr when destination.IsNativeIntegerType:
                         return true;
                     case SpecialType.System_UInt32:
-                    case SpecialType.System_UIntPtr when destination.IsNativeIntegerTypeOrNumericIntPtr:
+                    case SpecialType.System_UIntPtr when destination.IsNativeIntegerType:
                         return uint.MinValue <= value;
                     case SpecialType.System_UInt64:
                         return (int)ulong.MinValue <= value;
@@ -2001,8 +2001,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Single:
                 case SpecialType.System_Double:
                 case SpecialType.System_Decimal:
-                case SpecialType.System_IntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
-                case SpecialType.System_UIntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                     return true;
                 default:
                     return false;
@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
 
             static bool isIntPtrOrUIntPtr(TypeSymbol type) =>
-                (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerTypeOrNumericIntPtr;
+                (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr) && !type.IsNativeIntegerType;
         }
 
         private static bool HasExplicitEnumerationConversion(TypeSymbol source, TypeSymbol destination)
@@ -3733,7 +3733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 case SpecialType.System_IntPtr:
                 case SpecialType.System_UIntPtr:
-                    return type.IsNativeIntegerTypeOrNumericIntPtr;
+                    return type.IsNativeIntegerType;
             }
 
             return false;

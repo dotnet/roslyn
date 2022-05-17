@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such an out-of-range value.
 
             var underlyingType = type.EnumUnderlyingTypeOrSelf();
-            Debug.Assert(underlyingType.IsNativeIntegerTypeOrNumericIntPtr);
+            Debug.Assert(underlyingType.IsNativeIntegerType);
             if (underlyingType.SpecialType == SpecialType.System_IntPtr)
             {
                 if (remainingValues.Any(BinaryOperatorKind.GreaterThan, ConstantValue.Create(int.MaxValue)))
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string ValueString(ConstantValue value, TypeSymbol type, bool requireExactType)
         {
-            bool requiresCast = (type.IsEnumType() || requireExactType || type.IsNativeIntegerTypeOrNumericIntPtr) &&
+            bool requiresCast = (type.IsEnumType() || requireExactType || type.IsNativeIntegerType) &&
                 !(typeHasExactTypeLiteral(type) && !value.IsNull);
             string valueString = PrimitiveValueString(value, type.EnumUnderlyingTypeOrSelf());
             return requiresCast ? $"({type.ToDisplayString()}){valueString}" : valueString;
@@ -597,8 +597,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
                 case SpecialType.System_Int64:
-                case SpecialType.System_IntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
-                case SpecialType.System_UIntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                 case SpecialType.System_Decimal:
                 case SpecialType.System_Char:
                 case SpecialType.System_String:

@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_Int16:
                 case SpecialType.System_Int32:
                 case SpecialType.System_Int64:
-                case SpecialType.System_IntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
-                case SpecialType.System_UIntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
+                case SpecialType.System_IntPtr when type.IsNativeIntegerType:
+                case SpecialType.System_UIntPtr when type.IsNativeIntegerType:
                 case SpecialType.System_MulticastDelegate:
                 case SpecialType.System_Object:
                 case SpecialType.System_SByte:

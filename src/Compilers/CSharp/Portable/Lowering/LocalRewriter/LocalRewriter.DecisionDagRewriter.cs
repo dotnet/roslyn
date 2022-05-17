@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var dispatch = new BoundSwitchDispatch(node.Syntax, input, node.Cases, defaultLabel);
                     _loweredDecisionDag.Add(dispatch);
                 }
-                else if (input.Type.IsNativeIntegerTypeOrNumericIntPtr)
+                else if (input.Type.IsNativeIntegerType)
                 {
                     // Native types need to be dispatched using a larger underlying type so that any
                     // possible high bits are not truncated.

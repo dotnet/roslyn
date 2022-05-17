@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal NativeIntegerTypeSymbol(NamedTypeSymbol underlyingType) : base(underlyingType, tupleData: null)
         {
             Debug.Assert(underlyingType.TupleData is null);
-            Debug.Assert(!underlyingType.IsNativeIntegerTypeOrNumericIntPtr);
+            Debug.Assert(!underlyingType.IsNativeIntegerType);
             Debug.Assert(underlyingType.SpecialType == SpecialType.System_IntPtr || underlyingType.SpecialType == SpecialType.System_UIntPtr);
             Debug.Assert(!underlyingType.ContainingAssembly.RuntimeSupportsNumericIntPtr);
             VerifyEquality(this, underlyingType);

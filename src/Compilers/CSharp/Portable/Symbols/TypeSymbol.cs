@@ -564,8 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual bool IsNativeIntegerWrapperType => false;
 
-        // TODO2 will be renamed IsNativeInteger before merging this PR
-        internal bool IsNativeIntegerTypeOrNumericIntPtr => IsNativeIntegerWrapperType
+        internal bool IsNativeIntegerType => IsNativeIntegerWrapperType
             || (SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr && this.ContainingAssembly.RuntimeSupportsNumericIntPtr);
 
         /// <summary>

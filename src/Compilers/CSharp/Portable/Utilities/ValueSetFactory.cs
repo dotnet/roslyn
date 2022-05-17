@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsSpanOrReadOnlySpanChar())
                 return ForString;
             type = type.EnumUnderlyingTypeOrSelf();
-            return ForSpecialType(type.SpecialType, type.IsNativeIntegerTypeOrNumericIntPtr);
+            return ForSpecialType(type.SpecialType, type.IsNativeIntegerType);
         }
 
         public static IValueSetFactory? ForInput(BoundDagTemp input)
