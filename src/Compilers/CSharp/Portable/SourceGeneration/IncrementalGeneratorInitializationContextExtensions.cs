@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SourceGeneration;
 internal static partial class IncrementalGeneratorInitializationContextExtensions
 {
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
+    private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
+        SymbolDisplayFormat.QualifiedNameArityFormat.AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
 
     /// <summary>
     /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that binds to a
@@ -45,7 +47,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
     public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
         where T : SyntaxNode
     {
-        var metadataName = fullyQualifiedMetadataName.IndexOf('+') >= 0
+        var metadataName = fullyQualifiedMetadataName.Contains('+')
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
@@ -106,7 +108,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
                 if (attribute.AttributeClass is null)
                     continue;
 
-                if (attribute.AttributeClass.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) == fullyQualifiedMetadataName)
+                if (attribute.AttributeClass.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
                     return true;
             }
         }

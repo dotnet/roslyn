@@ -274,7 +274,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IncludeNamedType(symbol.ContainingType))
                 {
                     symbol.ContainingType.Accept(this.NotFirstVisitor);
-                    AddPunctuation(SyntaxKind.DotToken);
+
+                    if (format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes))
+                    {
+                        AddPunctuation(SyntaxKind.PlusToken);
+                    }
+                    else
+                    {
+                        AddPunctuation(SyntaxKind.DotToken);
+                    }
                 }
             }
 

@@ -100,6 +100,82 @@ namespace N2
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" }));
     }
 
+    [Fact]
+    public void FindNestedAttribute1()
+    {
+        var source = @"
+[Outer1.Inner]
+class C1 { }
+[Outer2.Inner]
+class C2 { }
+
+class Outer1
+{
+    public class InnerAttribute : System.Attribute { }
+}
+class Outer2
+{
+    public class InnerAttribute : System.Attribute { }
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("Outer1+InnerAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+    }
+
+    [Fact]
+    public void FindNestedAttribute2()
+    {
+        var source = @"
+[Outer1.Inner]
+class C1 { }
+[Outer2.Inner]
+class C2 { }
+
+class Outer1
+{
+    public class InnerAttribute : System.Attribute { }
+}
+class Outer2
+{
+    public class InnerAttribute : System.Attribute { }
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("Outer2+InnerAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C2" }));
+    }
+
     #endregion
 
     #region Incremental tests
