@@ -5,7 +5,6 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>net6.0-windows;net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
