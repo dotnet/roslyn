@@ -1395,6 +1395,14 @@ class CL<T> where T : $$", @"Test");
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClause_StillShowStaticAndSealedTypesNotDirectlyInConstraint()
+        {
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : IList<$$"), @"System");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : IList<$$"), @"String");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TypeParameterConstraintClauseList()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, $$"), @"System");
@@ -1438,6 +1446,14 @@ class CL<T> where T : A, $$", @"Test");
 }
 
 class CL<T> where T : A, $$", @"Test");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeParameterConstraintClauseList_StillShowStaticAndSealedTypesNotDirectlyInConstraint()
+        {
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, IList<$$"), @"System");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<T> where T : A, IList<$$"), @"String");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
