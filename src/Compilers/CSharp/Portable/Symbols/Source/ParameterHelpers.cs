@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(compilation.ShouldEmitNativeIntegerAttributes());
             foreach (var parameter in parameters)
             {
-                if (parameter.TypeWithAnnotations.ContainsNativeInteger())
+                if (parameter.TypeWithAnnotations.ContainsNativeIntegerWrapperType())
                 {
                     if (moduleBuilder is { })
                     {

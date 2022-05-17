@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
-                if (ReturnType.ContainsNativeInteger())
+                if (ReturnType.ContainsNativeIntegerWrapperType())
                 {
                     moduleBuilder.EnsureNativeIntegerAttributeExists();
                 }

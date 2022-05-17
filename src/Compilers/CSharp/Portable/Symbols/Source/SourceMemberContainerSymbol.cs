@@ -1627,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.ShouldEmitNativeIntegerAttributes())
             {
                 // https://github.com/dotnet/roslyn/issues/30080: Report diagnostics for base type and interfaces at more specific locations.
-                if (hasBaseTypeOrInterface(t => t.ContainsNativeInteger()))
+                if (hasBaseTypeOrInterface(t => t.ContainsNativeIntegerWrapperType()))
                 {
                     compilation.EnsureNativeIntegerAttributeExists(diagnostics, location, modifyCompilation: true);
                 }

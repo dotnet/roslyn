@@ -582,8 +582,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SpecialType.System_UInt32:
                     case SpecialType.System_Int64:
                     case SpecialType.System_UInt64:
-                    case SpecialType.System_IntPtr when type.IsNativeIntegerOrNumericIntPtrOrNullableThereof():
-                    case SpecialType.System_UIntPtr when type.IsNativeIntegerOrNumericIntPtrOrNullableThereof():
+                    case SpecialType.System_IntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
+                    case SpecialType.System_UIntPtr when type.IsNativeIntegerTypeOrNumericIntPtr:
                     case SpecialType.System_Char:
                     case SpecialType.System_Boolean:
                     case SpecialType.System_Single:
@@ -1150,15 +1150,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static readonly Func<TypeSymbol, object?, bool, bool> s_containsDynamicPredicate = (type, unused1, unused2) => type.TypeKind == TypeKind.Dynamic;
 
-        internal static bool ContainsNativeInteger(this TypeSymbol type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeSymbol type)
         {
             var result = type.VisitType((type, unused1, unused2) => type.IsNativeIntegerWrapperType, (object?)null, canDigThroughNullable: true);
             return result is object;
         }
 
-        internal static bool ContainsNativeInteger(this TypeWithAnnotations type)
+        internal static bool ContainsNativeIntegerWrapperType(this TypeWithAnnotations type)
         {
-            return type.Type?.ContainsNativeInteger() == true;
+            return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
         internal static bool ContainsErrorType(this TypeSymbol type)

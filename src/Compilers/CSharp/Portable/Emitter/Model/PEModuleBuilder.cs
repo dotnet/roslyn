@@ -1667,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SynthesizedAttributeData SynthesizeNativeIntegerAttribute(Symbol symbol, TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(type.ContainsNativeInteger());
+            Debug.Assert(type.ContainsNativeIntegerWrapperType());
             Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)

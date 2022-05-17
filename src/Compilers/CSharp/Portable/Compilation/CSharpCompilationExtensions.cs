@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool ShouldEmitNativeIntegerAttributes(this CSharpCompilation compilation, TypeSymbol type)
         {
-            return compilation.ShouldEmitNativeIntegerAttributes() && type.ContainsNativeInteger();
+            return compilation.ShouldEmitNativeIntegerAttributes() && type.ContainsNativeIntegerWrapperType();
         }
     }
 }
