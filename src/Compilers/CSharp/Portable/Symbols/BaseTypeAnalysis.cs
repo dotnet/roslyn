@@ -190,6 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             field = (FieldSymbol)member;
                             Debug.Assert((object)(field.AssociatedSymbol as EventSymbol) == null,
                                 "Didn't expect to find a field-like event backing field in the member list.");
+                            Debug.Assert(field is not SynthesizedBackingFieldSymbol { IsCreatedForFieldKeyword: true });
                             break;
                         case SymbolKind.Event:
                             field = ((EventSymbol)member).AssociatedField;
