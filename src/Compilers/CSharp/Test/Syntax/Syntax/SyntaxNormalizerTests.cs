@@ -1039,7 +1039,7 @@ void M()
                     SyntaxFactory.Literal("a.txt"),
                     SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken),
                     isActive: true),
-                "#line (1, 2) - (3, 4) 5 \"a.txt\"\r\n");
+                "#line (1, 2) - (3, 4) 5 \"a.txt\"");
         }
 
         [Fact]

@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 {
     internal class SyntaxNormalizer : CSharpSyntaxRewriter
     {
-        private readonly TextSpan _consideredSpan;
         private readonly int _initialDepth;
         private readonly string _indentWhitespace;
         private readonly bool _useElasticTrivia;
@@ -33,10 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // of the values between indentations[0] and indentations[initialDepth] (exclusive).
         private ArrayBuilder<SyntaxTrivia>? _indentations;
 
-        private SyntaxNormalizer(TextSpan consideredSpan, int initialDepth, string indentWhitespace, string eolWhitespace, bool useElasticTrivia)
+        private SyntaxNormalizer(int initialDepth, string indentWhitespace, string eolWhitespace, bool useElasticTrivia)
             : base(visitIntoStructuredTrivia: true)
         {
-            _consideredSpan = consideredSpan;
             _initialDepth = initialDepth;
             _indentWhitespace = indentWhitespace;
             _useElasticTrivia = useElasticTrivia;
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal static TNode Normalize<TNode>(TNode node, string indentWhitespace, string eolWhitespace, bool useElasticTrivia = false)
             where TNode : SyntaxNode
         {
-            var normalizer = new SyntaxNormalizer(node.FullSpan, GetDeclarationDepth(node), indentWhitespace, eolWhitespace, useElasticTrivia);
+            var normalizer = new SyntaxNormalizer(GetDeclarationDepth(node), indentWhitespace, eolWhitespace, useElasticTrivia);
             var result = (TNode)normalizer.Visit(node);
             normalizer.Free();
             return result;
@@ -55,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxToken Normalize(SyntaxToken token, string indentWhitespace, string eolWhitespace, bool useElasticTrivia = false)
         {
-            var normalizer = new SyntaxNormalizer(token.FullSpan, GetDeclarationDepth(token), indentWhitespace, eolWhitespace, useElasticTrivia);
+            var normalizer = new SyntaxNormalizer(GetDeclarationDepth(token), indentWhitespace, eolWhitespace, useElasticTrivia);
             var result = normalizer.VisitToken(token);
             normalizer.Free();
             return result;
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static SyntaxTriviaList Normalize(SyntaxTriviaList trivia, string indentWhitespace, string eolWhitespace, bool useElasticTrivia = false)
         {
-            var normalizer = new SyntaxNormalizer(trivia.FullSpan, GetDeclarationDepth(trivia.Token), indentWhitespace, eolWhitespace, useElasticTrivia);
+            var normalizer = new SyntaxNormalizer(GetDeclarationDepth(trivia.Token), indentWhitespace, eolWhitespace, useElasticTrivia);
             var result = normalizer.RewriteTrivia(
                 trivia,
                 GetDeclarationDepth((SyntaxToken)trivia.ElementAt(0).Token),
@@ -93,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             int lineBreaksBefore;
             bool needsSeparatorBefore;
 
-            // If this starts with skipped tokens, we'll calculate the required seperator/line breaks between the previous token and the skipped tokens instead
-            bool startsWithSkippedTokens = token.LeadingTrivia is { Count: > 0 } leading && leading[0].IsKind(SyntaxKind.SkippedTokensTrivia);
+            // If this starts with skipped tokens, we'll calculate the required separator/line breaks between the previous token and the skipped tokens instead
+            bool startsWithSkippedTokens = token.LeadingTrivia is { Count: > 0 } leading && leading[0].IsSkippedTokensTrivia;
             if (IsRelevant(token)
                 && _previousToken.Kind() != SyntaxKind.None
                 && !startsWithSkippedTokens)
@@ -225,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return LineBreaksAfterCloseBrace(previousToken, currentToken);
 
                 case SyntaxKind.CloseParenToken:
-                    if (currentToken.Parent is PositionalPatternClauseSyntax)
+                    if (previousToken.Parent is PositionalPatternClauseSyntax)
                     {
                         //don't break inside a recursive pattern
                         return 0;
@@ -295,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 accessorList.Accessors.All(a => a.Body == null);
 
         private static bool IsAccessorListFollowedByInitializer([NotNullWhen(true)] SyntaxNode? node)
-            => node is AccessorListSyntax accessorList &&
+            => node is AccessorListSyntax &&
                 node.Parent is PropertyDeclarationSyntax property &&
                 property.Initializer != null;
 
@@ -330,6 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterOpenBrace(SyntaxToken openBraceToken)
         {
+            Debug.Assert(openBraceToken.IsKind(SyntaxKind.OpenBraceToken));
             if (openBraceToken.Parent is InitializerExpressionSyntax or PropertyPatternClauseSyntax ||
                 openBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
                 IsAccessorListWithoutAccessorsWithBlockBody(openBraceToken.Parent))
@@ -344,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken closeBraceToken, SyntaxToken nextToken)
         {
+            Debug.Assert(closeBraceToken.IsKind(SyntaxKind.CloseBraceToken));
             if (closeBraceToken.Parent is InitializerExpressionSyntax or SwitchExpressionSyntax or PropertyPatternClauseSyntax ||
                 closeBraceToken.Parent.IsKind(SyntaxKind.Interpolation) ||
                 closeBraceToken.Parent?.Parent is AnonymousFunctionExpressionSyntax ||
@@ -376,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static int LineBreaksAfterSemicolon(SyntaxToken semiColonToken, SyntaxToken nextToken)
         {
+            Debug.Assert(semiColonToken.IsKind(SyntaxKind.SemicolonToken));
             if (semiColonToken.Parent.IsKind(SyntaxKind.ForStatement))
             {
                 return 0;
@@ -859,6 +860,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return true;
             }
 
+            if (token.IsKind(SyntaxKind.DoubleQuoteToken)
+                && token.Parent.IsKind(SyntaxKind.XmlTextAttribute)
+                && !next.IsKind(SyntaxKind.GreaterThanToken)
+                && !next.IsKind(SyntaxKind.SlashGreaterThanToken))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -1281,21 +1290,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             return base.VisitInterpolatedStringExpression(node);
-        }
-
-        public override SyntaxNode? VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-        {
-            var attribute = (XmlTextAttributeSyntax?)base.VisitXmlTextAttribute(node);
-
-            if (attribute is null or { HasTrailingTrivia: true })
-            {
-                return attribute;
-            }
-
-            SyntaxKind nextTokenKind = GetNextRelevantToken(node.EndQuoteToken).Kind();
-            return nextTokenKind != SyntaxKind.GreaterThanToken && nextTokenKind != SyntaxKind.SlashGreaterThanToken
-                ? attribute.WithTrailingTrivia(GetSpace())
-                : attribute;
         }
     }
 }
