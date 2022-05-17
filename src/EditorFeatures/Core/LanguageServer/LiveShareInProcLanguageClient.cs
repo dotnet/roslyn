@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     [Export(typeof(ILanguageClient))]
     internal class LiveShareInProcLanguageClient : AbstractInProcLanguageClient
     {
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _defaultCapabilitiesProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
             : base(lspServiceProvider, globalOptions, listenerProvider, lspLoggerFactory, threadingContext)

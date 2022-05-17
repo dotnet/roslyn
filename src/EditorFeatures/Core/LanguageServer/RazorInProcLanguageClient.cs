@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
     {
         public const string ClientName = ProtocolConstants.RazorCSharp;
 
-        private readonly DefaultCapabilitiesProvider _defaultCapabilitiesProvider;
+        private readonly ExperimentalCapabilitiesProvider _defaultCapabilitiesProvider;
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             CSharpVisualBasicLspServiceProvider lspServiceProvider,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            DefaultCapabilitiesProvider defaultCapabilitiesProvider,
+            ExperimentalCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory,
             [Import(AllowDefault = true)] AbstractLanguageClientMiddleLayer middleLayer)
