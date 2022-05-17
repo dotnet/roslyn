@@ -694,6 +694,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (this.ReplacementText == string.Empty ||
                 this.ReplacementText == _initialRenameText)
             {
+                LogRenameSession(RenameLogMessage.UserActionOutcome.Empty | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
                 Cancel();
                 return false;
             }
