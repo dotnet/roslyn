@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 DocumentHighlightProvider = true,
                 ProjectContextProvider = true,
                 BreakableRangeProvider = true,
-                SpellCheckingProvider = true,
 
                 // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
                 SupportsDiagnosticRequests = false,

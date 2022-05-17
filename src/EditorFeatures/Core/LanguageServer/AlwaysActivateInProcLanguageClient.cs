@@ -103,6 +103,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
+            serverCapabilities.SpellCheckingProvider = true;
+
             return serverCapabilities;
         }
 
