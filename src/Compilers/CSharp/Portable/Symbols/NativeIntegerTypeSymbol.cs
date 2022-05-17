@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    // Note: this wrapper is only used on platforms where System.IntPtr isn't considered
+    // a numeric type (as indicated by a RuntimeFeature flag).
     internal sealed class NativeIntegerTypeSymbol : WrappedNamedTypeSymbol
 #if !DEBUG
         , Cci.IReference
