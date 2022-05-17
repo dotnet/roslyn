@@ -28,6 +28,45 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
             Assert.Equal(-1, reader.Read());
         }
 
+        [Fact]
+        public void ReadToArrayErrors()
+        {
+            TestWithMethod(reader => reader.Read);
+            TestWithMethod(reader => reader.ReadBlock);
+
+            void TestWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
+            {
+                using var _ = CreateReader("abcdefgh", out var reader);
+                var readMethod = readMethodAccessor(reader);
+
+                var buffer = new char[3];
+                Assert.Throws<ArgumentNullException>("buffer", () => readMethod(null!, 0, 0));
+                Assert.Throws<ArgumentOutOfRangeException>("index", () => readMethod(buffer, -1, 0));
+                Assert.Throws<ArgumentOutOfRangeException>("count", () => readMethod(buffer, 0, -1));
+                Assert.Throws<ArgumentException>(null, () => readMethod(buffer, 0, 4));
+                Assert.Throws<ArgumentException>(null, () => readMethod(buffer, 3, 1));
+            }
+        }
+
+        [Fact]
+        public void ReadToEnd()
+        {
+            using (CreateReader("text", out var reader1))
+            {
+                Assert.Equal("text", reader1.ReadToEnd());
+                Assert.Equal(-1, reader1.Peek());
+                Assert.Equal("", reader1.ReadToEnd());
+            }
+
+            using (CreateReader("text", out var reader2))
+            {
+                Assert.Equal('t', reader2.Read());
+                Assert.Equal("ext", reader2.ReadToEnd());
+                Assert.Equal(-1, reader2.Peek());
+                Assert.Equal("", reader2.ReadToEnd());
+            }
+        }
+
         private static Disposer CreateReader(string text, out DirectMemoryAccessStreamReader reader)
         {
             var handle = GCHandle.Alloc(text.ToCharArray(), GCHandleType.Pinned);
@@ -57,5 +96,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
                 _handle.Free();
             }
         }
+
+        private delegate int ReadToArrayDelegate(char[] buffer, int index, int count);
+        private delegate int ReadToSpanDelegate(Span<char> buffer);
     }
 }
