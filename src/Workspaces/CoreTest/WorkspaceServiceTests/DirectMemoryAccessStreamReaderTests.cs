@@ -127,30 +127,33 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
             }
         }
 
-        private static unsafe HGlobalAllocator CreateFromText(string text, out TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader reader)
+        private static unsafe Disposer CreateFromText(string text, out TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader reader)
         {
-            var allocator = new HGlobalAllocator(text.Length * sizeof(char));
-            text.AsSpan().CopyTo(new Span<char>((char*)allocator.Pointer, text.Length));
-            reader = new((char*)allocator.Pointer, text.Length);
-            return allocator;
+            var pointer = Marshal.AllocHGlobal(text.Length * sizeof(char));
+            text.AsSpan().CopyTo(new Span<char>((char*)pointer, text.Length));
+            reader = new((char*)pointer, text.Length);
+            return new Disposer(pointer, reader);
+        }
+
+        private sealed class Disposer : IDisposable
+        {
+            private readonly IntPtr _pointer;
+            private readonly TextReader _textReader;
+
+            public Disposer(IntPtr pointer, TextReader textReader)
+            {
+                _pointer = pointer;
+                _textReader = textReader;
+            }
+
+            public void Dispose()
+            {
+                _textReader.Dispose();
+                Marshal.FreeHGlobal(_pointer);
+            }
         }
 
         private delegate int ReadToArrayDelegate(char[] buffer, int index, int count);
         private delegate int ReadToSpanDelegate(Span<char> buffer);
-
-        private sealed class HGlobalAllocator : IDisposable
-        {
-            public HGlobalAllocator(int byteLength)
-            {
-                Pointer = Marshal.AllocHGlobal(byteLength);
-            }
-
-            public IntPtr Pointer { get; }
-
-            public void Dispose()
-            {
-                Marshal.FreeHGlobal(Pointer);
-            }
-        }
     }
 }
