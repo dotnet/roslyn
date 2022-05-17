@@ -10,24 +10,26 @@ namespace Microsoft.CodeAnalysis.Completion;
 internal static class CompletionOptionsStorage
 {
     public static CompletionOptions GetCompletionOptions(this IGlobalOptionService options, string language)
-      => new(
-          TriggerOnTyping: options.GetOption(TriggerOnTyping, language),
-          TriggerOnTypingLetters: options.GetOption(TriggerOnTypingLetters, language),
-          TriggerOnDeletion: options.GetOption(TriggerOnDeletion, language),
-          TriggerInArgumentLists: options.GetOption(TriggerInArgumentLists, language),
-          EnterKeyBehavior: options.GetOption(EnterKeyBehavior, language),
-          SnippetsBehavior: options.GetOption(SnippetsBehavior, language),
-          HideAdvancedMembers: options.GetOption(HideAdvancedMembers, language),
-          ShowNameSuggestions: options.GetOption(ShowNameSuggestions, language),
-          ShowItemsFromUnimportedNamespaces: options.GetOption(ShowItemsFromUnimportedNamespaces, language),
-          UnnamedSymbolCompletionDisabled: options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
-          TargetTypedCompletionFilter: options.GetOption(TargetTypedCompletionFilterFeatureFlag),
-          TypeImportCompletion: options.GetOption(TypeImportCompletionFeatureFlag),
-          ProvideDateAndTimeCompletions: options.GetOption(ProvideDateAndTimeCompletions, language),
-          ProvideRegexCompletions: options.GetOption(ProvideRegexCompletions, language),
-          ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation),
-          UpdateImportCompletionCacheInBackground: options.GetOption(UpdateImportCompletionCacheInBackground),
-          NamingStyleFallbackOptions: options.GetNamingStylePreferences(language));
+        => new()
+        {
+            TriggerOnTyping = options.GetOption(TriggerOnTyping, language),
+            TriggerOnTypingLetters = options.GetOption(TriggerOnTypingLetters, language),
+            TriggerOnDeletion = options.GetOption(TriggerOnDeletion, language),
+            TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
+            EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),
+            SnippetsBehavior = options.GetOption(SnippetsBehavior, language),
+            HideAdvancedMembers = options.GetOption(HideAdvancedMembers, language),
+            ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
+            ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
+            UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
+            TargetTypedCompletionFilter = options.GetOption(TargetTypedCompletionFilterFeatureFlag),
+            TypeImportCompletion = options.GetOption(TypeImportCompletionFeatureFlag),
+            ProvideDateAndTimeCompletions = options.GetOption(ProvideDateAndTimeCompletions, language),
+            ProvideRegexCompletions = options.GetOption(ProvideRegexCompletions, language),
+            ForceExpandedCompletionIndexCreation = options.GetOption(ForceExpandedCompletionIndexCreation),
+            UpdateImportCompletionCacheInBackground = options.GetOption(UpdateImportCompletionCacheInBackground),
+            NamingStyleFallbackOptions = options.GetNamingStylePreferences(language)
+        };
 
     // feature flags
 
