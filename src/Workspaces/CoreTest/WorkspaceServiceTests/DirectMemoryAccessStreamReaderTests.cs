@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
 
         [Theory]
         [InlineData(5, 0, 5, "bcdef", 5, 'g')]
-        [InlineData(5, 0, 2, "bc\0\0\0", 2, 'd')]
-        [InlineData(10, 1, 6, "\0bcdefg\0\0\0", 6, 'h')]
-        [InlineData(10, 1, 7, "\0bcdefgh\0\0", 7, -1)]
-        [InlineData(10, 1, 9, "\0bcdefgh\0\0", 7, -1)]
-        [InlineData(10, 3, 7, "\0\0\0bcdefgh", 7, -1)]
-        [InlineData(10, 3, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
-        [InlineData(10, 10, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
+        //[InlineData(5, 0, 2, "bc\0\0\0", 2, 'd')]
+        //[InlineData(10, 1, 6, "\0bcdefg\0\0\0", 6, 'h')]
+        //[InlineData(10, 1, 7, "\0bcdefgh\0\0", 7, -1)]
+        //[InlineData(10, 1, 9, "\0bcdefgh\0\0", 7, -1)]
+        //[InlineData(10, 3, 7, "\0\0\0bcdefgh", 7, -1)]
+        //[InlineData(10, 3, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
+        //[InlineData(10, 10, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
         [InlineData(0, 0, 0, "", 0, 'b')]
         public void ReadToArray(int bufferLength, int index, int count, string expected, int expectedResult, int expectedPeek)
         {
