@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly IUIThreadOperationExecutor _operationExecutor;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -54,21 +53,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             IGlobalOptionService globalOptions,
-            IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _inlineRenameService = inlineRenameService;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _globalOptions = globalOptions;
-            _operationExecutor = operationExecutor;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(
-                () => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _operationExecutor, _asyncListener));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _asyncListener));
             return new Tagger(stateMachine) as ITagger<T>;
         }
 

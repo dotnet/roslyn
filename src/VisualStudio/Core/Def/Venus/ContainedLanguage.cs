@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly Guid _languageServiceGuid;
 
         protected readonly Workspace Workspace;
+        private readonly IThreadingContext _threadingContext;
         protected readonly IComponentModel ComponentModel;
 
         public VisualStudioProject? Project { get; }
@@ -100,6 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             Workspace = workspace;
 
+            _threadingContext = componentModel.GetService<IThreadingContext>();
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
 
@@ -135,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             this.ContainedDocument = new ContainedDocument(
-                componentModel.GetService<IThreadingContext>(),
+                _threadingContext,
                 documentId,
                 subjectBuffer: SubjectBuffer,
                 dataBuffer: DataBuffer,

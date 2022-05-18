@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public MockRefactorNotifyService RefactorNotifyService { get { return _mockRefactorNotifyService; } }
 
         private readonly RenameTrackingCodeRefactoringProvider _codeRefactoringProvider;
-        private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
+        private readonly RenameTrackingCancellationCommandHandler _commandHandler;
 
         public static RenameTrackingTestState Create(
             string markup,
@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         {
             this.Workspace = workspace;
 
+            _commandHandler = new RenameTrackingCancellationCommandHandler(
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>());
             _hostDocument = Workspace.Documents.First();
             _view = _hostDocument.GetTextView();
             _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, _hostDocument.CursorPosition.Value));

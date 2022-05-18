@@ -513,7 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // Notify third parties of the completed rename operation and let exceptions propagate out
             _refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: true);
 
-            RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
+            _threadingContext.JoinableTaskFactory.Run(
+                () => RenameTrackingDismisser.DismissRenameTrackingAsync(_threadingContext, workspace, changedDocuments, CancellationToken.None));
 
             // Update the node keys.
             nodeKeyValidation.RestoreKeys();

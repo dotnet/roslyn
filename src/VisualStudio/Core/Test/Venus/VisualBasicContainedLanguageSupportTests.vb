@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -865,6 +866,7 @@ End Class</text>.Value
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASSMEMBER,
                     oldFullyQualifiedName:="_Default.Page_Load",
@@ -890,6 +892,7 @@ End Class</text>.Value
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASSMEMBER,
                     oldFullyQualifiedName:="_Default.Fictional",
@@ -910,6 +913,7 @@ End Class</text>.Value
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASS,
                     oldFullyQualifiedName:="Goo",
@@ -929,6 +933,7 @@ End Namespace</text>.Value
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_NAMESPACE,
                     oldFullyQualifiedName:="Goo",
@@ -959,6 +964,7 @@ End Class</text>.Value
             Using workspace = GetWorkspace(code)
                 Dim document = GetDocument(workspace)
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASSMEMBER,
                     oldFullyQualifiedName:="_Default.button",

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
@@ -109,8 +110,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 public RenameTrackingCommitterOperation(RenameTrackingCommitter committer)
                     => _committer = committer;
 
-                public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-                    => _committer.Commit(cancellationToken);
+                internal override async Task<bool> TryApplyAsync(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+                {
+                    await _committer.CommitAsync(cancellationToken).ConfigureAwait(false);
+                    return true;
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -38,7 +39,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private sealed class StateMachine
         {
             public readonly IThreadingContext ThreadingContext;
-            public readonly IUIThreadOperationExecutor OperationExecutor;
 
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -66,7 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IInlineRenameService inlineRenameService,
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 IGlobalOptionService globalOptions,
-                IUIThreadOperationExecutor operationExecutor,
                 IAsynchronousOperationListener asyncListener)
             {
                 ThreadingContext = threadingContext;
@@ -76,7 +75,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _asyncListener = asyncListener;
                 _diagnosticAnalyzerService = diagnosticAnalyzerService;
                 GlobalOptions = globalOptions;
-                OperationExecutor = operationExecutor;
             }
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
@@ -264,9 +262,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return false;
             }
 
-            internal int StoreCurrentTrackingSessionAndGenerateId()
+            internal async Task<int> StoreCurrentTrackingSessionAndGenerateIdAsync(CancellationToken cancellationToken)
             {
-                ThreadingContext.ThrowIfNotOnUIThread();
+                await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 var existingIndex = _committedSessions.IndexOf(TrackingSession);
                 if (existingIndex >= 0)

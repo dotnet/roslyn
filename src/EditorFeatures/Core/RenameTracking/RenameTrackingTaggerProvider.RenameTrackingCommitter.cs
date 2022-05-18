@@ -49,19 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _renameSymbolResultGetter = new AsyncLazy<RenameTrackingSolutionSet>(c => RenameSymbolWorkerAsync(c), cacheResult: true);
             }
 
-            public void Commit(CancellationToken cancellationToken)
+            public async Task CommitAsync(CancellationToken cancellationToken)
             {
-                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
-
-                var clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
+                await ApplyChangesToWorkspaceAsync(cancellationToken).ConfigureAwait(false);
 
                 // Clear the state machine so that future updates to the same token work,
                 // and any text changes caused by this update are not interpreted as 
                 // potential renames
-                if (clearTrackingSession)
-                {
-                    _stateMachine.ClearTrackingSession();
-                }
+                await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _stateMachine.ClearTrackingSession();
             }
 
             public async Task<RenameTrackingSolutionSet> RenameSymbolAsync(CancellationToken cancellationToken)
@@ -85,10 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
             }
 
-            private bool ApplyChangesToWorkspace(CancellationToken cancellationToken)
+            private async Task ApplyChangesToWorkspaceAsync(CancellationToken cancellationToken)
             {
-                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
-
                 // Now that the necessary work has been done to create the intermediate and final
                 // solutions during PreparePreview, check one more time for cancellation before making all of the
                 // workspace changes.
@@ -111,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // final solution without updating the workspace, and then finally disallow
                 // cancellation and update the workspace twice.
 
-                var renameTrackingSolutionSet = RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var renameTrackingSolutionSet = await RenameSymbolAsync(cancellationToken).ConfigureAwait(false);
 
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var newName = _snapshotSpan.GetText();
@@ -127,11 +121,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // When this action is undone (the user has undone twice), restore the state
                 // machine to so that they can continue their original rename tracking session.
 
-                var trackingSessionId = _stateMachine.StoreCurrentTrackingSessionAndGenerateId();
-                UpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId);
+                var trackingSessionId = await _stateMachine.StoreCurrentTrackingSessionAndGenerateIdAsync(cancellationToken).ConfigureAwait(false);
+                await UpdateWorkspaceForResetOfTypedIdentifierAsync(
+                    workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId, cancellationToken).ConfigureAwait(false);
 
                 // Now that the solution is back in its original state, notify third parties about
                 // the coming rename operation.
+                await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, renameTrackingSolutionSet.Symbol, newName, throwOnFailure: false))
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
@@ -140,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         EditorFeaturesResources.Rename_Symbol,
                         NotificationSeverity.Error);
 
-                    return true;
+                    return ;
                 }
 
                 // move all changes to final solution based on the workspace's current solution, since the current solution
@@ -150,22 +146,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 {
                     // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
                     // these calls can't be cancelled and must be allowed to complete.
-                    var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootSynchronously(CancellationToken.None);
+                    var root = await renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
                 }
 
                 // Undo/redo on this action must always clear the state machine
-                UpdateWorkspaceForGlobalIdentifierRename(
+                await UpdateWorkspaceForGlobalIdentifierRenameAsync(
                     workspace,
                     finalSolution,
                     _displayText,
                     changedDocuments,
                     renameTrackingSolutionSet.Symbol,
                     newName,
-                    trackingSessionId);
+                    trackingSessionId, cancellationToken).ConfigureAwait(false);
 
-                RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
-                return true;
+                await RenameTrackingDismisser.DismissRenameTrackingAsync(
+                    _stateMachine.ThreadingContext, workspace, changedDocuments, cancellationToken).ConfigureAwait(false);
             }
 
             private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)
@@ -207,9 +203,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return tokenRenameInfo.HasSymbols ? tokenRenameInfo.Symbols.First() : null;
             }
 
-            private void UpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
+            private async Task UpdateWorkspaceForResetOfTypedIdentifierAsync(
+                Workspace workspace, Solution newSolution, int trackingSessionId, CancellationToken cancellationToken)
             {
-                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
+                await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 // Update document in an ITextUndoTransaction with custom behaviors on undo/redo to
                 // deal with the state machine.
@@ -232,16 +229,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 localUndoTransaction.Complete();
             }
 
-            private void UpdateWorkspaceForGlobalIdentifierRename(
+            private async Task UpdateWorkspaceForGlobalIdentifierRenameAsync(
                 Workspace workspace,
                 Solution newSolution,
                 string undoName,
                 IEnumerable<DocumentId> changedDocuments,
                 ISymbol symbol,
                 string newName,
-                int trackingSessionId)
+                int trackingSessionId,
+                CancellationToken cancellationToken)
             {
-                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
+                await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 // Perform rename in a workspace undo action so that undo will revert all 
                 // references. It should also be performed in an ITextUndoTransaction to handle 
