@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.False(string.IsNullOrEmpty(engine.Log));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void SourceNotAssemblyNoDestination()
         {
             var dir = TempRoot.CreateDirectory();
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("test", File.ReadAllText(dest));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void SourceNotAssemblyWithDestination()
         {
             var dir = TempRoot.CreateDirectory();
