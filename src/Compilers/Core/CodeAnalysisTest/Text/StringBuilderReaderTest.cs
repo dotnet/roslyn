@@ -94,10 +94,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
                 var readMethod = readMethodAccessor(reader);
 
                 var buffer = new char[3];
-                Assert.ThrowsAny<ArgumentException>(() => readMethod(buffer, -1, 0));
-                Assert.ThrowsAny<ArgumentException>(() => readMethod(buffer, 0, -1));
-                Assert.ThrowsAny<ArgumentException>(() => readMethod(buffer, 0, 4));
-                Assert.ThrowsAny<ArgumentException>(() => readMethod(buffer, 3, 1));
+                Assert.Throws<ArgumentNullException>("buffer", () => readMethod(null!, 0, 0));
+                Assert.Throws<ArgumentOutOfRangeException>("index", () => readMethod(buffer, -1, 0));
+                Assert.Throws<ArgumentOutOfRangeException>("count", () => readMethod(buffer, 0, -1));
+                Assert.Throws<ArgumentException>(null, () => readMethod(buffer, 0, 4));
+                Assert.Throws<ArgumentException>(null, () => readMethod(buffer, 3, 1));
             }
         }
 

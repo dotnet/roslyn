@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections.Internal;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -39,6 +40,18 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int Read(char[] buffer, int index, int count)
         {
+            if (buffer is null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            if (index + count > buffer.Length)
+                throw new ArgumentException();
+
             var length = Math.Min(count, _stringBuilder.Length - _position);
             _stringBuilder.CopyTo(_position, buffer, index, length);
             _position += length;
@@ -63,6 +76,11 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override string ReadToEnd()
         {
+            RoslynDebug.Assert(_position <= _stringBuilder.Length);
+
+            if (_position == _stringBuilder.Length)
+                return "";
+
             var result = _position == 0
                 ? _stringBuilder.ToString()
                 : _stringBuilder.ToString(_position, _stringBuilder.Length - _position);
