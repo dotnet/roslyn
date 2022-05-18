@@ -190,10 +190,11 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
             var (formattedDocument, methodNameAtInvocation) = await result.GetFormattedDocumentAsync(cleanupOptions, cancellationToken).ConfigureAwait(false);
 
-            await ApplyChangeAsync(formattedDocument, textBuffer, waitContext).ConfigureAwait(false);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            ApplyChange_OnUIThread(formattedDocument, textBuffer, waitContext).ConfigureAwait(false);
 
             // start inline rename
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var textSnapshot = textBuffer.CurrentSnapshot;
             document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -205,12 +206,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             view.SetSelection(methodNameAtInvocation.Span.ToSnapshotSpan(textSnapshot));
         }
 
-        private async Task ApplyChangeAsync(
+        private void ApplyChange_OnUIThread(
             Document formattedDocument, ITextBuffer textBuffer, IBackgroundWorkIndicatorContext waitContext)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             var cancellationToken = waitContext.UserCancellationToken;
 
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(textBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // We're about to make an edit ourselves.  so disable the cancellation that happens on editing.
