@@ -981,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsHighestPriorityUseSiteError(info))
+            if (info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code))
             {
                 // this error is final, no other error can override it:
                 result = info;
@@ -998,9 +998,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we have a second low-pri error, continue looking for a higher priority one
             return false;
         }
-
-        protected bool IsHighestPriorityUseSiteError(DiagnosticInfo info)
-            => info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code);
 
         /// <summary>
         /// Merges given diagnostic and dependencies to the existing result.
