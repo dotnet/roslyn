@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -124,10 +123,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static Disposer CreateReader(string text, out DirectMemoryAccessStreamReader reader)
+        private static unsafe Disposer CreateReader(string text, out TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader reader)
         {
             var handle = GCHandle.Alloc(text.ToCharArray(), GCHandleType.Pinned);
-            reader = DirectMemoryAccessStreamReader.TestAccessor.Create(handle.AddrOfPinnedObject(), text.Length);
+            reader = new((char*)handle.AddrOfPinnedObject(), text.Length);
 
 #pragma warning disable RS0042 // Do not copy value
             return new Disposer(handle, reader);

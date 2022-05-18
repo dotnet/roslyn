@@ -524,11 +524,6 @@ namespace Microsoft.CodeAnalysis.Host
                 _position = _end;
                 return result;
             }
-
-            internal static class TestAccessor
-            {
-                public static DirectMemoryAccessStreamReader Create(IntPtr src, int length) => new((char*)src, length);
-            }
         }
     }
 }
