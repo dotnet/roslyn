@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             var type = Type;
-            if (type.Kind == SymbolKind.NamedType && !IsFixedSizeBuffer)
+            if (type.Kind != SymbolKind.PointerType && !IsFixedSizeBuffer)
             {
                 Type.CheckAllConstraints(DeclaringCompilation, new TypeConversions(this.ContainingAssembly.CorLibrary), ErrorLocation, DeclaringCompilation.AfterAccessorBindingDiagnostics);
             }
