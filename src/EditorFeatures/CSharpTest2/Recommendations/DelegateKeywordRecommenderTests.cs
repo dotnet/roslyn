@@ -60,17 +60,19 @@ $$");
 @"global using Goo = d$$");
         }
 
-        [Fact(Skip = "delegate keyword is not a valid suggestion in type parameters context. Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsingAliasTypeParameter()
         {
-            await VerifyAbsenceAsync(
+            // Valid case: using Goo = System.Collections.Generic.IList<delegate*<void>[]>;
+            await VerifyKeywordAsync(
 @"using Goo = T<$$");
         }
 
-        [Fact(Skip = "delegate keyword is not a valid suggestion in type parameters context. Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGlobalUsingAliasTypeParameter()
         {
-            await VerifyAbsenceAsync(
+            // Valid case: global using Goo = System.Collections.Generic.IList<delegate*<void>[]>;
+            await VerifyKeywordAsync(
 @"global using Goo = T<$$");
         }
 
@@ -446,10 +448,11 @@ class C
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_TypeDeclaration1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraintWhenNotDirectlyInConstraint_TypeDeclaration1()
         {
-            await VerifyAbsenceAsync(
+            // Valid case: ... where T : IList<delegate*<void>[]>
+            await VerifyKeywordAsync(
 @"class C<T> where T : IList<$$");
         }
 
@@ -464,10 +467,11 @@ class C
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_TypeDeclaration2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraintWhenNotDirectlyInConstraint_TypeDeclaration2()
         {
-            await VerifyAbsenceAsync(
+            // Valid case: ... where T : IList<delegate*<void>[]>
+            await VerifyKeywordAsync(
 @"class C<T>
         where T : IList<$$
         where U : U");
@@ -484,10 +488,11 @@ class C
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_MethodDeclaration1()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraintWhenNotDirectlyInConstraint_MethodDeclaration1()
         {
-            await VerifyAbsenceAsync(
+            // Valid case: ... where T : IList<delegate*<void>[]>
+            await VerifyKeywordAsync(
 @"class C
 {
     public void M<T>() where T : IList<$$");
@@ -506,10 +511,11 @@ class C
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_MethodDeclaration2()
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInTypeParameterConstraintWhenNotDirectlyInConstraint_MethodDeclaration2()
         {
-            await VerifyAbsenceAsync(
+            // Valid case: ... where T : IList<delegate*<void>[]>
+            await VerifyKeywordAsync(
 @"class C
 {
     public void M<T>()
