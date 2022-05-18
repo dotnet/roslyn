@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory;
 
 // Note: Keep the namespace and class name shorter (skipping WorkspaceServiceTests namespace and using DirectMemoryReaderTests
 // as opposed to DirectMemoryAccessStreamReaderTests). When we use the full names, CI fails due to a failure to upload test
@@ -128,10 +129,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private static unsafe Disposer CreateReader(string text, out TemporaryStorageServiceFactory.DirectMemoryAccessStreamReader reader)
+        private static unsafe Disposer CreateReader(string text, out DirectMemoryAccessStreamReader reader)
         {
             var handle = GCHandle.Alloc(text.ToCharArray(), GCHandleType.Pinned);
-            reader = new((char*)handle.AddrOfPinnedObject(), text.Length);
+            reader = new DirectMemoryAccessStreamReader((char*)handle.AddrOfPinnedObject(), text.Length);
 
 #pragma warning disable RS0042 // Do not copy value
             return new Disposer(handle, reader);
