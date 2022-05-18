@@ -23,6 +23,10 @@ namespace Microsoft.CodeAnalysis
         private const string DocumentOpenedEventName = "DocumentOpened";
         private const string DocumentClosedEventName = "DocumentClosed";
         private const string DocumentActiveContextChangedName = "DocumentActiveContextChanged";
+        private const string AdditionalDocumentOpenedEventName = "AdditionalDocumentOpened";
+        private const string AdditionalDocumentClosedEventName = "AdditionalDocumentClosed";
+        private const string AnalyzerConfigDocumentOpenedEventName = "AnalyzerConfigDocumentOpened";
+        private const string AnalyzerConfigDocumentClosedEventName = "AnalyzerConfigDocumentClosed";
 
         /// <summary>
         /// An event raised whenever the current solution is changed.
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// An event that is fired when a documents is opened in the editor.
+        /// An event that is fired when a <see cref="Document"/> is opened in the editor.
         /// </summary>
         public event EventHandler<DocumentEventArgs> DocumentOpened
         {
@@ -119,15 +123,60 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected Task RaiseDocumentOpenedEventAsync(Document document)
+            => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), DocumentOpenedEventName);
+
+        /// <summary>
+        /// An event that is fired when an <see cref="AdditionalDocument"/> is opened in the editor.
+        /// </summary>
+        public event EventHandler<AdditionalDocumentEventArgs> AdditionalDocumentOpened
         {
-            var ev = GetEventHandlers<DocumentEventArgs>(DocumentOpenedEventName);
+            add
+            {
+                _eventMap.AddEventHandler(AdditionalDocumentOpenedEventName, value);
+            }
+
+            remove
+            {
+                _eventMap.RemoveEventHandler(AdditionalDocumentOpenedEventName, value);
+            }
+        }
+
+        protected Task RaiseAdditionalDocumentOpenedEventAsync(AdditionalDocument document)
+            => RaiseTextDocumentOpenedOrClosedEventAsync(document, new AdditionalDocumentEventArgs(document), AdditionalDocumentOpenedEventName);
+
+        /// <summary>
+        /// An event that is fired when an <see cref="AnalyzerConfigDocument"/> is opened in the editor.
+        /// </summary>
+        public event EventHandler<AnalyzerConfigDocumentEventArgs> AnalyzerConfigDocumentOpened
+        {
+            add
+            {
+                _eventMap.AddEventHandler(AnalyzerConfigDocumentOpenedEventName, value);
+            }
+
+            remove
+            {
+                _eventMap.RemoveEventHandler(AnalyzerConfigDocumentOpenedEventName, value);
+            }
+        }
+
+        protected Task RaiseAnalyzerConfigDocumentOpenedEventAsync(AnalyzerConfigDocument document)
+            => RaiseTextDocumentOpenedOrClosedEventAsync(document, new AnalyzerConfigDocumentEventArgs(document), AnalyzerConfigDocumentOpenedEventName);
+
+        private Task RaiseTextDocumentOpenedOrClosedEventAsync<TDocument, TDocumentEventArgs>(
+            TDocument document,
+            TDocumentEventArgs args,
+            string eventName)
+            where TDocument : TextDocument
+            where TDocumentEventArgs : EventArgs
+        {
+            var ev = GetEventHandlers<TDocumentEventArgs>(eventName);
             if (ev.HasHandlers && document != null)
             {
                 return this.ScheduleTask(() =>
                 {
-                    var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
-                }, DocumentOpenedEventName);
+                }, eventName);
             }
             else
             {
@@ -136,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// An event that is fired when a document is closed in the editor.
+        /// An event that is fired when a <see cref="Document"/> is closed in the editor.
         /// </summary>
         public event EventHandler<DocumentEventArgs> DocumentClosed
         {
@@ -152,21 +201,45 @@ namespace Microsoft.CodeAnalysis
         }
 
         protected Task RaiseDocumentClosedEventAsync(Document document)
+            => RaiseTextDocumentOpenedOrClosedEventAsync(document, new DocumentEventArgs(document), DocumentClosedEventName);
+
+        /// <summary>
+        /// An event that is fired when an <see cref="AdditionalDocument"/> is closed in the editor.
+        /// </summary>
+        public event EventHandler<AdditionalDocumentEventArgs> AdditionalDocumentClosed
         {
-            var ev = GetEventHandlers<DocumentEventArgs>(DocumentClosedEventName);
-            if (ev.HasHandlers && document != null)
+            add
             {
-                return this.ScheduleTask(() =>
-                {
-                    var args = new DocumentEventArgs(document);
-                    ev.RaiseEvent(handler => handler(this, args));
-                }, DocumentClosedEventName);
+                _eventMap.AddEventHandler(AdditionalDocumentClosedEventName, value);
             }
-            else
+
+            remove
             {
-                return Task.CompletedTask;
+                _eventMap.RemoveEventHandler(AdditionalDocumentClosedEventName, value);
             }
         }
+
+        protected Task RaiseAdditionalDocumentClosedEventAsync(AdditionalDocument document)
+            => RaiseTextDocumentOpenedOrClosedEventAsync(document, new AdditionalDocumentEventArgs(document), AdditionalDocumentClosedEventName);
+
+        /// <summary>
+        /// An event that is fired when an <see cref="AnalyzerConfigDocument"/> is closed in the editor.
+        /// </summary>
+        public event EventHandler<AnalyzerConfigDocumentEventArgs> AnalyzerConfigDocumentClosed
+        {
+            add
+            {
+                _eventMap.AddEventHandler(AnalyzerConfigDocumentClosedEventName, value);
+            }
+
+            remove
+            {
+                _eventMap.RemoveEventHandler(AnalyzerConfigDocumentClosedEventName, value);
+            }
+        }
+
+        protected Task RaiseAnalyzerConfigDocumentClosedEventAsync(AnalyzerConfigDocument document)
+            => RaiseTextDocumentOpenedOrClosedEventAsync(document, new AnalyzerConfigDocumentEventArgs(document), AnalyzerConfigDocumentClosedEventName);
 
         /// <summary>
         /// An event that is fired when the active context document associated with a buffer 

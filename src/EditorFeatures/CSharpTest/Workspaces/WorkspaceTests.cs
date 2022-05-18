@@ -855,6 +855,128 @@ class D { }
         }
 
         [Fact]
+        public async Task TestAdditionalDocumentEvents()
+        {
+            using var workspace = CreateWorkspace();
+            var document = new TestHostDocument();
+            var project1 = new TestHostProject(workspace, additionalDocuments: new[] { document }, name: "project1");
+            var longEventTimeout = TimeSpan.FromMinutes(5);
+            var shortEventTimeout = TimeSpan.FromSeconds(5);
+
+            workspace.AddTestProject(project1);
+
+            // Creating two waiters that will allow us to know for certain if the events have fired.
+            using var closeWaiter = new EventWaiter();
+            using var openWaiter = new EventWaiter();
+            // Wrapping event handlers so they can notify us on being called.
+            var documentOpenedEventHandler = openWaiter.Wrap<AdditionalDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AdditionalDocumentOpened' event handler did not have the same id as the one created for the test."));
+
+            var documentClosedEventHandler = closeWaiter.Wrap<AdditionalDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AdditionalDocumentClosed' event handler did not have the same id as the one created for the test."));
+
+            workspace.AdditionalDocumentOpened += documentOpenedEventHandler;
+            workspace.AdditionalDocumentClosed += documentClosedEventHandler;
+
+            workspace.OpenAdditionalDocument(document.Id);
+            workspace.CloseAdditionalDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Wait to receive signal that events have fired.
+            Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AdditionalDocumentOpened' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AdditionalDocumentClosed' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            workspace.AdditionalDocumentOpened -= documentOpenedEventHandler;
+            workspace.AdditionalDocumentClosed -= documentClosedEventHandler;
+
+            workspace.OpenAdditionalDocument(document.Id);
+            workspace.CloseAdditionalDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Verifying that an event has not been called is difficult to prove.  
+            // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AdditionalDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AdditionalDocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+        }
+
+        [Fact]
+        public async Task TestAnalyzerConfigDocumentEvents()
+        {
+            using var workspace = CreateWorkspace();
+            var document = new TestHostDocument();
+            var project1 = new TestHostProject(workspace, analyzerConfigDocuments: new[] { document }, name: "project1");
+            var longEventTimeout = TimeSpan.FromMinutes(5);
+            var shortEventTimeout = TimeSpan.FromSeconds(5);
+
+            workspace.AddTestProject(project1);
+
+            // Creating two waiters that will allow us to know for certain if the events have fired.
+            using var closeWaiter = new EventWaiter();
+            using var openWaiter = new EventWaiter();
+            // Wrapping event handlers so they can notify us on being called.
+            var documentOpenedEventHandler = openWaiter.Wrap<AnalyzerConfigDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AnalyzerConfigDocumentOpened' event handler did not have the same id as the one created for the test."));
+
+            var documentClosedEventHandler = closeWaiter.Wrap<AnalyzerConfigDocumentEventArgs>(
+                (sender, args) => Assert.True(args.Document.Id == document.Id,
+                "The document given to the 'AnalyzerConfigDocumentClosed' event handler did not have the same id as the one created for the test."));
+
+            workspace.AnalyzerConfigDocumentOpened += documentOpenedEventHandler;
+            workspace.AnalyzerConfigDocumentClosed += documentClosedEventHandler;
+
+            workspace.OpenAnalyzerConfigDocument(document.Id);
+            workspace.CloseAnalyzerConfigDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Wait to receive signal that events have fired.
+            Assert.True(openWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AnalyzerConfigDocumentOpened' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            Assert.True(closeWaiter.WaitForEventToFire(longEventTimeout),
+                                    string.Format("event 'AnalyzerConfigDocumentClosed' was not fired within {0} minutes.",
+                                    longEventTimeout.Minutes));
+
+            workspace.AnalyzerConfigDocumentOpened -= documentOpenedEventHandler;
+            workspace.AnalyzerConfigDocumentClosed -= documentClosedEventHandler;
+
+            workspace.OpenAnalyzerConfigDocument(document.Id);
+            workspace.CloseAnalyzerConfigDocument(document.Id);
+
+            // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
+            await WaitForWorkspaceOperationsToComplete(workspace);
+
+            // Verifying that an event has not been called is difficult to prove.  
+            // All events should have already been called so we wait 5 seconds and then assume the event handler was removed correctly. 
+            Assert.False(openWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AnalyzerConfigDocumentOpened' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+
+            Assert.False(closeWaiter.WaitForEventToFire(shortEventTimeout),
+                                    string.Format("event handler 'AnalyzerConfigDocumentClosed' was called within {0} seconds though it was removed from the list.",
+                                    shortEventTimeout.Seconds));
+        }
+
+        [Fact]
         public async Task TestAdditionalFile_Properties()
         {
             using var workspace = CreateWorkspace();

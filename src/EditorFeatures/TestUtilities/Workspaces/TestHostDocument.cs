@@ -263,9 +263,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 // Open (or reopen) any files that were closed in this call. We do this for all linked copies at once.
                 foreach (var linkedId in workspace.CurrentSolution.GetDocumentIdsWithFilePath(FilePath).Concat(this.Id))
                 {
-                    var testDocument = workspace.GetTestDocument(linkedId);
-
-                    if (testDocument != null)
+                    if (workspace.GetTestDocument(linkedId) is { } testDocument)
                     {
                         if (!workspace.IsDocumentOpen(linkedId))
                         {
@@ -283,6 +281,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                 workspace.OnDocumentOpened(linkedId, _textBuffer.AsTextContainer(), isCurrentContext: !testDocument.IsLinkFile);
                             }
                         }
+                    }
+                    else if (workspace.GetTestAdditionalDocument(linkedId) is { } testAdditionalDocument)
+                    {
+                        workspace.OnAdditionalDocumentOpened(linkedId, _textBuffer.AsTextContainer());
+                    }
+                    else if (workspace.GetTestAnalyzerConfigDocument(linkedId) is { } testAnalyzerConfigDocument)
+                    {
+                        workspace.OnAnalyzerConfigDocumentOpened(linkedId, _textBuffer.AsTextContainer());
                     }
                 }
             }

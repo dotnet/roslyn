@@ -2,18 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class DocumentEventArgs : EventArgs, ITextDocumentEventArgs<Document>
+    public class AnalyzerConfigDocumentEventArgs : EventArgs, ITextDocumentEventArgs<AnalyzerConfigDocument>
     {
-        public Document Document { get; }
+        public AnalyzerConfigDocument Document { get; }
 
-        public DocumentEventArgs(Document document)
+        public AnalyzerConfigDocumentEventArgs(AnalyzerConfigDocument document)
         {
             Contract.ThrowIfNull(document);
             this.Document = document;

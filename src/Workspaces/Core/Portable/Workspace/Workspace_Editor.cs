@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            OnAdditionalOrAnalyzerConfigDocumentOpened(
+            OnAdditionalOrAnalyzerConfigDocumentOpened<AdditionalDocument>(
                 documentId,
                 textContainer,
                 isCurrentContext,
@@ -519,12 +519,13 @@ namespace Microsoft.CodeAnalysis
                 CheckAdditionalDocumentIsInCurrentSolution,
                 withDocumentText: (oldSolution, documentId, newText, mode) => oldSolution.WithAdditionalDocumentText(documentId, newText, mode),
                 withDocumentTextAndVersion: (oldSolution, documentId, newTextAndVersion, mode) => oldSolution.WithAdditionalDocumentText(documentId, newTextAndVersion, mode),
-                onDocumentTextChanged: (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
+                onDocumentTextChanged: (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode),
+                raiseDocumentOpenedEventAsync: this.RaiseAdditionalDocumentOpenedEventAsync);
         }
 
         protected internal void OnAnalyzerConfigDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            OnAdditionalOrAnalyzerConfigDocumentOpened(
+            OnAdditionalOrAnalyzerConfigDocumentOpened<AnalyzerConfigDocument>(
                 documentId,
                 textContainer,
                 isCurrentContext,
@@ -532,13 +533,14 @@ namespace Microsoft.CodeAnalysis
                 CheckAnalyzerConfigDocumentIsInCurrentSolution,
                 withDocumentText: (oldSolution, documentId, newText, mode) => oldSolution.WithAnalyzerConfigDocumentText(documentId, newText, mode),
                 withDocumentTextAndVersion: (oldSolution, documentId, newTextAndVersion, mode) => oldSolution.WithAnalyzerConfigDocumentText(documentId, newTextAndVersion, mode),
-                onDocumentTextChanged: (w, id, text, mode) => w.OnAnalyzerConfigDocumentTextChanged(id, text, mode));
+                onDocumentTextChanged: (w, id, text, mode) => w.OnAnalyzerConfigDocumentTextChanged(id, text, mode),
+                raiseDocumentOpenedEventAsync: this.RaiseAnalyzerConfigDocumentOpenedEventAsync);
         }
 
         // NOTE: We are only sharing this code between additional documents and analyzer config documents,
         // which are essentially plain text documents. Regular source documents need special handling
         // and hence have a different implementation.
-        private void OnAdditionalOrAnalyzerConfigDocumentOpened(
+        private void OnAdditionalOrAnalyzerConfigDocumentOpened<TDocument>(
             DocumentId documentId,
             SourceTextContainer textContainer,
             bool isCurrentContext,
@@ -546,7 +548,9 @@ namespace Microsoft.CodeAnalysis
             Action<DocumentId> checkTextDocumentIsInCurrentSolution,
             Func<Solution, DocumentId, SourceText, PreservationMode, Solution> withDocumentText,
             Func<Solution, DocumentId, TextAndVersion, PreservationMode, Solution> withDocumentTextAndVersion,
-            Action<Workspace, DocumentId, SourceText, PreservationMode> onDocumentTextChanged)
+            Action<Workspace, DocumentId, SourceText, PreservationMode> onDocumentTextChanged,
+            Func<TDocument, Task> raiseDocumentOpenedEventAsync)
+            where TDocument : TextDocument
         {
             using (_serializationLock.DisposableWait())
             {
@@ -583,6 +587,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Fire and forget.
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId);
+
+                // Fire and forget.
+                var newDoc = (TDocument)newSolution.GetRequiredTextDocument(documentId);
+                raiseDocumentOpenedEventAsync(newDoc);
             }
 
             this.RegisterText(textContainer);
@@ -629,33 +637,37 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
-            OnAdditionalOrAnalyzerConfigDocumentClosed(
+            OnAdditionalOrAnalyzerConfigDocumentClosed<AdditionalDocument>(
                 documentId,
                 reloader,
                 WorkspaceChangeKind.AdditionalDocumentChanged,
                 CheckAdditionalDocumentIsInCurrentSolution,
-                withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAdditionalDocumentTextLoader(documentId, textLoader, mode));
+                withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAdditionalDocumentTextLoader(documentId, textLoader, mode),
+                raiseDocumentClosedEventAsync: this.RaiseAdditionalDocumentClosedEventAsync);
         }
 
         protected internal void OnAnalyzerConfigDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
-            OnAdditionalOrAnalyzerConfigDocumentClosed(
+            OnAdditionalOrAnalyzerConfigDocumentClosed<AnalyzerConfigDocument>(
                 documentId,
                 reloader,
                 WorkspaceChangeKind.AnalyzerConfigDocumentChanged,
                 CheckAnalyzerConfigDocumentIsInCurrentSolution,
-                withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, textLoader, mode));
+                withTextDocumentTextLoader: (oldSolution, documentId, textLoader, mode) => oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, textLoader, mode),
+                raiseDocumentClosedEventAsync: this.RaiseAnalyzerConfigDocumentClosedEventAsync);
         }
 
         // NOTE: We are only sharing this code between additional documents and analyzer config documents,
         // which are essentially plain text documents. Regular source documents need special handling
         // and hence have a different implementation.
-        private void OnAdditionalOrAnalyzerConfigDocumentClosed(
+        private void OnAdditionalOrAnalyzerConfigDocumentClosed<TDocument>(
             DocumentId documentId,
             TextLoader reloader,
             WorkspaceChangeKind workspaceChangeKind,
             Action<DocumentId> checkTextDocumentIsInCurrentSolution,
-            Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader)
+            Func<Solution, DocumentId, TextLoader, PreservationMode, Solution> withTextDocumentTextLoader,
+            Func<TDocument, Task> raiseDocumentClosedEventAsync)
+            where TDocument : TextDocument
         {
             using (_serializationLock.DisposableWait())
             {
@@ -673,6 +685,9 @@ namespace Microsoft.CodeAnalysis
                 newSolution = this.SetCurrentSolution(newSolution);
 
                 this.RaiseWorkspaceChangedEventAsync(workspaceChangeKind, oldSolution, newSolution, documentId: documentId); // don't wait for this
+
+                var newDoc = (TDocument)newSolution.GetRequiredTextDocument(documentId);
+                raiseDocumentClosedEventAsync(newDoc); // don't wait for this
             }
         }
 
