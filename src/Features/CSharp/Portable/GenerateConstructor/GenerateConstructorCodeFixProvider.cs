@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         public override ImmutableArray<string> FixableDiagnosticIds => GenerateConstructorDiagnosticIds.AllDiagnosticIds;
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateConstructorService>();
             return service.GenerateConstructorAsync(document, node, fallbackOptions, cancellationToken);

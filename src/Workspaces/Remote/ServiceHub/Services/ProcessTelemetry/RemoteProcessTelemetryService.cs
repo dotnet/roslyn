@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Remote API. Initializes ServiceHub process global state.
         /// </summary>
-        public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, CancellationToken cancellationToken)
+        public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, bool logDelta, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // adds property to each event reported from this session
                 telemetrySession.SetSharedProperty("VS.Core.Version", Environment.GetEnvironmentVariable("VisualStudioVersion"));
 
-                telemetryService.InitializeTelemetrySession(telemetrySession);
+                telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
                 telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
                 FaultReporter.InitializeFatalErrorHandlers();
 

@@ -954,7 +954,7 @@ abstract class MyClass$$
                 markup, LanguageNames.CSharp,
                 options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, AccessibilityModifiersRequired.Always, NotificationOption2.Silent }
                 });
 
             var result = await testState.ExtractViaCommandAsync();

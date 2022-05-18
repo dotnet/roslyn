@@ -36,9 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var option = options.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
-            var priority = option.Notification.Severity == ReportDiagnostic.Hidden
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+            var priority = options.PreferTopLevelStatements.Notification.Severity == ReportDiagnostic.Hidden
                 ? CodeActionPriority.Low
                 : CodeActionPriority.Medium;
 
@@ -48,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
         protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            var fixedDocument = await ConvertToProgramMainAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var fixedDocument = await ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired, cancellationToken).ConfigureAwait(false);
             var fixedRoot = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             editor.ReplaceNode(editor.OriginalRoot, fixedRoot);
