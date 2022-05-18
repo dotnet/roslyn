@@ -248,8 +248,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_on_file_open">
-        <source>Collapse Source Link, embedded, and decompiled source to defintions on file open</source>
-        <target state="new">Collapse Source Link, embedded, and decompiled source to defintions on file open</target>
+        <source>Collapse Source Link, embedded, and decompiled source to definitions on file open</source>
+        <target state="new">Collapse Source Link, embedded, and decompiled source to definitions on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">
