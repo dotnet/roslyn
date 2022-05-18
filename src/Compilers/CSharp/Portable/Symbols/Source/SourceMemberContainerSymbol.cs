@@ -2428,6 +2428,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Ensure that an error is reported if the required constructor isn't present.
                 _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor, diagnostics, Locations[0]);
+            }
+
+            if (HasAnyRequiredMembers)
+            {
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor, diagnostics, Locations[0]);
+
                 if (this.IsRecord)
                 {
                     // Copy constructors need to emit SetsRequiredMembers on the ctor

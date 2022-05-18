@@ -1219,15 +1219,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var obsoleteData = methodToAttribute.ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
 
+                CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
                 if (obsoleteData == null)
                 {
-                    CSharpCompilation declaringCompilation = methodToAttribute.DeclaringCompilation;
                     AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
                         ImmutableArray.Create(
                             new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.RequiredMembersMarker), // message
                             new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, true)) // error
                         ));
                 }
+
+                AddSynthesizedAttribute(ref attributes, declaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
+                    ImmutableArray.Create(new TypedConstant(declaringCompilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, nameof(CompilerFeatureRequiredFeatures.RequiredMembers)))
+                    ));
             }
         }
     }
