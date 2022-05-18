@@ -30,11 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _originalParam = originalParam;
         }
 
-        public override bool IsImplicitlyDeclared => true;
+        public sealed override bool IsImplicitlyDeclared => true;
 
-        public override bool IsDiscard => _originalParam.IsDiscard;
+        public sealed override bool IsDiscard => _originalParam.IsDiscard;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
@@ -44,12 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsParams
+        public sealed override bool IsParams
         {
             get { return !_suppressOptional && _originalParam.IsParams; }
         }
 
-        internal override bool IsMetadataOptional
+        internal sealed override bool IsMetadataOptional
         {
             get
             {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue ExplicitDefaultConstantValue
+        internal sealed override ConstantValue ExplicitDefaultConstantValue
         {
             get
             {
@@ -67,41 +67,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ConstantValue DefaultValueFromAttributes
+        internal sealed override ConstantValue DefaultValueFromAttributes
         {
             get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-        public override bool IsNullChecked => _originalParam.IsNullChecked;
+        internal sealed override DeclarationScope Scope => _originalParam.Scope;
+
+        public sealed override bool IsNullChecked => _originalParam.IsNullChecked;
 
         #region Forwarded
 
-        public override TypeWithAnnotations TypeWithAnnotations
+        public sealed override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _originalParam.TypeWithAnnotations; }
         }
 
-        public override RefKind RefKind
+        public sealed override RefKind RefKind
         {
             get { return _originalParam.RefKind; }
         }
 
-        internal override bool IsMetadataIn
+        internal sealed override bool IsMetadataIn
         {
             get { return _originalParam.IsMetadataIn; }
         }
 
-        internal override bool IsMetadataOut
+        internal sealed override bool IsMetadataOut
         {
             get { return _originalParam.IsMetadataOut; }
         }
 
-        public override ImmutableArray<Location> Locations
+        public sealed override ImmutableArray<Location> Locations
         {
             get { return _originalParam.Locations; }
         }
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return _originalParam.GetAttributes();
         }
@@ -111,39 +113,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.Name; }
         }
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _originalParam.RefCustomModifiers; }
         }
 
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
+        internal sealed override MarshalPseudoCustomAttributeData MarshallingInformation
         {
             get { return _originalParam.MarshallingInformation; }
         }
 
-        internal override bool IsIDispatchConstant
+        internal sealed override bool IsIDispatchConstant
         {
             get { return _originalParam.IsIDispatchConstant; }
         }
 
-        internal override bool IsIUnknownConstant
+        internal sealed override bool IsIUnknownConstant
         {
             get { return _originalParam.IsIUnknownConstant; }
         }
 
-        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        internal sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get { return FlowAnalysisAnnotations.None; }
         }
 
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        internal sealed override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+        internal sealed override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
 
         #endregion
     }

@@ -154,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
 
+        internal sealed override DeclarationScope Scope => _underlyingParameter.Scope;
+
         #endregion
     }
 }

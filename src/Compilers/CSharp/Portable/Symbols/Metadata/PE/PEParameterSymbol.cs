@@ -39,27 +39,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |...|fffffffff|n|rr|cccccccc|vvvvvvvv|
+            // |.|sss|fffffffff|n|rr|cccccccc|vvvvvvvv|
             // 
             // v = decoded well known attribute values. 8 bits.
             // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
             // f = FlowAnalysisAnnotations. 9 bits (8 value bits + 1 completion bit).
-            // Current total = 28 bits.
+            // s = Scope. 3 bits.
+            // Current total = 31 bits.
 
             private const int WellKnownAttributeDataOffset = 0;
             private const int WellKnownAttributeCompletionFlagOffset = 8;
             private const int RefKindOffset = 16;
             private const int FlowAnalysisAnnotationsOffset = 20;
+            private const int ScopeOffset = 29;
 
             private const int RefKindMask = 0x3;
             private const int WellKnownAttributeDataMask = 0xFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
             private const int FlowAnalysisAnnotationsMask = 0xFF;
+            private const int ScopeMask = 0x3;
 
             private const int HasNameInMetadataBit = 0x1 << 18;
             private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 19;
+            private const int ScopeCompletionBit = 0x1 << 28;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -126,6 +130,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
                 value = (FlowAnalysisAnnotations)((theBits >> FlowAnalysisAnnotationsOffset) & FlowAnalysisAnnotationsMask);
                 var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
+                Debug.Assert(value == 0 || result);
+                return result;
+            }
+
+            public bool SetScope(DeclarationScope value)
+            {
+                int bitsToSet = ScopeCompletionBit | (((int)value & ScopeMask) << ScopeOffset);
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetScope(out DeclarationScope value)
+            {
+                int theBits = _bits; // Read this.bits once to ensure the consistency of the value and completion flags.
+                value = (DeclarationScope)((theBits >> ScopeOffset) & ScopeMask);
+                var result = (theBits & ScopeCompletionBit) != 0;
                 Debug.Assert(value == 0 || result);
                 return result;
             }
@@ -950,6 +969,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return ImmutableArray<SyntaxReference>.Empty;
+            }
+        }
+
+        internal sealed override DeclarationScope Scope
+        {
+            get
+            {
+                DeclarationScope value;
+                if (!_packedFlags.TryGetScope(out value))
+                {
+                    // PROTOTYPE: Should we silently drop [LifetimeAnnotation] values that are invalid
+                    // (RefScoped for RefKind.None, or ValueScoped for non-ref struct)?
+                    value = _moduleSymbol.Module.HasLifetimeAnnotationAttribute(_handle, out (bool, bool) pair) ?
+                        (pair.Item1 ? DeclarationScope.RefScoped : DeclarationScope.None) | (pair.Item2 ? DeclarationScope.ValueScoped : DeclarationScope.None) :
+                        DeclarationScope.None;
+                    _packedFlags.SetScope(value);
+                }
+                return value;
             }
         }
 

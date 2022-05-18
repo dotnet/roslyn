@@ -420,6 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
+        internal abstract DeclarationScope Scope { get; }
+
         protected sealed override int HighestPriorityUseSiteError
         {
             get

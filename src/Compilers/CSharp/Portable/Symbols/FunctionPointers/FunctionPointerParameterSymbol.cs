@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly FunctionPointerMethodSymbol _containingSymbol;
 
-        public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers)
+        public FunctionPointerParameterSymbol(TypeWithAnnotations typeWithAnnotations, RefKind refKind, int ordinal, FunctionPointerMethodSymbol containingSymbol, ImmutableArray<CustomModifier> refCustomModifiers, DeclarationScope scope)
         {
             Debug.Assert(typeWithAnnotations.HasType);
             TypeWithAnnotations = typeWithAnnotations;
@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Ordinal = ordinal;
             _containingSymbol = containingSymbol;
             RefCustomModifiers = refCustomModifiers;
+            Scope = scope;
         }
 
         public override TypeWithAnnotations TypeWithAnnotations { get; }
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int Ordinal { get; }
         public override Symbol ContainingSymbol => _containingSymbol;
         public override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
+        internal override DeclarationScope Scope { get; }
 
         public override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

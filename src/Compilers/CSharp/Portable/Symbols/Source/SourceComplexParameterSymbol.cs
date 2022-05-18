@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A source parameter, potentially with a default value, attributes, etc.
     /// </summary>
-    internal class SourceComplexParameterSymbol : SourceParameterSymbol, IAttributeTargetSymbol
+    internal abstract class SourceComplexParameterSymbol : SourceParameterSymbol, IAttributeTargetSymbol
     {
         [Flags]
         private enum ParameterSyntaxKind : byte
@@ -32,9 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly SyntaxReference _syntaxRef;
         private readonly ParameterSyntaxKind _parameterSyntaxKind;
+        private readonly DeclarationScope _scope;
 
+        private ThreeState _lazyHasOptionalAttribute; // follows _parameterSyntaxKind and _scope to reduce instance size
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        private ThreeState _lazyHasOptionalAttribute;
         protected ConstantValue _lazyDefaultSyntaxValue;
 
         internal SourceComplexParameterSymbol(
@@ -46,13 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
             bool isParams,
-            bool isExtensionMethodThis)
+            bool isExtensionMethodThis,
+            DeclarationScope scope)
             : base(owner, parameterType, ordinal, refKind, name, locations)
         {
             Debug.Assert((syntaxRef == null) || (syntaxRef.GetSyntax().IsKind(SyntaxKind.Parameter)));
 
             _lazyHasOptionalAttribute = ThreeState.Unknown;
             _syntaxRef = syntaxRef;
+            _scope = scope;
 
             if (isParams)
             {
@@ -1419,7 +1421,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsExtensionMethodThis => (_parameterSyntaxKind & ParameterSyntaxKind.ExtensionThisParameter) != 0;
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
+        internal sealed override DeclarationScope Scope => _scope;
+
+        public abstract override ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
@@ -1429,11 +1433,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
-    internal sealed class SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef : SourceComplexParameterSymbol
+    internal sealed class SourceComplexParameterSymbolWithCustomModifiers : SourceComplexParameterSymbol
     {
         private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
 
-        internal SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
+        internal SourceComplexParameterSymbolWithCustomModifiers(
             Symbol owner,
             int ordinal,
             TypeWithAnnotations parameterType,
@@ -1443,11 +1447,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
             bool isParams,
-            bool isExtensionMethodThis)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis)
+            bool isExtensionMethodThis,
+            DeclarationScope scope)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, isParams, isExtensionMethodThis, scope)
         {
-            Debug.Assert(!refCustomModifiers.IsEmpty);
-
             _refCustomModifiers = refCustomModifiers;
 
             Debug.Assert(refKind != RefKind.None || _refCustomModifiers.IsEmpty);

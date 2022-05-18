@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4126,5 +4127,325 @@ class Program
                 //     internal ref T F() => ref t;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "t").WithArguments("this").WithLocation(5, 31));
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterScope_01(bool useCompilationReference)
+        {
+            var sourceA =
+@"public ref struct R
+{
+    public ref int F;
+    public R(ref int i) { F = ref i; }
+}
+public static class A
+{
+    public static void F1(scoped R r1) { }
+    public static ref int F2(ref R x2, ref scoped R y2) => ref x2.F;
+    public static void F3(scoped in R r3) { }
+    public static void F4(scoped out R r4) { r4 = default; }
+    public static void F5(object o, ref scoped R r5) { }
+    public static void F6(in scoped R r6) { }
+    public static void F7(out scoped R r7) { r7 = default; }
+    public static void F8(scoped ref scoped R r8) { }
+}";
+            var comp = CreateCompilation(sourceA);
+            comp.VerifyEmitDiagnostics();
+            var refA = AsReference(comp, useCompilationReference);
+
+            var sourceB =
+@"static class B
+{
+    static void F(ref R x)
+    {
+        int i = 0;
+        R y = new R(ref i);
+        A.F2(ref x, ref y);
+        A.F2(ref y, ref x);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA });
+            comp.VerifyEmitDiagnostics();
+
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F1").Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.None);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[1], "ref scoped R y2", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "scoped in R r3", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "scoped out R r4", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[1], "ref scoped R r5", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F6").Parameters[0], "in scoped R r6", RefKind.In, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F7").Parameters[0], "out scoped R r7", RefKind.Out, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F8").Parameters[0], "scoped ref scoped R r8", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+        }
+
+        [Fact]
+        public void ParameterScope_02()
+        {
+            var source =
+@"struct A<T>
+{
+    A(scoped ref T t) { }
+    T this[scoped in object o] => default;
+    public static implicit operator B<T>(in scoped A<T> a) => default;
+}
+struct B<T>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("A").Constructors.Single(c => !c.IsImplicitlyDeclared).Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("A.this[]").GetMethod.Parameters[0], "scoped in System.Object o", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.op_Implicit").Parameters[0], "in scoped A<T> a", RefKind.In, DeclarationScope.ValueScoped);
+        }
+
+        [Fact]
+        public void ParameterScope_03()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+#pragma warning disable 8321
+        static void L1(scoped R x1) { }
+        static void L2(scoped ref int x2) { }
+        static void L3(scoped in int x3) { }
+        static void L4(scoped out int x4) { x4 = 0; }
+        static void L5(object o, ref scoped R x5) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+            var localFunctions = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalFunctionSymbol>()).ToArray();
+
+            VerifyParameterSymbol(localFunctions[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(localFunctions[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(localFunctions[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(localFunctions[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(localFunctions[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+        }
+
+        [Fact]
+        public void ParameterScope_04()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        var f1 = (scoped R x1) => { };
+        var f2 = (scoped ref int x2) => { };
+        var f3 = (scoped in int x3) => { };
+        var f4 = (scoped out int x4) => { x4 = 0; };
+        var f5 = (object o, ref scoped R x5) => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+            var lambdas = decls.Select(d => model.GetSymbolInfo(d).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+
+            // PROTOTYPE: 'scoped' is currently ignored on lambda parameters.
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.None); // DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.None); // DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.None); // DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.None); // DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.None); // DeclarationScope.ValueScoped);
+        }
+
+        [Fact]
+        public void ParameterScope_05()
+        {
+            var source =
+@"ref struct R { }
+delegate void D1<T>(scoped R r1);
+delegate void D2<T>(scoped ref R r2);
+delegate void D3<T>(object o, ref scoped R r3);
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D1").DelegateInvokeMethod.Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D3").DelegateInvokeMethod.Parameters[1], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+        }
+
+        [Fact]
+        public void ParameterScope_06()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void F1(scoped R r1) { }
+    static void F2(ref scoped int x, scoped ref int y) { }
+    static unsafe void Main()
+    {
+        delegate*<scoped R, void> f1 = &F1;
+        delegate*<ref scoped int, scoped ref int, void> f2 = &F2;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var methods = decls.Select(d => ((FunctionPointerTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).Signature).ToArray();
+
+            VerifyParameterSymbol(methods[0].Parameters[0], "scoped R", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(methods[1].Parameters[0], "ref scoped System.Int32", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(methods[1].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
+        }
+
+        // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',
+        // and between function pointer types and methods that differ by 'scoped'.
+
+        // PROTOTYPE: Test distinct 'scoped' annotations in partial method parts.
+
+        [Fact]
+        public void ReturnTypeScope()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static scoped R F1<T>() => throw null;
+    static scoped ref R F2<T>() => throw null;
+    static ref scoped R F3<T>() => throw null;
+    static void Main()
+    {
+#pragma warning disable 8321
+        static scoped R L1<T>() => throw null;
+        static scoped ref readonly R L2<T>() => throw null;
+        static ref readonly scoped R L3<T>() => throw null;
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should report errors for 'ref scoped' and 'ref readonly scoped' return types as well.
+            comp.VerifyDiagnostics(
+                // (4,21): error CS0106: The modifier 'scoped' is not valid for this item
+                //     static scoped R F1<T>() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(4, 21),
+                // (5,25): error CS0106: The modifier 'scoped' is not valid for this item
+                //     static scoped ref R F2<T>() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("scoped").WithLocation(5, 25),
+                // (10,16): error CS0106: The modifier 'scoped' is not valid for this item
+                //         static scoped R L1<T>() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(10, 16),
+                // (11,16): error CS0106: The modifier 'scoped' is not valid for this item
+                //         static scoped ref readonly R L1<T>() => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(11, 16));
+        }
+
+        [Fact]
+        public void SubstitutedParameter()
+        {
+            var source =
+@"ref struct R<T> { }
+class A<T>
+{
+    public static void F(scoped R<T> x, scoped in T y) { }
+}
+class B : A<int>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var method = (MethodSymbol)comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics.GetMember("F");
+            VerifyParameterSymbol(method.Parameters[0], "scoped R<System.Int32> x", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(method.Parameters[1], "scoped in System.Int32 y", RefKind.In, DeclarationScope.RefScoped);
+        }
+
+        [Fact]
+        public void RetargetingParameter()
+        {
+            var sourceA =
+@"public ref struct R { }
+public class A
+{
+    public static void F(scoped R x, scoped in int y) { }
+}
+";
+            var comp = CreateCompilation(sourceA, targetFramework: TargetFramework.Mscorlib40);
+            var refA = comp.ToMetadataReference();
+
+            var sourceB =
+@"class B
+{
+    static void Main()
+    {
+        A.F(default, 0);
+    }
+}";
+            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            var method = model.GetSymbolInfo(expr).Symbol.GetSymbol<RetargetingMethodSymbol>();
+
+            VerifyParameterSymbol(method.Parameters[0], "scoped R x", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(method.Parameters[1], "scoped in System.Int32 y", RefKind.In, DeclarationScope.RefScoped);
+        }
+
+        private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope scope)
+        {
+            Assert.Equal(expectedRefKind, parameter.RefKind);
+            Assert.Equal(scope, parameter.Scope);
+            Assert.Equal(expectedDisplayString.Replace("scoped ", ""), parameter.ToTestDisplayString()); // PROTOTYPE: Remove string.Replace().
+        }
+
+        [Fact]
+        public void LocalScope_01()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        scoped R r1;
+        scoped ref R r2 = ref r1;
+        ref scoped R r3 = ref r1;
+        scoped ref scoped R r4 = ref r1;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+            VerifyLocalSymbol(locals[0], RefKind.None, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[1], RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[2], RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[3], RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+        }
+
+        private static void VerifyLocalSymbol(LocalSymbol local, RefKind expectedRefKind, DeclarationScope scope)
+        {
+            Assert.Equal(expectedRefKind, local.RefKind);
+            //Assert.Equal(scope, local.Scope); // PROTOTYPE: Enable
+        }
+
+        // PROTOTYPE: Test `const scoped int local = 0;`. Are there other invalid combinations of modifiers?
+
+        // PROTOTYPE: 'scoped T t'  should report an error if T is not a 'ref struct'
     }
 }

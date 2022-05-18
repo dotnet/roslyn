@@ -7105,7 +7105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If this is a ref field from another compilation, check for support for ref fields.
             // No need to check for a reference to a field declared in this compilation since
             // we check at the declaration site. (Check RefKind after checking compilation to
-            // avoid cycles for source symbols.
+            // avoid cycles for source symbols.)
             if ((object)Compilation.SourceModule != fieldSymbol.OriginalDefinition.ContainingModule &&
                 fieldSymbol.RefKind != RefKind.None)
             {

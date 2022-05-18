@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            bool isDiscard,
            bool isNullChecked,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, /*PROTOTYPE:*/ scope: DeclarationScope.None)
         {
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;

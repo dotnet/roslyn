@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams,
             bool isExtensionMethodThis,
             bool addRefReadOnlyModifier,
+            DeclarationScope scope,
             BindingDiagnosticBag declarationDiagnostics)
         {
             Debug.Assert(!(owner is LambdaSymbol)); // therefore we don't need to deal with discard parameters
@@ -54,25 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ImmutableArray<CustomModifier> inModifiers = ParameterHelpers.ConditionallyCreateInModifiers(refKind, addRefReadOnlyModifier, context, declarationDiagnostics, syntax);
-
-            if (!inModifiers.IsDefaultOrEmpty)
-            {
-                return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
-                    owner,
-                    ordinal,
-                    parameterType,
-                    refKind,
-                    inModifiers,
-                    name,
-                    locations,
-                    syntax.GetReference(),
-                    isParams,
-                    isExtensionMethodThis);
-            }
+            Debug.Assert(!inModifiers.IsDefault);
 
             if (!isParams &&
                 !isExtensionMethodThis &&
+                scope == DeclarationScope.None &&
                 (syntax.Default == null) &&
+                inModifiers.IsEmpty &&
                 (syntax.AttributeLists.Count == 0) &&
                 !owner.IsPartialMethod() &&
                 syntax.ExclamationExclamationToken.Kind() == SyntaxKind.None)
@@ -80,16 +69,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
             }
 
-            return new SourceComplexParameterSymbol(
+            return new SourceComplexParameterSymbolWithCustomModifiers(
                 owner,
                 ordinal,
                 parameterType,
                 refKind,
+                inModifiers,
                 name,
                 locations,
                 syntax.GetReference(),
                 isParams,
-                isExtensionMethodThis);
+                isExtensionMethodThis,
+                scope);
         }
 
         protected SourceParameterSymbol(
@@ -125,24 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeWithAnnotations newTypeWithModifiers = this.TypeWithAnnotations.WithTypeAndModifiers(newType, newCustomModifiers);
 
-            if (newRefCustomModifiers.IsEmpty)
-            {
-                return new SourceComplexParameterSymbol(
-                    this.ContainingSymbol,
-                    this.Ordinal,
-                    newTypeWithModifiers,
-                    _refKind,
-                    _name,
-                    _locations,
-                    this.SyntaxReference,
-                    newIsParams,
-                    this.IsExtensionMethodThis);
-            }
-
             // Local functions should never have custom modifiers
             Debug.Assert(!(ContainingSymbol is LocalFunctionSymbol));
 
-            return new SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
+            return new SourceComplexParameterSymbolWithCustomModifiers(
                 this.ContainingSymbol,
                 this.Ordinal,
                 newTypeWithModifiers,
@@ -152,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _locations,
                 this.SyntaxReference,
                 newIsParams,
-                this.IsExtensionMethodThis);
+                this.IsExtensionMethodThis,
+                this.Scope);
         }
 
         internal sealed override bool RequiresCompletion

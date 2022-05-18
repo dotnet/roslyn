@@ -74,6 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override DeclarationScope Scope => DeclarationScope.None;
+
         internal override bool IsIDispatchConstant
         {
             get { return false; }

@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.LocalDeclarationStatement:
                         // only const locals have modifiers and those don't have a sequence point:
                         var parent = (LocalDeclarationStatementSyntax)declarationSyntax.Parent;
-                        Debug.Assert(!parent.Modifiers.Any());
+                        // PROTOTYPE: Include 'scoped' modifier in breakpoint span?
+                        //Debug.Assert(!parent.Modifiers.Any());
                         var firstToken =
                             parent.UsingKeyword == default ? (SyntaxToken?)null :
                             parent.AwaitKeyword == default ? parent.UsingKeyword :
