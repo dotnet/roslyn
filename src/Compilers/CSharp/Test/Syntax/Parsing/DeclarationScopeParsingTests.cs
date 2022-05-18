@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Method_01()
         {
-            string source = $"void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) {{ }}";
+            string source = "void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) { }";
             UsingDeclaration(source, TestOptions.RegularNext);
 
             N(SyntaxKind.MethodDeclaration);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Method_01_CSharp10()
         {
-            string source = $"void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) {{ }}";
+            string source = "void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) { }";
             UsingDeclaration(source, TestOptions.Regular10,
                 // (1,15): error CS1001: Identifier expected
                 // void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) { }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Method_02()
         {
-            string source = $"void F(ref scoped int b, in scoped int c, out scoped int d) {{ }}";
+            string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
             UsingDeclaration(source, TestOptions.RegularNext);
 
             N(SyntaxKind.MethodDeclaration);
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Method_02_CSharp10()
         {
-            string source = $"void F(ref scoped int b, in scoped int c, out scoped int d) {{ }}";
+            string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
             UsingDeclaration(source, TestOptions.Regular10,
                 // (1,19): error CS1001: Identifier expected
                 // void F(ref scoped int b, in scoped int c, out scoped int d) { }
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Method_03()
         {
-            string source = $"scoped R F() => default;";
+            string source = "scoped R F() => default;";
             UsingDeclaration(source, TestOptions.RegularNext);
 
             N(SyntaxKind.MethodDeclaration);
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Method_04()
         {
-            string source = $"ref scoped R F() => default;";
+            string source = "ref scoped R F() => default;";
             UsingDeclaration(source, TestOptions.RegularNext);
 
             N(SyntaxKind.MethodDeclaration);
@@ -437,9 +437,85 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Method_05()
+        {
+            string source = "void F(scoped scoped ref int i) { }";
+            UsingDeclaration(source, TestOptions.RegularNext);
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "F");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Method_06()
+        {
+            string source = "void F(ref scoped scoped R r) { }";
+            UsingDeclaration(source, TestOptions.RegularNext);
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "F");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "R");
+                        }
+                        N(SyntaxKind.IdentifierToken, "r");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
         public void Lambda_01()
         {
-            string source = $"(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
+            string source = "(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
             UsingExpression(source, TestOptions.RegularNext);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -503,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Lambda_01_CSharp10()
         {
-            string source = $"(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
+            string source = "(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
             UsingExpression(source, TestOptions.Regular10,
                 // (1,1): error CS1073: Unexpected token 'int'
                 // (scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null
@@ -527,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Lambda_02()
         {
-            string source = $"(ref scoped int a, out scoped int b, in scoped int c) => null";
+            string source = "(ref scoped int a, out scoped int b, in scoped int c) => null";
             UsingExpression(source, TestOptions.RegularNext);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -581,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Lambda_02_CSharp10()
         {
-            string source = $"(ref scoped int a, out scoped int b, in scoped int c) => null";
+            string source = "(ref scoped int a, out scoped int b, in scoped int c) => null";
             UsingExpression(source, TestOptions.Regular10,
                 // (1,1): error CS1073: Unexpected token 'int'
                 // (ref scoped int a, out scoped int b, in scoped int c) => null
@@ -612,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Lambda_03()
         {
-            string source = $"(scoped R a, scoped ref R b, ref scoped R c) => null";
+            string source = "(scoped R a, scoped ref R b, ref scoped R c) => null";
             UsingExpression(source, TestOptions.RegularNext);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -665,7 +741,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Lambda_04()
         {
-            string source = $"([A] scoped R a, [B] scoped ref R b, [C] ref scoped R c) => null";
+            string source = "(scoped scoped ref int i) => null";
+            UsingExpression(source, TestOptions.RegularNext);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "i");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Lambda_05()
+        {
+            string source = "(ref scoped scoped R r) => { }";
+            UsingExpression(source, TestOptions.RegularNext,
+                // (1,1): error CS1073: Unexpected token 'scoped'
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "(ref scoped ").WithArguments("scoped").WithLocation(1, 1),
+                // (1,2): error CS1525: Invalid expression term 'ref'
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(1, 2),
+                // (1,13): error CS1026: ) expected
+                // (ref scoped scoped R r) => { }
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(1, 13));
+
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.RefExpression);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                }
+                M(SyntaxKind.CloseParenToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Lambda_06()
+        {
+            string source = "([A] scoped R a, [B] scoped ref R b, [C] ref scoped R c) => null";
             UsingExpression(source, TestOptions.RegularNext);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
@@ -754,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void Lambda_05(LanguageVersion langVersion)
+        public void Lambda_07(LanguageVersion langVersion)
         {
             string source = $"scoped () => t";
             UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
@@ -782,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Params_01()
         {
-            string source = $"void F(scoped params object[] args);";
+            string source = "void F(scoped params object[] args);";
             UsingDeclaration(source, TestOptions.RegularNext);
 
             N(SyntaxKind.MethodDeclaration);
@@ -827,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Params_02()
         {
-            string source = $"void F(params scoped object[] args);";
+            string source = "void F(params scoped object[] args);";
             UsingDeclaration(source, TestOptions.RegularNext);
 
             N(SyntaxKind.MethodDeclaration);

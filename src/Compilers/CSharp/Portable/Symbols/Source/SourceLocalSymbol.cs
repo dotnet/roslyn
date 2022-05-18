@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSyntax _typeSyntax;
         private readonly RefKind _refKind;
         private readonly LocalDeclarationKind _declarationKind;
-        private readonly RefAndScope _refAndScope;
+        private readonly DeclarationScope _scope;
 
         private TypeWithAnnotations.Boxed _type;
 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._identifierToken = identifierToken;
             this._typeSyntax = allowRefKind ? typeSyntax?.SkipRef(out this._refKind) : typeSyntax;
             this._declarationKind = declarationKind;
-            this._refAndScope = GetRefAndScope(scoped, _refKind, typeSyntax);
+            this._scope = GetScope(scoped, allowRefKind, _refKind, typeSyntax);
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
@@ -80,17 +80,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _valEscapeScope = Binder.ExternalScope;
         }
 
-        private static RefAndScope GetRefAndScope(bool scoped, RefKind refKind, TypeSyntax typeSyntax)
+        private static DeclarationScope GetScope(bool scoped, bool allowRefKind, RefKind refKind, TypeSyntax typeSyntax)
         {
-            if (typeSyntax is RefTypeSyntax refTypeSyntax &&
-                refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
+            var result = DeclarationScope.None;
+            if (typeSyntax is RefTypeSyntax refTypeSyntax)
             {
-                // Note that 'ref scoped' and 'scoped ref scoped' are equivalent.
-                return RefAndScope.RefScoped;
+                if (allowRefKind && scoped)
+                {
+                    result |= DeclarationScope.RefScoped;
+                }
+                @scoped = (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword);
             }
-            return scoped ?
-                (refKind == RefKind.None ? RefAndScope.Scoped : RefAndScope.ScopedRef) :
-                (refKind == RefKind.None ? RefAndScope.None : RefAndScope.Ref);
+            if (scoped)
+            {
+                result |= DeclarationScope.ValueScoped;
+            }
+            return result;
         }
 
         /// <summary>
@@ -110,14 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override uint ValEscapeScope => _valEscapeScope;
 
-        private enum RefAndScope : byte
-        {
-            None,
-            Scoped,
-            Ref,
-            ScopedRef,
-            RefScoped,
-        }
+        internal sealed override DeclarationScope Scope => _scope;
 
         /// <summary>
         /// Binder that should be used to bind type syntax for the local.

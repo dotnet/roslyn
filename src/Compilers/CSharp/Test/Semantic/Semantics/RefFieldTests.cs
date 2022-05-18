@@ -4308,6 +4308,75 @@ class Program
             VerifyParameterSymbol(methods[1].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
+        [Fact]
+        public void ParameterScope_07()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void F1(scoped scoped R r) { }
+    static void F2(ref scoped scoped int i) { }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should report duplicate modifiers.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterScope_08()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        var f = (scoped scoped R r) => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            // PROTOTYPE: Should report duplicate modifiers.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ParameterScope_09()
+        {
+            var source =
+@"class Program
+{
+    static void Main()
+    {
+        var f = (ref scoped scoped int i) => { };
+    }
+}";
+            var comp = CreateCompilation(source);
+            // The duplicated scoped modifier results in parse errors rather than a binding error.
+            comp.VerifyDiagnostics(
+                // (5,18): error CS1525: Invalid expression term 'ref'
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(5, 18),
+                // (5,18): error CS1073: Unexpected token 'ref'
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(5, 18),
+                // (5,29): error CS1026: ) expected
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(5, 29),
+                // (5,29): error CS1002: ; expected
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(5, 29),
+                // (5,40): warning CS0168: The variable 'i' is declared but never used
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(5, 40),
+                // (5,41): error CS1002: ; expected
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(5, 41),
+                // (5,41): error CS1513: } expected
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(5, 41));
+        }
+
         // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',
         // and between function pointer types and methods that differ by 'scoped'.
 
@@ -4441,7 +4510,7 @@ class Program
         private static void VerifyLocalSymbol(LocalSymbol local, RefKind expectedRefKind, DeclarationScope scope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            //Assert.Equal(scope, local.Scope); // PROTOTYPE: Enable
+            Assert.Equal(scope, local.Scope);
         }
 
         // PROTOTYPE: Test `const scoped int local = 0;`. Are there other invalid combinations of modifiers?
