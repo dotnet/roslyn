@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -25,10 +27,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// EditorFeatures references in <see cref="RunCodeActionHandler"/> are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionsHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCodeActionName)]
     internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
     {
-        private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IGlobalOptionService _globalOptions;
@@ -38,13 +40,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsHandler(
-            CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             IGlobalOptionService globalOptions)
         {
-            _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
             _globalOptions = globalOptions;
@@ -59,24 +61,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var options = _globalOptions.GetCodeActionOptionsProvider();
 
+            var codeActionsCache = context.GetRequiredLspService<CodeActionsCache>();
             var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-                request, _codeActionsCache, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
+                request, codeActionsCache, document, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);
 
             return codeActions;
-        }
-
-        internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
-
-        internal readonly struct TestAccessor
-        {
-            private readonly CodeActionsHandler _codeActionsHandler;
-
-            public TestAccessor(CodeActionsHandler codeActionsHandler)
-                => _codeActionsHandler = codeActionsHandler;
-
-            public CodeActionsCache GetCache()
-                => _codeActionsHandler._codeActionsCache;
         }
     }
 }
