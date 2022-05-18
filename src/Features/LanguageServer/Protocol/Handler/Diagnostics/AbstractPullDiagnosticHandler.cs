@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -133,11 +134,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             foreach (var document in orderedDocuments)
             {
-                context.TraceInformation($"Processing: {document.FilePath}");
-
-                // not be asked for workspace docs in razor.
-                // not send razor docs in workspace docs for c#
-
                 var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
 
                 var project = document.Project;
