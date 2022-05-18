@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
 {
     [Trait(Traits.Feature, Traits.Features.Workspace)]
     public sealed class DMASRTests
