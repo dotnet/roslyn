@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return 1;
                     }
                     break;
-                case SyntaxKind.SwitchKeyword when currentToken.Parent is SwitchExpressionSyntax:
+                case SyntaxKind.SwitchKeyword when previousToken.Parent is SwitchExpressionSyntax:
                     return 1;
             }
 
