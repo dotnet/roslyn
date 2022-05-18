@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
             IInlineRenameService renameService,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions,
+            IAsyncOpe)
             : base(threadingContext, undoManager, renameService, globalOptions)
         {
         }
