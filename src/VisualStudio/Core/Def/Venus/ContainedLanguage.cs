@@ -28,9 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly Guid _languageServiceGuid;
+        private readonly IThreadingContext _threadingContext;
 
         protected readonly Workspace Workspace;
-        private readonly IThreadingContext _threadingContext;
         protected readonly IComponentModel ComponentModel;
 
         public VisualStudioProject? Project { get; }
