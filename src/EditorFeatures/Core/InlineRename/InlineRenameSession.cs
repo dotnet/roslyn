@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -808,13 +809,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // rename!
                 using var _ = workContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
 
+                // we're about to make changes ourselves.  makes sure that the edits we make don't cause us to cancel ourselves.
+                workContext.CancelOnEdit = false;
+
                 await DismissAsync(rollbackTemporaryEdits: true, cancellationToken).ConfigureAwait(false);
                 CancelAllOpenDocumentTrackingTasks();
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 _triggerView.Caret.PositionChanged += LogPositionChanged;
 
-                await ApplyRenameAsync(newSolution, workContext).ConfigureAwait(false);
+                await ApplyRenameAsync(newSolution, cancellationToken).ConfigureAwait(false);
 
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
 
@@ -841,13 +845,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private async Task ApplyRenameAsync(
-            Solution newSolution, IBackgroundWorkIndicatorContext operationContext)
+            Solution newSolution, CancellationToken cancellationToken)
         {
-            var cancellationToken = operationContext.UserCancellationToken;
-
-            // we're about to make changes ourselves.  makes sure that the edits we make don't cause us to cancel ourselves.
-            operationContext.CancelOnEdit = false;
-
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
@@ -912,7 +911,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                 {
                     var notificationService = _workspace.Services.GetService<INotificationService>();
-                    operationContext.TakeOwnership();
                     notificationService.SendNotification(
                         EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
                         EditorFeaturesResources.Rename_Symbol,
