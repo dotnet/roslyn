@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         EditorFeaturesResources.Rename_Symbol,
                         NotificationSeverity.Error);
 
-                    return ;
+                    return;
                 }
 
                 // move all changes to final solution based on the workspace's current solution, since the current solution
