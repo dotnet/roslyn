@@ -731,6 +731,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (this.ReplacementText == string.Empty ||
                 this.ReplacementText == _initialRenameText)
             {
+                // We're about to rollback.  Make sure that the rollback doesn't trigger our own cancellation.
+                context.CancelOnEdit = false;
                 await CancelAsync(rollbackTemporaryEdits: true, cancellationToken).ConfigureAwait(false);
                 return false;
             }
