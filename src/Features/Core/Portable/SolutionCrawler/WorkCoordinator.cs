@@ -72,6 +72,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                 _registration.Workspace.DocumentOpened += OnDocumentOpened;
                 _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                _registration.Workspace.AdditionalDocumentOpened += OnAdditionalDocumentOpened;
+                _registration.Workspace.AdditionalDocumentClosed += OnAdditionalDocumentClosed;
+                _registration.Workspace.AnalyzerConfigDocumentOpened += OnAnalyzerConfigDocumentOpened;
+                _registration.Workspace.AnalyzerConfigDocumentClosed += OnAnalyzerConfigDocumentClosed;
 
                 // subscribe to active document changed event for active file background analysis scope.
                 _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
@@ -102,6 +106,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
                 _registration.Workspace.DocumentOpened -= OnDocumentOpened;
                 _registration.Workspace.DocumentClosed -= OnDocumentClosed;
+                _registration.Workspace.AdditionalDocumentOpened -= OnAdditionalDocumentOpened;
+                _registration.Workspace.AdditionalDocumentClosed -= OnAdditionalDocumentClosed;
+                _registration.Workspace.AnalyzerConfigDocumentOpened -= OnAnalyzerConfigDocumentOpened;
+                _registration.Workspace.AnalyzerConfigDocumentClosed -= OnAnalyzerConfigDocumentClosed;
 
                 // cancel any pending blocks
                 _shutdownNotificationSource.Cancel();
@@ -301,6 +309,30 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
             }
 
+            private void OnAdditionalDocumentOpened(object? sender, AdditionalDocumentEventArgs e)
+            {
+                _eventProcessingQueue.ScheduleTask("OnAdditionalDocumentOpened",
+                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
+            }
+
+            private void OnAdditionalDocumentClosed(object? sender, AdditionalDocumentEventArgs e)
+            {
+                _eventProcessingQueue.ScheduleTask("OnAdditionalDocumentClosed",
+                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
+            }
+
+            private void OnAnalyzerConfigDocumentOpened(object? sender, AnalyzerConfigDocumentEventArgs e)
+            {
+                _eventProcessingQueue.ScheduleTask("OnAnalyzerConfigDocumentOpened",
+                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentOpened), _shutdownToken);
+            }
+
+            private void OnAnalyzerConfigDocumentClosed(object? sender, AnalyzerConfigDocumentEventArgs e)
+            {
+                _eventProcessingQueue.ScheduleTask("OnAnalyzerConfigDocumentClosed",
+                    () => EnqueueDocumentWorkItemAsync(e.Document.Project, e.Document.Id, e.Document, InvocationReasons.DocumentClosed), _shutdownToken);
+            }
+
             private void EnqueueSolutionChangedEvent(Solution oldSolution, Solution newSolution, string eventName)
             {
                 _eventProcessingQueue.ScheduleTask(
@@ -424,14 +456,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _shutdownToken);
             }
 
-            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, Document? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
+            private async Task EnqueueDocumentWorkItemAsync(Project project, DocumentId documentId, TextDocument? document, InvocationReasons invocationReasons, SyntaxNode? changedMember = null)
             {
                 // we are shutting down
                 _shutdownToken.ThrowIfCancellationRequested();
 
                 var priorityService = project.GetLanguageService<IWorkCoordinatorPriorityService>();
-                document ??= project.GetDocument(documentId);
-                var isLowPriority = priorityService != null && document != null && await priorityService.IsLowPriorityAsync(document, _shutdownToken).ConfigureAwait(false);
+                document ??= project.GetTextDocument(documentId);
+                var sourceDocument = document as Document;
+                var isLowPriority = priorityService != null && sourceDocument != null && await priorityService.IsLowPriorityAsync(sourceDocument, _shutdownToken).ConfigureAwait(false);
 
                 var currentMember = GetSyntaxPath(changedMember);
 
@@ -440,11 +473,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     new WorkItem(documentId, project.Language, invocationReasons, isLowPriority, currentMember, _listener.BeginAsyncOperation("WorkItem")));
 
                 // enqueue semantic work planner
-                if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
+                if (invocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged) && sourceDocument != null)
                 {
                     // must use "Document" here so that the snapshot doesn't go away. we need the snapshot to calculate p2p dependency graph later.
                     // due to this, we might hold onto solution (and things kept alive by it) little bit longer than usual.
-                    _semanticChangeProcessor.Enqueue(project, documentId, document, currentMember);
+                    _semanticChangeProcessor.Enqueue(project, documentId, sourceDocument, currentMember);
                 }
             }
 
