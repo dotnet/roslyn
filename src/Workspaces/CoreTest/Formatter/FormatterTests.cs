@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -79,8 +80,10 @@ public class FormatterTests
 
         document = document.Project.Solution.WithOptions(solutionOptions).GetRequiredDocument(document.Id);
 
+#pragma warning disable RS0030 // Do not used banned APIs
         var documentOptions = await document.GetOptionsAsync();
         Assert.Equal(7, documentOptions.GetOption(FormattingOptions.IndentationSize));
+#pragma warning restore
 
         var options = passExplicitOptions ? new OptionValueSet(ImmutableDictionary<OptionKey, object?>.Empty.
             Add(new OptionKey(FormattingOptions.UseTabs, NoCompilationConstants.LanguageName), true).
@@ -90,7 +93,7 @@ public class FormatterTests
 
 #pragma warning disable RS0030 // Do not used banned APIs
         var formattedDocument = await Formatter.FormatAsync(document, spans: null, options, CancellationToken.None);
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore
 
         var formattedText = await formattedDocument.GetTextAsync();
 
@@ -119,8 +122,8 @@ public class FormatterTests
 
         // Validate that options are read from specified OptionSet:
 
-        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
-        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
+        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocument, updatedOptions, CancellationToken.None)).Syntax!);
+        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocument, updatedOptions, CancellationToken.None)).Syntax!);
 
         // Validate that options are read from solution snapshot as a fallback (we have no editorconfig file, so all options should fall back):
 
@@ -128,8 +131,10 @@ public class FormatterTests
         var csDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(csDocument.Id);
         var vbDocumentWithUpdatedOptions = solutionWithUpdatedOptions.GetRequiredDocument(vbDocument.Id);
 
-        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
-        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
+        ValidateCSharpOptions((CSharpSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(csDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
+        ValidateVisualBasicOptions((VisualBasicSyntaxFormattingOptions)(await Formatter.GetFormattingOptionsAsync(vbDocumentWithUpdatedOptions, optionSet: null, CancellationToken.None)).Syntax!);
+        ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(csDocumentWithUpdatedOptions, CancellationToken.None));
+        ValidateOrganizeImportsOptions(await Formatter.GetOrganizeImportsOptionsAsync(vbDocumentWithUpdatedOptions, CancellationToken.None));
 
         static OptionSet GetOptionSetWithChangedPublicOptions(OptionSet options)
         {
@@ -273,6 +278,11 @@ public class FormatterTests
         static void ValidateVisualBasicOptions(VisualBasicSyntaxFormattingOptions simplifierOptions)
         {
             ValidateCommonOptions(simplifierOptions);
+        }
+
+        static void ValidateOrganizeImportsOptions(OrganizeImportsOptions options)
+        {
+            Assert.Equal("\r", options.NewLine);
         }
     }
 }

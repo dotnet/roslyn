@@ -102,12 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             IMethodSymbol argumentNullExceptionStringConstructor,
             IMethodSymbol? referenceEqualsMethod)
         {
-            var cancellationToken = context.CancellationToken;
-
-            var semanticModel = context.SemanticModel;
-            var syntaxTree = semanticModel.SyntaxTree;
-
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking, syntaxTree, cancellationToken);
+            var option = context.GetCSharpAnalyzerOptions().PreferParameterNullChecking;
             if (!option.Value)
             {
                 return;
@@ -130,6 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
             {
                 return;
             }
+
+            var cancellationToken = context.CancellationToken;
+            var semanticModel = context.SemanticModel;
 
             var methodSymbol = node is AnonymousFunctionExpressionSyntax
                 ? (IMethodSymbol?)semanticModel.GetSymbolInfo(node, cancellationToken).Symbol
