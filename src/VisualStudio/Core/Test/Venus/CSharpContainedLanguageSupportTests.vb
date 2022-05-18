@@ -164,6 +164,7 @@ public partial class _Default : System.Web.UI.Page
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
+                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -193,6 +194,7 @@ public class _Default : System.Web.UI.Page
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
+                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -219,6 +221,7 @@ public class _Default : System.Web.UI.Page
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
+                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -247,6 +250,7 @@ public partial class _Default
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
+                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -278,6 +282,7 @@ public class MyBaseClass
                 Dim document = GetDocument(workspace)
                 Dim eventName = ContainedLanguageCodeSupport.CreateUniqueEventName(
                     document:=document,
+                    workspace.GlobalOptions,
                     className:="_Default",
                     objectName:="Button1",
                     nameOfEvent:="Click",
@@ -544,6 +549,7 @@ public class _Default
                     itemidInsertionPoint:=0,
                     useHandlesClause:=False,
                     additionalFormattingRule:=BlankLineInGeneratedMethodFormattingRule.Instance,
+                    workspace.GlobalOptions,
                     cancellationToken:=Nothing)
 
                 ' Since a valid handler exists, item2 and item3 of the tuple returned must be nothing
@@ -593,6 +599,7 @@ protected void Button1_Click(object sender, EventArgs e)
                     itemidInsertionPoint:=0,
                     useHandlesClause:=False,
                     additionalFormattingRule:=BlankLineInGeneratedMethodFormattingRule.Instance,
+                    workspace.GlobalOptions,
                     cancellationToken:=Nothing)
 
                 Assert.Equal("Button1_Click(object,System.EventArgs)", eventHandlerIdTextPosition.Item1)
@@ -643,6 +650,7 @@ public class _Default
                 Dim actualSpan As TextSpan = Nothing
                 If Not ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(
                     thisDocument:=document,
+                    workspace.GlobalOptions,
                     className:="_Default",
                     uniqueMemberID:="Button1_Click(object,System.EventArgs)",
                     textSpan:=actualSpan,

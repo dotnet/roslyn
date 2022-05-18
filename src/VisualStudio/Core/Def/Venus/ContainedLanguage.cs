@@ -152,6 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             this.DataBuffer.Changed += OnDataBufferChanged;
         }
 
+        public IGlobalOptionService GlobalOptions => _diagnosticAnalyzerService.GlobalOptions;
+
         private void OnDisconnect()
         {
             this.DataBuffer.Changed -= OnDataBufferChanged;

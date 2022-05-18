@@ -314,23 +314,19 @@ namespace Microsoft.CodeAnalysis
                 var cache = GetCache();
                 if (documentId != null && _projectState.DocumentStates.TryGetState(documentId, out var documentState))
                 {
-                    var result = GetOptions(cache, documentState);
-                    if (result != null)
-                    {
-                        return result;
-                    }
+                    return GetOptions(cache, documentState);
                 }
 
                 return GetOptionsForSourcePath(cache, tree.FilePath);
             }
 
-            internal async ValueTask<StructuredAnalyzerConfigOptions?> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
+            internal async ValueTask<StructuredAnalyzerConfigOptions> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
             {
                 var cache = await _projectState._lazyAnalyzerConfigOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
                 return GetOptions(cache, documentState);
             }
 
-            private StructuredAnalyzerConfigOptions? GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState)
+            private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache cache, DocumentState documentState)
             {
                 if (documentState.IsRazorDocument())
                 {
@@ -340,7 +336,7 @@ namespace Microsoft.CodeAnalysis
                 var filePath = GetEffectiveFilePath(documentState);
                 if (filePath == null)
                 {
-                    return null;
+                    return StructuredAnalyzerConfigOptions.Empty;
                 }
 
                 var options = GetOptionsForSourcePath(cache, filePath);
