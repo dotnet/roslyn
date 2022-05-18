@@ -13,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     internal struct NativeIntegerTypeDecoder
     {
-        internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule, TypeSymbol containingType)
+        internal static TypeSymbol TransformType(TypeSymbol type, EntityHandle handle, PEModuleSymbol containingModule, TypeSymbol? containingType)
         {
             // Note: We avoid any cycles when loading members of System.Runtime.CompilerServices.RuntimeFeature
-            if (containingType.SpecialType == SpecialType.System_Runtime_CompilerServices_RuntimeFeature
+            if (containingType?.SpecialType == SpecialType.System_Runtime_CompilerServices_RuntimeFeature
                 || type.ContainingAssembly?.RuntimeSupportsNumericIntPtr == true)
             {
                 return type;
