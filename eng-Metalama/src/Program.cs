@@ -16,7 +16,6 @@ var product = new Product( Dependencies.MetalamaCompiler )
     Solutions = new [] { new RoslynSolution() },
     PublicArtifacts = Pattern.Create( "Metalama.Compiler.$(PackageVersion).nupkg", "Metalama.Compiler.Sdk.$(PackageVersion).nupkg" ),
     PrivateArtifacts = Pattern.Create(
-         "Metalama.RoslynUtilities.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.Common.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.CSharp.$(PackageVersion).nupkg",
     "Metalama.Roslyn.CodeAnalysis.CSharp.Features.$(PackageVersion).nupkg",

@@ -1,0 +1,30 @@
+﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Metalama.Compiler.BuildTasks</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
+    <!-- <Metalama> -->
+    <AutoGenerateAssemblyVersion>false</AutoGenerateAssemblyVersion>
+    <!-- </Metalama> -->
+    <AssemblyVersion />
+    <!-- CA1819 (Properties should not return arrays) disabled as it is very common across this project. -->
+    <NoWarn>$(NoWarn);CA1819</NoWarn>
+
+    <!-- NuGet -->
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Build.Tasks</PackageId>
+
+    <PackageDescription>
+      The build task and targets used by MSBuild to run the C# and VB compilers.
+      Supports using VBCSCompiler on Windows.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" />
+  </ItemGroup>
+</Project>

@@ -27,6 +27,9 @@
     <ProjectReference Include="..\..\Interactive\csi\csi.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" PrivateAssets="All"/>
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="All"/>
+    <!-- <Metalama> -->
+    <ProjectReference Include="..\..\Metalama\Metalama.Compiler.BuildTasks\Metalama.Compiler.BuildTasks.csproj" PrivateAssets="All"/>
+    <!-- </Metalama> -->
   </ItemGroup>
 
   <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">

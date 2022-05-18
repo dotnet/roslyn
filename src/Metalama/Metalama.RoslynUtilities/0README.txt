@@ -1,1 +1,0 @@
-All these files are directly linked from Roslyn, not copied. 
