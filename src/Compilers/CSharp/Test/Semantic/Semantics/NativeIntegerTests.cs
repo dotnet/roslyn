@@ -8507,8 +8507,8 @@ $@"{{
             conversions(sourceType: "nuint?", destType: "uint?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u4", "nuint", "uint"), expectedCheckedIL: convFromToNullableT("conv.ovf.u4.un", "nuint", "uint"));
             conversions(sourceType: "nuint?", destType: "long?", ExplicitNullableNumeric, expectedImplicitIL: null, expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "long"), expectedCheckedIL: convFromToNullableT("conv.ovf.i8.un", "nuint", "long"));
             conversions(sourceType: "nuint?", destType: "ulong?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"), expectedExplicitIL: convFromToNullableT("conv.u8", "nuint", "ulong"));
-            conversions(sourceType: "nuint?", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convRUnFromToNullableT("conv.r4", "nuint", "float"), null);
-            conversions(sourceType: "nuint?", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convRUnFromToNullableT("conv.r8", "nuint", "double"), null);
+            conversions(sourceType: "nuint?", destType: "float?", ImplicitNullableNumeric, expectedImplicitIL: convRUnFromToNullableT("conv.r4", "nuint", "float"), expectedExplicitIL: convRUnFromToNullableT("conv.r4", "nuint", "float"), null);
+            conversions(sourceType: "nuint?", destType: "double?", ImplicitNullableNumeric, expectedImplicitIL: convRUnFromToNullableT("conv.r8", "nuint", "double"), expectedExplicitIL: convRUnFromToNullableT("conv.r8", "nuint", "double"), null);
             conversions(sourceType: "nuint?", destType: "decimal?", ImplicitNullableNumeric,
 @"{
   // Code size       40 (0x28)
@@ -14822,7 +14822,6 @@ class C
   IL_0002:  conv.r4
   IL_0003:  ret
 }");
-            }
         }
 
         [Theory, CombinatorialData]
