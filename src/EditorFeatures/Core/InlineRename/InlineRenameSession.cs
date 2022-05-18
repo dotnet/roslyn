@@ -557,13 +557,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
-            _conflictResolutionTask = GetConflictResolutionTask(
+            _conflictResolutionTask = GetConflictResolutionAsync(
                 replacementText, options, _conflictResolutionTaskCancellationSource.Token);
 
             _conflictResolutionTask.CompletesAsyncOperation(asyncToken);
         }
 
-        private async Task<IInlineRenameReplacementInfo> GetConflictResolutionTask(
+        private async Task<IInlineRenameReplacementInfo> GetConflictResolutionAsync(
             string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
         {
             // Await prior work before proceeding, since it performs a required state update.
