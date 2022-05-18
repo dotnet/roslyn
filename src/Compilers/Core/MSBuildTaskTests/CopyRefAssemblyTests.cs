@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             Assert.True(task.Execute());
-            Assert.True(string.IsNullOrEmpty(engine.Log));
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""Copying reference assembly from "{{file.Path}}" to "{{dest}}".""", engine.Log);
             Assert.Equal("test", File.ReadAllText(dest));
         }
 
@@ -94,7 +94,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             Assert.True(task.Execute());
-            Assert.False(string.IsNullOrEmpty(engine.Log));
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Could not extract the MVID from "{{source.Path}}". Are you sure it is a reference assembly?
+                Copying reference assembly from "{{source.Path}}" to "{{dest}}".
+                """,
+                engine.Log);
+
             Assert.Equal("test", File.ReadAllText(dest.Path));
         }
     }
