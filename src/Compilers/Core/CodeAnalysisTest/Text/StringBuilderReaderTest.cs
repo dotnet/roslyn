@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         [Fact]
         public void PeakRead()
         {
-            var reader = CreateFromText("text");
+            var reader = CreateReader("text");
             Assert.Equal('t', reader.Read());
             Assert.Equal('e', reader.Peek());
             Assert.Equal('e', reader.Read());
@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
         [Theory]
         [InlineData(5, 0, 5, "bcdef", 5, 'g')]
-        [InlineData(5, 1, 2, "\0bc\0\0", 2, 'd')]
-        [InlineData(5, 2, 3, "\0\0bcd", 3, 'e')]
-        [InlineData(10, 2, 7, "\0\0bcdefgh\0", 7, -1)]
-        [InlineData(10, 2, 8, "\0\0bcdefgh\0", 7, -1)]
+        [InlineData(5, 0, 2, "bc\0\0\0", 2, 'd')]
+        [InlineData(10, 1, 6, "\0bcdefg\0\0\0", 6, 'h')]
+        [InlineData(10, 1, 7, "\0bcdefgh\0\0", 7, -1)]
+        [InlineData(10, 1, 9, "\0bcdefgh\0\0", 7, -1)]
         [InlineData(10, 3, 7, "\0\0\0bcdefgh", 7, -1)]
         [InlineData(10, 3, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
         [InlineData(10, 10, 0, "\0\0\0\0\0\0\0\0\0\0", 0, 'b')]
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             void testWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
             {
-                using var reader = CreateFromText("abcdefgh");
+                using var reader = CreateReader("abcdefgh");
                 var readMethod = readMethodAccessor(reader);
 
                 Assert.Equal('a', reader.Read());
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             void testWithMethod(Func<TextReader, ReadToSpanDelegate> readMethodAccessor)
             {
-                using var reader = CreateFromText("abcdefgh");
+                using var reader = CreateReader("abcdefgh");
                 var readMethod = readMethodAccessor(reader);
 
                 Assert.Equal('a', reader.Read());
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             void testWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
             {
-                using var reader = CreateFromText("abcdefgh");
+                using var reader = CreateReader("abcdefgh");
                 var readMethod = readMethodAccessor(reader);
 
                 var buffer = new char[3];
@@ -104,14 +104,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         [Fact]
         public void ReadToEnd()
         {
-            using (var reader1 = CreateFromText("text"))
+            using (var reader1 = CreateReader("text"))
             {
                 Assert.Equal("text", reader1.ReadToEnd());
                 Assert.Equal(-1, reader1.Peek());
                 Assert.Equal("", reader1.ReadToEnd());
             }
 
-            using (var reader2 = CreateFromText("text"))
+            using (var reader2 = CreateReader("text"))
             {
                 Assert.Equal('t', reader2.Read());
                 Assert.Equal("ext", reader2.ReadToEnd());
@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             }
         }
 
-        private static StringBuilderReader CreateFromText(string text) =>
-            new(new StringBuilder(text));
+        private static StringBuilderReader CreateReader(string text) => new(new StringBuilder(text));
 
         private delegate int ReadToArrayDelegate(char[] buffer, int index, int count);
         private delegate int ReadToSpanDelegate(Span<char> buffer);
