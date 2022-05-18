@@ -34,6 +34,5 @@ internal static class SyntaxFormattingOptionsStorage
 
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IGlobalOptionService globalOptions, HostLanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingOptionsStorage>().GetOptions(globalOptions);
-
 }
 
