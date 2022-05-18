@@ -6696,12 +6696,12 @@ class C
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var dicard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
                 .Where(i => i.Identifier.ValueText == "_")
                 .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
                 .Single();
 
-            Assert.Equal("System.Int32 _", model.GetSymbolInfo(dicard).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 _", model.GetSymbolInfo(discard).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
@@ -6725,12 +6725,12 @@ class C
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
-            var dicard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+            var underscore = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
                 .Where(i => i.Identifier.ValueText == "_")
                 .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
                 .Single();
 
-            Assert.Equal("System.String _", model.GetSymbolInfo(dicard).Symbol.ToTestDisplayString());
+            Assert.Equal("System.String _", model.GetSymbolInfo(underscore).Symbol.ToTestDisplayString());
         }
     }
 }
