@@ -1391,7 +1391,13 @@ public class FileModifierTests : CSharpTestBase
 
         // PROTOTYPE(ft): it should probably be an error to reference a file type in a global using static
         var compilation = CreateCompilation(new[] { source, main });
-        compilation.VerifyDiagnostics();
+        compilation.VerifyDiagnostics(
+            // (1,1): hidden CS8019: Unnecessary using directive.
+            // global using static C;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "global using static C;").WithLocation(1, 1),
+            // (5,9): error CS0103: The name 'M' does not exist in the current context
+            //         M();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "M").WithArguments("M").WithLocation(5, 9));
     }
 
     [Fact]
@@ -1699,6 +1705,127 @@ public class FileModifierTests : CSharpTestBase
 
         var verifier = CompileAndVerify(source, expectedOutput: "1");
         verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void StaticFileClass()
+    {
+        var source = """
+            using System;
+
+            C.M();
+
+            static file class C
+            {
+                public static void M()
+                {
+                    Console.Write(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMethod_01()
+    {
+        var source = """
+            using System;
+
+            "a".M();
+
+            static file class C
+            {
+                public static void M(this string s)
+                {
+                    Console.Write(1);
+                }
+            }
+            """;
+
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionMethod_02()
+    {
+        var source1 = """
+            "a".M(); // 1
+            """;
+
+        var source2 = """
+            using System;
+
+            static file class C
+            {
+                public static void M(this string s)
+                {
+                    Console.Write(1);
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics(
+            // (1,5): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // "a".M(); // 1
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("string", "M").WithLocation(1, 5));
+    }
+
+    [Fact]
+    public void ExtensionMethod_03()
+    {
+        var source1 = """
+            "a".M(); // 1
+            """;
+
+        var source2 = """
+            using System;
+
+            file class C
+            {
+                static class D
+                {
+                    public static void M(this string s) // 2
+                    {
+                        Console.Write(1);
+                    }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics(
+            // (1,5): error CS1061: 'string' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+            // "a".M(); // 1
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("string", "M").WithLocation(1, 5),
+            // (7,28): error CS1109: Extension methods must be defined in a top level static class; D is a nested class
+            //         public static void M(this string s) // 2
+            Diagnostic(ErrorCode.ERR_ExtensionMethodsDecl, "M").WithArguments("D").WithLocation(7, 28));
+    }
+
+    [Fact]
+    public void Alias_01()
+    {
+        var source = """
+            namespace NS;
+            using C1 = NS.C;
+
+            file class C
+            {
+            }
+
+            class D : C1 { } // 1
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (8,7): error CS9302: File type 'C' cannot be used as a base type of non-file type 'D'.
+            // class D : C1 { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeBase, "D").WithArguments("NS.C", "NS.D").WithLocation(8, 7));
     }
 
     // PROTOTYPE(ft): public API (INamedTypeSymbol.IsFile?)
