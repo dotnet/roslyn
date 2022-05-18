@@ -27,10 +27,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
     [Order(After = PredefinedCommandHandlerNames.EventHookup)]
     internal class RenameTrackingCancellationCommandHandler : ICommandHandler<EscapeKeyCommandArgs>
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RenameTrackingCancellationCommandHandler()
+        public RenameTrackingCancellationCommandHandler(
+            IThreadingContext threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public string DisplayName => EditorFeaturesResources.Rename_Tracking_Cancellation;
@@ -40,7 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             return document != null &&
-                RenameTrackingDismisser.DismissVisibleRenameTracking(document.Project.Solution.Workspace, document.Id);
+                _threadingContext.JoinableTaskFactory.Run(() =>
+                    RenameTrackingDismisser.DismissVisibleRenameTrackingAsync(
+                        _threadingContext, document.Project.Solution.Workspace, document.Id, context.OperationContext.UserCancellationToken));
         }
 
         public CommandState GetCommandState(EscapeKeyCommandArgs args)

@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private sealed class StateMachine
         {
             public readonly IThreadingContext ThreadingContext;
+            public readonly IUIThreadOperationExecutor OperationExecutor;
 
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -51,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private int _refCount;
 
             public readonly IGlobalOptionService GlobalOptions;
+
             public TrackingSession TrackingSession { get; private set; }
             public ITextBuffer Buffer => _buffer;
 
@@ -63,6 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IInlineRenameService inlineRenameService,
                 IDiagnosticAnalyzerService diagnosticAnalyzerService,
                 IGlobalOptionService globalOptions,
+                IUIThreadOperationExecutor operationExecutor,
                 IAsynchronousOperationListener asyncListener)
             {
                 ThreadingContext = threadingContext;
@@ -72,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _asyncListener = asyncListener;
                 _diagnosticAnalyzerService = diagnosticAnalyzerService;
                 GlobalOptions = globalOptions;
+                OperationExecutor = operationExecutor;
             }
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)

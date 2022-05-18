@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly IUIThreadOperationExecutor _operationExecutor;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -53,28 +54,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             IInlineRenameService inlineRenameService,
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
             IGlobalOptionService globalOptions,
+            IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _inlineRenameService = inlineRenameService;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
             _globalOptions = globalOptions;
+            _operationExecutor = operationExecutor;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.RenameTracking);
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(() => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _asyncListener));
+            var stateMachine = buffer.Properties.GetOrCreateSingletonProperty(
+                () => new StateMachine(_threadingContext, buffer, _inlineRenameService, _diagnosticAnalyzerService, _globalOptions, _operationExecutor, _asyncListener));
             return new Tagger(stateMachine) as ITagger<T>;
         }
 
-        internal static void ResetRenameTrackingState(Workspace workspace, DocumentId documentId)
-            => ResetRenameTrackingStateWorker(workspace, documentId, visible: false);
+        internal static Task ResetRenameTrackingStateAsync(IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            => ResetRenameTrackingStateWorkerAsync(threadingContext, workspace, documentId, visible: false, cancellationToken);
 
-        internal static bool ResetVisibleRenameTrackingState(Workspace workspace, DocumentId documentId)
-            => ResetRenameTrackingStateWorker(workspace, documentId, visible: true);
+        internal static Task<bool> ResetVisibleRenameTrackingStateAsync(IThreadingContext threadingContext, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            => ResetRenameTrackingStateWorkerAsync(threadingContext, workspace, documentId, visible: true, cancellationToken);
 
-        internal static bool ResetRenameTrackingStateWorker(Workspace workspace, DocumentId documentId, bool visible)
+        internal static async Task<bool> ResetRenameTrackingStateWorkerAsync(
+            IThreadingContext threadingContext,
+            Workspace workspace,
+            DocumentId documentId,
+            bool visible,
+            CancellationToken cancellationToken)
         {
             if (workspace.IsDocumentOpen(documentId))
             {
@@ -87,11 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     if (textBuffer == null)
                     {
                         FailFast.Fail(string.Format("document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
-                                                            document.Name, text.Container.GetType().FullName, text.ToString()));
+                            document.Name, text.Container.GetType().FullName, text.ToString()));
                     }
 
                     if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out StateMachine stateMachine))
                     {
+                        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         if (visible)
                         {
                             return stateMachine.ClearVisibleTrackingSession();
