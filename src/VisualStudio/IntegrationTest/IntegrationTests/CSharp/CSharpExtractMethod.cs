@@ -84,6 +84,7 @@ public class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(61369, "https://github.com/dotnet/roslyn/pull/61369")]
         public void ExtractMethodWithTriviaSelected()
         {
             VisualStudio.Editor.SetText(TestSource);
