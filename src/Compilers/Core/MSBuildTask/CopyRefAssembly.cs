@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             return true;
                         }
 
-                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, source, DestinationPath, destination);
+                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(SourcePath), source, DestinationPath, File.GetLastWriteTimeUtc(DestinationPath), destination);
                     }
                     catch (Exception)
                     {
