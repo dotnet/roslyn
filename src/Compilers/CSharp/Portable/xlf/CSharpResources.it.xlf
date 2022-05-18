@@ -1452,6 +1452,11 @@
         <target state="translated">'{0}', a cui è assegnato l'attributo 'UnmanagedCallersOnly', non può essere convertito in un tipo delegato. Ottenere un puntatore a funzione per questo metodo.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
+        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="translated">Non è possibile usare i modelli di elenco per un valore di tipo '{0}'.</target>

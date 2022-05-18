@@ -1149,6 +1149,60 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        internal string? GetFirstUnsupportedCompilerFeatureFromToken(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, CompilerFeatureRequiredFeatures allowedFeatures)
+        {
+            List<AttributeInfo>? infos = FindTargetAttributes(token, AttributeDescription.CompilerFeatureRequiredAttribute);
+
+            if (infos == null)
+            {
+                return null;
+            }
+
+            foreach (var info in infos)
+            {
+                if (!info.HasValue || !TryGetAttributeReader(info.Handle, out BlobReader sigReader) || !CrackStringInAttributeValue(out string? featureName, ref sigReader))
+                {
+                    continue;
+                }
+
+                bool isOptional = false;
+                if (sigReader.RemainingBytes >= 2)
+                {
+                    try
+                    {
+                        var numNamedArgs = sigReader.ReadUInt16();
+                        for (uint i = 0; i < numNamedArgs; i++)
+                        {
+                            (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
+                                attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+
+                            if (namedArgValues is ({ Key: "IsOptional" }, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
+                            {
+                                isOptional = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
+                }
+
+                if (!isOptional && (allowedFeatures & getFeatureKind(featureName)) == 0)
+                {
+                    return featureName;
+                }
+            }
+
+            return null;
+
+            static CompilerFeatureRequiredFeatures getFeatureKind(string? feature)
+                => feature switch
+                {
+                    nameof(CompilerFeatureRequiredFeatures.RefStructs) => CompilerFeatureRequiredFeatures.RefStructs,
+                    nameof(CompilerFeatureRequiredFeatures.RequiredMembers) => CompilerFeatureRequiredFeatures.RequiredMembers,
+                    _ => CompilerFeatureRequiredFeatures.None,
+                };
+        }
+
         internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder attributeArgumentDecoder,
@@ -2133,9 +2187,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal List<AttributeInfo> FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
+#nullable enable
+        internal List<AttributeInfo>? FindTargetAttributes(EntityHandle hasAttribute, AttributeDescription description)
         {
-            List<AttributeInfo> result = null;
+            List<AttributeInfo>? result = null;
 
             try
             {
@@ -2159,6 +2214,7 @@ namespace Microsoft.CodeAnalysis
 
             return result;
         }
+#nullable disable
 
         internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {

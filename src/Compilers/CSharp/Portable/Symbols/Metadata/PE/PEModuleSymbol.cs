@@ -102,6 +102,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private NullableMemberMetadata _lazyNullableMemberMetadata;
 
+#nullable enable
+        private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+#nullable disable
+
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
             : this((AssemblySymbol)assemblySymbol, module, importOptions, ordinal)
         {
@@ -755,5 +759,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return false;
         }
+
+#nullable enable
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
+        {
+            if (_lazyCachedCompilerFeatureRequiredDiagnosticInfo == CSDiagnosticInfo.EmptyErrorInfo)
+            {
+                Interlocked.CompareExchange(
+                    ref _lazyCachedCompilerFeatureRequiredDiagnosticInfo,
+                    PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, this, Token, CompilerFeatureRequiredFeatures.None, new MetadataDecoder(this)),
+                    CSDiagnosticInfo.EmptyErrorInfo);
+            }
+
+            return _lazyCachedCompilerFeatureRequiredDiagnosticInfo ?? (_assemblySymbol as PEAssemblySymbol)?.GetCompilerFeatureRequiredDiagnostic();
+        }
+
+        public override bool HasUnsupportedMetadata
+            => GetCompilerFeatureRequiredDiagnostic()?.Code == (int)ErrorCode.ERR_UnsupportedCompilerFeature || base.HasUnsupportedMetadata;
     }
 }

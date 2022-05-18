@@ -1068,5 +1068,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 nps.Equals(this, compareKind) :
                 base.Equals(other, compareKind);
         }
+
+#nullable enable
+        internal DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic(MetadataDecoder decoder)
+            => PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, (PEModuleSymbol)ContainingModule, Handle, allowedFeatures: CompilerFeatureRequiredFeatures.None, decoder);
+
+        public override bool HasUnsupportedMetadata
+        {
+            get
+            {
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                var decoder = ContainingSymbol switch
+                {
+                    PEMethodSymbol method => new MetadataDecoder(containingModule, method),
+                    PEPropertySymbol => new MetadataDecoder(containingModule, (PENamedTypeSymbol)ContainingType),
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.ContainingSymbol.Kind)
+                };
+
+                return DeriveCompilerFeatureRequiredDiagnostic(decoder) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } || base.HasUnsupportedMetadata;
+            }
+        }
     }
 }

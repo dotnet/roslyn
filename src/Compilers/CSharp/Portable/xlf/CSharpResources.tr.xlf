@@ -1452,6 +1452,11 @@
         <target state="translated">'{0}', 'UnmanagedCallersOnly' özniteliğine sahip ve temsilci türüne dönüştürülemez. Bu yöntem için bir işlev işaretçisi edinin.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
+        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="translated">Liste desenleri, '{0}' türünde bir değer için kullanılamaz.</target>

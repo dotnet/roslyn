@@ -1452,6 +1452,11 @@
         <target state="translated">“{0}”使用 "UnmanagedCallersOnly" 进行特性化，无法转换为委托类型。请获取指向此方法的函数指针。</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedCompilerFeature">
+        <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</source>
+        <target state="new">'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
         <target state="translated">列表模式不能用于类型为“{0}”的值。</target>

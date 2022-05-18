@@ -939,16 +939,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Return error code that has highest priority while calculating use site error for this symbol. 
+        /// Returns true if the error code is the highest priority while calculating use site error for this symbol. 
         /// Supposed to be ErrorCode, but it causes inconsistent accessibility error.
         /// </summary>
-        protected virtual int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return int.MaxValue;
-            }
-        }
+        protected virtual bool IsHighestPriorityUseSiteErrorCode(int code) => true;
 
         /// <summary>
         /// Indicates that this symbol uses metadata that cannot be supported by the language.
@@ -987,7 +981,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (info.Severity == DiagnosticSeverity.Error && (info.Code == HighestPriorityUseSiteError || HighestPriorityUseSiteError == Int32.MaxValue))
+            if (info.Severity == DiagnosticSeverity.Error && IsHighestPriorityUseSiteErrorCode(info.Code))
             {
                 // this error is final, no other error can override it:
                 result = info;
@@ -1121,7 +1115,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
 
         [Flags]
         internal enum AllowedRequiredModifierType

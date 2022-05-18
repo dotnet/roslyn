@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (mrEx != null)
             {
-                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
+                result._lazyCachedUseSiteInfo.Initialize(result.DeriveCompilerFeatureRequiredDiagnostic() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
             }
 
             return result;
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (mrEx != null || metadataArity < containerMetadataArity)
             {
-                result._lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
+                result._lazyCachedUseSiteInfo.Initialize(result.DeriveCompilerFeatureRequiredDiagnostic() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, result));
             }
 
             return result;
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (makeBad)
             {
-                _lazyCachedUseSiteInfo.Initialize(new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
+                _lazyCachedUseSiteInfo.Initialize(DeriveCompilerFeatureRequiredDiagnostic() ?? new CSDiagnosticInfo(ErrorCode.ERR_BogusType, this));
             }
         }
 
@@ -2024,7 +2024,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected virtual DiagnosticInfo GetUseSiteDiagnosticImpl()
         {
-            DiagnosticInfo diagnostic = null;
+            // GetCompilerFeatureRequiredDiagnostic depends on UnsupportedCompilerFeature being the highest priority diagnostic, or it will return incorrect
+            // results and assert in Debug mode.
+            DiagnosticInfo diagnostic = DeriveCompilerFeatureRequiredDiagnostic();
+
+            if (diagnostic != null)
+            {
+                return diagnostic;
+            }
 
             if (!MergeUseSiteDiagnostics(ref diagnostic, CalculateUseSiteDiagnostic()))
             {
@@ -2059,6 +2066,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             return diagnostic;
         }
+
+#nullable enable
+        internal DiagnosticInfo? GetCompilerFeatureRequiredDiagnostic()
+        {
+            var useSiteInfo = GetUseSiteInfo();
+            if (useSiteInfo.DiagnosticInfo is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } diag)
+            {
+                return diag;
+            }
+
+            Debug.Assert(DeriveCompilerFeatureRequiredDiagnostic() is null);
+            return null;
+        }
+
+        private DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic()
+        {
+            var decoder = new MetadataDecoder(ContainingPEModule, this);
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, ContainingPEModule, Handle, allowedFeatures: IsRefLikeType ? CompilerFeatureRequiredFeatures.RefStructs : CompilerFeatureRequiredFeatures.None, decoder);
+
+            if (diag != null)
+            {
+                return diag;
+            }
+
+            foreach (var typeParameter in TypeParameters)
+            {
+                diag = ((PETypeParameterSymbol)typeParameter).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+
+                if (diag != null)
+                {
+                    return diag;
+                }
+            }
+
+            return ContainingType is PENamedTypeSymbol containingType
+                ? containingType.GetCompilerFeatureRequiredDiagnostic()
+                : ContainingPEModule.GetCompilerFeatureRequiredDiagnostic();
+        }
+#nullable disable
 
         internal string DefaultMemberName
         {

@@ -1358,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 CalculateUseSiteDiagnostic(ref result);
 
                 var diagnosticInfo = result.DiagnosticInfo;
+                MergeUseSiteDiagnostics(ref diagnosticInfo, DeriveCompilerFeatureRequiredDiagnostic());
                 EnsureTypeParametersAreLoaded(ref diagnosticInfo);
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
@@ -1378,6 +1379,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return GetCachedUseSiteInfo();
+        }
+
+        private DiagnosticInfo DeriveCompilerFeatureRequiredDiagnostic()
+        {
+            var containingModule = _containingType.ContainingPEModule;
+            var decoder = new MetadataDecoder(containingModule, this);
+            var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, containingModule, Handle, allowedFeatures: MethodKind == MethodKind.Constructor ? CompilerFeatureRequiredFeatures.RequiredMembers : CompilerFeatureRequiredFeatures.None, decoder);
+
+            if (diag != null)
+            {
+                return diag;
+            }
+
+            diag = Signature.ReturnParam.DeriveCompilerFeatureRequiredDiagnostic(decoder);
+            if (diag != null)
+            {
+                return diag;
+            }
+
+            foreach (var param in Parameters)
+            {
+                diag = ((PEParameterSymbol)param).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+                if (diag != null)
+                {
+                    return diag;
+                }
+            }
+
+            foreach (var typeParam in TypeParameters)
+            {
+                diag = ((PETypeParameterSymbol)typeParam).DeriveCompilerFeatureRequiredDiagnostic(decoder);
+                if (diag != null)
+                {
+                    return diag;
+                }
+            }
+
+            return _containingType.GetCompilerFeatureRequiredDiagnostic();
         }
 
         private UseSiteInfo<AssemblySymbol> GetCachedUseSiteInfo()

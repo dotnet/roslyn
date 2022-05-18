@@ -590,10 +590,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
+                deriveCompilerFeatureRequiredUseSiteInfo(ref result);
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
             return _lazyCachedUseSiteInfo.ToUseSiteInfo(primaryDependency);
+
+            void deriveCompilerFeatureRequiredUseSiteInfo(ref UseSiteInfo<AssemblySymbol> result)
+            {
+                var containingType = (PENamedTypeSymbol)ContainingType;
+                PEModuleSymbol containingPEModule = _containingType.ContainingPEModule;
+                var diag = PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(
+                    this,
+                    containingPEModule,
+                    Handle,
+                    allowedFeatures: CompilerFeatureRequiredFeatures.None,
+                    new MetadataDecoder(containingPEModule, containingType));
+
+                diag ??= containingType.GetCompilerFeatureRequiredDiagnostic();
+
+                if (diag != null)
+                {
+                    result = new UseSiteInfo<AssemblySymbol>(diag);
+                }
+            }
         }
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
