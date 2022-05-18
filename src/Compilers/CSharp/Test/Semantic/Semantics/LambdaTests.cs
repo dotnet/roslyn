@@ -6674,5 +6674,63 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "parameter").WithArguments("parameter").WithLocation(9, 13)
                 );
         }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaDiscardParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, _) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var dicard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.Int32 _", model.GetSymbolInfo(dicard).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(61143, "https://github.com/dotnet/roslyn/issues/61143")]
+        public void ParameterScope_LambdaUnderscoreParameter()
+        {
+            var comp = CreateCompilation(@"
+class AAttribute : System.Attribute
+{
+    public AAttribute(string s) { }
+}
+
+class C
+{
+    void M(int _)
+    {
+        System.Func<string, string, int> a = [A(nameof(_))] (_, x) => 0;
+    }
+}
+");
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var dicard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+                .Where(i => i.Identifier.ValueText == "_")
+                .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.InvocationExpression)))
+                .Single();
+
+            Assert.Equal("System.String _", model.GetSymbolInfo(dicard).Symbol.ToTestDisplayString());
+        }
     }
 }
