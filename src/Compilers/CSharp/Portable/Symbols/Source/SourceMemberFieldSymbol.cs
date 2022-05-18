@@ -590,10 +590,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
+        {
+            var type = Type;
+            if (type.Kind == SymbolKind.NamedType && !IsFixedSizeBuffer)
+            {
+                Type.CheckAllConstraints(DeclaringCompilation, new TypeConversions(this.ContainingAssembly.CorLibrary), ErrorLocation, DeclaringCompilation.AfterAccessorBindingDiagnostics);
+            }
+        }
+
         internal void AfterAccessorBindingChecks()
         {
+            var type = Type;
             // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
-            if (!IsFixedSizeBuffer)
+            if (type.Kind == SymbolKind.PointerType && !IsFixedSizeBuffer)
             {
                 Type.CheckAllConstraints(DeclaringCompilation, new TypeConversions(this.ContainingAssembly.CorLibrary), ErrorLocation, DeclaringCompilation.AfterAccessorBindingDiagnostics);
             }
