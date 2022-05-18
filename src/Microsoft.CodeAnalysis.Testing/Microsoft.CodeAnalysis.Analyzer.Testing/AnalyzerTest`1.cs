@@ -6,7 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -443,182 +442,51 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <item><description>An item in the result which specifies both a <see cref="Diagnostic"/> and a <see cref="DiagnosticResult"/> indicates a matched pair, i.e. the actual and expected results are believed to refer to the same diagnostic.</description></item>
         /// <item><description>An item in the result which specifies only a <see cref="Diagnostic"/> indicates an actual diagnostic for which no matching expected diagnostic was found.</description></item>
         /// <item><description>An item in the result which specifies only a <see cref="DiagnosticResult"/> indicates an expected diagnostic for which no matching actual diagnostic was found.</description></item>
+        /// </list>
         ///
         /// <para>If no exact match is found (all actual diagnostics are matched to an expected diagnostic without
         /// errors), this method is <em>allowed</em> to attempt fall-back matching using a strategy intended to minimize
         /// the total number of mismatched pairs.</para>
-        /// </list>
         /// </returns>
         private ImmutableArray<((Project project, Diagnostic diagnostic)? actual, DiagnosticResult? expected)> MatchDiagnostics((Project project, Diagnostic diagnostic)[] actualResults, DiagnosticResult[] expectedResults)
         {
-            var actualIds = actualResults.Select(result => result.diagnostic.Id).ToImmutableArray();
-            var actualResultLocations = actualResults.Select(result => (location: result.diagnostic.Location.GetLineSpan(), additionalLocations: result.diagnostic.AdditionalLocations.Select(location => location.GetLineSpan()).ToImmutableArray())).ToImmutableArray();
-            var actualArguments = actualResults.Select(actual => GetArguments(actual.diagnostic).Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray()).ToImmutableArray();
-
-            expectedResults = expectedResults.ToOrderedArray();
-            var expectedArguments = expectedResults.Select(expected => expected.MessageArguments?.Select(argument => argument?.ToString() ?? string.Empty).ToImmutableArray() ?? ImmutableArray<string>.Empty).ToImmutableArray();
-
-            // Initialize the best match to a trivial result where everything is unmatched. This will be updated if/when
-            // better matches are found.
-            var bestMatchCount = MatchQuality.RemainingUnmatched(actualResults.Length + expectedResults.Length);
-            var bestMatch = actualResults.Select(result => (((Project project, Diagnostic diagnostic)?)result, default(DiagnosticResult?))).Concat(expectedResults.Select(result => (default((Project project, Diagnostic diagnostic)?), (DiagnosticResult?)result))).ToImmutableArray();
-
-            var builder = ImmutableArray.CreateBuilder<((Project project, Diagnostic diagnostic)? actual, DiagnosticResult? expected)>();
-            var usedExpected = new bool[expectedResults.Length];
-
-            // The recursive match algorithm is not optimized, so use a timeout to ensure it completes in a reasonable
-            // time if a correct match isn't found.
-            using var cancellationTokenSource = new CancellationTokenSource(MatchDiagnosticsTimeout);
-
-            try
-            {
-                _ = RecursiveMatch(0, actualResults.Length, 0, expectedArguments.Length, MatchQuality.Full, usedExpected);
-            }
-            catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
-            {
-                // Continue with the best match we have
-            }
-
-            return bestMatch;
-
-            // Match items using recursive backtracking. Returns the distance the best match under this path is from an
-            // ideal result of 0 (1:1 matching of actual and expected results). Currently the distance is calculated as
-            // the sum of the match values:
-            //
-            // * Fully-matched items have a value of MatchQuality.Full.
-            // * Partially-matched items have a value between MatchQuality.Full and MatchQuality.None (exclusive).
-            // * Fully-unmatched items have a value of MatchQuality.None.
-            MatchQuality RecursiveMatch(int firstActualIndex, int remainingActualItems, int firstExpectedIndex, int remainingExpectedItems, MatchQuality unmatchedActualResults, bool[] usedExpected)
-            {
-                var matchedOnEntry = actualResults.Length - remainingActualItems;
-                var bestPossibleUnmatchedExpected = MatchQuality.RemainingUnmatched(Math.Abs(remainingActualItems - remainingExpectedItems));
-                var bestPossible = unmatchedActualResults + bestPossibleUnmatchedExpected;
-
-                if (firstActualIndex == actualResults.Length)
-                {
-                    // We reached the end of the actual diagnostics. Any remaning unmatched expected diagnostics should
-                    // be added to the end. If this path produced a better result than the best known path so far,
-                    // update the best match to this one.
-                    var totalUnmatched = unmatchedActualResults + MatchQuality.RemainingUnmatched(remainingExpectedItems);
-
-                    // Avoid manipulating the builder if we know the current path is no better than the previous best.
-                    if (totalUnmatched < bestMatchCount)
+            var result = WeightedMatch.Match(
+                expectedResults.ToImmutableArray(),
+                actualResults.ToImmutableArray(),
+                ImmutableArray.Create<Func<DiagnosticResult, (Project project, Diagnostic diagnostic), double>>(
+                    static (expected, actual) =>
                     {
-                        var addedCount = 0;
-
-                        // Add the remaining unmatched expected diagnostics
-                        for (var i = firstExpectedIndex; i < expectedResults.Length; i++)
+                        if (IsLocationMatch(actual.diagnostic, expected, out var matchSpanStart, out var matchSpanEnd))
                         {
-                            if (!usedExpected[i])
-                            {
-                                addedCount++;
-                                builder.Add((null, (DiagnosticResult?)expectedResults[i]));
-                            }
+                            return 0.0;
                         }
 
-                        bestMatchCount = totalUnmatched;
-                        bestMatch = builder.ToImmutable();
-
-                        for (var i = 0; i < addedCount; i++)
+                        return (matchSpanStart, matchSpanEnd) switch
                         {
-                            builder.RemoveAt(builder.Count - 1);
-                        }
-                    }
+                            (true, true) => 1.0,
+                            (true, false) => 2.0,
+                            (false, true) => 2.0,
+                            (false, false) => 3.0,
+                        };
+                    },
+                    static (expected, actual) => expected.Id == actual.diagnostic.Id ? 0.0 : 1.0,
+                    static (expected, actual) => IsSeverityMatch(actual.diagnostic, expected) ? 0.0 : 1.0,
+                    static (expected, actual) => IsMessageMatch(actual.diagnostic, expected) ? 0.0 : 1.0),
+                MatchDiagnosticsTimeout);
 
-                    return totalUnmatched;
-                }
-
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
-
-                var currentBest = unmatchedActualResults + MatchQuality.RemainingUnmatched(remainingActualItems + remainingExpectedItems);
-                for (var i = firstExpectedIndex; i < expectedResults.Length; i++)
+            return result
+                .Select(result =>
                 {
-                    if (usedExpected[i])
-                    {
-                        continue;
-                    }
+                    (Project project, Diagnostic diagnostic)? actual = result.TryGetActual(out var maybeActual) ? maybeActual : null;
+                    DiagnosticResult? expected = result.TryGetExpected(out var maybeExpected) ? maybeExpected : null;
+                    return (actual, expected);
+                })
+                .ToImmutableArray();
 
-                    var (lineSpan, additionalLineSpans) = actualResultLocations[firstActualIndex];
-                    var matchValue = GetMatchValue(actualResults[firstActualIndex].diagnostic, actualIds[firstActualIndex], lineSpan, additionalLineSpans, actualArguments[firstActualIndex], expectedResults[i], expectedArguments[i]);
-                    if (matchValue == MatchQuality.None)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        usedExpected[i] = true;
-                        builder.Add((actualResults[firstActualIndex], expectedResults[i]));
-                        var bestResultWithCurrentMatch = RecursiveMatch(firstActualIndex + 1, remainingActualItems - 1, i == firstExpectedIndex ? firstExpectedIndex + 1 : firstExpectedIndex, remainingExpectedItems - 1, unmatchedActualResults + matchValue, usedExpected);
-                        currentBest = Min(bestResultWithCurrentMatch, currentBest);
-                        if (currentBest == bestPossible)
-                        {
-                            // Return immediately if we know the current actual result cannot be paired with a different
-                            // expected result to produce a better match.
-                            return bestPossible;
-                        }
-                    }
-                    finally
-                    {
-                        usedExpected[i] = false;
-                        builder.RemoveAt(builder.Count - 1);
-                    }
-                }
-
-                if (currentBest > unmatchedActualResults)
-                {
-                    // We might be able to improve the results by leaving the current actual diagnostic unmatched
-                    try
-                    {
-                        builder.Add((actualResults[firstActualIndex], null));
-                        var bestResultWithCurrentUnmatched = RecursiveMatch(firstActualIndex + 1, remainingActualItems - 1, firstExpectedIndex, remainingExpectedItems, unmatchedActualResults + MatchQuality.None, usedExpected);
-                        return Min(bestResultWithCurrentUnmatched, currentBest);
-                    }
-                    finally
-                    {
-                        builder.RemoveAt(builder.Count - 1);
-                    }
-                }
-
-                Debug.Assert(currentBest == unmatchedActualResults, $"Assertion failure: {currentBest} == {unmatchedActualResults}");
-                return currentBest;
-            }
-
-            static MatchQuality Min(MatchQuality val1, MatchQuality val2)
-                => val2 < val1 ? val2 : val1;
-
-            static MatchQuality GetMatchValue(Diagnostic diagnostic, string diagnosticId, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, ImmutableArray<string> actualArguments, DiagnosticResult diagnosticResult, ImmutableArray<string> expectedArguments)
+            static bool IsLocationMatch(Diagnostic diagnostic, DiagnosticResult diagnosticResult, out bool matchSpanStart, out bool matchSpanEnd)
             {
-                // A full match automatically gets the value MatchQuality.Full. A partial match gets a "point" for each
-                // of the following elements:
-                //
-                // 1. Diagnostic span start
-                // 2. Diagnostic span end
-                // 3. Diagnostic ID
-                //
-                // A partial match starts at MatchQuality.None, with a point deduction for each of the above matching
-                // items.
-                var isLocationMatch = IsLocationMatch(diagnostic, lineSpan, additionalLineSpans, diagnosticResult, out var matchSpanStart, out var matchSpanEnd);
-                var isIdMatch = diagnosticId == diagnosticResult.Id;
-                if (isLocationMatch
-                    && isIdMatch
-                    && IsSeverityMatch(diagnostic, diagnosticResult)
-                    && IsMessageMatch(diagnostic, actualArguments, diagnosticResult, expectedArguments))
-                {
-                    return MatchQuality.Full;
-                }
-
-                var points = (matchSpanStart ? 1 : 0) + (matchSpanEnd ? 1 : 0) + (isIdMatch ? 1 : 0);
-                if (points == 0)
-                {
-                    return MatchQuality.None;
-                }
-
-                return new MatchQuality(4 - points);
-            }
-
-            static bool IsLocationMatch(Diagnostic diagnostic, FileLinePositionSpan lineSpan, ImmutableArray<FileLinePositionSpan> additionalLineSpans, DiagnosticResult diagnosticResult, out bool matchSpanStart, out bool matchSpanEnd)
-            {
+                var lineSpan = diagnostic.Location.GetLineSpan();
+                var additionalLineSpans = diagnostic.AdditionalLocations.Select(location => location.GetLineSpan()).ToImmutableArray();
                 if (!diagnosticResult.HasLocation)
                 {
                     matchSpanStart = false;
@@ -687,12 +555,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 return actual.Severity == expected.Severity;
             }
 
-            static bool IsMessageMatch(Diagnostic actual, ImmutableArray<string> actualArguments, DiagnosticResult expected, ImmutableArray<string> expectedArguments)
+            static bool IsMessageMatch(Diagnostic actual, DiagnosticResult expected)
             {
                 if (expected.Message is null)
                 {
                     if (expected.MessageArguments?.Length > 0)
                     {
+                        var actualArguments = GetArguments(actual).Select(ToStringOrEmpty);
+                        var expectedArguments = expected.MessageArguments.Select(ToStringOrEmpty);
                         return actualArguments.SequenceEqual(expectedArguments);
                     }
 
@@ -701,6 +571,9 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 return string.Equals(expected.Message, actual.GetMessage());
             }
+
+            static string ToStringOrEmpty(object? argument)
+                => argument?.ToString() ?? string.Empty;
         }
 
         /// <summary>
