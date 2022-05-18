@@ -14836,7 +14836,6 @@ public class C
             var comp = CreateCompilation(source);
 
             CompileAndVerify(comp, expectedOutput: "M1 M2 M3 M4 M5 M6 M7 M8 M9 M10");
-            }
         }
 
         [Fact, WorkItem(43347, "https://github.com/dotnet/roslyn/issues/43347")]
