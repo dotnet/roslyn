@@ -58,6 +58,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+#if NETCOREAPP
+        [Theory]
+        [InlineData(2, "bc", 2, 'd')]
+        [InlineData(7, "bcdefgh", 7, -1)]
+        [InlineData(10, "bcdefgh\0\0\0", 7, -1)]
+        [InlineData(0, "", 0, 'b')]
+        public void ReadToSpan(int bufferLength, string expected, int expectedResult, int expectedPeek)
+        {
+            TestWithMethod(reader => reader.Read);
+            TestWithMethod(reader => reader.ReadBlock);
+
+            void TestWithMethod(Func<TextReader, ReadToSpanDelegate> readMethodAccessor)
+            {
+                using var _ = CreateReader("abcdefgh", out var reader);
+                var readMethod = readMethodAccessor(reader);
+
+                Assert.Equal('a', reader.Read());
+
+                var buffer = new char[bufferLength];
+                Assert.Equal(expectedResult, readMethod(buffer));
+                Assert.Equal(expected, new string(buffer));
+
+                Assert.Equal(expectedPeek, reader.Peek());
+            }
+        }
+#endif
+
         [Fact]
         public void ReadToArrayErrors()
         {
