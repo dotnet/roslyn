@@ -597,6 +597,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Type.CheckAllConstraints(DeclaringCompilation, new TypeConversions(this.ContainingAssembly.CorLibrary), ErrorLocation, DeclaringCompilation.AfterAccessorBindingDiagnostics);
             }
+
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
 
         internal void AfterAccessorBindingChecks()
