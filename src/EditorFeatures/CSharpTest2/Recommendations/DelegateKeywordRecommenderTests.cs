@@ -60,17 +60,17 @@ $$");
 @"global using Goo = d$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "delegate keyword is not a valid suggestion in type parameters context. Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUsingAliasTypeParameter()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"using Goo = T<$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact(Skip = "delegate keyword is not a valid suggestion in type parameters context. Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInGlobalUsingAliasTypeParameter()
         {
-            await VerifyKeywordAsync(
+            await VerifyAbsenceAsync(
 @"global using Goo = T<$$");
         }
 
@@ -446,12 +446,30 @@ class C
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_TypeDeclaration1()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T> where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInTypeParameterConstraint_TypeDeclaration2()
         {
             await VerifyAbsenceAsync(
 @"class C<T>
         where T : $$
+        where U : U");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_TypeDeclaration2()
+        {
+            await VerifyAbsenceAsync(
+@"class C<T>
+        where T : IList<$$
         where U : U");
         }
 
@@ -466,6 +484,16 @@ class C
         }
 
         [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_MethodDeclaration1()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    public void M<T>() where T : IList<$$");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInTypeParameterConstraint_MethodDeclaration2()
         {
@@ -474,6 +502,18 @@ class C
 {
     public void M<T>()
         where T : $$
+        where U : T");
+        }
+
+        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
+        [Fact(Skip = "Will be fixed later"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInTypeParameterConstraintEvenNotDirectlyInConstraintContext_MethodDeclaration2()
+        {
+            await VerifyAbsenceAsync(
+@"class C
+{
+    public void M<T>()
+        where T : IList<$$
         where U : T");
         }
     }
