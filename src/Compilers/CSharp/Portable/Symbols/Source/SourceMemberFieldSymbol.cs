@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = Type;
             if (type.Kind != SymbolKind.PointerType && !IsFixedSizeBuffer)
             {
-                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, DeclaringCompilation.AfterAccessorBindingDiagnostics);
+                Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
