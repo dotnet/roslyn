@@ -192,10 +192,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            ApplyChange_OnUIThread(formattedDocument, textBuffer, waitContext).ConfigureAwait(false);
+            ApplyChange_OnUIThread(formattedDocument, textBuffer, waitContext);
 
-            // start inline rename
-
+            // start inline rename to allow the user to change the name if they want.
             var textSnapshot = textBuffer.CurrentSnapshot;
             document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
