@@ -283,15 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
-        internal void LoadCustomAttributesFilterCompilerAttributes(EntityHandle token,
-            ref ImmutableArray<CSharpAttributeData> customAttributes,
-            out bool foundExtension,
-            out bool foundReadOnly)
-        {
-            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out foundExtension, out foundReadOnly);
-            ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
-        }
-
         internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes)
         {

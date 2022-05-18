@@ -952,14 +952,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                      ? _packedFlags.IsReadOnly
                      : IsValidReadOnlyTarget;
 
+                bool checkForRequiredMembers = this.ShouldCheckRequiredMembers() && this.ContainingType.HasAnyRequiredMembers;
+
                 bool isExtensionMethod = false;
                 bool isReadOnly = false;
-                if (checkForExtension || checkForIsReadOnly)
+                if (checkForExtension || checkForIsReadOnly || checkForRequiredMembers)
                 {
-                    containingPEModuleSymbol.LoadCustomAttributesFilterCompilerAttributes(_handle,
-                        ref attributeData,
-                        out isExtensionMethod,
-                        out isReadOnly);
+                    attributeData = containingPEModuleSymbol.GetCustomAttributesForToken(_handle,
+                        filteredOutAttribute1: out CustomAttributeHandle extensionAttribute,
+                        filterOut1: AttributeDescription.CaseSensitiveExtensionAttribute,
+                        filteredOutAttribute2: out CustomAttributeHandle isReadOnlyAttribute,
+                        filterOut2: AttributeDescription.IsReadOnlyAttribute,
+                        filteredOutAttribute3: out _,
+                        filterOut3: (checkForRequiredMembers && DeriveCompilerFeatureRequiredDiagnostic() is null) ? AttributeDescription.CompilerFeatureRequiredAttribute : default,
+                        filteredOutAttribute4: out _,
+                        filterOut4: (checkForRequiredMembers && ObsoleteAttributeData is null) ? AttributeDescription.ObsoleteAttribute : default,
+                        filteredOutAttribute5: out _,
+                        filterOut5: default);
+
+                    isExtensionMethod = !extensionAttribute.IsNil;
+                    isReadOnly = !isReadOnlyAttribute.IsNil;
                 }
                 else
                 {

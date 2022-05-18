@@ -33,7 +33,7 @@ Namespace System.Diagnostics.CodeAnalysis
 End Namespace";
 
     private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, IEnumerable<MetadataReference>? references = null, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null, TargetFramework targetFramework = TargetFramework.Standard)
-        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
+        => CreateCompilation(new[] { source, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute }, references, options: options, parseOptions: parseOptions, assemblyName: assemblyName, targetFramework: targetFramework);
 
     private Compilation CreateVisualBasicCompilationWithRequiredMembers(string source)
         => CreateVisualBasicCompilation(new[] { source, RequiredMemberAttributeVB });
@@ -89,18 +89,35 @@ End Namespace";
     {
         Assert.True(type.HasAnyRequiredMembers);
 
+        var peModule = module as PEModuleSymbol;
         foreach (var ctor in type.GetMembers().Where(m => m is MethodSymbol { MethodKind: MethodKind.Constructor }))
         {
             var ctorAttributes = ctor.GetAttributes();
-            if (ctorAttributes.Any(attr => attr.AttributeClass.ToTestDisplayString() == "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute"))
+
+            // Attributes should be filtered out when loaded from metadata, and are only added during emit in source
+            Assert.DoesNotContain(ctorAttributes, attr => attr.AttributeClass.ToTestDisplayString() is "System.ObsoleteAttribute" or "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute");
+
+            if (peModule is not null)
             {
-                Assert.DoesNotContain(ctorAttributes, attr => attr.AttributeClass.ToTestDisplayString() == "System.ObsoleteAttribute");
-            }
-            else if (module is not SourceModuleSymbol)
-            {
-                Assert.Contains(ctorAttributes, attr =>
-                    attr.AttributeConstructor.ToTestDisplayString() == "System.ObsoleteAttribute..ctor(System.String message, System.Boolean error)"
-                    && attr.ConstructorArguments.ToArray() is [{ ValueInternal: PEModule.RequiredMembersMarker }, { ValueInternal: true }]);
+                var peMethod = (PEMethodSymbol)ctor;
+                var decoder = new MetadataDecoder(peModule, peMethod);
+                var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peMethod.Handle, decoder, ignoreByRefLikeMarker: false, ignoreRequiredMemberMarker: false);
+                string? unsupportedCompilerFeatureToken = peModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(peMethod.Handle, decoder, CompilerFeatureRequiredFeatures.None);
+
+                if (ctorAttributes.Any(attr => attr.AttributeClass.ToTestDisplayString() == "System.Diagnostics.CodeAnalysis.SetsRequiredMembersAttribute"))
+                {
+                    Assert.Null(obsoleteAttribute);
+                    Assert.Null(unsupportedCompilerFeatureToken);
+                }
+                else
+                {
+                    Assert.NotNull(obsoleteAttribute);
+                    Assert.Equal(PEModule.RequiredMembersMarker, obsoleteAttribute.Message);
+                    Assert.True(obsoleteAttribute.IsError);
+
+                    Assert.Equal(nameof(CompilerFeatureRequiredFeatures.RequiredMembers), unsupportedCompilerFeatureToken);
+                    Assert.Null(peModule.Module.GetFirstUnsupportedCompilerFeatureFromToken(peMethod.Handle, decoder, CompilerFeatureRequiredFeatures.RequiredMembers));
+                }
             }
         }
     }
@@ -386,11 +403,13 @@ namespace N8
     [Fact]
     public void MissingRequiredMemberAttribute()
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 class C
 {
     public required int I { get; set; }
 }");
+
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute);
 
         // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMemberAttribute..ctor'
         // class C
@@ -402,25 +421,56 @@ class C
     [Fact]
     public void MissingRequiredMemberAttributeCtor()
     {
-        var comp = CreateCompilation(@"
+        var comp = CreateCompilationWithRequiredMembers(@"
 class C
 {
     public required int I { get; set; }
 }
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-    public class RequiredMemberAttribute : Attribute
-    {
-        public RequiredMemberAttribute(int i) {}
-    }
-}
 ");
+
+        comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor);
 
         // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RequiredMemberAttribute..ctor'
         // class C
         var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute", ".ctor").WithLocation(2, 7);
+        comp.VerifyDiagnostics(expected);
+        comp.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void MissingCompilerFeatureRequiredAttribute()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class C
+{
+    public required int I { get; set; }
+}");
+
+        comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute);
+
+        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+        // class C
+        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(2, 7);
+
+        comp.VerifyDiagnostics(expected);
+        comp.VerifyEmitDiagnostics(expected);
+    }
+
+    [Fact]
+    public void MissingCompilerFeatureRequiredAttributeCtor()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+class C
+{
+    public required int I { get; set; }
+}
+");
+
+        comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor);
+
+        // (2,7): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute..ctor'
+        // class C
+        var expected = Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute", ".ctor").WithLocation(2, 7);
         comp.VerifyDiagnostics(expected);
         comp.VerifyEmitDiagnostics(expected);
     }
@@ -3116,7 +3166,7 @@ public class RequiredMemberAttribute : Attribute
 }
 ";
 
-        var comp = CreateCompilation(code);
+        var comp = CreateCompilation(new[] { code, CompilerFeatureRequiredAttribute });
         comp.VerifyDiagnostics(
             // (4,2): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
             // [RequiredMember]
@@ -3140,7 +3190,7 @@ public class RequiredMemberAttribute : Attribute
 }
 ";
 
-        var comp = CreateCompilation(code);
+        var comp = CreateCompilation(new[] { code, CompilerFeatureRequiredAttribute });
         comp.VerifyDiagnostics(
             // (6,6): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
             //     [RequiredMember]
@@ -3183,7 +3233,7 @@ public class C
 }
 ";
 
-        var comp = CreateCompilation(new[] { code, RequiredMemberAttribute });
+        var comp = CreateCompilation(new[] { code, RequiredMemberAttribute, CompilerFeatureRequiredAttribute });
         comp.VerifyDiagnostics();
     }
 
