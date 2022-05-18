@@ -5080,6 +5080,35 @@ switch (new int[0])
         [Theory]
         [CombinatorialData]
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
+        public async Task TestListPattern2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"
+_ = x switch
+{
+    [var start, .. var end] => 1
+}",
+            testHost,
+            Identifier("_"),
+            Operators.Equals,
+            Identifier("x"),
+            ControlKeyword("switch"),
+            Punctuation.OpenCurly,
+            Punctuation.OpenBracket,
+            Keyword("var"),
+            Identifier("start"),
+            Punctuation.Comma,
+            Punctuation.DotDot,
+            Keyword("var"),
+            Identifier("end"),
+            Punctuation.CloseBracket,
+            Operators.EqualsGreaterThan,
+            Number("1"),
+            Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
         public async Task TestVarPattern(TestHost testHost)
         {
             await TestInMethodAsync(@"
