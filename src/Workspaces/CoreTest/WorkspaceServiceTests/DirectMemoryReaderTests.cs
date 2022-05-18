@@ -9,10 +9,15 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
+// Note: Keep the namespace and class name shorter (skipping WorkspaceServiceTests namespace and using DirectMemoryReaderTests
+// as opposed to DirectMemoryAccessStreamReaderTests). When we use the full names, CI fails due to a failure to upload test
+// results, which seems to be caused by the fully qualified test name being too long. In this case, some tests have a lot of
+// parameters, causing their full name to be quite long in combination with the longer namespace and class name.
+// The issue is tracked here: https://github.com/dotnet/arcade/issues/9389
+namespace Microsoft.CodeAnalysis.UnitTests
 {
     [Trait(Traits.Feature, Traits.Features.Workspace)]
-    public sealed class DirectMemoryAccessStreamReaderTests
+    public sealed class DirectMemoryReaderTests
     {
         [Fact]
         public void PeakRead()
