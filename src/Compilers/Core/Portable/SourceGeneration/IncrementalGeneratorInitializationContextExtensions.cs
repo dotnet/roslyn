@@ -11,15 +11,17 @@ using Roslyn.Utilities;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis;
+
+using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
 internal static partial class IncrementalGeneratorInitializationContextExtensions
 {
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
         SymbolDisplayFormat.QualifiedNameArityFormat.AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
-
 
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
@@ -54,10 +56,20 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        var simpleTypeName = metadataName.UnmangledTypeName;
+        // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
+        // if the compilation options stayed the same, but the compilation changed.
+        var compilationGlobalAliases = context.CompilationProvider.Select(
+            (c, _) =>
+            {
+                var aliases = Aliases.GetInstance();
+                context.SyntaxHelper.AddAliases(c.Options, aliases);
+                return GlobalAliases.Create(aliases.ToImmutableAndFree());
+            }).WithTrackingName("compilationGlobalAliases_ForAttributeWithMetadataName");
+
         var nodesWithAttributesMatchingSimpleName = context.SyntaxProvider.CreateSyntaxProviderForAttribute<T>(
-            simpleTypeName,
-            context.SyntaxHelper);
+            metadataName.UnmangledTypeName,
+            context.SyntaxHelper,
+            compilationGlobalAliases);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()

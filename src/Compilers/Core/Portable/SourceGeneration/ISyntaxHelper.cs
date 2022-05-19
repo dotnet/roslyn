@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         /// <paramref name="node"/> must be a compilation unit or namespace block.
         /// </summary>
         void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
     }
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
@@ -50,5 +51,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode attributeList);
 
         public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+        public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
     }
 }

@@ -42,7 +42,8 @@ internal static partial class SyntaxValueProviderExtensions
     internal static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(
         this SyntaxValueProvider provider,
         string simpleName,
-        ISyntaxHelper syntaxHelper)
+        ISyntaxHelper syntaxHelper,
+        IncrementalValueProvider<GlobalAliases>? compilationGlobalAliases)
         where T : SyntaxNode
     {
         if (!syntaxHelper.IsValidIdentifier(simpleName))
@@ -62,6 +63,14 @@ internal static partial class SyntaxValueProviderExtensions
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
             .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
+
+        if (compilationGlobalAliases != null)
+        {
+            allUpGlobalAliasesProvider = allUpGlobalAliasesProvider
+                .Combine(compilationGlobalAliases.Value)
+                .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
+                .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
+        }
 
         // Create a syntax provider for every compilation unit.
         var compilationUnitProvider = provider.CreateSyntaxProvider(
@@ -91,26 +100,9 @@ internal static partial class SyntaxValueProviderExtensions
         var globalAliases = Aliases.GetInstance();
 
         syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
-        //foreach (var usingDirective in compilationUnit.Usings)
-        //{
-        //    if (usingDirective.GlobalKeyword == default)
-        //        continue;
-
-        //    AddAlias(usingDirective, globalAliases);
-        //}
 
         return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
     }
-
-    //private static void AddAlias(UsingDirectiveSyntax usingDirective, Aliases aliases)
-    //{
-    //    if (usingDirective.Alias == null)
-    //        return;
-
-    //    var aliasName = usingDirective.Alias.Name.Identifier.ValueText;
-    //    var symbolName = usingDirective.Name.GetUnqualifiedName().Identifier.ValueText;
-    //    aliases.Add((aliasName, symbolName));
-    //}
 
     private static ImmutableArray<T> GetMatchingNodes<T>(
         ISyntaxHelper syntaxHelper,
@@ -147,15 +139,6 @@ internal static partial class SyntaxValueProviderExtensions
         }
 
         return results.ToImmutableAndFree();
-
-        void recurseChildren(SyntaxNode node)
-        {
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    recurse(child.AsNode()!);
-            }
-        }
 
         void recurse(SyntaxNode node)
         {
@@ -204,6 +187,17 @@ internal static partial class SyntaxValueProviderExtensions
                 // terminate the search anywhere as attributes may be found on things like local functions, and that
                 // means having to dive deep into statements and expressions.
                 recurseChildren(node);
+            }
+
+            return;
+
+            void recurseChildren(SyntaxNode node)
+            {
+                foreach (var child in node.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                        recurse(child.AsNode()!);
+                }
             }
         }
 

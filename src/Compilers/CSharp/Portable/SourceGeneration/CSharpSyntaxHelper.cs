@@ -74,5 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 aliases.Add((aliasName, symbolName));
             }
         }
+
+        public override void AddAliases(CompilationOptions compilation, ArrayBuilder<(string aliasName, string symbolName)> aliases)
+        {
+            // C# doesn't have global aliases at the compilation level.
+            return;
+        }
     }
 }
