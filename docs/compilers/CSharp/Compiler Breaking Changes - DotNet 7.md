@@ -18,6 +18,11 @@ IntPtr M(IntPtr x, int y)
         return x + y; // may now throw
     }
 }
+
+IntPtr M2(ulong ul)
+{
+    return checked((IntPtr)ul); // may now throw
+}
 ```
 
 Possible workarounds are:

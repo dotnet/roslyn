@@ -10175,6 +10175,33 @@ public class C
         }
 
         [Fact]
+        public void OverflowPointerConversion()
+        {
+            string source = """
+using System;
+ulong ul = ulong.MaxValue;
+
+try
+{
+    IntPtr i = checked((IntPtr)ul);
+}
+catch (System.OverflowException)
+{
+    Console.Write("RAN ");
+}
+
+IntPtr j = unchecked((IntPtr)ul);
+if (j == -1)
+{
+    Console.Write("RAN");
+}
+""";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN RAN");
+        }
+
+        [Fact]
         public void VariousMembersToDecodeOnRuntimeFeatureType()
         {
             var corlib_cs = @"
