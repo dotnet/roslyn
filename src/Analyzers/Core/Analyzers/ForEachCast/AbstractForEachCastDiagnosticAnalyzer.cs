@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ForEachCast
             if (context.Node is not TForEachStatementSyntax node)
                 return;
 
-            var option = context.GetOption(CodeStyleOptions2.ForEachExplicitCastInSource, semanticModel.Language);
+            var option = context.GetAnalyzerOptions().ForEachExplicitCastInSource;
             Contract.ThrowIfFalse(option.Value is ForEachExplicitCastInSourcePreference.Always or ForEachExplicitCastInSourcePreference.WhenStronglyTyped);
 
             if (semanticModel.GetOperation(node, cancellationToken) is not IForEachLoopOperation loopOperation)

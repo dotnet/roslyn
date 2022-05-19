@@ -31,7 +31,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\AbstractFormattingAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormatterHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\AnalyzerOptionsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DeserializationConstructorCheck.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DiagnosticHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EnforceOnBuildValues.cs" />
@@ -85,7 +84,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\AbstractUseConditionalExpressionForReturnDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\ForReturn\UseConditionalExpressionForReturnHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionHelpers.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\UseConditionalExpressionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseInferredMemberName\AbstractUseInferredMemberNameDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\AbstractUseIsNullForReferenceEqualsDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullConstants.cs" />

@@ -12,12 +12,19 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
     internal interface IRemoteInheritanceMarginService
     {
-        ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
+        ValueTask<ImmutableArray<InheritanceMarginItem>> GetGlobalImportItemsAsync(
+            Checksum solutionChecksum,
+            DocumentId documentId,
+            TextSpan spanToSearch,
+            bool frozenPartialSemantics,
+            CancellationToken cancellationToken);
+
+        ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
-            DocumentId? documentIdForGlobalImports,
-            TextSpan spanToSearch,
+            DocumentId? documentId,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken);
     }
 }

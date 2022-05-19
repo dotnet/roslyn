@@ -15,23 +15,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     [Export(typeof(ILanguageServerFactory)), Shared]
     internal class CSharpVisualBasicLanguageServerFactory : ILanguageServerFactory
     {
-        private readonly RequestDispatcherFactory _dispatcherFactory;
-        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly AbstractLspServiceProvider _lspServiceProvider;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVisualBasicLanguageServerFactory(
-            RequestDispatcherFactory dispatcherFactory,
-            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptions)
+            CSharpVisualBasicLspServiceProvider lspServiceProvider,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _dispatcherFactory = dispatcherFactory;
-            _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
+            _lspServiceProvider = lspServiceProvider;
             _listenerProvider = listenerProvider;
-            _globalOptions = globalOptions;
         }
 
         public ILanguageServerTarget Create(
@@ -39,15 +33,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             ICapabilitiesProvider capabilitiesProvider,
             ILspLogger logger)
         {
-            var lspMiscellaneousFilesWorkspace = new LspMiscellaneousFilesWorkspace(logger);
-
             return new LanguageServerTarget(
-                _dispatcherFactory,
-                jsonRpc,
+                _lspServiceProvider, jsonRpc,
                 capabilitiesProvider,
-                _lspWorkspaceRegistrationService,
-                lspMiscellaneousFilesWorkspace,
-                _globalOptions,
                 _listenerProvider,
                 logger,
                 ProtocolConstants.RoslynLspLanguages,

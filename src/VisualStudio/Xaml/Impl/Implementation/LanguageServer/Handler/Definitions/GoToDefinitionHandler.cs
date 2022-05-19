@@ -27,9 +27,9 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Definitions
 {
-    [ExportXamlLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(GoToDefinitionHandler)), Shared]
     [Method(Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, LSP.Location[]>
+    internal class GoToDefinitionHandler : IRequestHandler<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
@@ -42,13 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
+        public bool MutatesSolutionState => false;
 
-        public override bool RequiresLSPSolution => true;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.Location[]> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var locations = new ConcurrentBag<LSP.Location>();
 

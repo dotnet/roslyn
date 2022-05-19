@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected const int DocumentDiagnosticIdentifier = 2;
 
         private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+        private readonly IGlobalOptionService _globalOptions;
 
         protected readonly IDiagnosticService DiagnosticService;
 
@@ -63,10 +64,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IGlobalOptionService globalOptions)
         {
             DiagnosticService = diagnosticService;
             _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+            _globalOptions = globalOptions;
             _versionedCache = new(this.GetType().Name);
         }
 
@@ -200,7 +203,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 
-            var diagnosticMode = context.GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
+            var diagnosticMode = _globalOptions.GetDiagnosticMode(diagnosticModeOption);
             var isPull = diagnosticMode == DiagnosticMode.Pull;
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
