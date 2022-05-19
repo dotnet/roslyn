@@ -7136,4 +7136,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsupportedCompilerFeature" xml:space="preserve">
     <value>'{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.</value>
   </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired" xml:space="preserve">
+    <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
+  <data name="WRN_ObsoleteMembersShouldNotBeRequired_Title" xml:space="preserve">
+    <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
+  </data>
 </root>

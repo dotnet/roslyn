@@ -1273,7 +1273,6 @@ class C
             // (6,25): error CS9505: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(6, 25),
-            // PROTOTYPE(req): Better error message?
             // (7,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
             //     public required int Prop2 { get; protected set; }
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(7, 25)
@@ -1281,22 +1280,131 @@ class C
     }
 
     [Fact]
-    public void ObsoleteMember()
+    public void ObsoleteMember_NoObsoleteContext()
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-using System;
-#pragma warning disable CS0649 // Unassigned field
-class C
-{
-    [Obsolete]
-    public required int Field;
-    [Obsolete]
-    public required int Prop1 { get; set; }
-}
-");
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            #pragma warning disable CS0649 // Unassigned field
+            class C
+            {
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+            """);
 
-        // PROTOTYPE(req): Confirm with LDM whether we want a warning here.
+        comp.VerifyDiagnostics(
+            // (6,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithLocation(6, 25),
+            // (8,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Prop1 { get; set; }
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithLocation(8, 25)
+        );
+    }
+
+    [Fact]
+    public void ObsoleteMember_NoObsoleteContext_Struct()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            #pragma warning disable CS0649 // Unassigned field
+            struct S
+            {
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (6,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithLocation(6, 25),
+            // (8,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Prop1 { get; set; }
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithLocation(8, 25)
+        );
+    }
+
+    [Fact]
+    public void ObsoleteMember_ObsoleteContext()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            #pragma warning disable CS0649 // Unassigned field
+            [Obsolete]
+            class C
+            {
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+            """);
+
         comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ObsoleteMember_ObsoleteOrSetsRequiredMembersConstructors_01()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            #pragma warning disable CS0649 // Unassigned field
+            class C
+            {
+                [Obsolete]
+                public C() { }
+                [SetsRequiredMembers]
+                public C(int i) { }
+
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+
+            """);
+
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ObsoleteMember_ObsoleteOrSetsRequiredMembersConstructors_02()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            #pragma warning disable CS0649 // Unassigned field
+            class C
+            {
+                [Obsolete]
+                public C() { }
+                [SetsRequiredMembers]
+                public C(int i) { }
+
+                public C(bool b) { }
+
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+
+            """);
+
+        comp.VerifyDiagnostics(
+            // (14,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithLocation(14, 25),
+            // (16,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Prop1 { get; set; }
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithLocation(16, 25)
+        );
     }
 
     [Fact]

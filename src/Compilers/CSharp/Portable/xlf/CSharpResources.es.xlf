@@ -1817,6 +1817,16 @@
         <target state="translated">El tipo que acepta valores NULL está activado con valor NULL y se iniciará si es null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
+        <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
+        <target state="new">Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired_Title">
+        <source>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</source>
+        <target state="new">Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">El parámetro "{0}" debe tener un valor que no sea NULL al salir porque el parámetro "{1}" no es NULL.</target>

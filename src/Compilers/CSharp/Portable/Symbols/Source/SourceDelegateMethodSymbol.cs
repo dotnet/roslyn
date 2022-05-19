@@ -244,6 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            protected override bool HasSetsRequiredMembersImpl => false;
         }
 
         private sealed class InvokeMethod : SourceDelegateMethodSymbol
@@ -450,5 +452,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return true;
         }
+
     }
 }
