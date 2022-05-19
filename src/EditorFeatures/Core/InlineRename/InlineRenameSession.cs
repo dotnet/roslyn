@@ -549,13 +549,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var replacementText = this.ReplacementText;
             var options = _options;
-
             var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
+
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
             _conflictResolutionTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                // Await prior work before proceeding, since it performs a required state update.
+                // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
                 //
                 // If cancellation of the conflict resolution task is requested before the rename locations task
