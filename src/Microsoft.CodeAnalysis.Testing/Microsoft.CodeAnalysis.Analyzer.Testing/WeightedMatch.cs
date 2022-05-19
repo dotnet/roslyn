@@ -44,33 +44,15 @@ namespace Microsoft.CodeAnalysis.Testing
             ImmutableArray<Func<TExpected, TActual, bool, double>> matchers,
             TimeSpan matchTimeout)
         {
-            // Initialize the algorithm with an initial "best guess" that evaluates the distance for the items in
-            // expected and actual matched in the order they appear, with any remaining items from the longer array
-            // added at the end. After this point, a new best guess will only be assigned if its distance is strictly
-            // less than the prior best guess.
-            var resultBuilder = ImmutableArray.CreateBuilder<Result<TExpected, TActual>>(Math.Max(expected.Length, actual.Length));
-            var commonCount = Math.Min(expected.Length, actual.Length);
-            for (var i = 0; i < commonCount; i++)
-            {
-                var distance = Evaluate(expected[i], actual[i], exactOnly: false, matchers);
-                resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: true, expected[i], hasActual: true, actual[i], distance));
-            }
-
-            for (var i = commonCount; i < expected.Length; i++)
-            {
-                resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: true, expected[i], hasActual: false, actual: default, distance: 0));
-            }
-
-            for (var i = commonCount; i < actual.Length; i++)
-            {
-                resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: false, expected: default, hasActual: true, actual[i], distance: 0));
-            }
-
-            var initialResult = resultBuilder.MoveToImmutable();
-
-            // Storage for results
-            var bestResult = initialResult;
-            var bestDistance = bestResult.Sum(result => result.Distance);
+            /*
+             * Storage for results.
+             *
+             * The bestDistance is set to 1.0 for the exact match phase. This phase only looks for matches with a
+             * distance of 0, and any match with this distance will necessarily be less than the initial value and cause
+             * bestResult to be populated.
+             */
+            var bestResult = ImmutableArray<Result<TExpected, TActual>>.Empty;
+            var bestDistance = 1.0;
 
             /*
              * Storage for temporary data.
@@ -80,21 +62,20 @@ namespace Microsoft.CodeAnalysis.Testing
             var usedActual = new bool[actual.Length];
 
             // The distance cache records the distance evaluation. Values less than 0 mean the distance has not been
-            // computed. Initially, all values are -1 except for the items calculated as part of the initial best guess
-            // above.
+            // computed (initially, all values are -1).
             var distanceCache = new double[expected.Length * actual.Length];
             for (var i = 0; i < distanceCache.Length; i++)
             {
                 distanceCache[i] = -1.0;
             }
 
-            for (var i = 0; i < commonCount; i++)
-            {
-                distanceCache[(i * actual.Length) + i] = initialResult[i].Distance;
-            }
+            /*
+             * Exact match phase.
+             */
 
             // Attempt to find an exact match. This portion is run without a timeout to ensure that an exact match will
             // be found if it exists.
+            var resultBuilder = ImmutableArray.CreateBuilder<Result<TExpected, TActual>>(Math.Max(expected.Length, actual.Length));
             MatchRecursive(
                 expected,
                 actual,
@@ -114,21 +95,52 @@ namespace Microsoft.CodeAnalysis.Testing
                 return bestResult;
             }
 
-            // Attempt to find a better but non-exact match within a time limit. Make sure to reset the distance cache
-            // for any non-zero distances, since the exact match function may have only calculated a portion of the
-            // distance.
+            /*
+             * Inexact ("best") match phase.
+             *
+             * This is a time-boxed depth-first search, with the path walk bounded to not exceed the least known
+             * distance found so far.
+             */
+
+            // Make sure to reset the distance cache, since the matching functions are allowed to use different
+            // calculation strategies when exactOnly is true.
             for (var i = 0; i < distanceCache.Length; i++)
             {
-                if (distanceCache[i] != 0.0)
+                if (distanceCache[i] == 0.0)
                 {
-                    distanceCache[i] = -1.0;
+                    // This slot was identified as an exact match during the previous phase, so the distance of 0.0 is
+                    // trusted and does not need be computed again.
+                    continue;
                 }
+
+                distanceCache[i] = -1.0;
             }
 
+            // Initialize the inexact match algorithm with an initial "best guess" that evaluates the distance for the
+            // items in expected and actual matched in the order they appear, with any remaining items from the longer
+            // array added at the end. After this point, a new best guess will only be assigned if its distance is
+            // strictly less than the prior best guess.
+            resultBuilder = ImmutableArray.CreateBuilder<Result<TExpected, TActual>>(Math.Max(expected.Length, actual.Length));
+            var commonCount = Math.Min(expected.Length, actual.Length);
             for (var i = 0; i < commonCount; i++)
             {
-                distanceCache[(i * actual.Length) + i] = initialResult[i].Distance;
+                var distance = Evaluate(expected[i], actual[i], exactOnly: false, matchers);
+                distanceCache[(i * actual.Length) + i] = distance;
+                resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: true, expected[i], hasActual: true, actual[i], distance));
             }
+
+            for (var i = commonCount; i < expected.Length; i++)
+            {
+                resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: true, expected[i], hasActual: false, actual: default, distance: 0));
+            }
+
+            for (var i = commonCount; i < actual.Length; i++)
+            {
+                resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: false, expected: default, hasActual: true, actual[i], distance: 0));
+            }
+
+            bestResult = resultBuilder.MoveToImmutable();
+            bestDistance = bestResult.Sum(result => result.Distance);
 
             using var cancellationTokenSource = new CancellationTokenSource(matchTimeout);
             MatchRecursive(
@@ -198,6 +210,7 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 if (usedActual[i])
                 {
+                    // The actual item in this slot has already been assigned to a different expected item on this path
                     continue;
                 }
 
@@ -252,6 +265,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (remainingUnmatched > 0 && expected.Length > actual.Length)
             {
+                // We have more expected items remaining than actual items remaining. Attempt to complete a match with
+                // the current expected item not assigned to any actual item.
                 try
                 {
                     resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: true, expected[nextExpected], hasActual: false, actual: default, distance: 0));
