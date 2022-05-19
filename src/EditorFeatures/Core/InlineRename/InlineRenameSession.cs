@@ -358,7 +358,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
                 await _allRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
-
                 await TaskScheduler.Default;
 
                 return await _renameInfo.FindRenameLocationsAsync(_options, cancellationToken).ConfigureAwait(false);
