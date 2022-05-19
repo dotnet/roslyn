@@ -550,7 +550,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var replacementText = this.ReplacementText;
             var options = _options;
             var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
-
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
 
             _conflictResolutionTask = _threadingContext.JoinableTaskFactory.RunAsync(async () =>
@@ -701,9 +700,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             var indicatorFactory = _workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
 
+            // We do not cancel on edit because as part of the rename system we have asynchronous work still occurring
+            // that itself may be asynchronously editing the buffer (for example, updating reference locations with the
+            // final renamed text).  Ideally though, once we start comitting, we would cancel any of that work and then
+            // only have the work of rolling back to the original state of the world and applying the desired edits
+            // ourselves.
             using var context = indicatorFactory.Create(
                 _triggerView, _triggerSpan, EditorFeaturesResources.Computing_Rename_information,
-                cancelOnEdit: true, cancelOnFocusLost: false);
+                cancelOnEdit: false, cancelOnFocusLost: false);
 
             using var asyncToken = _asyncListener.BeginAsyncOperation(nameof(CommitWorkerAsync));
 
@@ -722,8 +726,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (this.ReplacementText == string.Empty ||
                 this.ReplacementText == _initialRenameText)
             {
-                // We're about to rollback.  Make sure that the rollback doesn't trigger our own cancellation.
-                context.CancelOnEdit = false;
                 await CancelAsync(rollbackTemporaryEdits: true, cancellationToken).ConfigureAwait(false);
                 return false;
             }
@@ -801,9 +803,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // The user hasn't cancelled by now, so we're done waiting for them. Off to
                 // rename!
                 using var _ = workContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
-
-                // we're about to make changes ourselves.  makes sure that the edits we make don't cause us to cancel ourselves.
-                workContext.CancelOnEdit = false;
 
                 await DismissAsync(rollbackTemporaryEdits: true, cancellationToken).ConfigureAwait(false);
                 CancelAllOpenDocumentTrackingTasks();
