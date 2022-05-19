@@ -568,7 +568,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     default:
                         break;
                 }
-
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
