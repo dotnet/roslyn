@@ -31,4 +31,24 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         /// </summary>
         void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
     }
+
+    internal abstract class AbstractSyntaxHelper : ISyntaxHelper
+    {
+        public abstract bool IsCaseSensitive { get; }
+
+        public abstract bool IsValidIdentifier(string name);
+
+        public abstract SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode name);
+
+        public abstract bool IsCompilationUnit(SyntaxNode node);
+        public abstract bool IsAnyNamespaceBlock(SyntaxNode node);
+
+        public abstract bool IsAttribute(SyntaxNode node);
+        public abstract SyntaxNode GetNameOfAttribute(SyntaxNode attribute);
+
+        public abstract bool IsAttributeList(SyntaxNode node);
+        public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode attributeList);
+
+        public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
+    }
 }

@@ -8,6 +8,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Linq;
 using System.ComponentModel;
+using Microsoft.CodeAnalysis.SourceGeneration;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -74,5 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override CommonMessageProvider MessageProvider => CSharp.MessageProvider.Instance;
 
         internal override string SourceExtension => ".cs";
+
+        internal override ISyntaxHelper SyntaxHelper => CSharpSyntaxHelper.Instance;
     }
 }
