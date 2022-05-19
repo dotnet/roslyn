@@ -453,8 +453,8 @@ namespace Microsoft.CodeAnalysis.Testing
             var result = WeightedMatch.Match(
                 expectedResults.ToImmutableArray(),
                 actualResults.ToImmutableArray(),
-                ImmutableArray.Create<Func<DiagnosticResult, (Project project, Diagnostic diagnostic), double>>(
-                    static (expected, actual) =>
+                ImmutableArray.Create<Func<DiagnosticResult, (Project project, Diagnostic diagnostic), bool, double>>(
+                    static (expected, actual, exactOnly) =>
                     {
                         if (IsLocationMatch(actual.diagnostic, expected, out var matchSpanStart, out var matchSpanEnd))
                         {
@@ -469,9 +469,9 @@ namespace Microsoft.CodeAnalysis.Testing
                             (false, false) => 3.0,
                         };
                     },
-                    static (expected, actual) => expected.Id == actual.diagnostic.Id ? 0.0 : 1.0,
-                    static (expected, actual) => IsSeverityMatch(actual.diagnostic, expected) ? 0.0 : 1.0,
-                    static (expected, actual) => IsMessageMatch(actual.diagnostic, expected) ? 0.0 : 1.0),
+                    static (expected, actual, exactOnly) => expected.Id == actual.diagnostic.Id ? 0.0 : 1.0,
+                    static (expected, actual, exactOnly) => IsSeverityMatch(actual.diagnostic, expected) ? 0.0 : 1.0,
+                    static (expected, actual, exactOnly) => IsMessageMatch(actual.diagnostic, expected) ? 0.0 : 1.0),
                 MatchDiagnosticsTimeout);
 
             return result

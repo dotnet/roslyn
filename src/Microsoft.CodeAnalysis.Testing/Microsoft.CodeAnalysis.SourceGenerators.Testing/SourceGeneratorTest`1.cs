@@ -136,12 +136,18 @@ namespace Microsoft.CodeAnalysis.Testing
                     matches = WeightedMatch.Match(
                         expectedDocuments,
                         actualDocuments,
-                        ImmutableArray.Create<Func<(string filename, SourceText content), (Document document, SourceText content), double>>(
-                            static (expected, actual) =>
+                        ImmutableArray.Create<Func<(string filename, SourceText content), (Document document, SourceText content), bool, double>>(
+                            static (expected, actual, exactOnly) =>
                             {
                                 if (actual.content.ToString() == expected.content.ToString())
                                 {
                                     return 0.0;
+                                }
+
+                                if (exactOnly)
+                                {
+                                    // Avoid expensive diff calculation when exact match was requested.
+                                    return 1.0;
                                 }
 
                                 var diffBuilder = new InlineDiffBuilder(new Differ());
@@ -160,15 +166,15 @@ namespace Microsoft.CodeAnalysis.Testing
 
                                 return priority * changeCount / (double)diff.Lines.Count;
                             },
-                            static (expected, actual) =>
+                            static (expected, actual, exactOnly) =>
                             {
                                 return actual.content.Encoding == expected.content.Encoding ? 0.0 : 1.0;
                             },
-                            static (expected, actual) =>
+                            static (expected, actual, exactOnly) =>
                             {
                                 return actual.content.ChecksumAlgorithm == expected.content.ChecksumAlgorithm ? 0.0 : 1.0;
                             },
-                            (expected, actual) =>
+                            (expected, actual, exactOnly) =>
                             {
                                 var distance = 0.0;
                                 var (fileName, folders) = getNameAndFolders(defaultFilePathPrefix, expected.filename);
@@ -192,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     matches = WeightedMatch.Match(
                         expectedDocuments,
                         actualDocuments,
-                        ImmutableArray<Func<(string filename, SourceText content), (Document document, SourceText content), double>>.Empty,
+                        ImmutableArray<Func<(string filename, SourceText content), (Document document, SourceText content), bool, double>>.Empty,
                         matchTimeout);
                 }
 
