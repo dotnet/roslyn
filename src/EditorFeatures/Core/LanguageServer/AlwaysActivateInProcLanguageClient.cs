@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
-                        TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                        TokenTypes = SemanticTokensHelpers.AllTokenTypes.ToArray(),
                         TokenModifiers = new string[] { SemanticTokenModifiers.Static }
                     }
                 };
