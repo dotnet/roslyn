@@ -2,7 +2,7 @@
 
 ## Checked operators on System.IntPtr and System.UIntPtr
 
-***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100 preview 5, Visual Studio 2022 version 17.3.***
 
 When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
 `System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`) the built-in operators from `nint`
@@ -30,7 +30,7 @@ conversions on such platforms. This can affect overload resolution in some cases
 
 ## Nameof operator in attribute on method or local function
 
-***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100 preview 4, Visual Studio 2022 version 17.3.***
 
 When the language version is C# 11 or later, a `nameof` operator in an attribute on a method
 brings the type parameters of that method in scope. The same applies for local functions.  
