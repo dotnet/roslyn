@@ -54,6 +54,22 @@ Tests can be run and debugged from the Test Explorer window. For best performanc
 2. Use the Search box of Test Explorer to narrow the scope of visible tests to the feature(s) you are working on
 3. When you are not actively running tests, set the search query to `__NonExistent__` to hide all tests from the UI
 
+#### Testing in Linux using WSL
+
+Tests can be run and debugged under WSL. This requires a bit of setup the first time. After that, it is as easy as selecting WSL as the active environment in Test Explorer.
+
+1. Install WSL by running `wsl --install` ([details](https://docs.microsoft.com/en-us/windows/wsl/setup/environment#get-started))
+2. In the VS installer, install ".NET Debugging with WSL" as an individual component
+3. In Test Explorer, go into "Configure Remote Test Environments" (under the gear icon) and uncomment the wsl/Ubuntu environment:
+![image](https://user-images.githubusercontent.com/12466233/169365278-485573de-0b14-466e-a96d-b1de5e67e891.png)
+![image](https://user-images.githubusercontent.com/12466233/169365165-a2bfc6bc-96ba-45fa-8705-eb8e7997df62.png)
+4. Select that test environment from Test Explorer drop-down:
+![image](https://user-images.githubusercontent.com/12466233/169365451-681fcbb2-0b21-46f6-bc30-de58ce01bfdc.png)
+5. Run a test from Test Explorer test list. This will prompt you to install some dotnet bits into the WSL environment the first time.
+6. Debug a test. This will prompt you to install some remote debugging bits into the WSL environment the first time.
+
+[More details](https://docs.microsoft.com/en-us/visualstudio/debugger/debug-dotnet-core-in-wsl-2)
+
 ### WPF Test Runner
 
 To debug through tests, you can right click the test project that contains your
