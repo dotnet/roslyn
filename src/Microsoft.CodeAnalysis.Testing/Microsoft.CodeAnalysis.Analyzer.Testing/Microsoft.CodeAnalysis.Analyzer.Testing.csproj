@@ -39,6 +39,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeFix.Testing" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeRefactoring.Testing" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.SourceGenerators.Testing" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.MSTest" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.NUnit" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Testing.Verifiers.XUnit" />
@@ -51,6 +52,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="1.0.1" />
     <PackageReference Include="Microsoft.VisualBasic" Version="10.0.1" />
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="16.1.8" />
+    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
 
     <!-- Use PrivateAssets=compile to avoid exposing our NuGet dependencies downstream as public API. -->
