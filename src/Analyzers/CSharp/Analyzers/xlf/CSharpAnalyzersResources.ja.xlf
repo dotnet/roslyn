@@ -307,11 +307,6 @@
         <target state="translated">'new(...)' を使用する</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Use_parameter_null_checking">
-        <source>Use parameter null checking</source>
-        <target state="translated">パラメーターの null チェックを使用する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">パターン マッチングを使用します</target>

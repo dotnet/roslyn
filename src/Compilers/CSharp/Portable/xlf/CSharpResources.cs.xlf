@@ -367,11 +367,6 @@
         <target state="translated">Proměnná se nedá deklarovat ve vzoru not nebo or.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DiscardCannotBeNullChecked">
-        <source>Discard parameter cannot be null-checked.</source>
-        <target state="translated">U parametru discard není možné provést kontrolu hodnoty null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Tento vzor discard není povolený jako návěstí příkazu case v příkazu switch. Použijte „case var _:“ pro vzor discard nebo „case @_:“ pro konstantu s názvem „_“.</target>
@@ -902,11 +897,6 @@
         <target state="translated">Seznam parametrů může mít jenom částečná deklarace jednoho záznamu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MustNullCheckInImplementation">
-        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="translated">Parametr {0} může mít v implementačních metodách pouze kontrolu hodnot null vykřičníku.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Omezení new() nejde používat s omezením unmanaged.</target>
@@ -957,11 +947,6 @@
         <target state="translated">Nepovedlo se určit výstupní adresář.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
-        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="translated">Parametr '{0}' je typ hodnoty, která nemůže mít hodnotu null, a nemůže mít zaškrtnutou hodnotu null.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">Člen záznamu {0} musí být privátní.</target>
@@ -1000,11 +985,6 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">{0} musí povolovat přepisování, protože obsahující záznam není zapečetěný.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnOutParameter">
-        <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">U parametru out {0} není možné provést kontrolu hodnoty null.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1060,6 +1040,11 @@
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
         <target state="translated">Metoda {0} určuje omezení struct pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není typ, který nemůže mít hodnotu null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
+        <source>The 'parameter null-checking' feature is not supported.</source>
+        <target state="new">The 'parameter null-checking' feature is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1587,11 +1572,6 @@
         <target state="translated">se strukturami</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ParameterNullChecking">
-        <source>parameter null-checking</source>
-        <target state="translated">kontrola hodnoty null parametru</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
@@ -1725,26 +1705,6 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">Převádí se skupina metod na nedelegující typ.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull">
-        <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="translated">Parametr {0} má hodnotu null, ale ve výchozím nastavení je null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
-        <source>Parameter is null-checked but is null by default.</source>
-        <target state="translated">Parametr má hodnotu null, ale ve výchozím nastavení je null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType">
-        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="translated">Typ {0} s možnou hodnotou null je zaškrtnut hodnotou null a vyvolá se při hodnotě null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
-        <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="translated">Typ s možnou hodnotou null je zaškrtnut hodnotou null a vyvolá se při hodnotě null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">

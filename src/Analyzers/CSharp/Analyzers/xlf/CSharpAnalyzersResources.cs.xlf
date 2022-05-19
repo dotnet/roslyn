@@ -307,11 +307,6 @@
         <target state="translated">Použít new(...)</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Use_parameter_null_checking">
-        <source>Use parameter null checking</source>
-        <target state="translated">Použít kontrolu hodnoty null parametru</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Použít porovnávání vzorů</target>

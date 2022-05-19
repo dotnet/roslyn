@@ -167,8 +167,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseTupleSwapDiagnosticId = "IDE0180";
 
-        public const string UseParameterNullCheckingId = "IDE0190";
-
         public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
 
         public const string UseTopLevelStatementsId = "IDE0210";

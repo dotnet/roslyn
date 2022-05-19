@@ -5790,7 +5790,7 @@ void bar()
             var expectedCode =
 @"class C
 {
-    static object F(string s!!)
+    static object F(string s !!)
     {
     }
 }";
