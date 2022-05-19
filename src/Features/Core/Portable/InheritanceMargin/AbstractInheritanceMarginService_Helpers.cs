@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 // quite useless, so just passed it to the remote process.
                 //
                 // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
-                // we want results quickly, without waiting for the entire SG pass to go.  The user will still get
+                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
                 // accurate results in the future because taggers are set to recompute when compilations are fully
                 // available on the OOP side.
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
