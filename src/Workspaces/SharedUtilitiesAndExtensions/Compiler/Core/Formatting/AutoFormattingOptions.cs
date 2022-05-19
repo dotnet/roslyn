@@ -10,14 +10,14 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// Automatic (on-type) formatting options.
 /// </summary>
 [DataContract]
-internal readonly record struct AutoFormattingOptions(
-    [property: DataMember(Order = 0)] bool FormatOnReturn = true,
-    [property: DataMember(Order = 1)] bool FormatOnTyping = true,
-    [property: DataMember(Order = 2)] bool FormatOnSemicolon = true,
-    [property: DataMember(Order = 3)] bool FormatOnCloseBrace = true)
+internal readonly record struct AutoFormattingOptions
 {
+    [DataMember(Order = 0)] public bool FormatOnReturn { get; init; } = true;
+    [DataMember(Order = 1)] public bool FormatOnTyping { get; init; } = true;
+    [DataMember(Order = 2)] public bool FormatOnSemicolon { get; init; } = true;
+    [DataMember(Order = 3)] public bool FormatOnCloseBrace { get; init; } = true;
+
     public AutoFormattingOptions()
-        : this(FormatOnReturn: true)
     {
     }
 

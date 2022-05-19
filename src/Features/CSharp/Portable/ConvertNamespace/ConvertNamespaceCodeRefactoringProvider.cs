@@ -45,18 +45,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
             if (!IsValidPosition(namespaceDecl, position))
                 return;
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+
             var info =
-                CanOfferUseBlockScoped(optionSet, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
-                CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
+                CanOfferUseBlockScoped(options.NamespaceDeclarations, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
+                CanOfferUseFileScoped(options.NamespaceDeclarations, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
                 ((string title, string equivalenceKey)?)null;
             if (info == null)
                 return;
 
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
-
             context.RegisterRefactoring(CodeAction.Create(
-                info.Value.title, c => ConvertAsync(document, namespaceDecl, formattingOptions, c), info.Value.equivalenceKey));
+                info.Value.title, c => ConvertAsync(document, namespaceDecl, options.GetFormattingOptions(), c), info.Value.equivalenceKey));
         }
 
         private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)

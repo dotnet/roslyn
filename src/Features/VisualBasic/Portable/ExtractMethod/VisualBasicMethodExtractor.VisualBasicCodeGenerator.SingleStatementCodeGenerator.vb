@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -14,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class SingleStatementCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult)
+                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
                 End Sub
 
                 Public Shared Function IsExtractMethodOnSingleStatement(code As SelectionResult) As Boolean

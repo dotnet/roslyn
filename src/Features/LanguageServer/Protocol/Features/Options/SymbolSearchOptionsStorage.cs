@@ -9,9 +9,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     internal static class SymbolSearchOptionsStorage
     {
         internal static SymbolSearchOptions GetSymbolSearchOptions(this IGlobalOptionService globalOptions, string language)
-            => new(
-                SearchReferenceAssemblies: globalOptions.GetOption(SearchReferenceAssemblies, language),
-                SearchNuGetPackages: globalOptions.GetOption(SearchNuGetPackages, language));
+            => new()
+            {
+                SearchReferenceAssemblies = globalOptions.GetOption(SearchReferenceAssemblies, language),
+                SearchNuGetPackages = globalOptions.GetOption(SearchNuGetPackages, language)
+            };
 
         private const string FeatureName = "SymbolSearchOptions";
 

@@ -26,11 +26,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             indentationManager.GetIndentation(snapshot.TextBuffer, explicitFormat, out var convertTabsToSpaces, out var tabSize, out var indentSize);
 
-            return options.With(new LineFormattingOptions(
-                UseTabs: !convertTabsToSpaces,
-                IndentationSize: indentSize,
-                TabSize: tabSize,
-                NewLine: options.NewLine));
+            return options.With(new LineFormattingOptions()
+            {
+                UseTabs = !convertTabsToSpaces,
+                IndentationSize = indentSize,
+                TabSize = tabSize,
+                NewLine = options.NewLine
+            });
         }
     }
 }

@@ -11,12 +11,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -39,10 +37,9 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected readonly AnalyzerResult AnalyzerResult;
 
             protected readonly TCodeGenerationOptions Options;
-            protected readonly NamingStylePreferencesProvider NamingPreferences;
             protected readonly bool LocalFunction;
 
-            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, NamingStylePreferencesProvider namingPreferences, bool localFunction)
+            protected CodeGenerator(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzerResult, TCodeGenerationOptions options, bool localFunction)
             {
                 Contract.ThrowIfFalse(insertionPoint.SemanticDocument == analyzerResult.SemanticDocument);
 
@@ -53,7 +50,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 AnalyzerResult = analyzerResult;
 
                 Options = options;
-                NamingPreferences = namingPreferences;
                 LocalFunction = localFunction;
 
                 MethodNameAnnotation = new SyntaxAnnotation();
