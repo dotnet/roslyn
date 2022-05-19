@@ -2,7 +2,7 @@
 
 ## Checked operators on System.IntPtr and System.UIntPtr
 
-***Introduced in .NET SDK 7.0.500, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
 
 When the platform supports numeric `IntPtr` and `UIntPtr` types (as indicated by the presence of
 `System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`) the built-in operators from `nint`
