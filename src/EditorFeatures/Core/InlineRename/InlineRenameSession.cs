@@ -351,15 +351,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             _options = newOptions;
 
+            var cancellationToken = _cancellationTokenSource.Token;
+
             UpdateReferenceLocationsTask(_threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                // Await prior work before proceeding, since it performs a required state update.
+                // Join prior work before proceeding, since it performs a required state update.
                 // https://github.com/dotnet/roslyn/pull/34254#discussion_r267024593
-                await _allRenameLocationsTask.JoinAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+                await _allRenameLocationsTask.JoinAsync(cancellationToken).ConfigureAwait(false);
 
                 await TaskScheduler.Default;
 
-                return await _renameInfo.FindRenameLocationsAsync(_options, _cancellationTokenSource.Token).ConfigureAwait(false);
+                return await _renameInfo.FindRenameLocationsAsync(_options, cancellationToken).ConfigureAwait(false);
             }));
         }
 
