@@ -1035,8 +1035,8 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = additionalDoc.GetTextBuffer();
-            workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
+
+            workspace.OpenAdditionalDocument(additionalDoc.Id);
 
             var project = workspace.CurrentSolution.Projects.Single();
             var oldVersion = await project.GetSemanticVersionAsync();
@@ -1046,12 +1046,12 @@ class D { }
             var newSolution = oldSolution.WithAdditionalDocumentText(additionalDoc.Id, SourceText.From(newText));
             workspace.TryApplyChanges(newSolution);
 
-            var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-
             // new text should have been pushed into buffer
+            var buffer = additionalDoc.GetTextBuffer();
             Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
             // Text changes are considered top level changes and they change the project's semantic version.
+            var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
             Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
             Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
         }
@@ -1068,8 +1068,8 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = analyzerConfigDoc.GetTextBuffer();
-            workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+
+            workspace.OpenAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
             var project = workspace.CurrentSolution.Projects.Single();
             var oldVersion = await project.GetSemanticVersionAsync();
@@ -1079,18 +1079,18 @@ class D { }
             var newSolution = oldSolution.WithAnalyzerConfigDocumentText(analyzerConfigDoc.Id, SourceText.From(newText));
             workspace.TryApplyChanges(newSolution);
 
-            var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
-
             // new text should have been pushed into buffer
+            var buffer = analyzerConfigDoc.GetTextBuffer();
             Assert.Equal(newText, buffer.CurrentSnapshot.GetText());
 
             // Text changes are considered top level changes and they change the project's semantic version.
+            var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
             Assert.Equal(await doc.GetTextVersionAsync(), await doc.GetTopLevelChangeTextVersionAsync());
             Assert.NotEqual(oldVersion, await doc.Project.GetSemanticVersionAsync());
         }
 
         [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
-        public async Task TestAdditionalFile_OpenClose()
+        public void TestAdditionalFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
             var startText = @"<setting value = ""goo""";
@@ -1099,31 +1099,27 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = additionalDoc.GetTextBuffer();
-            var doc = workspace.CurrentSolution.GetAdditionalDocument(additionalDoc.Id);
-            var text = await doc.GetTextAsync(CancellationToken.None);
-            var version = await doc.GetTextVersionAsync(CancellationToken.None);
 
-            workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
+            workspace.OpenAdditionalDocument(additionalDoc.Id);
 
             // Make sure that additional documents are included in GetOpenDocumentIds.
             var openDocumentIds = workspace.GetOpenDocumentIds();
             Assert.Single(openDocumentIds);
             Assert.Equal(additionalDoc.Id, openDocumentIds.Single());
 
-            workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.CloseAdditionalDocument(additionalDoc.Id);
 
             // Make sure that closed additional documents are not include in GetOpenDocumentIds.
             Assert.Empty(workspace.GetOpenDocumentIds());
 
             // Reopen and close to make sure we are not leaking anything.
-            workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
-            workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.OpenAdditionalDocument(additionalDoc.Id);
+            workspace.CloseAdditionalDocument(additionalDoc.Id);
             Assert.Empty(workspace.GetOpenDocumentIds());
         }
 
         [Fact]
-        public async Task TestAnalyzerConfigFile_OpenClose()
+        public void TestAnalyzerConfigFile_OpenClose()
         {
             using var workspace = CreateWorkspace();
             var startText = @"root = true";
@@ -1132,26 +1128,22 @@ class D { }
             var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, analyzerConfigDocuments: new[] { analyzerConfigDoc });
 
             workspace.AddTestProject(project1);
-            var buffer = analyzerConfigDoc.GetTextBuffer();
-            var doc = workspace.CurrentSolution.GetAnalyzerConfigDocument(analyzerConfigDoc.Id);
-            var text = await doc.GetTextAsync(CancellationToken.None);
-            var version = await doc.GetTextVersionAsync(CancellationToken.None);
 
-            workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
+            workspace.OpenAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
             // Make sure that analyzer config documents are included in GetOpenDocumentIds.
             var openDocumentIds = workspace.GetOpenDocumentIds();
             Assert.Single(openDocumentIds);
             Assert.Equal(analyzerConfigDoc.Id, openDocumentIds.Single());
 
-            workspace.OnAnalyzerConfigDocumentClosed(analyzerConfigDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.CloseAnalyzerConfigDocument(analyzerConfigDoc.Id);
 
             // Make sure that closed analyzer config documents are not include in GetOpenDocumentIds.
             Assert.Empty(workspace.GetOpenDocumentIds());
 
             // Reopen and close to make sure we are not leaking anything.
-            workspace.OnAnalyzerConfigDocumentOpened(analyzerConfigDoc.Id, analyzerConfigDoc.GetOpenTextContainer());
-            workspace.OnAnalyzerConfigDocumentClosed(analyzerConfigDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+            workspace.OpenAnalyzerConfigDocument(analyzerConfigDoc.Id);
+            workspace.CloseAnalyzerConfigDocument(analyzerConfigDoc.Id);
             Assert.Empty(workspace.GetOpenDocumentIds());
         }
 
