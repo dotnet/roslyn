@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -10063,6 +10064,113 @@ public class C
                 ? "M1 M2 M3 M4 M5 M6(IntPtr) M7 M8 M9 M10(IntPtr)"
                 : "M1 M2 M3 M4 M5 M6(ushort) M7 M8 M9 M10(byte)";
             CompileAndVerify(comp, expectedOutput: expected);
+        }
+
+        [Fact]
+        public void RetargetingFromNonNumericToNumericIntPtrCorlib()
+        {
+            string lib_cs = """
+public class Base
+{
+    public virtual nint M() => 0;
+}
+""";
+            var libComp = CreateEmptyCompilation(lib_cs, references: new[] { MscorlibRef_v20 }, assemblyName: "lib");
+            libComp.VerifyDiagnostics();
+
+            string source = """
+public class Derived : Base
+{
+    public override nint M() => 0;
+}
+""";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { libComp.ToMetadataReference(), MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics(
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1),
+                // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'lib' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "lib", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1)
+                );
+
+            var baseM = (RetargetingMethodSymbol)comp.GlobalNamespace.GetMember("Base.M");
+            var baseNint = (PENamedTypeSymbol)baseM.ReturnType;
+
+            var derivedM = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            var derivedNint = (PENamedTypeSymbol)baseM.ReturnType;
+
+            Assert.Equal("nint", derivedNint.ToTestDisplayString());
+            Assert.Same(baseNint, derivedNint);
+        }
+
+        [Fact]
+        public void RetargetingFromNumericIntPtrToNonNumericCorlib()
+        {
+            string lib_cs = """
+public class Base
+{
+    public virtual nint M() => 0;
+}
+""";
+            var libComp = CreateNumericIntPtrCompilation(lib_cs, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, assemblyName: "lib");
+            libComp.VerifyDiagnostics();
+
+            string source = """
+public class Derived : Base
+{
+    public override nint M() => 0;
+}
+""";
+            var comp = CreateEmptyCompilation(source, references: new[] { libComp.ToMetadataReference(), MscorlibRef_v46 });
+            comp.VerifyDiagnostics();
+
+            var baseM = (RetargetingMethodSymbol)comp.GlobalNamespace.GetMember("Base.M");
+            var baseNint = (PENamedTypeSymbol)baseM.ReturnType;
+
+            var derivedM = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
+            var derivedNint = (PENamedTypeSymbol)baseM.ReturnType;
+
+            Assert.Equal("System.IntPtr", derivedNint.ToTestDisplayString());
+            Assert.Same(baseNint, derivedNint);
+        }
+
+        [Fact]
+        public void UnsignedRightShift()
+        {
+            string source = """
+public class C
+{
+    nint M1(nint x, int count) => x >>> count;
+    nuint M2(nuint x, int count) => x >>> count;
+    nint M3(nint x, int count) => checked(x >>> count);
+    nuint M4(nuint x, int count) => checked(x >>> count);
+
+    System.IntPtr M5(System.IntPtr x, int count) => x >>> count;
+    System.UIntPtr M6(System.UIntPtr x, int count) => x >>> count;
+}
+""";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp);
+            var expectedIL = @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldarg.2
+  IL_0002:  shr.un
+  IL_0003:  ret
+}
+";
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+            verifier.VerifyIL("C.M3", expectedIL);
+            verifier.VerifyIL("C.M4", expectedIL);
+            verifier.VerifyIL("C.M5", expectedIL);
+            verifier.VerifyIL("C.M6", expectedIL);
         }
 
         [Fact]
