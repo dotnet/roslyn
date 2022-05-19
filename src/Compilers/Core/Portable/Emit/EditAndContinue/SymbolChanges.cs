@@ -31,10 +31,11 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly ISet<ISymbol> _replacedSymbols;
 
         /// <summary>
-        /// A set of symbols that have been deleted.
-        /// Populated based on semantic edits with <see cref="SemanticEditKind.Replace"/>.
+        /// A set of symbols, from the old compilation, that have been deleted from the new compilation
+        /// keyed by the containing type from the new 
+        /// Populated based on semantic edits with <see cref="SemanticEditKind.Delete"/>.
         /// </summary>
-        private readonly IReadOnlyDictionary<ISymbol, ISet<ISymbol>> _deletedSymbols;
+        private readonly IReadOnlyDictionary<ISymbol, ISet<ISymbol>> _deletedMembers;
 
         private readonly Func<ISymbol, bool> _isAddedSymbol;
 
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             _definitionMap = definitionMap;
             _isAddedSymbol = isAddedSymbol;
-            CalculateChanges(edits, out _changes, out _replacedSymbols, out _deletedSymbols);
+            CalculateChanges(edits, out _changes, out _replacedSymbols, out _deletedMembers);
         }
 
         public DefinitionMap DefinitionMap => _definitionMap;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 yield break;
             }
 
-            if (!_deletedSymbols.TryGetValue(containingSymbol, out var deleted))
+            if (!_deletedMembers.TryGetValue(containingSymbol, out var deleted))
             {
                 yield break;
             }
@@ -287,11 +288,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Note that these changes only include user-defined source symbols, not synthesized symbols since those will be 
         /// generated during lowering of the changed user-defined symbols.
         /// </summary>
-        private static void CalculateChanges(IEnumerable<SemanticEdit> edits, out IReadOnlyDictionary<ISymbol, SymbolChange> changes, out ISet<ISymbol> replaceSymbols, out IReadOnlyDictionary<ISymbol, ISet<ISymbol>> deletedSymbols)
+        private static void CalculateChanges(IEnumerable<SemanticEdit> edits, out IReadOnlyDictionary<ISymbol, SymbolChange> changes, out ISet<ISymbol> replaceSymbols, out IReadOnlyDictionary<ISymbol, ISet<ISymbol>> deletedMembers)
         {
             var changesBuilder = new Dictionary<ISymbol, SymbolChange>();
             HashSet<ISymbol>? lazyReplaceSymbolsBuilder = null;
-            Dictionary<ISymbol, ISet<ISymbol>>? lazyDeletedSymbolsBuilder = null;
+            Dictionary<ISymbol, ISet<ISymbol>>? lazyDeletedMembersBuilder = null;
 
             foreach (var edit in edits)
             {
@@ -319,11 +320,11 @@ namespace Microsoft.CodeAnalysis.Emit
                         if (edit.OldSymbol is IMethodSymbol && edit.NewSymbol is { } newContainingSymbol)
                         {
                             Debug.Assert(edit.OldSymbol != null);
-                            lazyDeletedSymbolsBuilder ??= new();
-                            if (!lazyDeletedSymbolsBuilder.TryGetValue(newContainingSymbol, out var set))
+                            lazyDeletedMembersBuilder ??= new();
+                            if (!lazyDeletedMembersBuilder.TryGetValue(newContainingSymbol, out var set))
                             {
                                 set = new HashSet<ISymbol>();
-                                lazyDeletedSymbolsBuilder.Add(newContainingSymbol, set);
+                                lazyDeletedMembersBuilder.Add(newContainingSymbol, set);
                             }
                             set.Add(edit.OldSymbol);
                             // We need to make sure we track the containing type of the member being
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             changes = changesBuilder;
             replaceSymbols = lazyReplaceSymbolsBuilder ?? SpecializedCollections.EmptySet<ISymbol>();
-            deletedSymbols = lazyDeletedSymbolsBuilder ?? SpecializedCollections.EmptyReadOnlyDictionary<ISymbol, ISet<ISymbol>>();
+            deletedMembers = lazyDeletedMembersBuilder ?? SpecializedCollections.EmptyReadOnlyDictionary<ISymbol, ISet<ISymbol>>();
         }
 
         private static void AddContainingTypesAndNamespaces(Dictionary<ISymbol, SymbolChange> changes, ISymbol symbol)
