@@ -323,24 +323,24 @@ namespace Microsoft.CodeAnalysis.Emit
                         break;
 
                     case SemanticEditKind.Delete:
-                        // We allow method deletions only at the moment
-                        if (edit.OldSymbol is IMethodSymbol && edit.NewContainingSymbol is not null)
+                        // We allow method deletions only at the moment.
+                        // For deletions NewSymbol is actually containing symbol
+                        if (edit.OldSymbol is IMethodSymbol && edit.NewSymbol is { } newContainingSymbol)
                         {
                             Debug.Assert(edit.OldSymbol != null);
                             lazyDeletedSymbolsBuilder ??= new();
-                            if (!lazyDeletedSymbolsBuilder.TryGetValue(edit.NewContainingSymbol, out var set))
+                            if (!lazyDeletedSymbolsBuilder.TryGetValue(newContainingSymbol, out var set))
                             {
                                 set = new HashSet<ISymbol>();
-                                lazyDeletedSymbolsBuilder.Add(edit.NewContainingSymbol, set);
+                                lazyDeletedSymbolsBuilder.Add(newContainingSymbol, set);
                             }
                             set.Add(edit.OldSymbol);
-                            // If a type has a single change that is a deletion, then nothing will be emitted
-                            // for it, so we need to make sure we track the containing type of the delection
-                            // from the new compilation, as containing changes.
-                            if (!changesBuilder.ContainsKey(edit.NewContainingSymbol))
+                            // We need to make sure we track the containing type of the member being
+                            // deleted, from the new compilation, in case the deletion is the only change.
+                            if (!changesBuilder.ContainsKey(newContainingSymbol))
                             {
-                                changesBuilder.Add(edit.NewContainingSymbol, SymbolChange.ContainsChanges);
-                                AddContainingTypesAndNamespaces(changesBuilder, edit.NewContainingSymbol);
+                                changesBuilder.Add(newContainingSymbol, SymbolChange.ContainsChanges);
+                                AddContainingTypesAndNamespaces(changesBuilder, newContainingSymbol);
                             }
                         }
                         continue;
