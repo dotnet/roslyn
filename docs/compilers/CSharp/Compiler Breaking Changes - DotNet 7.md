@@ -30,7 +30,7 @@ conversions on such platforms. This can affect overload resolution in some cases
 
 ## Nameof operator in attribute on method or local function
 
-***Introduced in .NET SDK 7.0.400, Visual Studio 2022 version 17.3.***
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
 
 When the language version is C# 11 or later, a `nameof` operator in an attribute on a method
 brings the type parameters of that method in scope. The same applies for local functions.  
