@@ -3135,4 +3135,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Directives_from_0" xml:space="preserve">
     <value>Directives from '{0}'</value>
   </data>
+  <data name="Decompiled" xml:space="preserve">
+    <value>decompiled</value>
+  </data>
 </root>
