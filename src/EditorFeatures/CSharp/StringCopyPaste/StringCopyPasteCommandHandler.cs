@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
     /// doesn't want the change we made, they can always undo to get the prior paste behavior.
     /// </remarks>
     [Export(typeof(ICommandHandler))]
-    [VSUtilities.ContentType(ContentTypeNames.CSharpContentType)]
-    [VSUtilities.Name(nameof(StringCopyPasteCommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.StringCopyPaste)]
+    [Order(After = PredefinedCommandHandlerNames.FormatDocument)]
     internal partial class StringCopyPasteCommandHandler :
         IChainedCommandHandler<CutCommandArgs>,
         IChainedCommandHandler<CopyCommandArgs>,
@@ -122,11 +124,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
             // When pasting, only do anything special if the user selections were entirely inside a single string
-            // literal token.  Otherwise, we have a multi-selection across token kinds which will be extremely 
+            // token/expression.  Otherwise, we have a multi-selection across token kinds which will be extremely
             // complex to try to reconcile.
             var stringExpressionBeforePaste = TryGetCompatibleContainingStringExpression(
                 documentBeforePaste, selectionsBeforePaste, cancellationToken);
             if (stringExpressionBeforePaste == null)
+                return;
+
+            // Also ensure that all the changes the editor actually applied were inside a single string
+            // token/expression. If the editor decided to make changes outside of the string, we definitely do not want
+            // to do anything here.
+            var stringExpressionBeforePasteFromChanges = TryGetCompatibleContainingStringExpression(
+                documentBeforePaste, new NormalizedSnapshotSpanCollection(snapshotBeforePaste, snapshotBeforePaste.Version.Changes.Select(c => c.OldSpan)), cancellationToken);
+            if (stringExpressionBeforePaste != stringExpressionBeforePasteFromChanges)
                 return;
 
             var textChanges = GetEdits(cancellationToken);
@@ -207,10 +217,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste
                 if (selectionsBeforePaste.Count != 1)
                     return default;
 
-                // See if we can determine the information about the code the user copied from.
-                var service = documentBeforePaste.Project.Solution.Workspace.Services.GetService<IStringCopyPasteService>();
-
-                var clipboardData = service?.TryGetClipboardData(KeyAndVersion);
+                var copyPasteService = documentBeforePaste.Project.Solution.Workspace.Services.GetRequiredService<IStringCopyPasteService>();
+                var clipboardData = copyPasteService.TryGetClipboardData(KeyAndVersion);
                 var copyPasteData = StringCopyPasteData.FromJson(clipboardData);
 
                 if (copyPasteData == null)

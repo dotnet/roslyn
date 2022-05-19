@@ -2192,7 +2192,7 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferUTF8StringLiterals, ServicesVSResources.Prefer_UTF8_string_literals, s_preferUTF8StringLiterals, s_preferUTF8StringLiterals, this, optionStore, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferUtf8StringLiterals, ServicesVSResources.Prefer_UTF8_string_literals, s_preferUTF8StringLiterals, s_preferUTF8StringLiterals, this, optionStore, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);

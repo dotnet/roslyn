@@ -130,7 +130,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pack
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6D407402-CC4A-4125-9B00-C70562A636A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\AnyCpu\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6D407402-CC4A-4125-9B00-C70562A636A5}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "vbi", "src\Interactive\vbi\vbi.vbproj", "{706CFC25-B6E0-4DAA-BCC4-F6FAAFEEDF87}"
 EndProject

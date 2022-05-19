@@ -1635,6 +1635,54 @@ class C
             await AssertFormatAsync(expected, code, spans: null);
         }
 
+        [WpfFact]
+        [WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
+        public async Task FormatLambdaWithComment()
+        {
+            var code = @"namespace N
+{
+    public class C
+    {
+        protected void Render()
+        {
+if (true)
+            {
+            M(() => 
+            {
+                if (true)
+                {
+/* marker */
+                                    }
+                                });
+                }
+        }
+    }
+}
+";
+            var expected = @"namespace N
+{
+    public class C
+    {
+        protected void Render()
+        {
+            if (true)
+            {
+                M(() =>
+                {
+                    if (true)
+                    {
+                        /* marker */
+                    }
+                });
+            }
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code, spans: null);
+        }
+
         [WpfTheory]
         [CombinatorialData]
         [WorkItem(59637, "https://github.com/dotnet/roslyn/issues/59637")]

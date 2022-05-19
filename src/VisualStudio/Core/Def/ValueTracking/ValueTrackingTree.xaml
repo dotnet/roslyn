@@ -30,7 +30,7 @@
             Grid.Row="0"
             Grid.ColumnSpan="3"
             Grid.Column="0"
-            IsIndeterminate="True"
+            IsIndeterminate="{Binding RelativeSource={RelativeSource Self}, Path=IsVisible}"
             Panel.ZIndex="10000"
             Minimum="0"
             Maximum="100"

@@ -55,16 +55,10 @@ namespace IdeCoreBenchmarks
             solution = solution.WithDocumentSyntaxRoot(documentId, root);
 
             _document = solution.GetDocument(documentId);
-            _options = new CSharpSyntaxFormattingOptions(
-                LineFormattingOptions.Default,
-                separateImportDirectiveGroups: CSharpSyntaxFormattingOptions.Default.SeparateImportDirectiveGroups,
-                spacing: CSharpSyntaxFormattingOptions.Default.Spacing,
-                spacingAroundBinaryOperator: CSharpSyntaxFormattingOptions.Default.SpacingAroundBinaryOperator,
-                CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInTypes,
-                labelPositioning: CSharpSyntaxFormattingOptions.Default.LabelPositioning,
-                indentation: CSharpSyntaxFormattingOptions.Default.Indentation,
-                wrappingKeepStatementsOnSingleLine: false,
-                wrappingPreserveSingleLine: false);
+            _options = new CSharpSyntaxFormattingOptions()
+            {
+                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines | NewLinePlacement.BeforeOpenBraceInTypes
+            };
         }
 
         [Benchmark]

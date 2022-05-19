@@ -11,35 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class FeatureOnOffOptions : IOptionProvider
+    internal sealed class FeatureOnOffOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FeatureOnOffOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            EndConstruct,
-            AutomaticInsertionOfAbstractOrInterfaceMembers,
-            LineSeparator,
-            Outlining,
-            KeywordHighlighting,
-            ReferenceHighlighting,
-            AutoInsertBlockCommentStartString,
-            PrettyListing,
-            RenameTrackingPreview,
-            RenameTracking,
-            RefactoringVerification,
-            AddImportsOnPaste,
-            OfferRemoveUnusedReferences,
-            OfferRemoveUnusedReferencesFeatureFlag,
-            ShowInheritanceMargin,
-            InheritanceMarginCombinedWithIndicatorMargin,
-            AutomaticallyCompleteStatementOnSemicolon,
-            SkipAnalyzersForImplicitlyTriggeredBuilds);
-
         private const string FeatureName = "FeatureOnOffOptions";
 
         public static readonly PerLanguageOption2<bool> EndConstruct = new(FeatureName, "EndConstruct", defaultValue: true,
@@ -94,9 +67,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "NavigateAsynchronously", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.NavigateAsynchronously"));
 
-        public static readonly PerLanguageOption2<bool?> AddImportsOnPaste = new(
-            FeatureName, "AddImportsOnPaste", defaultValue: null,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste"));
+        /// <summary>
+        /// This option was previously "bool?" to accomodate different supported defaults
+        /// that were being provided via remote settings. The feature has stabalized and moved
+        /// to on by default, so the storage location was changed to
+        /// TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2 (note the 2 suffix).
+        /// </summary>
+        public static readonly PerLanguageOption2<bool> AddImportsOnPaste = new(
+            FeatureName, "AddImportsOnPaste", defaultValue: true,
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.AddImportsOnPaste2"));
 
         public static readonly Option2<bool?> OfferRemoveUnusedReferences = new(
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
