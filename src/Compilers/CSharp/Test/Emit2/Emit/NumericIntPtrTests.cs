@@ -10100,7 +10100,7 @@ public class Derived : Base
             var baseNint = (PENamedTypeSymbol)baseM.ReturnType;
 
             var derivedM = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            var derivedNint = (PENamedTypeSymbol)baseM.ReturnType;
+            var derivedNint = (PENamedTypeSymbol)derivedM.ReturnType;
 
             Assert.Equal("nint", derivedNint.ToTestDisplayString());
             Assert.Same(baseNint, derivedNint);
@@ -10131,10 +10131,11 @@ public class Derived : Base
             var baseNint = (PENamedTypeSymbol)baseM.ReturnType;
 
             var derivedM = (MethodSymbol)comp.GlobalNamespace.GetMember("Derived.M");
-            var derivedNint = (PENamedTypeSymbol)baseM.ReturnType;
+            var derivedNint = (NativeIntegerTypeSymbol)derivedM.ReturnType;
 
-            Assert.Equal("System.IntPtr", derivedNint.ToTestDisplayString());
-            Assert.Same(baseNint, derivedNint);
+            Assert.Equal("System.IntPtr", baseNint.ToTestDisplayString());
+            Assert.Equal("nint", derivedNint.ToTestDisplayString());
+            Assert.Same(baseNint, derivedNint.UnderlyingNamedType);
         }
 
         [Fact]
