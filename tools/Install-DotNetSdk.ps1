@@ -80,7 +80,7 @@ Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
     $OutFile = Join-Path $OutDir $Uri.Segments[-1]
     if (!(Test-Path $OutFile)) {
         Write-Verbose "Downloading $Uri..."
-        if (!(Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir }
+        if (!(Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out-Null }
         try {
             (New-Object System.Net.WebClient).DownloadFile($Uri, $OutFile)
         } finally {
@@ -91,35 +91,31 @@ Function Get-FileFromWeb([Uri]$Uri, $OutDir) {
     $OutFile
 }
 
-Function Get-InstallerExe($Version, $Architecture, [switch]$Runtime) {
-    $sdkOrRuntime = 'Sdk'
-    if ($Runtime) { $sdkOrRuntime = 'Runtime' }
-
+Function Get-InstallerExe(
+    $Version,
+    $Architecture,
+    [ValidateSet('Sdk','Runtime','WindowsDesktop')]
+    [string]$sku
+) {
     # Get the latest/actual version for the specified one
     $TypedVersion = [Version]$Version
     if ($TypedVersion.Build -eq -1) {
-        $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sdkOrRuntime/$Version/latest.version" -UseBasicParsing)
+        $versionInfo = -Split (Invoke-WebRequest -Uri "https://dotnetcli.blob.core.windows.net/dotnet/$sku/$Version/latest.version" -UseBasicParsing)
         $Version = $versionInfo[-1]
     }
 
     $majorMinor = "$($TypedVersion.Major).$($TypedVersion.Minor)"
     $ReleasesFile = Join-Path $DotNetInstallScriptRoot "$majorMinor\releases.json"
     if (!(Test-Path $ReleasesFile)) {
-        Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$majorMinor/releases.json" -OutDir (Split-Path $ReleasesFile)
+        Get-FileFromWeb -Uri "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/$majorMinor/releases.json" -OutDir (Split-Path $ReleasesFile) | Out-Null
     }
 
     $releases = Get-Content $ReleasesFile | ConvertFrom-Json
     $url = $null
     foreach ($release in $releases.releases) {
         $filesElement = $null
-        if ($Runtime) {
-            if ($release.runtime.version -eq $Version) {
-                $filesElement = $release.runtime.files
-            }
-        } else {
-            if ($release.sdk.version -eq $Version) {
-                $filesElement = $release.sdk.files
-            }
+        if ($release.$sku.version -eq $Version) {
+            $filesElement = $release.$sku.files
         }
 
         if ($filesElement) {
@@ -139,15 +135,14 @@ Function Get-InstallerExe($Version, $Architecture, [switch]$Runtime) {
     if ($url) {
         Get-FileFromWeb -Uri $url -OutDir $DotNetInstallScriptRoot
     } else {
-        Write-Error "Unable to find release of $sdkOrRuntime v$Version"
+        Write-Error "Unable to find release of $sku v$Version"
     }
 }
 
-Function Install-DotNet($Version, $Architecture, [switch]$Runtime) {
-    if ($Runtime) { $sdkSubstring = '' } else { $sdkSubstring = 'SDK ' }
-    Write-Host "Downloading .NET Core $sdkSubstring$Version..."
-    $Installer = Get-InstallerExe -Version $Version -Architecture $Architecture -Runtime:$Runtime
-    Write-Host "Installing .NET Core $sdkSubstring$Version..."
+Function Install-DotNet($Version, $Architecture, [ValidateSet('Sdk','Runtime','WindowsDesktop')][string]$sku = 'Sdk') {
+    Write-Host "Downloading .NET Core $sku $Version..."
+    $Installer = Get-InstallerExe -Version $Version -Architecture $Architecture -sku $sku
+    Write-Host "Installing .NET Core $sku $Version..."
     cmd /c start /wait $Installer /install /passive /norestart
     if ($LASTEXITCODE -eq 3010) {
         Write-Verbose "Restart required"
@@ -177,13 +172,25 @@ if ($InstallLocality -eq 'machine') {
             }
         }
 
-        $runtimeVersions | Get-Unique |% {
-            if ($PSCmdlet.ShouldProcess(".NET Core runtime $_", "Install")) {
-                Install-DotNet -Version $_ -Architecture $arch -Runtime
+        $runtimeVersions | Sort-Object | Get-Unique |% {
+            if ($PSCmdlet.ShouldProcess(".NET runtime $_", "Install")) {
+                Install-DotNet -Version $_ -sku Runtime -Architecture $arch
                 $restartRequired = $restartRequired -or ($LASTEXITCODE -eq 3010)
 
                 if ($IncludeX86) {
-                    Install-DotNet -Version $_ -Architecture x86 -Runtime
+                    Install-DotNet -Version $_ -sku Runtime -Architecture x86
+                    $restartRequired = $restartRequired -or ($LASTEXITCODE -eq 3010)
+                }
+            }
+        }
+
+        $windowsDesktopRuntimeVersions | Sort-Object | Get-Unique |% {
+            if ($PSCmdlet.ShouldProcess(".NET Windows Desktop $_", "Install")) {
+                Install-DotNet -Version $_ -sku WindowsDesktop -Architecture $arch
+                $restartRequired = $restartRequired -or ($LASTEXITCODE -eq 3010)
+
+                if ($IncludeX86) {
+                    Install-DotNet -Version $_ -sku WindowsDesktop -Architecture x86
                     $restartRequired = $restartRequired -or ($LASTEXITCODE -eq 3010)
                 }
             }
