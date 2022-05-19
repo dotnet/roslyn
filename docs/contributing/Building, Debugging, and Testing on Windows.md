@@ -66,6 +66,13 @@ give it a try.
 
 ## Trying Your Changes in Visual Studio
 
+### Deploying with command-line (recommended method)
+
+You can build and deploy with the following command:
+`.\Build.cmd -Configuration Release -deployExtensions -launch`.
+
+Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
+
 ### Deploying with F5
 
 The Rosyln solution is designed to support easy debugging via F5.  Several of our
@@ -140,13 +147,7 @@ your csproj. As shown below, you'll want to (1) add a nuget source pointing to y
 
 ![image](https://user-images.githubusercontent.com/12466233/81206129-7fbe8680-8f80-11ea-9438-acc0481a3585.png)
 
-
-### Deploying with command-line
-
-You can build and deploy with the following command:
-`.\Build.cmd -Configuration Release -deployExtensions -launch`.
-
-Then you can launch the `RoslynDev` hive with `devenv /rootSuffix RoslynDev`.
+## Various other tips
 
 ### Referencing bootstrap compiler
 
@@ -185,18 +186,7 @@ Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environm
 For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
 See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
 
-### Running the PublicAPI fixer
-
-1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
-`C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
-2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
-`C:\Source\roslyn> .\restore.cmd`
-`C:\Source\roslyn> .\build.cmd`
-3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
-`C:\Source\roslyn> cd ..`
-`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
-
-## Replicating Failures in the Used Assemblies leg
+### Replicating Failures in the Used Assemblies leg
 
 In order to replicate test failures in that leg, there are a few options:
 
@@ -209,6 +199,18 @@ drag the instruction pointer past the early check and return on `EnableVerifyUse
 When a test failure is isolated, please add a _dedicated_ test for this (ie. failing even when the Used Assemblies validation isn't enabled) to make it easier to avoid future regressions.  
 Preferrably, don't replicate the entire original test, just enough to hit the bug to ensure that it's protected against regressions.  
 Before pushing a relevant fix to CI, you can validate locally using the `-testUsedAssemblies` command-line option for `build.cmd`. For example: `build.cmd -testCoreClr -testCompilerOnly -testUsedAssemblies`.
+
+### Running the PublicAPI fixer
+
+1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
+`C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
+2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
+`C:\Source\roslyn> .\restore.cmd`
+`C:\Source\roslyn> .\build.cmd`
+3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
+`C:\Source\roslyn> cd ..`
+`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
+
 
 ## Contributing
 
