@@ -13149,8 +13149,8 @@ class C
                         }
                         """,
                     edits: new[] {
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), containingTypeProvider: c => c.GetMember("C")),
-                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), containingTypeProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M1"), newSymbolProvider: c => c.GetMember("C")),
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M2"), newSymbolProvider: c => c.GetMember("C")),
                         //Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M3"), containingTypeProvider: c => c.GetMember("C")),
                         //Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.M4"), containingTypeProvider: c => c.GetMember("C")),
                     },
