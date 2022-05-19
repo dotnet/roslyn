@@ -4,14 +4,14 @@
 
 ***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
 
-When the platform supports numeric `IntPtr` and `UIntPtr` types (as indicated by the presence of
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
 `System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`) the built-in operators from `nint`
 and `nuint` apply to those underlying types.
 This means that on such platforms, `IntPtr` and `UIntPtr` have built-in `checked` operators, which
 can now throw when an overflow occurs.
 
 ```csharp
-IntPtr M(IntPtr x, IntPtr y)
+IntPtr M(IntPtr x, int y)
 {
     checked
     {
