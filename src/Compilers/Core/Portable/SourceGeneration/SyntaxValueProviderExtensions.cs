@@ -148,6 +148,15 @@ internal static partial class SyntaxValueProviderExtensions
 
         return results.ToImmutableAndFree();
 
+        void recurseChildren(SyntaxNode node)
+        {
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                    recurse(child.AsNode()!);
+            }
+        }
+
         void recurse(SyntaxNode node)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -155,17 +164,15 @@ internal static partial class SyntaxValueProviderExtensions
             if (syntaxHelper.IsCompilationUnit(node))
             {
                 syntaxHelper.AddAliases(node, localAliases, global: false);
+
+                recurseChildren(node);
             }
             else if (syntaxHelper.IsAnyNamespaceBlock(node))
             {
                 var localAliasCount = localAliases.Count;
                 syntaxHelper.AddAliases(node, localAliases, global: false);
 
-                foreach (var child in node.ChildNodesAndTokens())
-                {
-                    if (child.IsNode)
-                        recurse(child.AsNode()!);
-                }
+                recurseChildren(node);
 
                 // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
                 localAliases.Count = localAliasCount;
@@ -196,11 +203,7 @@ internal static partial class SyntaxValueProviderExtensions
                 // For any other node, just keep recursing deeper to see if we can find an attribute. Note: we cannot
                 // terminate the search anywhere as attributes may be found on things like local functions, and that
                 // means having to dive deep into statements and expressions.
-                foreach (var child in node.ChildNodesAndTokens())
-                {
-                    if (child.IsNode)
-                        recurse(child.AsNode()!);
-                }
+                recurseChildren(node);
             }
         }
 
