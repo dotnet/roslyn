@@ -44,6 +44,10 @@ namespace Microsoft.CodeAnalysis.Testing
             ImmutableArray<Func<TExpected, TActual, double>> matchers,
             TimeSpan matchTimeout)
         {
+            // Initialize the algorithm with an initial "best guess" that evaluates the distance for the items in
+            // expected and actual matched in the order they appear, with any remaining items from the longer array
+            // added at the end. After this point, a new best guess will only be assigned if its distance is strictly
+            // less than the prior best guess.
             var resultBuilder = ImmutableArray.CreateBuilder<Result<TExpected, TActual>>(Math.Max(expected.Length, actual.Length));
             var commonCount = Math.Min(expected.Length, actual.Length);
             for (var i = 0; i < commonCount; i++)
@@ -66,10 +70,29 @@ namespace Microsoft.CodeAnalysis.Testing
             var bestResult = resultBuilder.MoveToImmutable();
             var bestDistance = bestResult.Sum(result => result.Distance);
 
-            // Storage for temporary data
+            /*
+             * Storage for temporary data.
+             */
+
+            // Keeps track of the items from 'actual' which have been matched on the current path.
             var usedActual = new bool[actual.Length];
 
-            // Attempt to find an exact match
+            // The distance cache records the distance evaluation. Values less than 0 mean the distance has not been
+            // computed. Initially, all values are -1 except for the items calculated as part of the initial best guess
+            // above.
+            var distanceCache = new double[expected.Length * actual.Length];
+            for (var i = 0; i < distanceCache.Length; i++)
+            {
+                distanceCache[i] = -1.0;
+            }
+
+            for (var i = 0; i < commonCount; i++)
+            {
+                distanceCache[(i * actual.Length) + i] = bestResult[i].Distance;
+            }
+
+            // Attempt to find an exact match. This portion is run without a timeout to ensure that an exact match will
+            // be found if it exists.
             MatchRecursive(
                 expected,
                 actual,
@@ -81,6 +104,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 remainingUnmatched: 0,
                 nextExpected: 0,
                 usedActual,
+                distanceCache,
                 exactOnly: true,
                 CancellationToken.None);
             if (bestDistance == 0)
@@ -101,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 remainingUnmatched: 0,
                 nextExpected: 0,
                 usedActual,
+                distanceCache,
                 exactOnly: true,
                 cancellationTokenSource.Token);
 
@@ -118,11 +143,14 @@ namespace Microsoft.CodeAnalysis.Testing
             int remainingUnmatched,
             int nextExpected,
             bool[] usedActual,
+            double[] distanceCache,
             bool exactOnly,
             CancellationToken cancellationToken)
         {
             if (currentDistance >= bestDistance)
             {
+                // From this point, it will not be possible to reach the end with a lower total distance, so we can
+                // return immediately.
                 return;
             }
 
@@ -156,7 +184,13 @@ namespace Microsoft.CodeAnalysis.Testing
                     continue;
                 }
 
-                var distance = Evaluate(expected[nextExpected], actual[i], matchers);
+                ref var cachedDistance = ref distanceCache[(nextExpected * actual.Length) + i];
+                var distance = cachedDistance;
+                if (distance < 0)
+                {
+                    distance = cachedDistance = Evaluate(expected[nextExpected], actual[i], matchers);
+                }
+
                 if (exactOnly && distance != 0)
                 {
                     continue;
@@ -177,6 +211,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         remainingUnmatched,
                         nextExpected: nextExpected + 1,
                         usedActual,
+                        distanceCache,
                         exactOnly,
                         cancellationToken);
                 }
@@ -214,6 +249,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         remainingUnmatched: remainingUnmatched - 1,
                         nextExpected: nextExpected + 1,
                         usedActual,
+                        distanceCache,
                         exactOnly,
                         cancellationToken);
                 }
