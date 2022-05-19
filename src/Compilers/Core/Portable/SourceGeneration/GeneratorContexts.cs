@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis
 {
@@ -215,10 +216,13 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct GeneratorSyntaxContext
     {
-        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel)
+        internal readonly ISyntaxHelper SyntaxHelper;
+
+        internal GeneratorSyntaxContext(SyntaxNode node, SemanticModel semanticModel, ISyntaxHelper syntaxHelper)
         {
             Node = node;
             SemanticModel = semanticModel;
+            SyntaxHelper = syntaxHelper;
         }
 
         /// <summary>

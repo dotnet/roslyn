@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
@@ -21,14 +22,21 @@ namespace Microsoft.CodeAnalysis
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
 
-        internal IncrementalGeneratorInitializationContext(ArrayBuilder<SyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, string sourceExtension)
+        internal readonly ISyntaxHelper SyntaxHelper;
+
+        internal IncrementalGeneratorInitializationContext(
+            ArrayBuilder<SyntaxInputNode> syntaxInputBuilder,
+            ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
+            ISyntaxHelper syntaxHelper,
+            string sourceExtension)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
+            SyntaxHelper = syntaxHelper;
             _sourceExtension = sourceExtension;
         }
 
-        public SyntaxValueProvider SyntaxProvider => new SyntaxValueProvider(_syntaxInputBuilder, RegisterOutput);
+        public SyntaxValueProvider SyntaxProvider => new(_syntaxInputBuilder, RegisterOutput, SyntaxHelper);
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
 
