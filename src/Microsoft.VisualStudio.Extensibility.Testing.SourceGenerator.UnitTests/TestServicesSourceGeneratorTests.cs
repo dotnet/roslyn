@@ -3,15 +3,11 @@
 
 namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 {
-    using System;
     using System.Collections.Immutable;
     using System.IO;
-    using System.Runtime.CompilerServices;
-    using System.Text;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.Testing;
-    using Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator;
     using Xunit;
     using VerifyCS = Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.Verifiers.CSharpSourceGeneratorVerifier<
         Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.TestServicesSourceGenerator>;
@@ -182,19 +178,6 @@ namespace System.Diagnostics.CodeAnalysis
             ExtensibilityTestingLegacyLibraryPath,
             documentation: XmlDocumentationProvider.CreateFromFile(Path.ChangeExtension(ExtensibilityTestingLegacyLibraryPath, ".xml")));
 
-        private static (Type sourceGeneratorType, string filename, string content) ReadGeneratedSource(string name, [CallerMemberName] string? testMethod = null)
-        {
-            var resourceName = $"{typeof(TestServicesSourceGeneratorTests).Namespace}.Resources.{testMethod}.{name}";
-            using var resourceStream = typeof(TestServicesSourceGeneratorTests).Assembly.GetManifestResourceStream(resourceName);
-            if (resourceStream is null)
-            {
-                return (typeof(TestServicesSourceGenerator), name, string.Empty);
-            }
-
-            using var reader = new StreamReader(resourceStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true);
-            return (typeof(TestServicesSourceGenerator), name, reader.ReadToEnd());
-        }
-
         [Fact]
         public async Task TestGenerationForVS2022()
         {
@@ -214,29 +197,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IAsyncDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
 
         [Fact]
@@ -258,29 +220,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
 
         [Fact]
@@ -303,29 +244,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
 
         [Fact]
@@ -347,29 +267,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
 
         [Theory]
@@ -399,29 +298,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
 
         [Fact]
@@ -447,29 +325,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
 
         [Fact]
@@ -499,29 +356,8 @@ namespace System.Diagnostics.CodeAnalysis
                     {
                         ("Nullable.cs", NullableAttributesSource),
                     },
-                    GeneratedSources =
-                    {
-                        ReadGeneratedSource("IVsTextViewExtensions.g.cs"),
-                        ReadGeneratedSource("IVsTextManagerExtensions.g.cs"),
-                        ReadGeneratedSource("EditorInProcess1.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess1.g.cs"),
-                        ReadGeneratedSource("ShellInProcess1.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
-                        ReadGeneratedSource("TestServiceAttribute.g.cs"),
-                        ReadGeneratedSource("InProcComponent.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
-                        ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
-                        ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.WaitForProjectSystemAsync.g.cs"),
-                        ReadGeneratedSource("EditorInProcess.g.cs"),
-                        ReadGeneratedSource("SolutionExplorerInProcess.g.cs"),
-                        ReadGeneratedSource("ShellInProcess.g.cs"),
-                        ReadGeneratedSource("WorkspaceInProcess.g.cs"),
-                        ReadGeneratedSource("TestServices.g.cs"),
-                    },
                 },
-            }.RunAsync();
+            }.AddGeneratedSources().RunAsync();
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
     using System.IO;
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
@@ -90,6 +91,30 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
                 }
 
                 return compilation;
+            }
+
+            public Test AddGeneratedSources([CallerMemberName] string? testMethod = null)
+            {
+                var expectedPrefix = $"{typeof(TestServicesSourceGeneratorTests).Namespace}.Resources.{testMethod}.";
+                foreach (var resourceName in typeof(Test).Assembly.GetManifestResourceNames())
+                {
+                    if (!resourceName.StartsWith(expectedPrefix))
+                    {
+                        continue;
+                    }
+
+                    using var resourceStream = typeof(TestServicesSourceGeneratorTests).Assembly.GetManifestResourceStream(resourceName);
+                    if (resourceStream is null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    using var reader = new StreamReader(resourceStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true);
+                    var name = resourceName.Substring(expectedPrefix.Length);
+                    TestState.GeneratedSources.Add((typeof(TestServicesSourceGenerator), name, reader.ReadToEnd()));
+                }
+
+                return this;
             }
 
             [Conditional("WRITE_EXPECTED")]
