@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 this.AddDefIfNecessary(_methodDefs, methodDef);
                 var methodChange = _changes.GetChange(methodDef);
 
-                EmitMethod(methodDef, methodChange);
+                CreateIndicesForMethod(methodDef, methodChange);
             }
 
             foreach (var methodDef in _changes.GetDeletedMethods(typeDef))
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 var newMethodDef = new DeletedMethodDefinition(oldMethodDef, typeDef);
                 _methodDefs.AddUpdated(newMethodDef);
 
-                EmitMethod(newMethodDef, SymbolChange.Updated);
+                CreateIndicesForMethod(newMethodDef, SymbolChange.Updated);
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.Emit
             implementingMethods.Free();
         }
 
-        private void EmitMethod(IMethodDefinition methodDef, SymbolChange methodChange)
+        private void CreateIndicesForMethod(IMethodDefinition methodDef, SymbolChange methodChange)
         {
             if (methodChange == SymbolChange.Added)
             {
