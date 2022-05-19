@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Testing
         public static ImmutableArray<Result<TExpected, TActual>> Match<TExpected, TActual>(
             ImmutableArray<TExpected> expected,
             ImmutableArray<TActual> actual,
-            ImmutableArray<Func<TExpected, TActual, double>> matchers,
+            ImmutableArray<Func<TExpected, TActual, bool, double>> matchers,
             TimeSpan matchTimeout)
         {
             // Initialize the algorithm with an initial "best guess" that evaluates the distance for the items in
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Testing
             var commonCount = Math.Min(expected.Length, actual.Length);
             for (var i = 0; i < commonCount; i++)
             {
-                var distance = Evaluate(expected[i], actual[i], matchers);
+                var distance = Evaluate(expected[i], actual[i], exactOnly: false, matchers);
                 resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: true, expected[i], hasActual: true, actual[i], distance));
             }
 
@@ -66,8 +66,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 resultBuilder.Add(new Result<TExpected, TActual>(hasExpected: false, expected: default, hasActual: true, actual[i], distance: 0));
             }
 
+            var initialResult = resultBuilder.MoveToImmutable();
+
             // Storage for results
-            var bestResult = resultBuilder.MoveToImmutable();
+            var bestResult = initialResult;
             var bestDistance = bestResult.Sum(result => result.Distance);
 
             /*
@@ -88,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             for (var i = 0; i < commonCount; i++)
             {
-                distanceCache[(i * actual.Length) + i] = bestResult[i].Distance;
+                distanceCache[(i * actual.Length) + i] = initialResult[i].Distance;
             }
 
             // Attempt to find an exact match. This portion is run without a timeout to ensure that an exact match will
@@ -112,7 +114,22 @@ namespace Microsoft.CodeAnalysis.Testing
                 return bestResult;
             }
 
-            // Attempt to find a better but non-exact match within a time limit
+            // Attempt to find a better but non-exact match within a time limit. Make sure to reset the distance cache
+            // for any non-zero distances, since the exact match function may have only calculated a portion of the
+            // distance.
+            for (var i = 0; i < distanceCache.Length; i++)
+            {
+                if (distanceCache[i] != 0.0)
+                {
+                    distanceCache[i] = -1.0;
+                }
+            }
+
+            for (var i = 0; i < commonCount; i++)
+            {
+                distanceCache[(i * actual.Length) + i] = initialResult[i].Distance;
+            }
+
             using var cancellationTokenSource = new CancellationTokenSource(matchTimeout);
             MatchRecursive(
                 expected,
@@ -135,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Testing
         private static void MatchRecursive<TExpected, TActual>(
             ImmutableArray<TExpected> expected,
             ImmutableArray<TActual> actual,
-            ImmutableArray<Func<TExpected, TActual, double>> matchers,
+            ImmutableArray<Func<TExpected, TActual, bool, double>> matchers,
             ImmutableArray<Result<TExpected, TActual>>.Builder resultBuilder,
             ref ImmutableArray<Result<TExpected, TActual>> bestResult,
             ref double bestDistance,
@@ -188,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var distance = cachedDistance;
                 if (distance < 0)
                 {
-                    distance = cachedDistance = Evaluate(expected[nextExpected], actual[i], matchers);
+                    distance = cachedDistance = Evaluate(expected[nextExpected], actual[i], exactOnly, matchers);
                 }
 
                 if (exactOnly && distance != 0)
@@ -263,12 +280,13 @@ namespace Microsoft.CodeAnalysis.Testing
         private static double Evaluate<TExpected, TActual>(
             TExpected expected,
             TActual actual,
-            ImmutableArray<Func<TExpected, TActual, double>> matchers)
+            bool exactOnly,
+            ImmutableArray<Func<TExpected, TActual, bool, double>> matchers)
         {
             var totalResult = 0.0;
             foreach (var matcher in matchers)
             {
-                var result = matcher(expected, actual);
+                var result = matcher(expected, actual, exactOnly);
                 totalResult += result * result;
             }
 
