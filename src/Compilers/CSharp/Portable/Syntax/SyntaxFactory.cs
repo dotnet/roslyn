@@ -1587,7 +1587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Parse a list of trivia rules for leading trivia.
         /// </summary>
-        internal static SyntaxTriviaList ParseLeadingTrivia(string text, CSharpParseOptions? options, int offset = 0)
+        internal static SyntaxTriviaList ParseLeadingTrivia(string text, CSharpParseOptions options, int offset = 0)
         {
             using (var lexer = new InternalSyntax.Lexer(MakeSourceText(text, offset), options))
             {
