@@ -127,11 +127,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Collapse_imports_on_file_open As String =
             BasicVSResources.Collapse_imports_on_file_open
 
-        Public ReadOnly Property Option_Collapse_metadata_on_file_open As String =
-            ServicesVSResources.Collapse_metadata_on_file_open
+        Public ReadOnly Property Option_Collapse_sourcelink_embedded_decompiled_files_on_open As String =
+            ServicesVSResources.Collapse_sourcelink_embedded_decompiled_files_on_open
 
-        Public ReadOnly Property Option_Collapse_empty_metadata_on_file_open As String =
-            ServicesVSResources.Collapse_empty_metadata_on_file_open
+        Public ReadOnly Property Option_Collapse_metadata_signature_files_on_open As String =
+            ServicesVSResources.Collapse_metadata_signature_files_on_open
 
         Public ReadOnly Property Option_ExtractMethod As String =
             BasicVSResources.Extract_Method

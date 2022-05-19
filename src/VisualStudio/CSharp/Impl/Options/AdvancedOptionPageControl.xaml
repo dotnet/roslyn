@@ -120,10 +120,10 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_on_file_open}" />
                         <CheckBox x:Name="Collapse_usings_on_file_open"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_usings_on_file_open}" />
-                        <CheckBox x:Name="Collapse_metadata_on_file_open"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_metadata_on_file_open}" />
-                        <CheckBox x:Name="Collapse_empty_metadata_on_file_open"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_empty_metadata_on_file_open}" />
+                        <CheckBox x:Name="Collapse_sourcelink_embedded_decompiled_files_on_open"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_sourcelink_embedded_decompiled_files_on_open}" />
+                        <CheckBox x:Name="Collapse_metadata_signature_files_on_open"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_metadata_signature_files_on_open}" />
                     </StackPanel>
                     <CheckBox x:Name="DisplayLineSeparators"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_DisplayLineSeparators}" />

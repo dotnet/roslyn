@@ -242,19 +242,19 @@
         <target state="translated">コード分析が、ソリューションでの完了前に終了しました。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collapse_empty_metadata_on_file_open">
-        <source>Collapse source generated from metadata to definitions on file open</source>
-        <target state="new">Collapse source generated from metadata to definitions on file open</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Collapse_metadata_on_file_open">
-        <source>Collapse Source Link, embedded, and decompiled source to definitions on file open</source>
-        <target state="new">Collapse Source Link, embedded, and decompiled source to definitions on file open</target>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="new">Collapse metadata signature files to definitions on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">
         <source>Collapse #regions on file open</source>
         <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="new">Collapse Source Link, Embedded, and Decompiled source to definitions on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">

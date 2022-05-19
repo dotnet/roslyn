@@ -1956,10 +1956,10 @@ Additional information: {1}</value>
   <data name="Collapse_regions_on_file_open" xml:space="preserve">
     <value>Collapse #regions on file open</value>
   </data>
-  <data name="Collapse_empty_metadata_on_file_open" xml:space="preserve">
-    <value>Collapse source generated from metadata to definitions on file open</value>
+  <data name="Collapse_metadata_signature_files_on_open" xml:space="preserve">
+    <value>Collapse metadata signature files to definitions on file open</value>
   </data>
-  <data name="Collapse_metadata_on_file_open" xml:space="preserve">
-    <value>Collapse Source Link, embedded, and decompiled source to definitions on file open</value>
+  <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
+    <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
 </root>

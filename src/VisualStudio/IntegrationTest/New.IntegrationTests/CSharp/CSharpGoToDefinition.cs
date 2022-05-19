@@ -112,7 +112,7 @@ partial class PartialClass { int i = 0; }", HangMitigatingCancellationToken);
         public async Task GoToDefinitionFromMetadataCollapsed()
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, language: LanguageName), true);
+            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName), true);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
@@ -143,7 +143,7 @@ class C
         {
             var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
 
-            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, language: LanguageName), false);
+            globalOptions.SetGlobalOption(new OptionKey(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language: LanguageName), false);
 
             await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "C.cs", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "C.cs", HangMitigatingCancellationToken);
