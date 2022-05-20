@@ -203,8 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var (helper, useExpressionBody) = s_helperToTitleMap[equivalenceKey];
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, optionSet);
+            var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+            var declarationsToFix = GetDeclarationsToFix(fixAllSpans, root, helper, useExpressionBody, options);
             await FixDeclarationsAsync(document, editor, root, declarationsToFix, helper, useExpressionBody, cancellationToken).ConfigureAwait(false);
             return;
 
@@ -214,8 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 SyntaxNode root,
                 UseExpressionBodyHelper helper,
                 bool useExpressionBody,
-                OptionSet optionSet)
+                CSharpCodeGenerationOptions options)
             {
+                var preference = helper.GetExpressionBodyPreference(options);
                 foreach (var span in fixAllSpans)
                 {
                     var spanNode = root.FindNode(span);
@@ -225,11 +226,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                         if (!helper.IsRelevantDeclarationNode(node) || !helper.SyntaxKinds.Contains(node.Kind()))
                             continue;
 
-                        if (useExpressionBody && helper.CanOfferUseExpressionBody(optionSet, node, forAnalyzer: false))
+                        if (useExpressionBody && helper.CanOfferUseExpressionBody(preference, node, forAnalyzer: false))
                         {
                             yield return node;
                         }
-                        else if (!useExpressionBody && helper.CanOfferUseBlockBody(optionSet, node, forAnalyzer: false, out _, out _))
+                        else if (!useExpressionBody && helper.CanOfferUseBlockBody(preference, node, forAnalyzer: false, out _, out _))
                         {
                             yield return node;
                         }
