@@ -363,6 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!modifierErrors)
                 {
                     mods = ModifierUtils.CheckModifiers(
+                        isForTypeDeclaration: true, isForInterfaceMember: false,
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
                         modifierTokens: null, modifierErrors: out modifierErrors);
 
@@ -3475,16 +3476,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
                             break;
                         case MethodKind.Conversion:
-                            if (!meth.IsAbstract)
-                            {
-                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
-                            }
                             break;
                         case MethodKind.UserDefinedOperator:
-                            if (!meth.IsAbstract && (meth.Name == WellKnownMemberNames.EqualityOperatorName || meth.Name == WellKnownMemberNames.InequalityOperatorName))
-                            {
-                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, member.Locations[0]);
-                            }
                             break;
                         case MethodKind.Destructor:
                             diagnostics.Add(ErrorCode.ERR_OnlyClassesCanContainDestructors, member.Locations[0]);

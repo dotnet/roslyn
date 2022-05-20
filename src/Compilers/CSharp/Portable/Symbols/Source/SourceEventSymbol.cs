@@ -478,10 +478,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
-                else
-                {
-                    allowedModifiers |= DeclarationModifiers.Static;
-                }
+
+                allowedModifiers |= DeclarationModifiers.Static;
             }
 
             if (this.ContainingType.IsStructType())
@@ -494,7 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Extern;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
@@ -516,7 +515,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckModifiersAndType(BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(!IsStatic || (!IsVirtual && !IsOverride)); // Otherwise 'virtual' and 'override' should have been reported and cleared earlier.
+            Debug.Assert(!IsStatic || !IsOverride); // Otherwise should have been reported and cleared earlier.
+            Debug.Assert(!IsStatic || ContainingType.IsInterface || (!IsAbstract && !IsVirtual)); // Otherwise should have been reported and cleared earlier.
 
             Location location = this.Locations[0];
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -525,11 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.DeclaredAccessibility == Accessibility.Private && (IsVirtual || (IsAbstract && !isExplicitInterfaceImplementationInInterface) || IsOverride))
             {
                 diagnostics.Add(ErrorCode.ERR_VirtualPrivate, location, this);
-            }
-            else if (IsStatic && IsAbstract && !ContainingType.IsInterface)
-            {
-                // A static member '{0}' cannot be marked as 'abstract'
-                diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, ModifierUtils.ConvertSingleModifierToSyntaxText(DeclarationModifiers.Abstract));
             }
             else if (IsReadOnly && IsStatic)
             {

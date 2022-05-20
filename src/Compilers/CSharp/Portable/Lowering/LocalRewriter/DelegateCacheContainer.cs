@@ -59,7 +59,7 @@ internal sealed class DelegateCacheContainer : SynthesizedContainer
         Debug.Assert(delegateType.IsDelegateType());
         Debug.Assert(targetMethod is { });
 
-        var constrainedToTypeOpt = (targetMethod.IsAbstract && boundDelegateCreation.Argument is BoundTypeExpression typeExpression) ? typeExpression.Type : null;
+        var constrainedToTypeOpt = ((targetMethod.IsAbstract || targetMethod.IsVirtual) && boundDelegateCreation.Argument is BoundTypeExpression typeExpression) ? typeExpression.Type : null;
 
         if (_delegateFields.TryGetValue((constrainedToTypeOpt, delegateType, targetMethod), out var field))
         {

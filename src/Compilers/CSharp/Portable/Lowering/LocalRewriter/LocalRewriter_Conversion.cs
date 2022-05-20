@@ -510,9 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup when oldNodeOpt is { Type: { TypeKind: TypeKind.FunctionPointer } funcPtrType }:
                     {
                         var mg = (BoundMethodGroup)rewrittenOperand;
-                        Debug.Assert(oldNodeOpt.SymbolOpt is { });
-                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, oldNodeOpt.SymbolOpt,
-                                                            constrainedToTypeOpt: oldNodeOpt.SymbolOpt.IsStatic && oldNodeOpt.SymbolOpt.IsAbstract ? mg.ReceiverOpt?.Type : null,
+                        MethodSymbol? symbolOpt = oldNodeOpt.SymbolOpt;
+                        Debug.Assert(symbolOpt is { });
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, symbolOpt,
+                                                            constrainedToTypeOpt: symbolOpt.IsStatic &&
+                                                                                  (symbolOpt.IsAbstract || symbolOpt.IsVirtual) ? mg.ReceiverOpt?.Type : null,
                                                             type: funcPtrType, hasErrors: false);
                     }
 
@@ -525,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(method is { });
                         var oldSyntax = _factory.Syntax;
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
-                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
+                        var receiver = (!method.RequiresInstanceReceiver && !oldNodeOpt.IsExtensionMethod && !method.IsAbstract && !method.IsVirtual) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 

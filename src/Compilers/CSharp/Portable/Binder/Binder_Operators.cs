@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool typesAreSame = TypeSymbol.Equals(signature.LeftType, signature.RightType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(signature.LeftType, signature.ReturnType, TypeCompareKind.ConsiderEverything2);
             MethodSymbol definition;
             bool typeMatchesContainer = TypeSymbol.Equals(signature.ReturnType.StrippedType(), t, TypeCompareKind.ConsiderEverything2) ||
-                                        (t.IsInterface && signature.Method.IsAbstract &&
+                                        (t.IsInterface && (signature.Method.IsAbstract || signature.Method.IsVirtual) &&
                                          SourceUserDefinedOperatorSymbol.IsSelfConstrainedTypeParameter((definition = signature.Method.OriginalDefinition).ReturnType.StrippedType(), definition.ContainingType));
 
             if (!typesAreSame || !typeMatchesContainer)
@@ -2329,7 +2329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodOpt?.ContainingType?.IsInterface == true && methodOpt.IsStatic)
             {
-                if (methodOpt.IsAbstract)
+                if (methodOpt.IsAbstract || methodOpt.IsVirtual)
                 {
                     if (constrainedToTypeOpt is not TypeParameterSymbol)
                     {
