@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<string> names = default;
             ImmutableArray<RefKind> refKinds = default;
+            ImmutableArray<DeclarationScope> scopes = default;
             ImmutableArray<bool> nullCheckedOpt = default;
             ImmutableArray<TypeWithAnnotations> types = default;
             RefKind returnRefKind = RefKind.None;
@@ -99,10 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parameterSyntaxList != null)
             {
                 var hasExplicitlyTypedParameterList = true;
-                var allValue = true;
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var scopesBuilder = ArrayBuilder<DeclarationScope>.GetInstance();
                 var nullCheckedBuilder = ArrayBuilder<bool>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
@@ -138,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
+                    var scope = DeclarationScope.None;
 
                     if (typeSyntax == null)
                     {
@@ -145,6 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        bool scopedBeforeRef = false;
+                        bool scopedAfterRef = false;
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
@@ -152,17 +156,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 case SyntaxKind.RefKeyword:
                                     refKind = RefKind.Ref;
-                                    allValue = false;
                                     break;
 
                                 case SyntaxKind.OutKeyword:
                                     refKind = RefKind.Out;
-                                    allValue = false;
                                     break;
 
                                 case SyntaxKind.InKeyword:
                                     refKind = RefKind.In;
-                                    allValue = false;
                                     break;
 
                                 case SyntaxKind.ParamsKeyword:
@@ -175,13 +176,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case SyntaxKind.ThisKeyword:
                                     Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
                                     break;
+
+                                case SyntaxKind.ScopedKeyword:
+                                    if (refKind == RefKind.None)
+                                    {
+                                        scopedBeforeRef = true;
+                                    }
+                                    else
+                                    {
+                                        scopedAfterRef = true;
+                                    }
+                                    break;
                             }
+                        }
+                        if (scopedBeforeRef)
+{
+                            scope |= refKind == RefKind.None ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
+                        }
+                        if (scopedAfterRef)
+                        {
+                            scope |= DeclarationScope.ValueScoped;
                         }
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    scopesBuilder.Add(scope);
                     nullCheckedBuilder.Add(isNullChecked(p));
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
@@ -193,9 +214,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     types = typesBuilder.ToImmutable();
                 }
 
-                if (!allValue)
+                if (refKindsBuilder.Any(r => r != RefKind.None))
                 {
                     refKinds = refKindsBuilder.ToImmutable();
+                }
+
+                if (scopesBuilder.Any(s => s != DeclarationScope.None))
+                {
+                    scopes = scopesBuilder.ToImmutable();
                 }
 
                 if (nullCheckedBuilder.Contains(true))
@@ -209,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 typesBuilder.Free();
+                scopesBuilder.Free();
                 refKindsBuilder.Free();
                 nullCheckedBuilder.Free();
                 attributesBuilder.Free();
@@ -221,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, nullCheckedOpt, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, nullCheckedOpt, isAsync, isStatic);
 
             static bool isNullChecked(ParameterSyntax parameter)
                 => parameter.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken);

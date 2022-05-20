@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override bool IsAsync { get { return false; } }
             public override bool IsStatic => false;
             public override RefKind RefKind(int index) { return Microsoft.CodeAnalysis.RefKind.None; }
+            public override DeclarationScope Scope(int index) => DeclarationScope.None;
             public override MessageID MessageID { get { return MessageID.IDS_FeatureQueryExpression; } } // TODO: what is the correct ID here?
             public override Location ParameterLocation(int index) { return _parameters[index].Locations[0]; }
             public override TypeWithAnnotations ParameterTypeWithAnnotations(int index) { throw new ArgumentException(); } // implicitly typed

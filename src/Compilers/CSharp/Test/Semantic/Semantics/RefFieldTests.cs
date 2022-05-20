@@ -4255,12 +4255,11 @@ class Program
             var decls = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
             var lambdas = decls.Select(d => model.GetSymbolInfo(d).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            // PROTOTYPE: 'scoped' is currently ignored on lambda parameters.
-            VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.None); // DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.None); // DeclarationScope.RefScoped);
-            VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.None); // DeclarationScope.RefScoped);
-            VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.None); // DeclarationScope.RefScoped);
-            VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.None); // DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
+            VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
         }
 
         [Fact]

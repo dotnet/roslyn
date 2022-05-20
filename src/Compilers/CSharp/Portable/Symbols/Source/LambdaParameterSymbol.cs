@@ -18,11 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            TypeWithAnnotations parameterType,
            int ordinal,
            RefKind refKind,
+           DeclarationScope scope,
            string name,
            bool isDiscard,
            bool isNullChecked,
            ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, /*PROTOTYPE:*/ scope: DeclarationScope.None)
+           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false, scope)
         {
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;
