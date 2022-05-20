@@ -13,6 +13,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
     Public Class GeneratorDriverTests_Attributes_SimpleName
         Inherits BasicTestBase
 
+        Private Function IsClassStatementWithName(value As Object, name As String) As Boolean
+            If TypeOf value IsNot ClassStatementSyntax Then
+                Return False
+            End If
+
+            Return DirectCast(value, ClassStatementSyntax).Identifier.ValueText = name
+        End Function
+
 #Region "Non-Incremental tests"
 
         ' These tests just validate basic correctness of results in different scenarios, without actually validating
@@ -45,14 +53,6 @@ end class
             Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
 Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
         End Sub
-
-        Private Function IsClassStatementWithName(value As Object, name As String) As Boolean
-            If TypeOf value IsNot ClassStatementSyntax Then
-                Return False
-            End If
-
-            Return DirectCast(value, ClassStatementSyntax).Identifier.ValueText = name
-        End Function
 
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList1()
