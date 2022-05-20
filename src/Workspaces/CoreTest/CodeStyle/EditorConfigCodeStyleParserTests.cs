@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("omit_if_default : error", (int)AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
         public void TestParseEditorConfigAccessibilityModifiers(string args, int value, ReportDiagnostic severity)
         {
-            var storageLocation = CodeStyleOptions2.RequireAccessibilityModifiers.StorageLocations
+            var storageLocation = CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocations
                 .OfType<EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>>()
                 .Single();
-            var allRawConventions = new StructuredAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, args));
+            var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, args));
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption2<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
             var codeStyleOption = (CodeStyleOption2<AccessibilityModifiersRequired>)parsedCodeStyleOption!;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             var storageLocation = FormattingOptions.NewLine.StorageLocations
                 .OfType<EditorConfigStorageLocation<string>>()
                 .Single();
-            var allRawConventions = new StructuredAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, configurationString));
+            var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, configurationString));
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(string), out var parsedNewLine));
             Assert.Equal(newLine, (string?)parsedNewLine);

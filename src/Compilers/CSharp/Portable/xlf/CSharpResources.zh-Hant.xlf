@@ -847,6 +847,11 @@
         <target state="translated">切片模式只能在清單模式中使用一次且直接使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
         <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
         <target state="translated">無法將方法群組轉換成函式指標 (您是否缺少 '&amp;'?)</target>

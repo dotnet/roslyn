@@ -53,15 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
-                var clearTrackingSession = ApplyChangesToWorkspace(cancellationToken);
+                ApplyChangesToWorkspace(cancellationToken);
 
                 // Clear the state machine so that future updates to the same token work,
                 // and any text changes caused by this update are not interpreted as 
                 // potential renames
-                if (clearTrackingSession)
-                {
-                    _stateMachine.ClearTrackingSession();
-                }
+                _stateMachine.ClearTrackingSession();
             }
 
             public async Task<RenameTrackingSolutionSet> RenameSymbolAsync(CancellationToken cancellationToken)
@@ -85,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
             }
 
-            private bool ApplyChangesToWorkspace(CancellationToken cancellationToken)
+            private void ApplyChangesToWorkspace(CancellationToken cancellationToken)
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -140,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                         EditorFeaturesResources.Rename_Symbol,
                         NotificationSeverity.Error);
 
-                    return true;
+                    return;
                 }
 
                 // move all changes to final solution based on the workspace's current solution, since the current solution
@@ -165,7 +162,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSessionId);
 
                 RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
-                return true;
             }
 
             private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)

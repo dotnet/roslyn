@@ -51,18 +51,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { WellKnownTags.Assembly, LSP.CompletionItemKind.File },
             { WellKnownTags.Class, LSP.CompletionItemKind.Class },
             { WellKnownTags.Constant, LSP.CompletionItemKind.Constant },
-            { WellKnownTags.Delegate, LSP.CompletionItemKind.Method },
+            { WellKnownTags.Delegate, LSP.CompletionItemKind.Delegate },
             { WellKnownTags.Enum, LSP.CompletionItemKind.Enum },
             { WellKnownTags.EnumMember, LSP.CompletionItemKind.EnumMember },
             { WellKnownTags.Event, LSP.CompletionItemKind.Event },
-            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.Method },
+            { WellKnownTags.ExtensionMethod, LSP.CompletionItemKind.ExtensionMethod },
             { WellKnownTags.Field, LSP.CompletionItemKind.Field },
             { WellKnownTags.Interface, LSP.CompletionItemKind.Interface },
             { WellKnownTags.Intrinsic, LSP.CompletionItemKind.Text },
             { WellKnownTags.Keyword, LSP.CompletionItemKind.Keyword },
             { WellKnownTags.Label, LSP.CompletionItemKind.Text },
             { WellKnownTags.Local, LSP.CompletionItemKind.Variable },
-            { WellKnownTags.Namespace, LSP.CompletionItemKind.Text },
+            { WellKnownTags.Namespace, LSP.CompletionItemKind.Namespace },
             { WellKnownTags.Method, LSP.CompletionItemKind.Method },
             { WellKnownTags.Module, LSP.CompletionItemKind.Module },
             { WellKnownTags.Operator, LSP.CompletionItemKind.Operator },
@@ -672,11 +672,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 // LSP doesn't currently support indent size as an option. However, except in special
                 // circumstances, indent size is usually equivalent to tab size, so we'll just set it.
-                formattingOptions = formattingOptions.With(new LineFormattingOptions(
-                    UseTabs: !options.InsertSpaces,
-                    TabSize: options.TabSize,
-                    IndentationSize: options.TabSize,
-                    NewLine: formattingOptions.NewLine));
+                formattingOptions = formattingOptions.With(new LineFormattingOptions()
+                {
+                    UseTabs = !options.InsertSpaces,
+                    TabSize = options.TabSize,
+                    IndentationSize = options.TabSize,
+                    NewLine = formattingOptions.NewLine
+                });
             }
 
             return formattingOptions;

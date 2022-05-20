@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString
             var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
 
             // Auto-formatting options are not relevant since they only control behavior on typing.
-            var indentationOptions = new IndentationOptions(formattingOptions, AutoFormattingOptions.Default);
+            var indentationOptions = new IndentationOptions(formattingOptions);
             var indentation = token.GetPreferredIndentation(document, indentationOptions, cancellationToken);
 
             using var _ = PooledStringBuilder.GetInstance(out var builder);

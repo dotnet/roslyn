@@ -96,10 +96,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 var newDocument = OriginalDocument.WithText(newSourceText);
 
                 // The only auto-formatting option that's relevant is indent style. Others only control behavior on typing.
-                var indentationOptions = new IndentationOptions(
-                    Options.FormattingOptions,
-                    AutoFormattingOptions.Default,
-                    IndentStyle: indentStyle);
+                var indentationOptions = new IndentationOptions(Options.FormattingOptions) { IndentStyle = indentStyle };
 
                 var indentationService = Wrapper.IndentationService;
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;

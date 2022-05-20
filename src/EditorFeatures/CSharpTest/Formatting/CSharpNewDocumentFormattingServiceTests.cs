@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities.Formatting;
@@ -37,9 +38,9 @@ namespace Goo;
 internal class C
 {
 }",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
+                { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error) }
             },
             parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
         }
@@ -59,9 +60,9 @@ namespace Bar
             await TestAsync(
                 testCode: testCode,
                 expected: testCode,
-                options: new[]
+                options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error) }
                 },
                 parseOptions: new CSharpParseOptions(LanguageVersion.CSharp10));
         }
@@ -80,9 +81,9 @@ namespace Goo
             await TestAsync(
                 testCode: testCode,
                 expected: testCode,
-                options: new[]
+                options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error))
+                    { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error) }
                 },
                 parseOptions: new CSharpParseOptions(LanguageVersion.CSharp9));
         }
@@ -104,9 +105,9 @@ namespace Goo
     {
     }
 }",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error))
+                { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Error) }
             });
         }
 
@@ -119,9 +120,9 @@ namespace Goo
             await TestAsync(
                 testCode: testCode,
                 expected: testCode,
-                options: new[]
+                options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error))
+                    { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.OutsideNamespace, NotificationOption2.Error) }
                 });
         }
 
@@ -140,9 +141,9 @@ using System;
 namespace Goo
 {
 }",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CodeStyleOptions2.FileHeaderTemplate, "This is a banner.")
+                { CodeStyleOptions2.FileHeaderTemplate, "This is a banner." }
             });
         }
 
@@ -165,9 +166,9 @@ namespace Goo
     {
     }
 }",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+                { CodeStyleOptions2.AccessibilityModifiersRequired, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error) }
             });
         }
 
@@ -188,10 +189,10 @@ namespace Goo;
 internal class C
 {
 }",
-            options: new (OptionKey, object)[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (new OptionKey(CSharpCodeStyleOptions.NamespaceDeclarations), new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error)),
-                (new OptionKey(CodeStyleOptions2.RequireAccessibilityModifiers, Language), new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+                { CSharpCodeStyleOptions.NamespaceDeclarations, new CodeStyleOption2<NamespaceDeclarationPreference>(NamespaceDeclarationPreference.FileScoped, NotificationOption2.Error) },
+                { CodeStyleOptions2.AccessibilityModifiersRequired, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error) }
             });
         }
 
@@ -232,9 +233,9 @@ namespace Goo
     {
     }
 }",
-                options: new[]
+                options: new OptionsCollection(LanguageNames.CSharp)
                 {
-                    (CodeStyleOptions2.RequireAccessibilityModifiers, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error))
+                    { CodeStyleOptions2.AccessibilityModifiersRequired, new CodeStyleOption2<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, NotificationOption2.Error) }
                 });
         }
 
@@ -250,9 +251,9 @@ namespace Goo
 {
     using System;
 }",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error))
+                { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, new CodeStyleOption2<AddImportPlacement>(AddImportPlacement.InsideNamespace, NotificationOption2.Error) }
             });
         }
 
@@ -267,9 +268,9 @@ Console.WriteLine(""Hello, World!"");",
 
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine(""Hello, World!"");",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion))
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion) }
             });
         }
 
@@ -289,9 +290,9 @@ internal class Program
         Console.WriteLine(""Hello, World!"");
     }
 }",
-            options: new[]
+            options: new OptionsCollection(LanguageNames.CSharp)
             {
-                (CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Suggestion))
+                { CSharpCodeStyleOptions.PreferTopLevelStatements, new CodeStyleOption2<bool>(value: false, notification: NotificationOption2.Suggestion) }
             });
         }
     }

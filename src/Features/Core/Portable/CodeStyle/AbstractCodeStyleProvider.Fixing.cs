@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     // subclasses cannot change anything.  All code relevant to subclasses relating to fixing is
     // contained in AbstractCodeStyleProvider.cs
 
-    internal abstract partial class AbstractCodeStyleProvider<TOptionKind, TCodeStyleProvider>
+    internal abstract partial class AbstractCodeStyleProvider<TOptionValue, TCodeStyleProvider>
     {
         private async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

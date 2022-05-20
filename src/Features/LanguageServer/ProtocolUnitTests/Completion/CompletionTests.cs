@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -1369,10 +1370,8 @@ class A
 
         private static CompletionListCache GetCompletionListCache(TestLspServer testLspServer)
         {
-            var dispatchAccessor = testLspServer.GetDispatcherAccessor();
-            var handler = (CompletionHandler)dispatchAccessor.GetHandler<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName);
-            Assert.NotNull(handler);
-            return handler.GetTestAccessor().GetCache();
+            var cache = testLspServer.GetRequiredLspService<CompletionListCache>();
+            return cache;
         }
     }
 }

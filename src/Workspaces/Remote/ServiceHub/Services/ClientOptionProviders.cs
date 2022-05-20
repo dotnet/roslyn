@@ -49,7 +49,7 @@ internal sealed class ClientCleanCodeGenerationOptionsProvider : AbstractCleanCo
     public ClientCleanCodeGenerationOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<CleanCodeGenerationOptions>> callback, RemoteServiceCallbackId callbackId)
         => _cache = new RemoteOptionsProviderCache<CleanCodeGenerationOptions>(callback, callbackId);
 
-    public override ValueTask<CleanCodeGenerationOptions> GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    public override ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
         => _cache.GetOptionsAsync(languageServices, cancellationToken);
 }
 
@@ -60,7 +60,7 @@ internal sealed class ClientCodeCleanupOptionsProvider : AbstractCodeCleanupOpti
     public ClientCodeCleanupOptionsProvider(Func<RemoteServiceCallbackId, string, CancellationToken, ValueTask<CodeCleanupOptions>> callback, RemoteServiceCallbackId callbackId)
         => _cache = new RemoteOptionsProviderCache<CodeCleanupOptions>(callback, callbackId);
 
-    public override ValueTask<CodeCleanupOptions> GetOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
+    public override ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(HostLanguageServices languageServices, CancellationToken cancellationToken)
         => _cache.GetOptionsAsync(languageServices, cancellationToken);
 }
 
