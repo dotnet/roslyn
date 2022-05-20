@@ -908,10 +908,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                onAfterWorkspaceCreated: w =>
-                {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, true)));
-                });
+                options: Option(FormattingOptions2.InsertFinalNewLine, true));
         }
 
         [WorkItem(17171, "https://github.com/dotnet/roslyn/issues/17171")]
@@ -949,10 +946,7 @@ partial class Outer
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
-                onAfterWorkspaceCreated: w =>
-                {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, false)));
-                });
+                options: Option(FormattingOptions2.InsertFinalNewLine, false));
         }
 
         [WorkItem(16282, "https://github.com/dotnet/roslyn/issues/16282")]

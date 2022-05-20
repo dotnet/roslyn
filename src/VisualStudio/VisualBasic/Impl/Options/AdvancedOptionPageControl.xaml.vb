@@ -67,13 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.VisualBasic)
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.VisualBasic)
-            BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic,
-                         Function()
-                             ' This option used to be backed by an experimentation flag but Is no longer.
-                             ' Having the option still a bool? keeps us from running into storage related issues,
-                             ' but if the option was stored as null we want it to respect this default
-                             Return False
-                         End Function)
+            BindToOption(AddMissingImportsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.VisualBasic)
 
             ' Quick Actions
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous,
@@ -90,7 +84,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(EnableOutlining, FeatureOnOffOptions.Outlining, LanguageNames.VisualBasic)
             BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(Collapse_imports_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.VisualBasic)
-            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_sourcelink_embedded_decompiled_files_on_open, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, LanguageNames.VisualBasic)
+            BindToOption(Collapse_metadata_signature_files_on_open, BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, LanguageNames.VisualBasic)
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.VisualBasic)
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.VisualBasic)
@@ -212,13 +207,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Private Sub EnableOutlining_Checked(sender As Object, e As RoutedEventArgs)
             Collapse_regions_on_file_open.IsEnabled = True
             Collapse_imports_on_file_open.IsEnabled = True
-            Collapse_metadata_on_file_open.IsEnabled = True
+            Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = True
+            Collapse_metadata_signature_files_on_open.IsEnabled = True
         End Sub
 
         Private Sub EnableOutlining_Unchecked(sender As Object, e As RoutedEventArgs)
             Collapse_regions_on_file_open.IsEnabled = False
             Collapse_imports_on_file_open.IsEnabled = False
-            Collapse_metadata_on_file_open.IsEnabled = False
+            Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = False
+            Collapse_metadata_signature_files_on_open.IsEnabled = False
         End Sub
     End Class
 End Namespace

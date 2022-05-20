@@ -89,12 +89,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property CollapseMetadataImplementationsWhenFirstOpened As Boolean
+        Public Property CollapseMetadataSignatureFilesWhenFirstOpened As Boolean
             Get
-                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened)
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, value)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, value)
+            End Set
+        End Property
+
+        Public Property CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened As Boolean
+            Get
+                Return GetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, value)
             End Set
         End Property
 
@@ -125,11 +134,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property AddImportsOnPaste As Integer
+        Public Property AddImportsOnPaste As Boolean
             Get
                 Return GetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste)
             End Get
-            Set(value As Integer)
+            Set(value As Boolean)
                 SetBooleanOption(FeatureOnOffOptions.AddImportsOnPaste, value)
             End Set
         End Property

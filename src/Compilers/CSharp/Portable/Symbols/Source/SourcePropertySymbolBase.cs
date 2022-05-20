@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // get-only auto property should not override settable properties
-                if (SetMethod is null && !this.IsReadOnly)
+                if (this.IsOverride && SetMethod is null && !this.IsReadOnly)
                 {
                     diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
                 }

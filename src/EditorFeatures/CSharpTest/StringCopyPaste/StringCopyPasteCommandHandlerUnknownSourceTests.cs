@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
     {
         protected static void TestPasteUnknownSource(string pasteText, string markup, string expectedMarkup, string afterUndo)
         {
-            using var state = StringCopyPasteTestState.CreateTestState(copyFileMarkup: null, pasteFileMarkup: markup);
+            using var state = StringCopyPasteTestState.CreateTestState(copyFileMarkup: null, pasteFileMarkup: markup, mockCopyPasteService: true);
 
-            state.TestCopyPaste(expectedMarkup, pasteText, afterUndo);
+            state.TestCopyPaste(expectedMarkup, pasteText, pasteTextIsKnown: false, afterUndo);
         }
     }
 }

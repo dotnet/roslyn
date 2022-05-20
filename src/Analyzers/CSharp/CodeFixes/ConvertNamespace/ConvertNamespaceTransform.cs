@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
                 return null;
 
             // Auto-formatting options are not relevant since they only control behavior on typing.
-            var indentationOptions = new IndentationOptions(options, AutoFormattingOptions.Default);
+            var indentationOptions = new IndentationOptions(options);
 
             var indentation = indentationService.GetIndentation(document, openBraceLine + 1, indentationOptions, cancellationToken);
 

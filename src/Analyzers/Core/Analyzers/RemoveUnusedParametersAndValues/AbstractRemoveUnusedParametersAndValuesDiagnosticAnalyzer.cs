@@ -100,8 +100,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         .Add(s_unusedParameterRule, CodeStyleOptions2.UnusedParameters),
                    language)
         {
-            UnusedValueExpressionStatementOption = unusedValueExpressionStatementOption;
-            UnusedValueAssignmentOption = unusedValueAssignmentOption;
         }
 
         protected abstract bool IsRecordDeclaration(SyntaxNode node);
@@ -109,8 +107,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         protected abstract bool SupportsDiscard(SyntaxTree tree);
         protected abstract bool MethodHasHandlesClause(IMethodSymbol method);
         protected abstract bool IsIfConditionalDirective(SyntaxNode node);
-        private Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatementOption { get; }
-        private Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignmentOption { get; }
+        protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueExpressionStatementOption(AnalyzerOptionsProvider provider);
+        protected abstract CodeStyleOption2<UnusedValuePreference> GetUnusedValueAssignmentOption(AnalyzerOptionsProvider provider);
 
         /// <summary>
         /// Indicates if we should bail from removable assignment analysis for the given
@@ -196,18 +194,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 compilationContext => SymbolStartAnalyzer.CreateAndRegisterActions(compilationContext, this));
         }
 
-        private bool TryGetOptions(
-            SyntaxTree syntaxTree,
-            string language,
-            AnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken,
-            out Options options)
+        private bool TryGetOptions(SyntaxTree syntaxTree, AnalyzerOptions analyzerOptions, out Options options)
         {
             options = null;
 
-            var unusedParametersOption = analyzerOptions.GetOption(CodeStyleOptions2.UnusedParameters, language, syntaxTree, cancellationToken);
-            var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(UnusedValueExpressionStatementOption);
-            var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(UnusedValueAssignmentOption);
+            var optionsProvider = analyzerOptions.GetAnalyzerOptions(syntaxTree);
+
+            var unusedParametersOption = optionsProvider.UnusedParameters;
+            var (unusedValueExpressionStatementPreference, unusedValueExpressionStatementSeverity) = GetPreferenceAndSeverity(GetUnusedValueExpressionStatementOption(optionsProvider));
+            var (unusedValueAssignmentPreference, unusedValueAssignmentSeverity) = GetPreferenceAndSeverity(GetUnusedValueAssignmentOption(optionsProvider));
+
             if (unusedParametersOption.Notification.Severity == ReportDiagnostic.Suppress &&
                 unusedValueExpressionStatementSeverity == ReportDiagnostic.Suppress &&
                 unusedValueAssignmentSeverity == ReportDiagnostic.Suppress)
@@ -221,10 +217,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             return true;
 
             // Local functions.
-            (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(
-                Option2<CodeStyleOption2<UnusedValuePreference>> codeStyleOption)
+            (UnusedValuePreference preference, ReportDiagnostic severity) GetPreferenceAndSeverity(CodeStyleOption2<UnusedValuePreference> option)
             {
-                var option = analyzerOptions.GetOption(codeStyleOption, syntaxTree, cancellationToken);
                 var preferenceOpt = option?.Value;
                 if (preferenceOpt == null ||
                     option.Notification.Severity == ReportDiagnostic.Suppress)

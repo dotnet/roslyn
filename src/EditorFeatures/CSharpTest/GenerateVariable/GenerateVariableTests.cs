@@ -9778,5 +9778,187 @@ class C
     }
 }", index: 4);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeCancellationTokenAndOptionalParameter_MultipleParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(int value, bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(int value, System.TimeSpan time, bool someParameter = true, CancellationToken cancellationToken)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeOptionalParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(bool someParameter = true)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(System.TimeSpan time, bool someParameter = true)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeParamsParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(params double[] x)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(System.TimeSpan time, params double[] x)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeThisParameter()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken)
+    {
+        return [|test|];
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken, int test)
+    {
+        return test;
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeAssortmentOfExceptions()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken, out int x, params bool[] z)
+    {
+        return [|test|];
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+public static class TestClass
+{
+    public static int Method(this CancellationToken cancellationToken, int test, out int x, params bool[] z)
+    {
+        return test;
+    }
+}", index: 4);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateParameterBeforeMultipleExceptions_BetweenOutParams()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(out int x, int y, out int z, params double[] x)
+    {
+        await Task.Delay([|time|]);
+    }
+}",
+@"using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public async Task M(out int x, int y, System.TimeSpan time, out int z, params double[] x)
+    {
+        await Task.Delay(time);
+    }
+}", index: 4);
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.ServiceModel.Syndication;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
@@ -19,6 +20,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
@@ -30,21 +33,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
         {
             private static readonly TestComposition s_composition =
                 EditorTestCompositions.EditorFeaturesWpf
+                    .AddParts(typeof(StringCopyPasteCommandHandler));
+
+            private static readonly TestComposition s_compositionWithMockCopyPasteService =
+                EditorTestCompositions.EditorFeaturesWpf
                     .RemoveExcludedPartTypes(typeof(WpfStringCopyPasteService))
                     .AddParts(typeof(TestStringCopyPasteService))
                     .AddParts(typeof(StringCopyPasteCommandHandler));
 
-            private readonly StringCopyPasteCommandHandler _commandHandler;
+            public readonly StringCopyPasteCommandHandler CommandHandler;
 
-            public StringCopyPasteTestState(XElement workspaceElement)
-                : base(workspaceElement, s_composition)
+            public StringCopyPasteTestState(XElement workspaceElement, bool mockCopyPasteService)
+                : base(workspaceElement, mockCopyPasteService
+                      ? s_compositionWithMockCopyPasteService
+                      : s_composition)
             {
-                _commandHandler = (StringCopyPasteCommandHandler)GetExportedValues<ICommandHandler>().
+                CommandHandler = (StringCopyPasteCommandHandler)GetExportedValues<ICommandHandler>().
                     Single(c => c is StringCopyPasteCommandHandler);
             }
 
-            public static StringCopyPasteTestState CreateTestState(string? copyFileMarkup, string pasteFileMarkup)
-                => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup));
+            public static StringCopyPasteTestState CreateTestState(string? copyFileMarkup, string pasteFileMarkup, bool mockCopyPasteService)
+                => new(GetWorkspaceXml(copyFileMarkup, pasteFileMarkup), mockCopyPasteService);
 
             public static XElement GetWorkspaceXml(string? copyFileMarkup, string pasteFileMarkup)
                 => XElement.Parse(($@"
@@ -74,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 }
             }
 
-            public void TestCopyPaste(string expectedMarkup, string? pasteText, string afterUndoMarkup)
+            public void TestCopyPaste(string expectedMarkup, string? pasteText, bool pasteTextIsKnown, string afterUndoMarkup)
             {
                 var workspace = this.Workspace;
 
                 // Ensure we clear out the clipboard so that a prior copy/paste doesn't corrupt the test.
-                var service = workspace.Services.GetRequiredService<IStringCopyPasteService>();
-                service.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, "");
+                var service = workspace.Services.GetRequiredService<IStringCopyPasteService>() as TestStringCopyPasteService;
+                service?.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, "");
 
                 var copyDocument = this.Workspace.Documents.FirstOrDefault(d => d.AnnotatedSpans.ContainsKey("Copy"));
                 if (copyDocument != null)
@@ -90,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
 
                     SetSelection(copyDocument, copySpans, out var copyTextView, out var copyTextBuffer);
 
-                    _commandHandler.ExecuteCommand(
+                    CommandHandler.ExecuteCommand(
                         new CopyCommandArgs(copyTextView, copyTextBuffer), () =>
                         {
                             var copyEditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(copyTextView);
@@ -106,13 +115,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
                 if (pasteText == null)
                 {
                     // if the user didn't supply text to paste, then just paste in what we put in the clipboard above.
-                    _commandHandler.ExecuteCommand(
+                    CommandHandler.ExecuteCommand(
                         new PasteCommandArgs(this.TextView, this.SubjectBuffer), () => EditorOperations.Paste(), TestCommandExecutionContext.Create());
                 }
                 else
                 {
                     // otherwise, this is a test of text coming in from another source.  Do the edit manually.
-                    _commandHandler.ExecuteCommand(
+
+                    if (pasteTextIsKnown)
+                    {
+                        // we were given text to directly place on the clipboard without needing to do a copy.
+                        Contract.ThrowIfNull(pasteText);
+                        var json = new StringCopyPasteData(ImmutableArray.Create(StringCopyPasteContent.ForText(pasteText))).ToJson();
+                        Contract.ThrowIfNull(json);
+                        service!.TrySetClipboardData(StringCopyPasteCommandHandler.KeyAndVersion, json);
+                    }
+
+                    CommandHandler.ExecuteCommand(
                         new PasteCommandArgs(this.TextView, this.SubjectBuffer), () =>
                         {
                             EditorOperations.ReplaceSelection(pasteText);

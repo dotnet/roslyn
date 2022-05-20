@@ -75,13 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp);
             BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp);
-            BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, () =>
-            {
-                // This option used to be backed by an experimentation flag but is no longer.
-                // Having the option still a bool? keeps us from running into storage related issues,
-                // but if the option was stored as null we want it to respect this default
-                return false;
-            });
+            BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp);
 
             // Quick Actions
             BindToOption(ComputeQuickActionsAsynchronouslyExperimental, SuggestionsOptions.Asynchronous, () =>
@@ -98,7 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(EnterOutliningMode, FeatureOnOffOptions.Outlining, LanguageNames.CSharp);
             BindToOption(Collapse_regions_on_file_open, BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(Collapse_usings_on_file_open, BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, LanguageNames.CSharp);
-            BindToOption(Collapse_metadata_on_file_open, BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, LanguageNames.CSharp);
+            BindToOption(Collapse_sourcelink_embedded_decompiled_files_on_open, BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, LanguageNames.CSharp);
+            BindToOption(Collapse_metadata_signature_files_on_open, BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, LanguageNames.CSharp);
             BindToOption(DisplayLineSeparators, FeatureOnOffOptions.LineSeparator, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
@@ -299,14 +294,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             Collapse_regions_on_file_open.IsEnabled = true;
             Collapse_usings_on_file_open.IsEnabled = true;
-            Collapse_metadata_on_file_open.IsEnabled = true;
+            Collapse_metadata_signature_files_on_open.IsEnabled = true;
+            Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = true;
         }
 
         private void EnterOutliningMode_Unchecked(object sender, RoutedEventArgs e)
         {
             Collapse_regions_on_file_open.IsEnabled = false;
             Collapse_usings_on_file_open.IsEnabled = false;
-            Collapse_metadata_on_file_open.IsEnabled = false;
+            Collapse_metadata_signature_files_on_open.IsEnabled = false;
+            Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = false;
         }
     }
 }

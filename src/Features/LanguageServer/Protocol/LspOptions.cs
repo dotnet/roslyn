@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class LspOptions : IOptionProvider
+    internal sealed class LspOptions
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Lsp\";
         private const string FeatureName = "LspOptions";
@@ -31,15 +30,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
         public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new(FeatureName, nameof(LspSemanticTokensFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.LSP.SemanticTokens"));
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            MaxCompletionListSize,
-            LspEditorFeatureFlag);
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LspOptions()
-        {
-        }
     }
 }

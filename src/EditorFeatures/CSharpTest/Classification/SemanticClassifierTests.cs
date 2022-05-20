@@ -2752,45 +2752,6 @@ namespace ConsoleApplication1
     Property("Length"));
         }
 
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern1(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        if (s is var v)
-        {
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
-        [WpfTheory(Skip = "https://github.com/dotnet/roslyn/issues/30855")]
-        [CombinatorialData]
-        [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        public async Task TestVarInPattern2(TestHost testHost)
-        {
-            await TestAsync(
-@"
-class Program
-{
-    void Main(string s)
-    {
-        switch (s)
-        {
-            case var v:
-        }
-    }
-}", testHost,
- Parameter("s"), Keyword("var"));
-        }
-
         [Theory]
         [CombinatorialData]
         [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
