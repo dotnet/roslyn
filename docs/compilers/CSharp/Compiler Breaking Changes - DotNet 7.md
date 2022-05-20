@@ -19,9 +19,9 @@ IntPtr M(IntPtr x, int y)
     }
 }
 
-IntPtr M2(ulong ul)
+unsafe IntPtr M2(void* ptr)
 {
-    return checked((IntPtr)ul); // may now throw
+    return checked((IntPtr)ptr); // may now throw
 }
 ```
 

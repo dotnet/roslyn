@@ -10179,26 +10179,36 @@ public class C
         {
             string source = """
 using System;
-ulong ul = ulong.MaxValue;
+class C
+{
+    public unsafe static void Main()
+    {
+        void* ptr = (void*)ulong.MaxValue;
 
-try
-{
-    IntPtr i = checked((IntPtr)ul);
-}
-catch (System.OverflowException)
-{
-    Console.Write("RAN ");
-}
+        try
+        {
+            IntPtr i = checked((IntPtr)ptr);
+        }
+        catch (System.OverflowException)
+        {
+            Console.Write("OVERFLOW ");
+        }
 
-IntPtr j = unchecked((IntPtr)ul);
-if (j == -1)
-{
-    Console.Write("RAN");
+        IntPtr j = unchecked((IntPtr)ptr);
+        if (j == (IntPtr)(-1))
+        {
+            Console.Write("RAN");
+        }
+    }
 }
 """;
-            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "RAN RAN");
+            CompileAndVerify(comp, expectedOutput: "OVERFLOW RAN", verify: Verification.Skipped);
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.Skipped);
         }
 
         [Fact]
