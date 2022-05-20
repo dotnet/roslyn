@@ -702,7 +702,7 @@ end class
             Dim source = "
 imports A = XAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -731,7 +731,7 @@ end class
             Dim source = "
 imports AAttribute = XAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -789,7 +789,7 @@ end class
             Dim source = "
 imports A = M.XAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -818,7 +818,7 @@ end class
             Dim source = "
 imports A = M.XAttribute<int>
 
-[A]
+<A>
 class C
 end class
 "
@@ -847,7 +847,7 @@ end class
             Dim source = "
 imports A = global::M.XAttribute<int>
 
-[A]
+<A>
 class C
 end class
 "
@@ -935,7 +935,7 @@ namespace N
 {
     imports A = B
 
-    [A]
+    <A>
     class C
     end class
 }
@@ -1002,7 +1002,7 @@ namespace N
 {
     imports AAttribute = B
 
-    [A]
+    <A>
     class C
     end class
 }
@@ -1035,7 +1035,7 @@ namespace N
 {
     imports AAttribute = B
 
-    [A]
+    <A>
     class C
     end class
 }
@@ -1065,7 +1065,7 @@ namespace N
 imports AAttribute = BAttribute
 imports BAttribute = AAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -1094,7 +1094,7 @@ end class
 imports A = BAttribute
 imports B = AAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -1123,7 +1123,7 @@ end class
 imports A = B
 imports B = A
 
-[A]
+<A>
 class C
 end class
 "
@@ -1149,7 +1149,7 @@ end class
         <Fact>
         Public Sub DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_LocalAliasInDifferentFile1()
             Dim source1 = "
-[A]
+<A>
 class C
 end class
 "
@@ -1177,7 +1177,7 @@ imports A = XAttribute
         <Fact>
         Public Sub DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_LocalAliasInDifferentFile2()
             Dim source1 = "
-[A]
+<A>
 class C
 end class
 "
@@ -1207,7 +1207,7 @@ imports AAttribute = XAttribute
             Dim source = "
 global imports A = XAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -1236,7 +1236,7 @@ end class
             Dim source = "
 global imports AAttribute = XAttribute
 
-[A]
+<A>
 class C
 end class
 "
@@ -1323,7 +1323,7 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile1()
             Dim source1 = "
-[A]
+<A>
 class C
 end class
 "
@@ -1352,7 +1352,7 @@ global imports A = XAttribute
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile2()
             Dim source1 = "
-[A]
+<A>
 class C
 end class
 "
@@ -1410,7 +1410,7 @@ imports B = AAttribute
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasLoop1()
             Dim source1 = "
-[A]
+<A>
 class C
 end class
 "
@@ -2000,7 +2000,7 @@ end class
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(
                 compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-[A]
+<A>
 class D { }"))))
             runResult = driver.GetRunResult().Results(0)
 
@@ -2060,7 +2060,7 @@ end class
             driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.Last(),
             compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("
-[A]
+<A>
 class D { }"))))
             runResult = driver.GetRunResult().Results(0)
 
