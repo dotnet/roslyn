@@ -100,7 +100,7 @@ End Class
                 Assert.Equal(1, result.Items.Count)
                 Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
                 Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Title)
-                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("SerializableAttribute()", StringComparison.Ordinal)) ' Navigates to constructor (which is decompiled to C#)
+                Assert.Equal(result.GetRemainingIdentifierLineTextOnDisk(index:=0), "SerializableAttribute()") ' Navigates to constructor (which is decompiled to C#)
             End Using
         End Sub
 
