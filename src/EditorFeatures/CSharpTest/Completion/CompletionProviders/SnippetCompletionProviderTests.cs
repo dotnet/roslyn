@@ -105,46 +105,6 @@ class C
             await VerifyItemInLinkedFilesAsync(markup, MockSnippetInfoService.SnippetShortcut, null);
         }
 
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task SnippetsNotInTypeParameterConstraint_TypeDeclaration1()
-        {
-            await VerifyItemIsAbsentAsync(
-@"class C<T> where T : $$", MockSnippetInfoService.PreProcessorSnippetShortcut);
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task SnippetsNotInTypeParameterConstraint_TypeDeclaration2()
-        {
-            await VerifyItemIsAbsentAsync(
-@"class C<T>
-        where T : $$
-        where U : U", MockSnippetInfoService.PreProcessorSnippetShortcut);
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task SnippetsNotInTypeParameterConstraint_MethodDeclaration1()
-        {
-            await VerifyItemIsAbsentAsync(
-@"class C
-{
-    public void M<T>() where T : $$", MockSnippetInfoService.PreProcessorSnippetShortcut);
-        }
-
-        [WorkItem(30784, "https://github.com/dotnet/roslyn/issues/30784")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task SnippetsNotInTypeParameterConstraint_MethodDeclaration2()
-        {
-            await VerifyItemIsAbsentAsync(
-@"class C
-{
-    public void M<T>()
-        where T : $$
-        where U : T", MockSnippetInfoService.PreProcessorSnippetShortcut);
-        }
-
         [WorkItem(1140893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1140893")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitWithEnterObeysOption()

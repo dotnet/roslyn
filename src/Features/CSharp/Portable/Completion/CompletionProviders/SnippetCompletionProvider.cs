@@ -97,8 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
             var semanticModel = context.SemanticModel;
 
-            if (context.IsInTaskLikeTypeContext ||
-                context.IsGenericConstraintContext)
+            if (context.IsInTaskLikeTypeContext)
             {
                 return ImmutableArray<CompletionItem>.Empty;
             }
