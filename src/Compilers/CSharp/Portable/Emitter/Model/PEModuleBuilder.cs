@@ -1667,7 +1667,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal SynthesizedAttributeData SynthesizeNativeIntegerAttribute(Symbol symbol, TypeSymbol type)
         {
             Debug.Assert((object)type != null);
-            Debug.Assert(type.ContainsNativeInteger());
+            Debug.Assert(type.ContainsNativeIntegerWrapperType());
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1702,6 +1703,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal virtual SynthesizedAttributeData SynthesizeNativeIntegerAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)
         {
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
+
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             // https://github.com/dotnet/roslyn/issues/30062 Should not be optional.
             return Compilation.TrySynthesizeAttribute(member, arguments, isOptionalUse: true);
@@ -1776,6 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal void EnsureNativeIntegerAttributeExists()
         {
+            Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute);
         }
 
