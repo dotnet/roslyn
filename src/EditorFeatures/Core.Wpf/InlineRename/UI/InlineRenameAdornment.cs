@@ -11,13 +11,12 @@ using System.Windows.Controls;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
+    /// <summary>
+    /// A base class for rename controls. Needs to have a default constructor so the 
+    /// type can be used in ResourceDictionaries in XAML
+    /// </summary>
     internal class InlineRenameAdornment : UserControl, IDisposable
     {
-        public InlineRenameAdornment()
-            : base()
-        {
-        }
-
         public virtual void Dispose() { }
     }
 }
