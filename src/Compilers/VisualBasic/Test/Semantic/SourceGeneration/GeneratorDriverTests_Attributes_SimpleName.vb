@@ -1822,16 +1822,14 @@ end class
 
         <Fact>
         Public Sub TestAddGlobalAttributeFile1()
-            Dim source2 = "
-global imports BAttribute = AAttribute"
-
             Dim source3 = "
 <B>
 class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source3},
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("BAttribute = AAttribute")), parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
                                                                                               Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
@@ -1846,17 +1844,16 @@ end class
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
 
-            driver = driver.RunGenerators(compilation.AddSyntaxTrees(
-                compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-global imports AAttribute = XAttribute"))))
+            driver = driver.RunGenerators(
+                compilation.WithOptions(compilation.Options.WithGlobalImports(
+                                        compilation.Options.GlobalImports.Add(GlobalImport.Parse("AAttribute = XAttribute")))))
+
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason))
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -1889,16 +1886,14 @@ end class
 
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
 
-            driver = driver.RunGenerators(compilation.AddSyntaxTrees(
-                compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-global imports BAttribute = XAttribute"))))
+            driver = driver.RunGenerators(compilation.WithOptions(compilation.Options.WithGlobalImports(
+                compilation.Options.GlobalImports.Add(GlobalImport.Parse("BAttribute = XAttribute")))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason))
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("compilationUnit_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationUnitAndGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -1910,19 +1905,16 @@ global imports BAttribute = XAttribute"))))
 
         <Fact>
         Public Sub TestAddSourceFileWithoutAttribute()
-            Dim source1 = "
-global imports AAttribute = XAttribute"
-
-            Dim source2 = "
-global imports BAttribute = AAttribute"
-
             Dim source3 = "
 <B>
 class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source3},
+                options:=TestOptions.DebugDll.WithGlobalImports(
+                    GlobalImport.Parse("AAttribute = XAttribute"),
+                    GlobalImport.Parse("BAttribute = AAttribute")), parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
                                                                                               Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
@@ -1946,8 +1938,6 @@ end class"))))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
             Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
             Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("allUpGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -1959,19 +1949,16 @@ end class"))))
 
         <Fact>
         Public Sub TestAddSourceFileWithAttribute()
-            Dim source1 = "
-global imports AAttribute = XAttribute"
-
-            Dim source2 = "
-global imports BAttribute = AAttribute"
-
             Dim source3 = "
 <B>
 class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source3},
+                options:=TestOptions.DebugDll.WithGlobalImports(
+                    GlobalImport.Parse("AAttribute = XAttribute"),
+                    GlobalImport.Parse("BAttribute = AAttribute")), parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
                                                                                               Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
@@ -1995,8 +1982,6 @@ end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
-            Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
             Sub(_step) Assert.Equal(IncrementalStepRunReason.Unchanged, _step.Outputs.Single().Reason),
             Sub(_step) Assert.Equal(IncrementalStepRunReason.New, _step.Outputs.Single().Reason))
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
