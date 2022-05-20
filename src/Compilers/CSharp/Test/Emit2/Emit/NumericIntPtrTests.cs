@@ -10177,6 +10177,7 @@ public class C
         [Fact]
         public void OverflowPointerConversion()
         {
+            // Breaking change
             string source = """
 using System;
 class C
