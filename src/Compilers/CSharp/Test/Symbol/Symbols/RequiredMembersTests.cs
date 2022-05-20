@@ -1300,12 +1300,12 @@ public class C
             """);
 
         comp.VerifyDiagnostics(
-            // (6,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            // (6,25): warning CS9513: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Field;
-            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithLocation(6, 25),
-            // (8,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("C.Field").WithLocation(6, 25),
+            // (8,25): warning CS9513: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Prop1 { get; set; }
-            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithLocation(8, 25)
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("C.Prop1").WithLocation(8, 25)
         );
     }
 
@@ -1325,12 +1325,12 @@ public class C
             """);
 
         comp.VerifyDiagnostics(
-            // (6,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            // (6,25): warning CS9513: Required member 'S.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Field;
-            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithLocation(6, 25),
-            // (8,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("S.Field").WithLocation(6, 25),
+            // (8,25): warning CS9513: Required member 'S.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Prop1 { get; set; }
-            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithLocation(8, 25)
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("S.Prop1").WithLocation(8, 25)
         );
     }
 
@@ -1403,12 +1403,12 @@ public class C
             """);
 
         comp.VerifyDiagnostics(
-            // (14,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            // (14,25): warning CS9513: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Field;
-            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithLocation(14, 25),
-            // (16,25): warning CS9513: Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("C.Field").WithLocation(14, 25),
+            // (16,25): warning CS9513: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Prop1 { get; set; }
-            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithLocation(16, 25)
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("C.Prop1").WithLocation(16, 25)
         );
     }
 
@@ -3791,10 +3791,10 @@ public class Derived : Base
             
                 public Derived() : base()
                 {
-                    Prop1.ToString();
+                    Prop1.ToString(); // 1
                     Prop2.ToString();
-                    Prop3.ToString(); // 1
-                    Prop4.ToString(); // 2
+                    Prop3.ToString(); // 2
+                    Prop4.ToString(); // 3
                 }
             }
             """;
@@ -3802,16 +3802,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
             // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-            //     protected Base() {}
+            //     protected Base() {} // 1
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
             // (17,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : base()
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(17, 24),
             // (21,9): warning CS8602: Dereference of a possibly null reference.
-            //         Prop3.ToString(); // 1
+            //         Prop3.ToString(); // 2
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
             // (22,9): warning CS8602: Dereference of a possibly null reference.
-            //         Prop4.ToString(); // 2
+            //         Prop4.ToString(); // 3
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop4").WithLocation(22, 9)
         );
     }

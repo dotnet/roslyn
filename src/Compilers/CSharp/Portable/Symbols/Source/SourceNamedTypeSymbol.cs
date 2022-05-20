@@ -1643,16 +1643,16 @@ next:;
             // unless:
             //  1. We're in an obsolete context ourselves, or
             //  2. All constructors of this type are obsolete or attributed with SetsRequiredMembersAttribute
-            // We don't warn for required members from base types, as the user either has a warning that they're depending on an obsolete constructor/type already,
-            // or the original author ignored this warning.
+            // We don't warn for obsolete required members from base types, as the user either has a warning that they're depending on an obsolete constructor/type
+            // already, or the original author ignored this warning.
 
             // Obsolete states should have already been calculated by this point in the pipeline.
             Debug.Assert(ObsoleteKind != ObsoleteAttributeKind.Uninitialized);
             Debug.Assert(GetMembers().All(m => m.ObsoleteKind != ObsoleteAttributeKind.Uninitialized));
 
             if (ObsoleteKind != ObsoleteAttributeKind.None
-                || GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None }
-                                         || !((MethodSymbol)m).ShouldCheckRequiredMembers()))
+                || GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
+                                         || !method.ShouldCheckRequiredMembers()))
             {
                 return;
             }
@@ -1666,7 +1666,8 @@ next:;
 
                 if (member.ObsoleteKind != ObsoleteAttributeKind.None)
                 {
-                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.Locations[0]);
+                    // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.Locations[0], member);
                 }
             }
         }

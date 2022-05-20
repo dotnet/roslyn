@@ -452,6 +452,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return true;
         }
-
     }
 }
