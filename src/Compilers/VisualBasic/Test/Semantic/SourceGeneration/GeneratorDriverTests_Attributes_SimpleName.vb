@@ -58,7 +58,7 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList1()
             Dim source = "
-[X, Y]
+<X, Y>
 class C
 end class
 "
@@ -85,7 +85,7 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList2()
             Dim source = "
-[Y, X]
+<Y, X>
 class C
 end class
 "
@@ -112,7 +112,7 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList3()
             Dim source = "
-[X, X]
+<X, X>
 class C
 end class
 "
@@ -139,7 +139,7 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists1()
             Dim source = "
-<X>[Y]
+<X><Y>
 class C
 end class
 "
@@ -166,7 +166,7 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists2()
             Dim source = "
-[Y]<X>
+<Y><X>
 class C
 end class
 "
@@ -220,7 +220,7 @@ end class
         <Fact>
         Public Sub FindFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[XAttribute]
+<XAttribute>
 class C
 end class
 "
@@ -247,7 +247,7 @@ end class
         <Fact>
         Public Sub FindDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[A.X]
+<A.X>
 class C
 end class
 "
@@ -274,7 +274,7 @@ end class
         <Fact>
         Public Sub FindDottedFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[A.XAttribute]
+<A.XAttribute>
 class C
 end class
 "
@@ -301,7 +301,7 @@ end class
         <Fact>
         Public Sub FindDottedGenericAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[A.X<Y>]
+<A.X(Of Y)>
 class C
 end class
 "
@@ -328,7 +328,7 @@ end class
         <Fact>
         Public Sub FindGlobalAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[global::X]
+<global.X>
 class C
 end class
 "
@@ -355,7 +355,7 @@ end class
         <Fact>
         Public Sub FindGlobalDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[global::A.X]
+<global.A.X>
 class C
 end class
 "
@@ -496,7 +496,7 @@ class D { }
 <X>
 class C
 end class
-[Y]
+<Y>
 class D { }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -525,7 +525,7 @@ class D { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration3()
             Dim source = "
-[Y]
+<Y>
 class C
 end class
 <X>
@@ -673,7 +673,7 @@ end class
         <Fact>
         Public Sub FindFullAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_FullAttributeName1()
             Dim source = "
-[XAttribute]
+<XAtribute>
 class C
 end class
 "
@@ -760,7 +760,7 @@ end class
             Dim source = "
 imports AAttribute = XAttribute
 
-[AAttribute]
+<AAtribute>
 class C
 end class
 "
@@ -876,7 +876,7 @@ end class
             Dim source = "
 imports AAttribute : X
 
-[AAttribute]
+<AAtribute>
 class C
 end class
 "
@@ -904,7 +904,7 @@ end class
             Dim source = "
 imports AAttribute : XAttribute
 
-[B]
+<B>
 class C
 end class
 "
@@ -932,13 +932,12 @@ end class
             Dim source = "
 imports B = XAttribute
 namespace N
-{
     imports A = B
 
     <A>
     class C
     end class
-}
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -966,13 +965,12 @@ namespace N
             Dim source = "
 imports BAttribute = AAttribute
 namespace N
-{
     imports AAttribute = XAttribute
 
-    [B]
+    <B>
     class C
     end class
-}
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -999,13 +997,12 @@ namespace N
             Dim source = "
 imports B = XAttribute
 namespace N
-{
     imports AAttribute = B
 
     <A>
     class C
     end class
-}
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1266,7 +1263,7 @@ end class
 global imports AAttribute = XAttribute
 imports B = AAttribute
 
-[B]
+<B>
 class C
 end class
 "
@@ -1296,7 +1293,7 @@ end class
 global imports AAttribute = XAttribute
 imports BAttribute = AAttribute
 
-[B]
+<B>
 class C
 end class
 "
@@ -1381,7 +1378,7 @@ global imports AAttribute = XAttribute
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_BothGlobalAndLocalAliasDifferentFile1()
             Dim source1 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1440,7 +1437,7 @@ global imports BAttribute = AAttribute
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasDifferentFile1()
             Dim source1 = "
 imports B = AAttribute
-[B]
+<B>
 class C
 end class
 "
@@ -1470,7 +1467,7 @@ global imports AAttribute = XAttribute
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasDifferentFile2()
             Dim source1 = "
 imports BAttribute = AAttribute
-[B]
+<B>
 class C
 end class
 "
@@ -1593,7 +1590,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1643,7 +1640,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1715,7 +1712,7 @@ end class
             driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
                 compilation.SyntaxTrees.Last(),
                 compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("
-[B]
+<B>
 class C
 end class
 "))))
@@ -1745,7 +1742,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1795,7 +1792,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1838,7 +1835,7 @@ end class
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1881,7 +1878,7 @@ global imports AAttribute = XAttribute"))))
         <Fact>
         Public Sub TestAddGlobalAttributeFile2()
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1929,7 +1926,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -1977,7 +1974,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
@@ -2036,7 +2033,7 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-[B]
+<B>
 class C
 end class
 "
