@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.SourceGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities.TestGenerators
@@ -33,7 +32,7 @@ end class
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(
                                                         Sub(ctx)
-                                                            Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                            Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                             ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                             End Sub)
                                                         End Sub))
@@ -68,7 +67,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -95,7 +94,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -122,7 +121,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -149,7 +148,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -176,7 +175,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -203,7 +202,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -230,7 +229,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -257,7 +256,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -284,7 +283,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -311,7 +310,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -338,7 +337,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -365,7 +364,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -392,7 +391,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of DelegateStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of DelegateStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -418,7 +417,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of DelegateStatementSyntax)("YAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of DelegateStatementSyntax)("YAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -444,7 +443,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of SyntaxNode)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of SyntaxNode)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -474,7 +473,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -507,7 +506,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -540,7 +539,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -573,7 +572,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -605,7 +604,7 @@ end namespace
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -632,7 +631,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -659,7 +658,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("X")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("X", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -676,7 +675,7 @@ end class
         <Fact>
         Public Sub FindFullAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_FullAttributeName1()
             Dim source = "
-<XAtribute>
+<XAttribute>
 class C
 end class
 "
@@ -686,7 +685,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -715,7 +714,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -744,7 +743,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -763,7 +762,7 @@ end class
             Dim source = "
 imports AAttribute = XAttribute
 
-<AAtribute>
+<AAttribute>
 class C
 end class
 "
@@ -773,7 +772,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -802,7 +801,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -831,7 +830,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -848,7 +847,7 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias6()
             Dim source = "
-imports A = global::M.XAttribute<int>
+imports A = global.M.XAttribute(of integer)
 
 <A>
 class C
@@ -860,7 +859,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -889,7 +888,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -917,7 +916,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -948,7 +947,7 @@ end namespace
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -958,13 +957,12 @@ end namespace
             Dim runResult = driver.GetRunResult().Results(0)
             Console.WriteLine(runResult)
 
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_OuterAliasReferencesInnerAlias()
-            ' note: this is not legal.  it's ok if this ever stops working in the futuer.
+            ' note: this is not legal.
             Dim source = "
 imports BAttribute = AAttribute
 namespace N
@@ -981,7 +979,7 @@ end namespace
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -991,8 +989,7 @@ end namespace
             Dim runResult = driver.GetRunResult().Results(0)
             Console.WriteLine(runResult)
 
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1013,7 +1010,7 @@ end namespace
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1023,8 +1020,7 @@ end namespace
             Dim runResult = driver.GetRunResult().Results(0)
             Console.WriteLine(runResult)
 
-            Assert.Collection(runResult.TrackedSteps("result_ForAttribute"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"))
         End Sub
 
         <Fact>
@@ -1045,7 +1041,7 @@ end namespace
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1074,7 +1070,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1103,7 +1099,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1132,7 +1128,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1160,7 +1156,7 @@ imports A = XAttribute
             Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1188,7 +1184,7 @@ imports AAttribute = XAttribute
             Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1204,19 +1200,19 @@ imports AAttribute = XAttribute
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasInSameFile1()
             Dim source = "
-global imports A = XAttribute
-
 <A>
 class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation(source,
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("A = XAttribute")),
+                parseOptions:=parseOptions)
 
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1233,19 +1229,18 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasInSameFile2()
             Dim source = "
-global imports AAttribute = XAttribute
-
 <A>
 class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation(source,
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("AAttribute = XAttribute")), parseOptions:=parseOptions)
 
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1262,7 +1257,6 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasInSameFile1()
             Dim source = "
-global imports AAttribute = XAttribute
 imports B = AAttribute
 
 <B>
@@ -1270,12 +1264,13 @@ class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation(source,
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("AAttribute = XAttribute")), parseOptions:=parseOptions)
 
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1292,7 +1287,6 @@ end class
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasInSameFile2()
             Dim source = "
-global imports AAttribute = XAttribute
 imports BAttribute = AAttribute
 
 <B>
@@ -1300,12 +1294,13 @@ class C
 end class
 "
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation(source,
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("AAttribute = XAttribute")), parseOptions:=parseOptions)
 
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1326,15 +1321,14 @@ end class
 class C
 end class
 "
-            Dim source2 = "
-global imports A = XAttribute
-"
 
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source1},
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("A = XAttribute")),
+                parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1355,15 +1349,13 @@ global imports A = XAttribute
 class C
 end class
 "
-            Dim source2 = "
-global imports AAttribute = XAttribute
-"
 
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source1},
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("AAttribute = XAttribute")), parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1393,7 +1385,7 @@ imports B = AAttribute
             Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1422,7 +1414,7 @@ global imports BAttribute = AAttribute
             Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1443,15 +1435,13 @@ imports B = AAttribute
 class C
 end class
 "
-            Dim source2 = "
-global imports AAttribute = XAttribute
-"
 
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source1},
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("AAttribute = XAttribute")), parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1473,15 +1463,13 @@ imports BAttribute = AAttribute
 class C
 end class
 "
-            Dim source2 = "
-global imports AAttribute = XAttribute
-"
 
             Dim parseOptions = TestOptions.RegularLatest
-            Dim compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+            Dim compilation = CreateCompilation({source1},
+                options:=TestOptions.DebugDll.WithGlobalImports(GlobalImport.Parse("AAttribute = XAttribute")), parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1514,7 +1502,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1555,7 +1543,7 @@ end class
             Assert.Single(compilation.SyntaxTrees)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1600,7 +1588,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1650,7 +1638,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1699,7 +1687,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1752,7 +1740,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1803,7 +1791,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1846,7 +1834,7 @@ end class
             Dim compilation = CreateCompilation({source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1889,7 +1877,7 @@ end class
             Dim compilation = CreateCompilation({source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1937,7 +1925,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -1986,7 +1974,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))
@@ -2046,7 +2034,7 @@ end class
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
 
             Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
-                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute")
+                                                                                              Dim input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute(Of ClassStatementSyntax)("XAttribute", ctx)
                                                                                               ctx.RegisterSourceOutput(input, Sub(spc, node)
                                                                                                                               End Sub)
                                                                                           End Sub))

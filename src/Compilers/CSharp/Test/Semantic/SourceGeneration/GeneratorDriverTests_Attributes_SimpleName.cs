@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.SourceGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -36,7 +35,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -63,7 +62,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -90,7 +89,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -117,7 +116,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -144,7 +143,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -171,7 +170,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -198,7 +197,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -225,7 +224,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -252,7 +251,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -279,7 +278,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -306,7 +305,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -333,7 +332,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -360,7 +359,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -387,7 +386,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -413,7 +412,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("YAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<DelegateDeclarationSyntax>("YAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -439,7 +438,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<SyntaxNode>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<SyntaxNode>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -468,7 +467,7 @@ class D { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -501,7 +500,7 @@ class D { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -534,7 +533,7 @@ class D { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -569,7 +568,7 @@ class C
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -603,7 +602,7 @@ namespace N
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -630,7 +629,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -657,7 +656,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("X");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("X", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -684,7 +683,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -713,7 +712,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -742,7 +741,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -771,7 +770,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -800,7 +799,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -829,7 +828,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -858,7 +857,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -887,7 +886,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -915,7 +914,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -947,7 +946,7 @@ namespace N
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -981,7 +980,7 @@ namespace N
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1014,7 +1013,7 @@ namespace N
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1047,7 +1046,7 @@ namespace N
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1076,7 +1075,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1105,7 +1104,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1134,7 +1133,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1162,7 +1161,7 @@ using A = XAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1190,7 +1189,7 @@ using AAttribute = XAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1218,7 +1217,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1247,7 +1246,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1277,7 +1276,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1307,7 +1306,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1336,7 +1335,7 @@ global using A = XAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1365,7 +1364,7 @@ global using AAttribute = XAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1395,7 +1394,7 @@ using B = AAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1424,7 +1423,7 @@ global using BAttribute = AAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1453,7 +1452,7 @@ global using AAttribute = XAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1483,7 +1482,7 @@ global using AAttribute = XAttribute;
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1516,7 +1515,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1557,7 +1556,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1602,7 +1601,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1652,7 +1651,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1700,7 +1699,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1752,7 +1751,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1802,7 +1801,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1845,7 +1844,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1888,7 +1887,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1936,7 +1935,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -1984,7 +1983,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 
@@ -2043,7 +2042,7 @@ class C { }
 
         var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
         {
-            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute");
+            var input = ctx.SyntaxProvider.CreateSyntaxProviderForAttribute<ClassDeclarationSyntax>("XAttribute", ctx);
             ctx.RegisterSourceOutput(input, (spc, node) => { });
         }));
 

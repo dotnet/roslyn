@@ -56,20 +56,8 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
-        // if the compilation options stayed the same, but the compilation changed.
-        var compilationGlobalAliases = context.CompilationProvider.Select(
-            (c, _) =>
-            {
-                var aliases = Aliases.GetInstance();
-                context.SyntaxHelper.AddAliases(c.Options, aliases);
-                return GlobalAliases.Create(aliases.ToImmutableAndFree());
-            }).WithTrackingName("compilationGlobalAliases_ForAttributeWithMetadataName");
-
         var nodesWithAttributesMatchingSimpleName = context.SyntaxProvider.CreateSyntaxProviderForAttribute<T>(
-            metadataName.UnmangledTypeName,
-            context.SyntaxHelper,
-            compilationGlobalAliases);
+            metadataName.UnmangledTypeName, context);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()

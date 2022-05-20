@@ -42,10 +42,10 @@ internal static partial class SyntaxValueProviderExtensions
     internal static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(
         this SyntaxValueProvider provider,
         string simpleName,
-        ISyntaxHelper syntaxHelper,
-        IncrementalValueProvider<GlobalAliases>? compilationGlobalAliases)
+        IncrementalGeneratorInitializationContext context)
         where T : SyntaxNode
     {
+        var syntaxHelper = context.SyntaxHelper;
         if (!syntaxHelper.IsValidIdentifier(simpleName))
             throw new ArgumentException("<todo: add error message>", nameof(simpleName));
 
@@ -64,13 +64,20 @@ internal static partial class SyntaxValueProviderExtensions
             .Select(static (arrays, _) => GlobalAliases.Create(arrays.SelectMany(a => a.AliasAndSymbolNames).ToImmutableArray()))
             .WithTrackingName("allUpGlobalAliases_ForAttribute");
 
-        if (compilationGlobalAliases != null)
-        {
-            allUpGlobalAliasesProvider = allUpGlobalAliasesProvider
-                .Combine(compilationGlobalAliases.Value)
-                .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
-                .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
-        }
+        // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
+        // if the compilation options stayed the same, but the compilation changed.
+        var compilationGlobalAliases = context.CompilationProvider.Select(
+            (c, _) =>
+            {
+                var aliases = Aliases.GetInstance();
+                context.SyntaxHelper.AddAliases(c.Options, aliases);
+                return GlobalAliases.Create(aliases.ToImmutableAndFree());
+            }).WithTrackingName("compilationGlobalAliases_ForAttributeWithMetadataName");
+
+        allUpGlobalAliasesProvider = allUpGlobalAliasesProvider
+            .Combine(compilationGlobalAliases)
+            .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
+            .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
         var compilationUnitProvider = provider.CreateSyntaxProvider(
