@@ -29,9 +29,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var accessibilityPreferences = documentOptions.GetOption(CodeStyleOptions2.RequireAccessibilityModifiers, document.Project.Language);
-            if (accessibilityPreferences.Value == AccessibilityModifiersRequired.Never)
+            var accessibilityPreferences = options.FormattingOptions.AccessibilityModifiersRequired;
+            if (accessibilityPreferences == AccessibilityModifiersRequired.Never)
             {
                 return document;
             }
@@ -46,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             foreach (var declaration in typeDeclarations)
             {
-                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences.Value, out _))
+                if (!service.ShouldUpdateAccessibilityModifier(CSharpAccessibilityFacts.Instance, declaration, accessibilityPreferences, out _))
                     continue;
 
                 // Since we format each document as they are added to a project we can't assume we know about all

@@ -25,21 +25,36 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMarginItemsAsync(
+        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetGlobalImportItemsAsync(
+            Checksum solutionChecksum,
+            DocumentId documentId,
+            TextSpan spanToSearch,
+            bool frozenPartialSemantics,
+            CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(solutionChecksum, solution =>
+            {
+                var document = solution.GetRequiredDocument(documentId);
+                var service = (AbstractInheritanceMarginService)document.GetRequiredLanguageService<IInheritanceMarginService>();
+
+                return service.GetGlobalImportItemsAsync(document, spanToSearch, frozenPartialSemantics, cancellationToken);
+            }, cancellationToken);
+        }
+
+        public ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
             Checksum solutionChecksum,
             ProjectId projectId,
-            DocumentId? documentIdForGlobalImports,
-            TextSpan spanToSearch,
+            DocumentId? documentId,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, solution =>
             {
                 var project = solution.GetRequiredProject(projectId);
-                var service = (AbstractInheritanceMarginService)project.GetRequiredLanguageService<IInheritanceMarginService>();
-                var documentForGlobaImports = solution.GetDocument(documentIdForGlobalImports);
+                var document = solution.GetDocument(documentId);
 
-                return service.GetInheritanceMemberItemAsync(project, documentForGlobaImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken);
+                return AbstractInheritanceMarginService.GetSymbolItemsAsync(project, document, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken);
             }, cancellationToken);
         }
     }

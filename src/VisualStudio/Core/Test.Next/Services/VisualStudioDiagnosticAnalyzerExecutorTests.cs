@@ -12,7 +12,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -20,6 +22,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -27,6 +30,7 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic.CodeStyle;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Test.Utilities;
@@ -58,12 +62,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
             Assert.Equal(DiagnosticSeverity.Hidden, diagnostics[0].Severity);
 
-            var ideOptions = new IdeAnalyzerOptions(
-                CleanupOptions: new CodeCleanupOptions(
-                    FormattingOptions: CSharpSyntaxFormattingOptions.Default,
-                    SimplifierOptions: new CSharpSimplifierOptions(
-                        varWhenTypeIsApparent: new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)),
-                    AddImportOptions: AddImportPlacementOptions.Default));
+            var ideOptions = new IdeAnalyzerOptions()
+            {
+                CleanCodeGenerationOptions = new CleanCodeGenerationOptions(
+                    CSharpCodeGenerationOptions.Default,
+                    new CodeCleanupOptions(
+                        FormattingOptions: CSharpSyntaxFormattingOptions.Default,
+                        SimplifierOptions: new CSharpSimplifierOptions()
+                        {
+                            VarWhenTypeIsApparent = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion)
+                        }))
+            };
 
             analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideOptions);
 
@@ -84,20 +93,31 @@ End Class";
 
             using (var workspace = CreateWorkspace(LanguageNames.VisualBasic, code))
             {
-                // set option
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CodeStyleOptions2.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption2<bool>(false, NotificationOption2.Silent))));
-
                 var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic));
+
+                ideAnalyzerOptions = ideAnalyzerOptions with
+                {
+                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions(
+                        Common: new IdeCodeStyleOptions.CommonOptions()
+                        {
+                            PreferNullPropagation = new CodeStyleOption2<bool>(false, NotificationOption2.Silent)
+                        })
+                };
 
                 var analyzerType = typeof(VisualBasicUseNullPropagationDiagnosticAnalyzer);
                 var analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
                 Assert.True(analyzerResult.IsEmpty);
 
-                // set option
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(CodeStyleOptions2.PreferNullPropagation, LanguageNames.VisualBasic, new CodeStyleOption2<bool>(true, NotificationOption2.Error))));
+                ideAnalyzerOptions = ideAnalyzerOptions with
+                {
+                    CodeStyleOptions = new VisualBasicIdeCodeStyleOptions(
+                        Common: new IdeCodeStyleOptions.CommonOptions()
+                        {
+                            PreferNullPropagation = new CodeStyleOption2<bool>(true, NotificationOption2.Error)
+                        })
+                };
+
                 analyzerResult = await AnalyzeAsync(workspace, workspace.CurrentSolution.ProjectIds.First(), analyzerType, ideAnalyzerOptions);
 
                 var diagnostics = analyzerResult.GetDocumentDiagnostics(analyzerResult.DocumentIds.First(), AnalysisKind.Semantic);

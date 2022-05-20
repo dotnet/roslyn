@@ -48,12 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
         private void ProcessCompilationUnit(SyntaxNodeAnalysisContext context)
         {
-            var options = context.Options;
-            var root = (CompilationUnitSyntax)context.Node;
-
             // Don't want to suggest moving if the user doesn't have a preference for top-level-statements.
-            var optionSet = options.GetAnalyzerOptionSet(root.SyntaxTree, context.CancellationToken);
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferTopLevelStatements);
+            var option = context.GetCSharpAnalyzerOptions().PreferTopLevelStatements;
             if (!CanOfferUseTopLevelStatements(option, forAnalyzer: true))
                 return;
 
@@ -64,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TopLevelStatements
 
             // Ok, the user does like top level statements.  Check if we can find a suitable hit in this type that
             // indicates we're on the entrypoint of the program.
+            var root = (CompilationUnitSyntax)context.Node;
             var methodDeclarations = root.DescendantNodes(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or ClassDeclarationSyntax).OfType<MethodDeclarationSyntax>();
             foreach (var methodDeclaration in methodDeclarations)
             {

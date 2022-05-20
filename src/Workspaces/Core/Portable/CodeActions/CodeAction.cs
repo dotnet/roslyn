@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -314,8 +315,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
-                // TODO: fallback options https://github.com/dotnet/roslyn/issues/60777
-                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+                // TODO: avoid ILegacyGlobalOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+                var globalOptions = document.Project.Solution.Workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
+
+                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
                 return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
             }
 
