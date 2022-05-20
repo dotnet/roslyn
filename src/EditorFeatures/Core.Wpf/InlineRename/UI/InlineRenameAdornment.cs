@@ -11,8 +11,13 @@ using System.Windows.Controls;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal abstract class InlineRenameAdornment : UserControl, IDisposable
+    internal class InlineRenameAdornment : UserControl, IDisposable
     {
-        public abstract void Dispose();
+        public InlineRenameAdornment()
+            : base()
+        {
+        }
+
+        public virtual void Dispose() { }
     }
 }
