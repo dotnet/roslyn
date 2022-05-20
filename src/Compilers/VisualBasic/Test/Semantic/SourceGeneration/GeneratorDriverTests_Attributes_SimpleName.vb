@@ -22,8 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -47,14 +48,19 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         End Sub
 
         Private Function IsClassStatementWithName(value As Object, name As String) As Boolean
-            Throw New NotImplementedException()
+            If TypeOf value IsNot ClassStatementSyntax Then
+                Return False
+            End If
+
+            Return DirectCast(value, ClassStatementSyntax).Identifier.ValueText = name
         End Function
 
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList1()
             Dim source = "
 [X, Y]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -80,7 +86,8 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList2()
             Dim source = "
 [Y, X]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -106,7 +113,8 @@ class C { }
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributesInList3()
             Dim source = "
 [X, X]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -131,8 +139,9 @@ class C { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists1()
             Dim source = "
-[X][Y]
-class C { }
+<X>[Y]
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -157,8 +166,9 @@ class C { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists2()
             Dim source = "
-[Y][X]
-class C { }
+[Y]<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -183,8 +193,9 @@ class C { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists3()
             Dim source = "
-[X][X]
-class C { }
+<X><X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -210,7 +221,8 @@ class C { }
         Public Sub FindFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
 [XAttribute]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -236,7 +248,8 @@ class C { }
         Public Sub FindDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
 [A.X]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -262,7 +275,8 @@ class C { }
         Public Sub FindDottedFullAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
 [A.XAttribute]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -288,7 +302,8 @@ class C { }
         Public Sub FindDottedGenericAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
 [A.X<Y>]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -314,7 +329,8 @@ class C { }
         Public Sub FindGlobalAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
 [global::X]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -340,7 +356,8 @@ class C { }
         Public Sub FindGlobalDottedAttributeNameOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
 [global::A.X]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -365,8 +382,9 @@ class C { }
         <Fact>
         Public Sub DoNotFindAttributeOnTopLevelClass_WhenSearchingForDelegateDeclaration1()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -390,8 +408,9 @@ class C { }
         <Fact>
         Public Sub DoNotFindAttributeOnTopLevelClass_WhenSearchingForDifferentName()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -415,8 +434,9 @@ class C { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForSyntaxNode1()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -441,9 +461,10 @@ class C { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration1()
             Dim source = "
-[X]
-class C { }
-[X]
+<X>
+class C
+end class
+<X>
 class D { }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -472,8 +493,9 @@ class D { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration2()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 [Y]
 class D { }
 "
@@ -504,8 +526,9 @@ class D { }
         Public Sub FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration3()
             Dim source = "
 [Y]
-class C { }
-[X]
+class C
+end class
+<X>
 class D { }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -534,10 +557,10 @@ class D { }
         <Fact>
         Public Sub FindAttributeOnNestedClasses_WhenSearchingForClassDeclaration1()
             Dim source = "
-[X]
+<X>
 class C
 {
-    [X]
+    <X>
     class D { }
 }
 "
@@ -568,10 +591,10 @@ class C
         Public Sub FindAttributeOnClassInNamespace_WhenSearchingForClassDeclaration1()
             Dim source = "
 namespace N
-{
-    [X]
-    class C { }
-}
+    <X>
+    class C
+    end class
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -596,8 +619,9 @@ namespace N
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_FullAttributeName1()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -622,8 +646,9 @@ class C { }
         <Fact>
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_ShortAttributeName1()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -649,7 +674,8 @@ class C { }
         Public Sub FindFullAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_FullAttributeName1()
             Dim source = "
 [XAttribute]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -677,7 +703,8 @@ class C { }
 imports A = XAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -705,7 +732,8 @@ class C { }
 imports AAttribute = XAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -733,7 +761,8 @@ class C { }
 imports AAttribute = XAttribute
 
 [AAttribute]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -761,7 +790,8 @@ class C { }
 imports A = M.XAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -789,7 +819,8 @@ class C { }
 imports A = M.XAttribute<int>
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -817,7 +848,8 @@ class C { }
 imports A = global::M.XAttribute<int>
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -845,7 +877,8 @@ class C { }
 imports AAttribute : X
 
 [AAttribute]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -872,7 +905,8 @@ class C { }
 imports AAttribute : XAttribute
 
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -902,7 +936,8 @@ namespace N
     imports A = B
 
     [A]
-    class C { }
+    class C
+    end class
 }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -935,7 +970,8 @@ namespace N
     imports AAttribute = XAttribute
 
     [B]
-    class C { }
+    class C
+    end class
 }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -967,7 +1003,8 @@ namespace N
     imports AAttribute = B
 
     [A]
-    class C { }
+    class C
+    end class
 }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -999,7 +1036,8 @@ namespace N
     imports AAttribute = B
 
     [A]
-    class C { }
+    class C
+    end class
 }
 "
             Dim parseOptions = TestOptions.RegularLatest
@@ -1028,7 +1066,8 @@ imports AAttribute = BAttribute
 imports BAttribute = AAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1056,7 +1095,8 @@ imports A = BAttribute
 imports B = AAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1084,7 +1124,8 @@ imports A = B
 imports B = A
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1109,7 +1150,8 @@ class C { }
         Public Sub DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_LocalAliasInDifferentFile1()
             Dim source1 = "
 [A]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 imports A = XAttribute
@@ -1136,7 +1178,8 @@ imports A = XAttribute
         Public Sub DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_LocalAliasInDifferentFile2()
             Dim source1 = "
 [A]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 imports AAttribute = XAttribute
@@ -1165,7 +1208,8 @@ imports AAttribute = XAttribute
 global imports A = XAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1193,7 +1237,8 @@ class C { }
 global imports AAttribute = XAttribute
 
 [A]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1222,7 +1267,8 @@ global imports AAttribute = XAttribute
 imports B = AAttribute
 
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1251,7 +1297,8 @@ global imports AAttribute = XAttribute
 imports BAttribute = AAttribute
 
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1277,7 +1324,8 @@ class C { }
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile1()
             Dim source1 = "
 [A]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 global imports A = XAttribute
@@ -1305,7 +1353,8 @@ global imports A = XAttribute
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile2()
             Dim source1 = "
 [A]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 global imports AAttribute = XAttribute
@@ -1333,7 +1382,8 @@ global imports AAttribute = XAttribute
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_BothGlobalAndLocalAliasDifferentFile1()
             Dim source1 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 global imports AAttribute = XAttribute
@@ -1361,7 +1411,8 @@ imports B = AAttribute
         Public Sub FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasLoop1()
             Dim source1 = "
 [A]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 global imports AAttribute = BAttribute
@@ -1390,7 +1441,8 @@ global imports BAttribute = AAttribute
             Dim source1 = "
 imports B = AAttribute
 [B]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 global imports AAttribute = XAttribute
@@ -1419,7 +1471,8 @@ global imports AAttribute = XAttribute
             Dim source1 = "
 imports BAttribute = AAttribute
 [B]
-class C { }
+class C
+end class
 "
             Dim source2 = "
 global imports AAttribute = XAttribute
@@ -1452,8 +1505,9 @@ global imports AAttribute = XAttribute
         <Fact>
         Public Sub RerunOnSameCompilationCachesResultFully()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1492,8 +1546,9 @@ class C { }
         <Fact>
         Public Sub RerunOnCompilationWithReferencesChangeCachesResultFully()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1539,7 +1594,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1588,7 +1644,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1610,7 +1667,8 @@ class C { }
             driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.Last(),
             compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("
-class C { }
+class C
+end class
 "))))
             runResult = driver.GetRunResult().Results(0)
 
@@ -1635,7 +1693,8 @@ global imports AAttribute = XAttribute"
 global imports BAttribute = AAttribute"
 
             Dim source3 = "
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1657,7 +1716,8 @@ class C { }
                 compilation.SyntaxTrees.Last(),
                 compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("
 [B]
-class C { }
+class C
+end class
 "))))
             runResult = driver.GetRunResult().Results(0)
 
@@ -1686,7 +1746,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1735,7 +1796,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1777,7 +1839,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1819,7 +1882,8 @@ global imports AAttribute = XAttribute"))))
         Public Sub TestAddGlobalAttributeFile2()
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1866,7 +1930,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1913,7 +1978,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1971,7 +2037,8 @@ global imports BAttribute = AAttribute"
 
             Dim source3 = "
 [B]
-class C { }
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation({source1, source2, source3}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)

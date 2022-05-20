@@ -46,8 +46,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(attributeList, AttributeListSyntax).Attributes
         End Function
 
-        Public Overrides Function GetUnqualifiedIdentifierOfName(name As SyntaxNode) As SyntaxToken
-            Throw New NotImplementedException()
+        Public Overrides Function GetUnqualifiedIdentifierOfName(node As SyntaxNode) As SyntaxToken
+            Dim name = DirectCast(node, NameSyntax)
+
+            Dim qualifiedName = TryCast(name, QualifiedNameSyntax)
+            If qualifiedName IsNot Nothing Then
+                Return qualifiedName.Right.Identifier
+            End If
+
+            Dim simpleName = TryCast(node, SimpleNameSyntax)
+            If simpleName IsNot Nothing Then
+                Return simpleName.Identifier
+            End If
+
+            Throw ExceptionUtilities.UnexpectedValue(node.Kind())
         End Function
 
         Public Overrides Sub AddAliases(node As SyntaxNode, aliases As ArrayBuilder(Of (aliasName As String, symbolName As String)), [global] As Boolean)

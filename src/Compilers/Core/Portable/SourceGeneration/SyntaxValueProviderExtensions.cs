@@ -113,19 +113,19 @@ internal static partial class SyntaxValueProviderExtensions
     {
         Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
 
+        var isCaseSensitive = syntaxHelper.IsCaseSensitive;
+        var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
         // As we walk down the compilation unit and nested namespaces, we may encounter additional using aliases local
         // to this file. Keep track of them so we can determine if they would allow an attribute in code to bind to the
         // attribute being searched for.
         var localAliases = Aliases.GetInstance();
-        var nameHasAttributeSuffix = name.HasAttributeSuffix(isCaseSensitive: true);
+        var nameHasAttributeSuffix = name.HasAttributeSuffix(isCaseSensitive);
 
         // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
         // don't get into cycles.
         var seenNames = s_stackPool.Allocate();
         var results = ArrayBuilder<T>.GetInstance();
-
-        var isCaseSensitive = syntaxHelper.IsCaseSensitive;
-        var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
         try
         {
