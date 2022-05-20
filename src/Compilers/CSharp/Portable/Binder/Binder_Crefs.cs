@@ -327,14 +327,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Symbol> ComputeSortedCrefMembers(CSharpSyntaxNode syntax, NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList, BindingDiagnosticBag diagnostics)
         {
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, ref useSiteInfo);
+            var result = ComputeSortedCrefMembers(containerOpt, memberName, arity, hasParameterList, syntax, diagnostics, ref useSiteInfo);
             diagnostics.Add(syntax, useSiteInfo);
             return result;
         }
 
-        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private ImmutableArray<Symbol> ComputeSortedCrefMembers(NamespaceOrTypeSymbol? containerOpt, string memberName, int arity, bool hasParameterList,
+            CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            // Since we may find symbols without going through the lookup API, 
+            // Since we may find symbols without going through the lookup API,
             // expose the symbols via an ArrayBuilder.
             ArrayBuilder<Symbol> builder;
             {
@@ -349,8 +350,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnose: false,
                     useSiteInfo: ref useSiteInfo);
 
+                if (memberName is "nint" or "nuint"
+                    && containerOpt is null
+                    && arity == 0
+                    && !hasParameterList
+                    && !IsViableType(result))
+                {
+                    result.Free(); // Won't be using this.
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureNativeInt, diagnostics);
+                    builder = ArrayBuilder<Symbol>.GetInstance();
+                    builder.Add(this.GetSpecialType(memberName == "nint" ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr, diagnostics, syntax).AsNativeInteger());
+                }
                 // CONSIDER: Dev11 also checks for a constructor in the event of an ambiguous result.
-                if (result.IsMultiViable)
+                else if (result.IsMultiViable)
                 {
                     // Dev11 doesn't consider members from System.Object when the container is an interface.
                     // Lookup should already have dropped such members.

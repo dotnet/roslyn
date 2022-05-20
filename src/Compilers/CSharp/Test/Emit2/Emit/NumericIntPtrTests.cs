@@ -10305,6 +10305,54 @@ public class C
             comp.VerifyDiagnostics();
         }
 
+        [Theory]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("System.IntPtr")]
+        [InlineData("System.UIntPtr")]
+        public void XmlDoc_Cref(string type)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{type}}"/>.</summary>
+class C { }
+""";
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal(type, cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nintSymbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.True(nintSymbol.IsNativeIntegerType);
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Alias()
+        {
+            var src = """
+using @nint = System.String;
+
+/// <summary>Summary <see cref="nint"/>.</summary>
+class C { }
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.False(symbol.IsNativeIntegerType);
+            Assert.Equal("System.String", symbol.ToTestDisplayString());
+        }
+
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)
         {
             // PEVerify is skipped because it reports "Type load failed" because of the above corlib,
