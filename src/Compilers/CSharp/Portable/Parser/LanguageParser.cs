@@ -1257,6 +1257,11 @@ tryAgain:
                         modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                         break;
 
+                    case DeclarationModifiers.Scoped:
+                        Debug.Assert(AllowScopedModifier());
+                        modTok = ConvertToKeyword(this.EatToken());
+                        break;
+
                     default:
                         modTok = this.EatToken();
                         break;

@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.MethodDeclaration);
             {
-                N(SyntaxKind.IdentifierToken, "scoped");
+                N(SyntaxKind.ScopedKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "R");
@@ -1446,7 +1446,7 @@ ref scoped b;
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "a");
@@ -1732,8 +1732,8 @@ ref scoped scoped c;
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "a");
@@ -1748,7 +1748,7 @@ ref scoped scoped c;
                 }
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.RefType);
                     {
                         N(SyntaxKind.RefKeyword);
@@ -2230,7 +2230,7 @@ scoped ref struct B { }
             {
                 N(SyntaxKind.StructDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.OpenBraceToken);
@@ -2238,7 +2238,7 @@ scoped ref struct B { }
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "B");
@@ -2316,7 +2316,7 @@ readonly scoped record struct C();
             {
                 N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.OpenBraceToken);
@@ -2324,7 +2324,7 @@ readonly scoped record struct C();
                 }
                 N(SyntaxKind.RecordStructDeclaration);
                 {
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -2334,7 +2334,7 @@ readonly scoped record struct C();
                 N(SyntaxKind.RecordStructDeclaration);
                 {
                     N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
@@ -2682,7 +2682,7 @@ readonly scoped record struct C();
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.OpenBraceToken);
@@ -2710,7 +2710,7 @@ readonly scoped record struct C();
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "scoped");
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "B");
