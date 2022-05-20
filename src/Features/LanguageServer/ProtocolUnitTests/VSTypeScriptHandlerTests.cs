@@ -86,7 +86,7 @@ public class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTests
     private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
     {
         var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
-        var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<DefaultCapabilitiesProvider>();
+        var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
         var servicesProvider = workspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
         var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream))

@@ -11,8 +11,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices.ProjectInfoService;
@@ -58,7 +60,9 @@ namespace Microsoft.CodeAnalysis.GenerateType
         internal abstract bool IsPublicOnlyAccessibility(TExpressionSyntax expression, Project project);
         internal abstract bool IsGenericName(TSimpleNameSyntax simpleName);
         internal abstract bool IsSimpleName(TExpressionSyntax expression);
-        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken);
+
+        internal abstract Task<Solution> TryAddUsingsOrImportToDocumentAsync(
+            Solution updatedSolution, SyntaxNode modifiedRoot, Document document, TSimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         protected abstract bool TryGetNameParts(TExpressionSyntax expression, out IList<string> nameParts);
 
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         public async Task<ImmutableArray<CodeAction>> GenerateTypeAsync(
             Document document,
             SyntaxNode node,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateType, cancellationToken))
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             SemanticDocument document,
             SyntaxNode node,
             State state,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);

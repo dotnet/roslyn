@@ -10,7 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
             foreach (var helper in _helpers)
             {
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 if (declaration == null)
                     continue;
 
-                var succeeded = TryComputeRefactoring(context, root, declaration, optionSet, helper);
+                var succeeded = TryComputeRefactoring(context, root, declaration, options, helper);
                 if (succeeded)
                     return;
             }
@@ -90,12 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
         private static bool TryComputeRefactoring(
             CodeRefactoringContext context, SyntaxNode root, SyntaxNode declaration,
-            OptionSet optionSet, UseExpressionBodyHelper helper)
+            CSharpCodeGenerationOptions options, UseExpressionBodyHelper helper)
         {
             var document = context.Document;
+            var preference = helper.GetExpressionBodyPreference(options);
 
             var succeeded = false;
-            if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: false))
+            if (helper.CanOfferUseExpressionBody(preference, declaration, forAnalyzer: false))
             {
                 var title = helper.UseExpressionBodyTitle.ToString();
                 context.RegisterRefactoring(
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false, out _, out _))
+            if (helper.CanOfferUseBlockBody(preference, declaration, forAnalyzer: false, out _, out _))
             {
                 var title = helper.UseBlockBodyTitle.ToString();
                 context.RegisterRefactoring(
