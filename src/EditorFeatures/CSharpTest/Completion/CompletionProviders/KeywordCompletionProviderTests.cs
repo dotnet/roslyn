@@ -616,5 +616,67 @@ $@"class C
                 await VerifyItemExistsAsync(markup, "nameof");
             }
         }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        public async Task SuggestRequiredInClassOrStruct(string type)
+        {
+            var markup = $$"""
+                {{type}} C
+                {
+                    $$
+                """;
+
+            await VerifyItemExistsAsync(markup, "required");
+        }
+
+        [Fact]
+        public async Task DontSuggestRequiredInInterface()
+        {
+            var markup = $$"""
+                interface I
+                {
+                    public $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "required");
+        }
+
+        [Fact]
+        public async Task DontSuggestRequiredOnStaticMembers()
+        {
+            var markup = $$"""
+                class C 
+                {
+                    static $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "required");
+        }
+
+        [Fact]
+        public async Task DontSuggestStaticOnRequiredMembers()
+        {
+            var markup = $$"""
+                class C 
+                {
+                    required $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "static");
+        }
+
+        [Fact]
+        public async Task DontSuggestRequiredOnRequiredMembers()
+        {
+            var markup = $$"""
+                class C 
+                {
+                    required $$
+                """;
+
+            await VerifyItemIsAbsentAsync(markup, "required");
+        }
     }
 }
