@@ -2,17 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Test.Utilities.TestGenerators
-Imports Roslyn.Utilities
-Imports Xunit
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
     Public Class GeneratorDriverTests_Attributes_FullyQualifiedName
@@ -34,20 +29,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
         <Fact>
         Public Sub FindCorrectAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1()
             Dim source = "
-[N1.X]
-class C1 { }
-[N2.X]
-class C2 { }
+<N1.X>
+class C1
+end class
+<N2.X>
+class C2
+end class
 
 namespace N1
-{
-    class XAttribute : System.Attribute { }
-}
+    class XAttribute
+        inherits System.Attribute
+    end class
+end namespace
 
 namespace N2
-{
-    class XAttribute : System.Attribute { }
-}
+    class XAttribute
+        inherits System.Attribute
+    end class
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -72,20 +71,24 @@ namespace N2
         <Fact>
         Public Sub FindCorrectAttributeOnTopLevelClass_WhenSearchingForClassDeclaration2()
             Dim source = "
-[N1.X]
-class C1 { }
-[N2.X]
-class C2 { }
+<N1.X>
+class C1
+end class
+<N2.X>
+class C2
+end class
 
 namespace N1
-{
-    class XAttribute : System.Attribute { }
-}
+    class XAttribute
+        inherits System.Attribute
+    end class
+end namespace
 
 namespace N2
-{
-    class XAttribute : System.Attribute { }
-}
+    class XAttribute
+        inherits System.Attribute
+    end class
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -110,19 +113,24 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         <Fact>
         Public Sub FindNestedAttribute1()
             Dim source = "
-[Outer1.Inner]
-class C1 { }
-[Outer2.Inner]
-class C2 { }
+<Outer1.Inner>
+class C1
+end class
+<Outer2.Inner>
+class C2
+end class
 
 class Outer1
-{
-    public class InnerAttribute : System.Attribute { }
-}
+    public class InnerAttribute
+        inherits System.Attribute
+    end class
+end class
+
 class Outer2
-{
-    public class InnerAttribute : System.Attribute { }
-}
+    public class InnerAttribute
+        inherits System.Attribute
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -147,19 +155,24 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         <Fact>
         Public Sub FindNestedAttribute2()
             Dim source = "
-[Outer1.Inner]
-class C1 { }
-[Outer2.Inner]
-class C2 { }
+<Outer1.Inner>
+class C1
+end class
+<Outer2.Inner>
+class C2
+end class
 
 class Outer1
-{
-    public class InnerAttribute : System.Attribute { }
-}
+    public class InnerAttribute
+        inherits System.Attribute
+    end class
+end class
+
 class Outer2
-{
-    public class InnerAttribute : System.Attribute { }
-}
+    public class InnerAttribute
+        inherits System.Attribute
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -184,19 +197,23 @@ class Outer2
         <Fact>
         Public Sub FindNestedGenericAttribute1()
             Dim source = "
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+<Outer1.Inner(of integer)>
+class C1
+end class
+<Outer2.Inner(of integer, string)>
+class C2
+end class
 
 class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
+    public class InnerAttribute(of T1)
+        inherits System.Attribute
+    end class
+end class
 class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
+    public class InnerAttribute(of T1, T2)
+        inherits System.Attribute
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -214,26 +231,29 @@ class Outer2
             Dim runResult = driver.GetRunResult().Results(0)
             Console.WriteLine(runResult)
 
-            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
         End Sub
 
         <Fact>
         Public Sub FindNestedGenericAttribute2()
             Dim source = "
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+<Outer1.Inner(of integer)>
+class C1
+end class
+<Outer2.Inner(of integer, string)>
+class C2
+end class
 
 class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
+    public class InnerAttribute(of T1)
+        inherits System.Attribute
+    end class
+end class
 class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
+    public class InnerAttribute(of T1, T2)
+        inherits System.Attribute
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -251,26 +271,29 @@ class Outer2
             Dim runResult = driver.GetRunResult().Results(0)
             Console.WriteLine(runResult)
 
-            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+            Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
         End Sub
 
         <Fact>
         Public Sub DoNotFindNestedGenericAttribute1()
             Dim source = "
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+<Outer1.Inner(of integer)>
+class C1
+end class
+<Outer2.Inner(of integer, string)>
+class C2
+end class
 
 class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
+    public class InnerAttribute(of T1)
+        inherits System.Attribute
+    end class
+end class
 class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
+    public class InnerAttribute(of T1, T2)
+        inherits System.Attribute
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -294,19 +317,24 @@ class Outer2
         <Fact>
         Public Sub DoNotFindNestedGenericAttribute2()
             Dim source = "
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+<Outer1.Inner(of integer)>
+class C1
+end class
+<Outer2.Inner(of integer, string)>
+class C2
+end class
 
 class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
+    public class InnerAttribute(of T1)
+        inherits System.Attribute
+    end class
+end class
+
 class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
+    public class InnerAttribute(of T1, T2)
+        inherits System.Attribute
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -336,12 +364,13 @@ class Outer2
         <Fact>
         Public Sub RerunOnSameCompilationCachesResultFully()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 
-class XAttribute : System.Attribute
-{
-}
+class XAttribute
+    inherits System.Attribute
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -384,12 +413,13 @@ Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C
         <Fact>
         Public Sub RerunWithReferencesChange()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 
-class XAttribute : System.Attribute
-{
-}
+class XAttribute
+    inherits System.Attribute
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -411,7 +441,7 @@ class XAttribute : System.Attribute
             Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             ' re-run without changes
-            driver = driver.RunGenerators(compilation.RemoveAllReferences())
+            driver = driver.RunGenerators(compilation.WithReferences(compilation.References.Take(compilation.References.Count() - 1)))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
@@ -432,12 +462,13 @@ class XAttribute : System.Attribute
         <Fact>
         Public Sub RerunWithAddedFile1()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 
-class XAttribute : System.Attribute
-{
-}
+class XAttribute
+    inherits System.Attribute
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -481,8 +512,9 @@ class XAttribute : System.Attribute
         <Fact>
         Public Sub RerunWithAddedFile2()
             Dim source = "
-[X]
-class C { }
+<X>
+class C
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -503,9 +535,10 @@ class C { }
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-class XAttribute : System.Attribute
-{
-}"))))
+class XAttribute
+    inherits System.Attribute
+end class
+"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
@@ -528,10 +561,12 @@ class XAttribute : System.Attribute
         <Fact>
         Public Sub RerunWithAddedFile_MultipleResults_SameFile1()
             Dim source = "
-[X]
-class C1 { }
-[X]
-class C2 { }
+<X>
+class C1
+end class
+<X>
+class C2
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -552,9 +587,9 @@ class C2 { }
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-class XAttribute : System.Attribute
-{
-}"))))
+class XAttribute
+    inherits System.Attribute
+end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
@@ -583,12 +618,14 @@ Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C2"))))
         <Fact>
         Public Sub RerunWithAddedFile_MultipleResults_MultipleFile1()
             Dim source1 = "
-[X]
-class C1 { }
+<X>
+class C1
+end class
 "
             Dim source2 = "
-[X]
-class C2 { }
+<X>
+class C2
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -607,9 +644,9 @@ class C2 { }
             Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"))
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-class XAttribute : System.Attribute
-{
-}"))))
+class XAttribute
+    inherits System.Attribute
+end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
