@@ -580,6 +580,23 @@ class B {";
         }
 
         [Theory, CombinatorialData]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOffWithFileInProjectOpen(bool useVSDiagnostics)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: false);
+
+            var firstDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
+            await OpenDocumentAsync(testLspServer, firstDocument);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Empty(results);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics)
         {
             var markup = "// Hello, World";
@@ -616,42 +633,6 @@ class B {";
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
             Assert.Empty(results);
-        }
-
-        [Theory, CombinatorialData]
-        public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOffAndFilesOpen(bool useVSDiagnostics)
-        {
-            // In this case, even though one file is open, we can still have diagnostics for the other file in the project, since by
-            // nature the generator had to run regardless.
-            var markup = "// Hello, World";
-            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(new[] { markup, markup }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
-
-            var documentWithDiagnostics = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
-            var documentToOpen = testLspServer.GetCurrentSolution().Projects.Single().Documents.Last();
-
-            Assert.NotSame(documentWithDiagnostics, documentToOpen);
-
-            // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single(id => id.Id == documentToOpen.Id).GetTextBuffer();
-
-            var documentTrackingService = (TestDocumentTrackingService)testLspServer.TestWorkspace.Services.GetRequiredService<IDocumentTrackingService>();
-            documentTrackingService.SetActiveDocument(documentToOpen.Id);
-
-            var generator = new DiagnosticProducingGenerator(
-                context => Location.Create(
-                    context.Compilation.SyntaxTrees.Single(t => t.FilePath == documentWithDiagnostics.FilePath),
-                    new TextSpan(0, 10)));
-
-            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
-                documentWithDiagnostics.Project.Id,
-                new TestGeneratorReference(generator));
-
-            await OpenDocumentAsync(testLspServer, documentToOpen);
-
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-
-            var diagnostic = Assert.Single(results.Single().Diagnostics);
-            Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
         }
 
         [Theory, CombinatorialData]

@@ -847,6 +847,11 @@
         <target state="translated">Los patrones de segmento solo se pueden utilizar una vez directamente dentro de un patrón de lista.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
         <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
         <target state="translated">No se puede convertir el grupo de métodos en puntero de función (¿falta un operador "&amp;"?)</target>

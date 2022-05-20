@@ -8027,5 +8027,175 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
             }
             EOF();
         }
+
+        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("!", SyntaxKind.ExclamationToken)]
+        [InlineData("~", SyntaxKind.TildeToken)]
+        [InlineData("++", SyntaxKind.PlusPlusToken)]
+        [InlineData("--", SyntaxKind.MinusMinusToken)]
+        [InlineData("true", SyntaxKind.TrueKeyword)]
+        [InlineData("false", SyntaxKind.FalseKeyword)]
+        public void UncheckedOperatorDeclaration_01(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C operator unchecked " + op + "(C x) => x;", expectedErrors:
+                // (1,12): error CS9028: Unexpected keyword 'unchecked'
+                // C operator unchecked op(C x) => x;
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 12));
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [InlineData("+", SyntaxKind.PlusToken)]
+        [InlineData("-", SyntaxKind.MinusToken)]
+        [InlineData("*", SyntaxKind.AsteriskToken)]
+        [InlineData("/", SyntaxKind.SlashToken)]
+        [InlineData("%", SyntaxKind.PercentToken)]
+        [InlineData("&", SyntaxKind.AmpersandToken)]
+        [InlineData("|", SyntaxKind.BarToken)]
+        [InlineData("^", SyntaxKind.CaretToken)]
+        [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
+        [InlineData(">>", SyntaxKind.GreaterThanGreaterThanToken)]
+        [InlineData(">>>", SyntaxKind.GreaterThanGreaterThanGreaterThanToken)]
+        [InlineData("==", SyntaxKind.EqualsEqualsToken)]
+        [InlineData("!=", SyntaxKind.ExclamationEqualsToken)]
+        [InlineData(">", SyntaxKind.GreaterThanToken)]
+        [InlineData("<", SyntaxKind.LessThanToken)]
+        [InlineData(">=", SyntaxKind.GreaterThanEqualsToken)]
+        [InlineData("<=", SyntaxKind.LessThanEqualsToken)]
+        public void UncheckedOperatorDeclaration_04(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration("C I.operator unchecked " + op + "(C x, C y) => x;", options: TestOptions.RegularPreview,
+                // (1,14): error CS9028: Unexpected keyword 'unchecked'
+                // C I.operator unchecked op(C x, C y) => x;
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 14));
+
+            N(SyntaxKind.OperatorDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "C");
+                }
+                N(SyntaxKind.ExplicitInterfaceSpecifier);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "I");
+                    }
+                    N(SyntaxKind.DotToken);
+                }
+                N(SyntaxKind.OperatorKeyword);
+                N(opToken);
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem(60394, "https://github.com/dotnet/roslyn/issues/60394")]
+        [InlineData("implicit", SyntaxKind.ImplicitKeyword)]
+        [InlineData("explicit", SyntaxKind.ExplicitKeyword)]
+        public void UnheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
+        {
+            UsingDeclaration(op + " operator unchecked D(C x) => x;", expectedErrors:
+                // (1,19): error CS9028: Unexpected keyword 'unchecked'
+                // implicit operator unchecked op(C x) => x;
+                Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 19));
+
+            N(SyntaxKind.ConversionOperatorDeclaration);
+            {
+                N(opToken);
+                N(SyntaxKind.OperatorKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "D");
+                }
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "C");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.ArrowExpressionClause);
+                {
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
     }
 }

@@ -1086,7 +1086,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             where TNode : GreenNode
         {
             LanguageVersion availableVersion = this.Options.LanguageVersion;
-            LanguageVersion requiredVersion = feature.RequiredVersion();
 
             // There are special error codes for some features, so handle those separately.
             switch (feature)
