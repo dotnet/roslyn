@@ -1253,29 +1253,34 @@ class C
         );
     }
 
-    [Fact]
-    public void UnsettableMembers()
+    [Theory]
+    [InlineData("internal")]
+    [InlineData("internal protected")]
+    [InlineData("protected")]
+    [InlineData("private protected")]
+    [InlineData("private")]
+    public void UnsettableMembers(string setterAccessibility)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
+        var comp = CreateCompilationWithRequiredMembers($$"""
 #pragma warning disable CS0649 // Unassigned field
-class C
+public class C
 {
     public required readonly int Field;
     public required int Prop1 { get; }
-    public required int Prop2 { get; protected set; }
+    public required int Prop2 { get; {{setterAccessibility}} set; }
 }
-");
+""");
 
         comp.VerifyDiagnostics(
-            // (5,34): error CS9505: Required member 'C.Field' must be settable.
+            // (4,34): error CS9505: Required member 'C.Field' must be settable.
             //     public required readonly int Field;
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field").WithArguments("C.Field").WithLocation(5, 34),
-            // (6,25): error CS9505: Required member 'C.Prop1' must be settable.
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field").WithArguments("C.Field").WithLocation(4, 34),
+            // (5,25): error CS9505: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(6, 25),
-            // (7,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
-            //     public required int Prop2 { get; protected set; }
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(7, 25)
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(5, 25),
+            // (6,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
+            //     public required int Prop2 { get; private set; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(6, 25)
         );
     }
 
