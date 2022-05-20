@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly IThreadingContext _threadingContext;
         private readonly InteractiveEvaluatorLanguageInfoProvider _languageInfo;
         private readonly InteractiveWorkspace _workspace;
+        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
+
         private readonly CancellationTokenSource _shutdownCancellationSource;
         private readonly string _hostDirectory;
 
@@ -70,12 +72,15 @@ namespace Microsoft.CodeAnalysis.Interactive
             InteractiveWorkspace workspace,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
+            ITextDocumentFactoryService factoryService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
             _workspace = workspace;
             _threadingContext = threadingContext;
             _languageInfo = languageInfo;
+            _textDocumentFactoryService = factoryService;
+
             _taskQueue = new TaskQueue(listener, TaskScheduler.Default);
             _shutdownCancellationSource = new CancellationTokenSource();
 
@@ -194,6 +199,18 @@ namespace Microsoft.CodeAnalysis.Interactive
             _currentSubmissionProjectId = ProjectId.CreateNewId(newSubmissionProjectName);
             var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
 
+            // Associate a name with both the editor document and our roslyn document so LSP can make requests on it.
+            var extension = languageName switch
+            {
+                LanguageNames.CSharp => "cs",
+                LanguageNames.VisualBasic => "vb",
+                _ => throw new ArgumentException($"Unexpected language name {languageName}")
+            };
+            var submissionFilePath = Path.Combine(Path.GetTempPath(), $"Submission{SubmissionCount}.{extension}");
+
+            _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
+            textDocument.Rename(submissionFilePath);
+
             // Chain projects to the the last submission that successfully executed.
             _workspace.SetCurrentSolution(solution =>
             {
@@ -202,7 +219,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     RoslynDebug.AssertNotNull(initializationScriptPath);
 
                     var initProject = CreateSubmissionProjectNoLock(solution, initializationScriptProjectId, previousSubmissionProjectId: null, languageName, initializationScriptImports, initializationScriptReferences);
-
                     solution = initProject.Solution.AddDocument(
                         DocumentId.CreateNewId(initializationScriptProjectId, debugName: initializationScriptPath),
                         Path.GetFileName(initializationScriptPath),
@@ -213,7 +229,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 solution = newSubmissionProject.Solution.AddDocument(
                     newSubmissionDocumentId,
                     newSubmissionProjectName,
-                    newSubmissionText);
+                    newSubmissionText,
+                    filePath: submissionFilePath);
 
                 return solution;
             }, WorkspaceChangeKind.SolutionChanged);
