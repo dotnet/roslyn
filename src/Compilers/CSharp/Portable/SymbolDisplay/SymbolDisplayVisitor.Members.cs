@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitField(IFieldSymbol symbol)
         {
-            AddAccessibilityIfRequired(symbol);
-            AddMemberModifiersIfRequired(symbol);
+            AddAccessibilityIfNeeded(symbol);
+            AddMemberModifiersIfNeeded(symbol);
             AddFieldModifiersIfRequired(symbol);
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) &&
@@ -122,8 +122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitProperty(IPropertySymbol symbol)
         {
-            AddAccessibilityIfRequired(symbol);
-            AddMemberModifiersIfRequired(symbol);
+            AddAccessibilityIfNeeded(symbol);
+            AddMemberModifiersIfNeeded(symbol);
+
 
             if (ShouldPropertyDisplayReadOnly(symbol))
             {
@@ -210,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitEvent(IEventSymbol symbol)
         {
-            AddAccessibilityIfRequired(symbol);
-            AddMemberModifiersIfRequired(symbol);
+            AddAccessibilityIfNeeded(symbol);
+            AddMemberModifiersIfNeeded(symbol);
 
             var accessor = symbol.AddMethod ?? symbol.RemoveMethod;
             if (accessor is object && ShouldMethodDisplayReadOnly(accessor))
@@ -300,8 +301,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)symbol.ContainingType != null || (symbol.ContainingSymbol is ITypeSymbol))
             {
-                AddAccessibilityIfRequired(symbol);
-                AddMemberModifiersIfRequired(symbol);
+                AddAccessibilityIfNeeded(symbol);
+                AddMemberModifiersIfNeeded(symbol);
 
                 if (ShouldMethodDisplayReadOnly(symbol))
                 {
@@ -838,7 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddMemberModifiersIfRequired(ISymbol symbol)
+        private void AddMemberModifiersIfNeeded(ISymbol symbol)
         {
             INamedTypeSymbol containingType = symbol.ContainingType;
 
@@ -850,6 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) && !IsLocalFunction(symbol))))
             {
                 var isConst = symbol is IFieldSymbol && ((IFieldSymbol)symbol).IsConst;
+                var isRequired = symbol is IFieldSymbol { IsRequired: true } or IPropertySymbol { IsRequired: true };
                 if (symbol.IsStatic && !isConst)
                 {
                     AddKeyword(SyntaxKind.StaticKeyword);
@@ -883,6 +885,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.IsVirtual)
                 {
                     AddKeyword(SyntaxKind.VirtualKeyword);
+                    AddSpace();
+                }
+
+                if (isRequired)
+                {
+                    AddKeyword(SyntaxKind.RequiredKeyword);
                     AddSpace();
                 }
             }
