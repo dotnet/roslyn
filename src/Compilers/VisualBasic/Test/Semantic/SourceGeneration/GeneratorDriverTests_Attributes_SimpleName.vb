@@ -465,7 +465,8 @@ end class
 class C
 end class
 <X>
-class D { }
+class D
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -497,7 +498,8 @@ class D { }
 class C
 end class
 <Y>
-class D { }
+class D
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -529,7 +531,8 @@ class D { }
 class C
 end class
 <X>
-class D { }
+class D
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -559,10 +562,10 @@ class D { }
             Dim source = "
 <X>
 class C
-{
     <X>
-    class D { }
-}
+    class D
+    end class
+end class
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1029,13 +1032,12 @@ end namespace
             Dim source = "
 imports BAttribute = XAttribute
 namespace N
-{
     imports AAttribute = B
 
     <A>
     class C
     end class
-}
+end namespace
 "
             Dim parseOptions = TestOptions.RegularLatest
             Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
@@ -1767,7 +1769,8 @@ end class
             compilation.SyntaxTrees.First(),
             compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
 global imports AAttribute = XAttribute
-class Dummy {}
+class Dummy
+end class
 "))))
             runResult = driver.GetRunResult().Results(0)
 
@@ -1949,7 +1952,8 @@ end class
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(
             compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
-class D { }"))))
+class D
+end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
@@ -1998,7 +2002,8 @@ end class
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(
                 compilation.SyntaxTrees.First().WithChangedText(SourceText.From("
 <A>
-class D { }"))))
+class D
+end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
@@ -2058,7 +2063,8 @@ end class
             compilation.SyntaxTrees.Last(),
             compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("
 <A>
-class D { }"))))
+class D
+end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
