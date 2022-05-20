@@ -409,6 +409,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     codeFactory.IdentifierName("value")));
             }
 
+            modifiers = modifiers.WithRequired(overriddenProperty.IsRequired);
+
             // Only generate a getter if the base getter is accessible.
             IMethodSymbol? accessorGet = null;
             if (overriddenProperty.GetMethod != null && overriddenProperty.GetMethod.IsAccessibleWithin(containingType))
@@ -507,6 +509,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Document newDocument,
             CancellationToken cancellationToken)
         {
+
+            // Required is not a valid modifier for methods, so clear it if the user typed it
+            modifiers = modifiers.WithRequired(false);
+
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)
             {

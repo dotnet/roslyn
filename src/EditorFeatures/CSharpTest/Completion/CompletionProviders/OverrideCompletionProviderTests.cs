@@ -2700,6 +2700,148 @@ int bar;
             }
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordAdded()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    public override required int Prop
+                    {
+                        get
+                        {
+                            return base.Prop;$$
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordPreserved()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    required override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual required int Prop { get; }
+                }
+
+                class Derived : Base
+                {
+                    public override required int Prop
+                    {
+                        get
+                        {
+                            return base.Prop;$$
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordRemovedForMethods()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual void M() { }
+                }
+
+                class Derived : Base
+                {
+                    required override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual void M() { }
+                }
+
+                class Derived : Base
+                {
+                    public override void M()
+                    {
+                        base.M();$$
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "M()", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CommitRequiredKeywordRemovedForIndexers()
+        {
+            var markupBeforeCommit = """
+                class Base
+                {
+                    public virtual int this[int i] { get { } set { } }
+                }
+
+                class Derived : Base
+                {
+                    required override $$
+                }
+                """;
+
+            var expectedCodeAfterCommit = """
+                class Base
+                {
+                    public virtual int this[int i] { get { } set { } }
+                }
+
+                class Derived : Base
+                {
+                    public override int this[int i]
+                    {
+                        get
+                        {
+                            return base[i];$$
+                        }
+
+                        set
+                        {
+                            base[i] = value;
+                        }
+                    }
+                }
+                """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "this[int i]", expectedCodeAfterCommit);
+        }
+
         #endregion
 
         #region "EditorBrowsable should be ignored"
