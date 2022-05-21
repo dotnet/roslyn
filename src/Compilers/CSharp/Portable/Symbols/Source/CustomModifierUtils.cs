@@ -78,9 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
             TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 
-            var builder = ArrayBuilder<bool>.GetInstance();
-            CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, destinationType);
-            resultType = NativeIntegerTypeDecoder.TransformType(resultType, builder.ToImmutableAndFree());
+            if (!containingAssembly.RuntimeSupportsNumericIntPtr)
+            {
+                var builder = ArrayBuilder<bool>.GetInstance();
+                CSharpCompilation.NativeIntegerTransformsEncoder.Encode(builder, destinationType);
+                resultType = NativeIntegerTypeDecoder.TransformType(resultType, builder.ToImmutableAndFree());
+            }
 
             if (destinationType.ContainsTuple() && !sourceType.Equals(destinationType, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
             {

@@ -83,9 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             await OpenDocumentAsync(testLspServer, document);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-
-            Assert.Empty(results.Single().Diagnostics);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]
@@ -103,8 +101,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             // Ensure we get no diagnostics when feature flag is off.
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), false);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-            Assert.Empty(results.Single().Diagnostics);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]
@@ -586,7 +583,7 @@ class B {";
 @"class A {";
             var markup2 = "";
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: false);
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
 
             var firstDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
             await OpenDocumentAsync(testLspServer, firstDocument);
@@ -644,11 +641,7 @@ class B {";
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-
-            Assert.Equal(2, results.Length);
-            Assert.Empty(results[0].Diagnostics);
-            Assert.Empty(results[1].Diagnostics);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]

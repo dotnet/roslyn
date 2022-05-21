@@ -202,6 +202,11 @@
         <target state="translated">Oluşturucular için blok gövdesi kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_conversion_operators">
+        <source>Use block body for conversion operators</source>
+        <target state="new">Use block body for conversion operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">Dizin oluşturucular için blok gövdesi kullan</target>
@@ -245,6 +250,11 @@
       <trans-unit id="Use_expression_body_for_constructors">
         <source>Use expression body for constructors</source>
         <target state="translated">Oluşturucular için ifade gövdesi kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_conversion_operators">
+        <source>Use expression body for conversion operators</source>
+        <target state="new">Use expression body for conversion operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">
