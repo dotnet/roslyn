@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         if (scopedBeforeRef)
-{
+                        {
                             scope |= refKind == RefKind.None ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
                         }
                         if (scopedAfterRef)

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ParameterSyntaxKind _parameterSyntaxKind;
         private readonly DeclarationScope _scope;
 
-        private ThreeState _lazyHasOptionalAttribute; // follows _parameterSyntaxKind and _scope to reduce instance size
+        private ThreeState _lazyHasOptionalAttribute;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         protected ConstantValue _lazyDefaultSyntaxValue;
 

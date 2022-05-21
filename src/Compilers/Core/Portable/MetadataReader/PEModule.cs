@@ -1087,7 +1087,7 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out transformFlags);
         }
 
-        internal bool HasLifetimeAnnotationAttribute(EntityHandle token, out (bool, bool) value)
+        internal bool HasLifetimeAnnotationAttribute(EntityHandle token, out (bool IsRefScoped, bool IsValueScoped) value)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.LifetimeAnnotationAttribute);
             if (!info.HasValue)
