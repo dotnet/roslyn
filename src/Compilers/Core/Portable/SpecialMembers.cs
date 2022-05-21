@@ -1025,7 +1025,13 @@ namespace Microsoft.CodeAnalysis
                 (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
-                    
+
+                // System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)SpecialType.System_Runtime_CompilerServices_RuntimeFeature,                                           // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,                                    // Field Signature
+
                 // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute,                           // DeclaringTypeId
@@ -1159,7 +1165,8 @@ namespace Microsoft.CodeAnalysis
                 "DefaultImplementationsOfInterfaces",       // System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
                 "UnmanagedSignatureCallingConvention",      // System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                 "CovariantReturnsOfClasses",                // System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
-                "VirtualStaticsInInterfaces",                // System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
+                "VirtualStaticsInInterfaces",               // System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
+                "NumericIntPtr",                            // System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                 ".ctor",                                    // System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
             };
 
