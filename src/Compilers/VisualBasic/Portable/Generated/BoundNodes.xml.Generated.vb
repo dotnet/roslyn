@@ -2532,6 +2532,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(expression IsNot Nothing, "Field 'expression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Expression = expression
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 
