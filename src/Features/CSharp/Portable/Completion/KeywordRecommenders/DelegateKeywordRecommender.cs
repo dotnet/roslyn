@@ -30,11 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsGenericConstraintContext)
-            {
-                return false;
-            }
-
             return
                 context.IsGlobalStatementContext ||
                 ValidTypeContext(context) ||
