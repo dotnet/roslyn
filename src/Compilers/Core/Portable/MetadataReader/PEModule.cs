@@ -1722,6 +1722,11 @@ namespace Microsoft.CodeAnalysis
         }
 #nullable disable
 
+        internal bool HasStateMachineAttribute(MethodDefinitionHandle handle, out string stateMachineTypeName)
+            => HasStringValuedAttribute(handle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
+               HasStringValuedAttribute(handle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName) ||
+               HasStringValuedAttribute(handle, AttributeDescription.AsyncIteratorStateMachineAttribute, out stateMachineTypeName);
+
         internal bool HasStringValuedAttribute(EntityHandle token, AttributeDescription description, out string value)
         {
             AttributeInfo info = FindTargetAttribute(token, description);

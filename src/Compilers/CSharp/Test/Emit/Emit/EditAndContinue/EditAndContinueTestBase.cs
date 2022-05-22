@@ -284,5 +284,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         {
             return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTree);
         }
+
+        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, SyntaxTree[] newTrees)
+        {
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(newTrees);
+        }
     }
 }

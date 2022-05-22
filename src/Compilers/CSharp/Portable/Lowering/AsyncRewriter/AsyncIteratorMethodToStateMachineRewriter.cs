@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LabelSymbol _exprReturnLabelTrue;
 
         /// <summary>
-        /// States for `yield return` are decreasing from -3.
+        /// States for `yield return` are decreasing from <see cref="StateMachineStates.InitialAsyncIteratorState"/>.
         /// </summary>
-        private int _nextYieldReturnState = StateMachineStates.InitialAsyncIteratorStateMachine;  // -3
+        private readonly ResumableStateMachineStateAllocator _iteratorStateAllocator;
 
         internal AsyncIteratorMethodToStateMachineRewriter(MethodSymbol method,
             int methodOrdinal,
@@ -55,20 +55,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
                   state, builder, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
-                  slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                  stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             Debug.Assert(asyncIteratorInfo != null);
 
             _asyncIteratorInfo = asyncIteratorInfo;
             _currentDisposalLabel = _exprReturnLabel;
             _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
+
+            _iteratorStateAllocator = new ResumableStateMachineStateAllocator(
+                slotAllocatorOpt,
+                firstState: StateMachineStates.FirstResumableAsyncIteratorState,
+                increasing: false);
         }
 
+#nullable enable
+        protected override BoundStatement? GenerateMissingStateDispatch()
+        {
+            var asyncDispatch = base.GenerateMissingStateDispatch();
+
+            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), CodeAnalysisResources.EncCannotResumeSuspenededIteratorMethod);
+            if (iteratorDispatch == null)
+            {
+                return asyncDispatch;
+            }
+
+            return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
+        }
+#nullable disable
         protected override BoundStatement GenerateSetResultCall()
         {
             // ... _exprReturnLabel: ...
@@ -216,9 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  this.state = cachedState = -1;
             //  ... rewritten body
 
-            var initialState = _nextYieldReturnState--;
-            Debug.Assert(initialState == -3);
-            AddState(initialState, out GeneratedLabelSymbol resumeLabel);
+            AddState(StateMachineStates.InitialAsyncIteratorState, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenBody = (BoundStatement)Visit(body);
 
@@ -245,8 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  _promiseOfValueOrEnd.SetResult(true);
             //  return;
 
-            var stateNumber = _nextYieldReturnState--;
-            AddState(stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(_iteratorStateAllocator, node.Syntax, out var stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();

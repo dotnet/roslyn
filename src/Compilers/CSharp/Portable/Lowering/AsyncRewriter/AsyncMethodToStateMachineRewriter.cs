@@ -74,10 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
-            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+            : base(F, method, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
@@ -120,6 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        protected sealed override string EncMissingStateMessage
+            => CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod;
+
+        protected sealed override int FirstIncreasingResumableState
+            => StateMachineStates.FirstResumableAsyncState;
+
         /// <summary>
         /// Generate the body for <c>MoveNext()</c>.
         /// </summary>
@@ -143,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.Block(ImmutableArray<LocalSymbol>.Empty,
                         // switch (state) ...
                         F.HiddenSequencePoint(),
-                        Dispatch(),
+                        Dispatch(isOutermost: true),
                         // [body]
                         rewrittenBody
                     ),
@@ -436,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBlock GenerateAwaitForIncompleteTask(LocalSymbol awaiterTemp)
         {
-            AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(awaiterTemp.GetDeclaratorSyntax(), out int stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             TypeSymbol awaiterFieldType = awaiterTemp.Type.IsVerifierReference()
                 ? F.SpecialType(SpecialType.System_Object)
