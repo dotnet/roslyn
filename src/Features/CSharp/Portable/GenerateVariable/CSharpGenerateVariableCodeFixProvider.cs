@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateVariableService>();
             return service.GenerateVariableAsync(document, node, fallbackOptions, cancellationToken);

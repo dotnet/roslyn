@@ -605,6 +605,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">创建其余部分并赋值为属性</target>
         <note />
       </trans-unit>
+      <trans-unit id="Decompiled">
+        <source>decompiled</source>
+        <target state="new">decompiled</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">删除活动语句周围的 {0} 需要重新启动应用程序。</target>

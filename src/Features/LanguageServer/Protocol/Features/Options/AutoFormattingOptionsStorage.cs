@@ -9,11 +9,13 @@ namespace Microsoft.CodeAnalysis.Formatting;
 internal static class AutoFormattingOptionsStorage
 {
     public static AutoFormattingOptions GetAutoFormattingOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
-            FormatOnReturn: globalOptions.GetOption(FormatOnReturn, language),
-            FormatOnTyping: globalOptions.GetOption(FormatOnTyping, language),
-            FormatOnSemicolon: globalOptions.GetOption(FormatOnSemicolon, language),
-            FormatOnCloseBrace: globalOptions.GetOption(FormatOnCloseBrace, language));
+        => new()
+        {
+            FormatOnReturn = globalOptions.GetOption(FormatOnReturn, language),
+            FormatOnTyping = globalOptions.GetOption(FormatOnTyping, language),
+            FormatOnSemicolon = globalOptions.GetOption(FormatOnSemicolon, language),
+            FormatOnCloseBrace = globalOptions.GetOption(FormatOnCloseBrace, language)
+        };
 
     internal static readonly PerLanguageOption2<bool> FormatOnReturn = new(
         "FormattingOptions", OptionGroup.Default, "AutoFormattingOnReturn", AutoFormattingOptions.Default.FormatOnReturn,

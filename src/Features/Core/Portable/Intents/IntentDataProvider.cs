@@ -23,13 +23,13 @@ namespace Microsoft.CodeAnalysis.Features.Intents
             return serializerOptions;
         });
 
-        public readonly CodeAndImportGenerationOptionsProvider FallbackOptions;
+        public readonly CleanCodeGenerationOptionsProvider FallbackOptions;
 
         private readonly string? _serializedIntentData;
 
         public IntentDataProvider(
             string? serializedIntentData,
-            CodeAndImportGenerationOptionsProvider fallbackOptions)
+            CleanCodeGenerationOptionsProvider fallbackOptions)
         {
             _serializedIntentData = serializedIntentData;
             FallbackOptions = fallbackOptions;

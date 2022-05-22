@@ -11,35 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class FeatureOnOffOptions : IOptionProvider
+    internal sealed class FeatureOnOffOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FeatureOnOffOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            EndConstruct,
-            AutomaticInsertionOfAbstractOrInterfaceMembers,
-            LineSeparator,
-            Outlining,
-            KeywordHighlighting,
-            ReferenceHighlighting,
-            AutoInsertBlockCommentStartString,
-            PrettyListing,
-            RenameTrackingPreview,
-            RenameTracking,
-            RefactoringVerification,
-            AddImportsOnPaste,
-            OfferRemoveUnusedReferences,
-            OfferRemoveUnusedReferencesFeatureFlag,
-            ShowInheritanceMargin,
-            InheritanceMarginCombinedWithIndicatorMargin,
-            AutomaticallyCompleteStatementOnSemicolon,
-            SkipAnalyzersForImplicitlyTriggeredBuilds);
-
         private const string FeatureName = "FeatureOnOffOptions";
 
         public static readonly PerLanguageOption2<bool> EndConstruct = new(FeatureName, "EndConstruct", defaultValue: true,

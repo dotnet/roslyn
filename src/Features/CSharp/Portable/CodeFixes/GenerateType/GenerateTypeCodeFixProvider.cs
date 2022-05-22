@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
             => ((ExpressionSyntax)node).GetRightmostName();
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateTypeService>();
             return service.GenerateTypeAsync(document, node, fallbackOptions, cancellationToken);

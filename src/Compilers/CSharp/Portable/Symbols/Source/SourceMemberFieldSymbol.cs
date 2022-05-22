@@ -136,8 +136,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, BindingDiagnosticBag diagnostics, out bool modifierErrors)
         {
+            bool isInterface = containingType.IsInterface;
             DeclarationModifiers defaultAccess =
-                (containingType.IsInterface) ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+                isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             DeclarationModifiers allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
@@ -152,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                isForTypeDeclaration: false, isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.Abstract) != 0)

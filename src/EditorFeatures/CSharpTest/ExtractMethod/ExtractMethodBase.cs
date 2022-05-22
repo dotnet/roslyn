@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -130,11 +131,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = new ExtractMethodGenerationOptions(
-                ExtractOptions: new ExtractMethodOptions(dontPutOutOrRefOnStruct),
-                CodeGenerationOptions: CodeGenerationOptions.GetDefault(document.Project.LanguageServices),
-                AddImportOptions: AddImportPlacementOptions.Default,
-                NamingPreferences: _ => NamingStylePreferences.Default);
+            var options = new ExtractMethodGenerationOptions(CodeGenerationOptions.GetDefault(document.Project.LanguageServices))
+            {
+                ExtractOptions = new() { DontPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
+            };
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
