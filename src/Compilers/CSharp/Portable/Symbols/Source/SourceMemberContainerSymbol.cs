@@ -488,30 +488,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         GetAttributes();
                         break;
 
-                    case CompletionPart.StartBaseType:
-                    case CompletionPart.FinishBaseType:
-                        if (state.NotePartComplete(CompletionPart.StartBaseType))
-                        {
-                            var diagnostics = BindingDiagnosticBag.GetInstance();
-                            CheckBase(diagnostics);
-                            AddDeclarationDiagnostics(diagnostics);
-                            state.NotePartComplete(CompletionPart.FinishBaseType);
-                            diagnostics.Free();
-                        }
-                        break;
-
-                    case CompletionPart.StartInterfaces:
-                    case CompletionPart.FinishInterfaces:
-                        if (state.NotePartComplete(CompletionPart.StartInterfaces))
-                        {
-                            var diagnostics = BindingDiagnosticBag.GetInstance();
-                            CheckInterfaces(diagnostics);
-                            AddDeclarationDiagnostics(diagnostics);
-                            state.NotePartComplete(CompletionPart.FinishInterfaces);
-                            diagnostics.Free();
-                        }
-                        break;
-
                     case CompletionPart.EnumUnderlyingType:
                         var discarded = this.EnumUnderlyingType;
                         break;
@@ -2118,8 +2094,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void AfterAccessorBindingChecks()
+        internal override void AfterAccessorBindingChecks()
         {
+            base.AfterAccessorBindingChecks();
+            var diagnostics = DeclaringCompilation.AfterAccessorBindingDiagnostics;
+            CheckBase(diagnostics);
+            CheckInterfaces(diagnostics);
             _ = KnownCircularStruct;
         }
 

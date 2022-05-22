@@ -33,25 +33,20 @@ class A {
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(a.HasComplete(CompletionPart.Members));
 
             var x = a.GetMember<FieldSymbol>("x");
             Assert.True(a.HasComplete(CompletionPart.Members)); // getting one member completes the whole set
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(x.HasComplete(CompletionPart.Type));
 
             var xType = x.TypeWithAnnotations;
             Assert.True(x.HasComplete(CompletionPart.Type));
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
             var y = a.GetMember<FieldSymbol>("y");
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(y.HasComplete(CompletionPart.Type));
 
             var yType = y.TypeWithAnnotations;
             Assert.True(y.HasComplete(CompletionPart.Type));
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType)); // needed to look in A's base for y's type
 
             var f = a.GetMember<MethodSymbol>("F");
             Assert.False(f.HasComplete(CompletionPart.StartMethodChecks));
@@ -73,12 +68,10 @@ class A {
             var global = comp.GlobalNamespace;
 
             var a = global.GetMember<NamedTypeSymbol>("A");
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(a.HasComplete(CompletionPart.Members));
 
             var p = a.GetMember<PropertySymbol>("P");
             Assert.True(a.HasComplete(CompletionPart.Members)); // getting one member completes the whole set
-            Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
             var pType = p.TypeWithAnnotations;
             var pParameters = p.Parameters;

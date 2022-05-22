@@ -742,13 +742,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return binder.BindType(typeSyntax, diagnostics);
         }
 
+        internal override void AfterAccessorBindingChecks()
+        {
+            base.AfterAccessorBindingChecks();
+            var compilation = DeclaringCompilation;
+            var conversions = new TypeConversions(ContainingAssembly.CorLibrary);
+            this.Type.CheckAllConstraints(compilation, conversions, Locations[0], compilation.AfterAccessorBindingDiagnostics);
+        }
+
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             var compilation = DeclaringCompilation;
             var location = this.Locations[0];
 
             this.CheckModifiersAndType(diagnostics);
-            this.Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
 
             if (Type.ContainsNativeInteger())
             {

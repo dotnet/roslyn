@@ -601,8 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
 
-        internal void AfterAccessorBindingChecks()
+        internal override void AfterAccessorBindingChecks()
         {
+            base.AfterAccessorBindingChecks();
             var type = Type;
             // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
             if (type.Kind == SymbolKind.PointerType && !IsFixedSizeBuffer)

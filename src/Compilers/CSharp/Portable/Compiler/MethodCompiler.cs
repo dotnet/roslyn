@@ -218,35 +218,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void addAfterAccessorBindingDiagnostics(NamespaceOrTypeSymbol symbol)
+            void addAfterAccessorBindingDiagnostics(Symbol symbol)
             {
-                if (symbol is SourceMemberContainerTypeSymbol sourceMemberContainerTypeSymbol && PassesFilter(filterOpt, symbol))
+                if (PassesFilter(filterOpt, symbol))
                 {
-                    sourceMemberContainerTypeSymbol.AfterAccessorBindingChecks();
+                    symbol.AfterAccessorBindingChecks();
                 }
 
-                foreach (var member in symbol.GetMembersUnordered())
+                if (symbol is not NamespaceOrTypeSymbol namespaceOrTypeSymbol)
                 {
-                    if (member is NamespaceOrTypeSymbol namespaceOrTypeSymbol)
+                    return;
+                }
+
+                foreach (var member in namespaceOrTypeSymbol.GetMembersUnordered())
+                {
+                    if (compilation.Options.ConcurrentBuild)
                     {
-                        if (compilation.Options.ConcurrentBuild)
-                        {
-                            Task worker = addAfterAccessorBindingDiagnosticsAsAsync(namespaceOrTypeSymbol);
-                            methodCompiler._compilerTasks.Push(worker);
-                        }
-                        else
-                        {
-                            addAfterAccessorBindingDiagnostics(namespaceOrTypeSymbol);
-                        }
+                        Task worker = addAfterAccessorBindingDiagnosticsAsAsync(member);
+                        methodCompiler._compilerTasks.Push(worker);
                     }
-                    else if (member is SourceMemberFieldSymbolFromDeclarator fieldSymbol)
+                    else
                     {
-                        fieldSymbol.AfterAccessorBindingChecks();
+                        addAfterAccessorBindingDiagnostics(member);
                     }
                 }
             }
 
-            Task addAfterAccessorBindingDiagnosticsAsAsync(NamespaceOrTypeSymbol symbol)
+            Task addAfterAccessorBindingDiagnosticsAsAsync(Symbol symbol)
             {
                 return Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
