@@ -241,6 +241,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         addAfterAccessorBindingDiagnostics(member);
                     }
+
+                    var typeParameters = member switch
+                    {
+                        MethodSymbol m => m.TypeParameters,
+                        NamedTypeSymbol nt => nt.TypeParameters,
+                        _ => ImmutableArray<TypeParameterSymbol>.Empty,
+                    };
+
+                    foreach (var typeParameter in typeParameters)
+                    {
+                        (typeParameter as SourceTypeParameterSymbolBase)?.AfterAccessorBindingChecks();
+                    }
                 }
             }
 
