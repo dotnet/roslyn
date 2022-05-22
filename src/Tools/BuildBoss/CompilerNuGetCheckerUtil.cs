@@ -367,6 +367,7 @@ namespace BuildBoss
             }
         }
 
+
         private string FindNuGetPackage(string directory, string partialName)
         {
             var regex = $@"{partialName}.\d.*\.nupkg";
@@ -379,6 +380,14 @@ namespace BuildBoss
                 })
                .SingleOrDefault();
             return file ?? throw new Exception($"Unable to find unique '{partialName}' in '{directory}'");
+        }
+
+        private string FindVsix(string fileName)
+        {
+            fileName = fileName + ".vsix";
+            var directory = Path.Combine(ArtifactsDirectory, "VSSetup", Configuration);
+            var file = Directory.EnumerateFiles(directory, fileName, SearchOption.AllDirectories).SingleOrDefault();
+            return file ?? throw new Exception($"Unable to find '{fileName}' in '{directory}'");
         }
 
         /// <summary>
