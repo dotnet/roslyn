@@ -984,12 +984,12 @@ done:
                     Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
                 }
 
-                if ((hasBody || IsExplicitInterfaceImplementation || IsExtern) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                if ((((hasBody || IsExtern) && !(IsStatic && IsVirtual)) || IsExplicitInterfaceImplementation) && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
                 }
 
-                if (!hasBody && IsAbstract && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                if (((!hasBody && IsAbstract) || IsVirtual) && !IsExplicitInterfaceImplementation && IsStatic && !ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
                 {
                     diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, location);
                 }

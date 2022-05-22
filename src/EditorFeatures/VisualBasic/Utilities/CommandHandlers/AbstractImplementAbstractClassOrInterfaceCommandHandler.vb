@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
         Protected MustOverride Overloads Function TryGetNewDocument(
             document As Document,
-            options As ImplementTypeOptions,
+            options As ImplementTypeGenerationOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken) As Document
 
@@ -164,8 +164,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim options = _globalOptions.GetImplementTypeOptions(document.Project.Language)
-            Dim newDocument = TryGetNewDocument(document, options, identifier, cancellationToken)
+            Dim newDocument = TryGetNewDocument(document, _globalOptions.GetImplementTypeGenerationOptions(document.Project.LanguageServices), identifier, cancellationToken)
 
             If newDocument Is Nothing Then
                 Return False

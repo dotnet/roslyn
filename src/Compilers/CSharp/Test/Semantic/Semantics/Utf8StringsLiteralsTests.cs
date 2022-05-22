@@ -129,15 +129,15 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(13, 30),
-                // (14,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(13, 30),
+                // (14,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => "dog";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(14, 34),
-                // (15,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(14, 34),
+                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => "cat";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("Utf8 String Literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("UTF-8 string literals").WithLocation(15, 42)
                 );
         }
 
@@ -226,28 +226,28 @@ cat
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   hello
   """"""").WithArguments("raw string literals").WithLocation(13, 30),
-                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => "hello";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   hello
-  """"""").WithArguments("Utf8 String Literals").WithLocation(13, 30),
+  """"""").WithArguments("UTF-8 string literals").WithLocation(13, 30),
                 // (16,34): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => """dog""";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""").WithArguments("raw string literals").WithLocation(16, 34),
-                // (16,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => "dog";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""").WithArguments("Utf8 String Literals").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""").WithArguments("UTF-8 string literals").WithLocation(16, 34),
                 // (17,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => """
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
 cat
 """"""").WithArguments("raw string literals").WithLocation(17, 42),
 
-                // (17,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (17,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => "cat";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
 cat
-""""""").WithArguments("Utf8 String Literals").WithLocation(17, 42)
+""""""").WithArguments("UTF-8 string literals").WithLocation(17, 42)
                 );
         }
 
@@ -283,12 +283,12 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,49): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,49): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         (byte[] b, (byte[] d, string e) c) a = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 49),
-                // (7,59): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 49),
+                // (7,59): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         (byte[] b, (byte[] d, string e) c) a = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(7, 59)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(7, 59)
                 );
         }
 
@@ -324,12 +324,12 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,45): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,45): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         (byte[] a, (byte[] b, string c)) = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 45),
-                // (7,55): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 45),
+                // (7,55): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         (byte[] a, (byte[] b, string c)) = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(7, 55)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(7, 55)
                 );
         }
 
@@ -371,15 +371,15 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var array = (byte[])"hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(byte[])""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 21),
-                // (8,20): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(byte[])""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 21),
+                // (8,20): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var span = (Span<byte>)"dog";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(Span<byte>)""dog""").WithArguments("Utf8 String Literals").WithLocation(8, 20),
-                // (9,28): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(Span<byte>)""dog""").WithArguments("UTF-8 string literals").WithLocation(8, 20),
+                // (9,28): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var readonlySpan = (ReadOnlySpan<byte>)"cat";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(ReadOnlySpan<byte>)""cat""").WithArguments("Utf8 String Literals").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(ReadOnlySpan<byte>)""cat""").WithArguments("UTF-8 string literals").WithLocation(9, 28)
                 );
         }
 
@@ -415,12 +415,12 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,54): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,54): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("Utf8 String Literals").WithLocation(7, 54),
-                // (7,64): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 54),
+                // (7,64): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("Utf8 String Literals").WithLocation(7, 64)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(7, 64)
                 );
         }
 
@@ -706,15 +706,15 @@ class C
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (15,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("Utf8 String Literals").WithLocation(15, 30),
-                // (16,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("UTF-8 string literals").WithLocation(15, 30),
+                // (16,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("Utf8 String Literals").WithLocation(16, 34),
-                // (17,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("UTF-8 string literals").WithLocation(16, 34),
+                // (17,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("Utf8 String Literals").WithLocation(17, 42)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("UTF-8 string literals").WithLocation(17, 42)
                 );
         }
 
@@ -757,15 +757,15 @@ class C
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (8,21): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,21): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var array = (byte[])nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(byte[])nullValue").WithArguments("Utf8 String Literals").WithLocation(8, 21),
-                // (9,20): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(byte[])nullValue").WithArguments("UTF-8 string literals").WithLocation(8, 21),
+                // (9,20): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var span = (Span<byte>)nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(Span<byte>)nullValue").WithArguments("Utf8 String Literals").WithLocation(9, 20),
-                // (10,28): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(Span<byte>)nullValue").WithArguments("UTF-8 string literals").WithLocation(9, 20),
+                // (10,28): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var readOnlySpan = (ReadOnlySpan<byte>)nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(ReadOnlySpan<byte>)nullValue").WithArguments("Utf8 String Literals").WithLocation(10, 28)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(ReadOnlySpan<byte>)nullValue").WithArguments("UTF-8 string literals").WithLocation(10, 28)
                 );
         }
 
@@ -2205,9 +2205,9 @@ class C
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,39): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,39): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.WriteLine(Test("s", (int)1));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("Utf8 String Literals").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("UTF-8 string literals").WithLocation(7, 39)
                 );
         }
 
@@ -2357,9 +2357,9 @@ static class E
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (9,31): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,31): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Console.WriteLine(p.M(""));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("Utf8 String Literals").WithLocation(9, 31)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("UTF-8 string literals").WithLocation(9, 31)
                 );
         }
 
@@ -2539,15 +2539,15 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => "hello"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""" + suffix).WithArguments("Utf8 String Literals").WithLocation(13, 30),
-                // (14,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""" + suffix).WithArguments("UTF-8 string literals").WithLocation(13, 30),
+                // (14,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => "dog"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""" + suffix).WithArguments("Utf8 String Literals").WithLocation(14, 34),
-                // (15,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""" + suffix).WithArguments("UTF-8 string literals").WithLocation(14, 34),
+                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""" + suffix).WithArguments("Utf8 String Literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
                 );
         }
 
@@ -2629,15 +2629,15 @@ class C
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => "hello"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""hello""" + suffix).WithArguments("Utf8 String Literals").WithLocation(13, 30),
-                // (14,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""hello""" + suffix).WithArguments("UTF-8 string literals").WithLocation(13, 30),
+                // (14,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => "dog"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""dog""" + suffix).WithArguments("Utf8 String Literals").WithLocation(14, 34),
-                // (15,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""dog""" + suffix).WithArguments("UTF-8 string literals").WithLocation(14, 34),
+                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => "cat"u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""cat""" + suffix).WithArguments("Utf8 String Literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"@""cat""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
                 );
         }
 
@@ -2722,21 +2722,21 @@ class C
                 // (13,30): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => """hello"""u8;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""hello""""""" + suffix).WithArguments("raw string literals").WithLocation(13, 30),
-                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => """hello"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""hello""""""" + suffix).WithArguments("Utf8 String Literals").WithLocation(13, 30),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""hello""""""" + suffix).WithArguments("UTF-8 string literals").WithLocation(13, 30),
                 // (14,34): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => """dog"""u8;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""" + suffix).WithArguments("raw string literals").WithLocation(14, 34),
-                // (14,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => """dog"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""" + suffix).WithArguments("Utf8 String Literals").WithLocation(14, 34),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""" + suffix).WithArguments("UTF-8 string literals").WithLocation(14, 34),
                 // (15,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("raw string literals").WithLocation(15, 42),
-                // (15,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => """cat"""u8;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("Utf8 String Literals").WithLocation(15, 42)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""cat""""""" + suffix).WithArguments("UTF-8 string literals").WithLocation(15, 42)
                 );
         }
 
@@ -2829,31 +2829,31 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   hello
   """"""" + suffix).WithArguments("raw string literals").WithLocation(13, 30),
-                // (13,30): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static byte[] Test1() => """
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   hello
-  """"""" + suffix).WithArguments("Utf8 String Literals").WithLocation(13, 30),
+  """"""" + suffix).WithArguments("UTF-8 string literals").WithLocation(13, 30),
                 // (16,34): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => """
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   dog
   """"""" + suffix).WithArguments("raw string literals").WithLocation(16, 34),
-                // (16,34): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (16,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static Span<byte> Test2() => """
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   dog
-  """"""" + suffix).WithArguments("Utf8 String Literals").WithLocation(16, 34),
+  """"""" + suffix).WithArguments("UTF-8 string literals").WithLocation(16, 34),
                 // (19,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => """
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   cat
   """"""" + suffix).WithArguments("raw string literals").WithLocation(19, 42),
-                // (19,42): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (19,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static ReadOnlySpan<byte> Test3() => """
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
   cat
-  """"""" + suffix).WithArguments("Utf8 String Literals").WithLocation(19, 42)
+  """"""" + suffix).WithArguments("UTF-8 string literals").WithLocation(19, 42)
                 );
         }
 
@@ -3406,9 +3406,9 @@ class C
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (6,40): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,40): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         System.Console.WriteLine(Test(("s", 1)));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("Utf8 String Literals").WithLocation(6, 40)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("UTF-8 string literals").WithLocation(6, 40)
                 );
         }
 

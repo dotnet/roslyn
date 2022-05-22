@@ -25448,7 +25448,7 @@ class P
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
                 // (6,41): error CS1003: Syntax error, ':' expected
                 //         var x1 = (1, 1) is (int, int a)?;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(6, 41),
                 // (6,41): error CS1525: Invalid expression term ';'
                 //         var x1 = (1, 1) is (int, int a)?;
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41)

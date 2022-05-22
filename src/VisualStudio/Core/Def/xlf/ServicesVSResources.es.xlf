@@ -242,6 +242,21 @@
         <target state="translated">El análisis de código terminó antes de completarse para la solución.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="new">Collapse metadata signature files to definitions on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="new">Collapse Source Link, Embedded, and Decompiled source to definitions on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Sugerencias de color</target>
@@ -445,6 +460,11 @@
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Finalizar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="new">Fix text pasted into string literals (experimental)</target>
         <note />
       </trans-unit>
       <trans-unit id="For_non_interface_members">
@@ -1030,6 +1050,11 @@
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
         <target state="translated">Preferir "System.HashCode" en "GetHashCode"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_UTF8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="new">Prefer UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">

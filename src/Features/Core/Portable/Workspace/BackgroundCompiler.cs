@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
         private Compilation?[]? _mostRecentCompilations;
 
         private readonly object _buildGate = new();
-        private CancellationTokenSource _cancellationSource;
+        private CancellationTokenSource _cancellationSource = new();
 
         public BackgroundCompiler(Workspace workspace)
         {
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Host
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
             _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
-            _cancellationSource = new CancellationTokenSource();
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workspace.DocumentOpened += OnDocumentOpened;
             _workspace.DocumentClosed += OnDocumentClosed;

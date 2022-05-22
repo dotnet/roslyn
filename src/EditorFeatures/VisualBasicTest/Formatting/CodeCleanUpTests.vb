@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
@@ -13,8 +14,10 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -334,16 +337,17 @@ End Class
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
 
-                Dim solution = workspace.CurrentSolution.
-                    WithOptions(workspace.Options.
-                        WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst).
-                        WithChangedOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)).
-                    WithAnalyzerReferences(
-                    {
-                        New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                        New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                        New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                    })
+                ' must set global options since incremental analyzer infra reads from global options
+                Dim globalOptions = workspace.GlobalOptions
+                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic), separateImportsGroups)
+                globalOptions.SetGlobalOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic), systemImportsFirst)
+
+                Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
+                {
+                    New AnalyzerFileReference(GetType(VisualBasicCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(MakeFieldReadonlyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    New AnalyzerFileReference(GetType(VisualBasicPreferFrameworkTypeDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
+                })
 
                 workspace.TryApplyChanges(solution)
 
@@ -358,19 +362,11 @@ End Class
 
                 Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
 
-                Dim options = New CodeActionOptions(
-                    CleanupOptions:=New CodeCleanupOptions(
-                        FormattingOptions:=New VisualBasicSyntaxFormattingOptions(
-                            LineFormattingOptions.Default,
-                            separateImportDirectiveGroups:=separateImportsGroups),
-                        SimplifierOptions:=VisualBasicSimplifierOptions.Default,
-                        AddImportOptions:=AddImportPlacementOptions.Default))
-
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
                     New ProgressTracker,
-                    Function(language) options,
+                    globalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

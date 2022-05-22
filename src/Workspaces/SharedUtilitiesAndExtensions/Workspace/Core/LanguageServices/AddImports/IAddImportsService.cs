@@ -16,71 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    [DataContract]
-    internal record struct AddImportPlacementOptions(
-        [property: DataMember(Order = 0)] bool PlaceSystemNamespaceFirst = true,
-        [property: DataMember(Order = 1)] bool PlaceImportsInsideNamespaces = false,
-        [property: DataMember(Order = 2)] bool AllowInHiddenRegions = false)
-    {
-        public AddImportPlacementOptions()
-            : this(PlaceSystemNamespaceFirst: true)
-        {
-        }
-
-        public static readonly AddImportPlacementOptions Default = new();
-
-        internal static AddImportPlacementOptions Create(AnalyzerConfigOptions configOptions, IAddImportsService addImportsService, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions)
-        {
-            fallbackOptions ??= Default;
-
-            return new(
-                PlaceSystemNamespaceFirst: configOptions.GetEditorConfigOption(GenerationOptions.PlaceSystemNamespaceFirst, fallbackOptions.Value.PlaceSystemNamespaceFirst),
-                PlaceImportsInsideNamespaces: addImportsService.PlaceImportsInsideNamespaces(configOptions, fallbackOptions.Value.PlaceImportsInsideNamespaces),
-                AllowInHiddenRegions: allowInHiddenRegions);
-        }
-    }
-
-    internal static class AddImportPlacementOptionsProviders
-    {
-#if !CODE_STYLE
-        public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, AddImportPlacementOptions? fallbackOptions, CancellationToken cancellationToken)
-        {
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var services = document.Project.Solution.Workspace.Services;
-            var configOptions = documentOptions.AsAnalyzerConfigOptions(services.GetRequiredService<Options.IOptionService>(), document.Project.Language);
-            var addImportsService = document.GetRequiredLanguageService<IAddImportsService>();
-
-            // Normally we don't allow generation into a hidden region in the file.  However, if we have a
-            // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
-            // our edit to their domain appropriate.
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
-            var allowInHiddenRegions = spanMapper != null && spanMapper.SupportsMappingImportDirectives;
-
-            return AddImportPlacementOptions.Create(configOptions, addImportsService, allowInHiddenRegions, fallbackOptions);
-        }
-
-        public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CodeCleanupOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetAddImportPlacementOptionsAsync(document, (await fallbackOptionsProvider(document.Project.LanguageServices, cancellationToken).ConfigureAwait(false)).AddImportOptions, cancellationToken).ConfigureAwait(false);
-
-        public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-            => await GetAddImportPlacementOptionsAsync(document, fallbackOptionsProvider(document.Project.LanguageServices).CleanupOptions?.AddImportOptions ?? AddImportPlacementOptions.Default, cancellationToken).ConfigureAwait(false);
-#endif
-
-        internal static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportsService addImportsService, CodeActionOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-        {
-#if CODE_STYLE
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            return AddImportPlacementOptions.Create(configOptions, addImportsService, allowInHiddenRegions: false, fallbackOptions: AddImportPlacementOptions.Default);
-#else
-            return await document.GetAddImportPlacementOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
-#endif
-        }
-    }
-
     internal interface IAddImportsService : ILanguageService
     {
-        bool PlaceImportsInsideNamespaces(AnalyzerConfigOptions configOptions, bool fallbackValue);
+        AddImportPlacementOptions GetAddImportOptions(AnalyzerConfigOptions configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions);
 
         /// <summary>
         /// Returns true if the tree already has an existing import syntactically equivalent to

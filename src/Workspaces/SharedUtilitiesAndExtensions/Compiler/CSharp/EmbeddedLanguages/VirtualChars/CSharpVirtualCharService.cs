@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
@@ -26,56 +29,81 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
         protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
 
+        protected override bool IsMultiLineRawStringToken(SyntaxToken token)
+        {
+            if (token.Kind() is SyntaxKind.MultiLineRawStringLiteralToken or SyntaxKind.UTF8MultiLineRawStringLiteralToken)
+                return true;
+
+            if (token.Parent?.Parent is InterpolatedStringExpressionSyntax { StringStartToken.RawKind: (int)SyntaxKind.InterpolatedMultiLineRawStringStartToken })
+                return true;
+
+            return false;
+        }
+
         protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
         {
-            // C# preprocessor directives can contain string literals.  However, these string
-            // literals do not behave like normal literals.  Because they are used for paths (i.e.
-            // in a #line directive), the language does not do any escaping within them.  i.e. if
-            // you have a \ it's just a \   Note that this is not a verbatim string.  You can't put
-            // a double quote in it either, and you cannot have newlines and whatnot.
+            // C# preprocessor directives can contain string literals.  However, these string literals do not behave
+            // like normal literals.  Because they are used for paths (i.e. in a #line directive), the language does not
+            // do any escaping within them.  i.e. if you have a \ it's just a \   Note that this is not a verbatim
+            // string.  You can't put a double quote in it either, and you cannot have newlines and whatnot.
             //
-            // We technically could convert this trivially to an array of virtual chars.  After all,
-            // there would just be a 1:1 correspondance with the literal contents and the chars
-            // returned.  However, we don't even both returning anything here.  That's because
-            // there's no useful features we can offer here.  Because there are no escape characters
-            // we won't classify any escape characters.  And there is no way that these strings would
-            // be Regex/Json snippets.  So it's easier to just bail out and return nothing.
+            // We technically could convert this trivially to an array of virtual chars.  After all, there would just be
+            // a 1:1 correspondence with the literal contents and the chars returned.  However, we don't even both
+            // returning anything here.  That's because there's no useful features we can offer here.  Because there are
+            // no escape characters we won't classify any escape characters.  And there is no way that these strings
+            // would be Regex/Json snippets.  So it's easier to just bail out and return nothing.
             if (IsInDirective(token.Parent))
                 return default;
 
             Debug.Assert(!token.ContainsDiagnostics);
-            if (token.Kind() == SyntaxKind.StringLiteralToken)
+
+            switch (token.Kind())
             {
-                return token.IsVerbatimStringLiteral()
-                    ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
-                    : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
-            }
+                case SyntaxKind.CharacterLiteralToken:
+                    return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
-                return TryConvertStringToVirtualChars(token, "'", "'", escapeBraces: false);
+                case SyntaxKind.StringLiteralToken:
+                    return token.IsVerbatimStringLiteral()
+                        ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"", escapeBraces: false)
+                        : TryConvertStringToVirtualChars(token, "\"", "\"", escapeBraces: false);
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
-                return TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: true);
+                case SyntaxKind.UTF8StringLiteralToken:
+                    return token.IsVerbatimStringLiteral()
+                        ? TryConvertVerbatimStringToVirtualChars(token, "@\"", "\"u8", escapeBraces: false)
+                        : TryConvertStringToVirtualChars(token, "\"", "\"u8", escapeBraces: false);
 
-            if (token.Kind() == SyntaxKind.InterpolatedStringTextToken)
-            {
-                var parent = token.GetRequiredParent();
-                if (parent is InterpolationFormatClauseSyntax)
-                    parent = parent.GetRequiredParent();
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                    return TryConvertSingleLineRawStringToVirtualChars(token);
 
-                if (parent.Parent is InterpolatedStringExpressionSyntax interpolatedString)
-                {
-                    return interpolatedString.StringStartToken.Kind() switch
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
+                    return token.GetRequiredParent() is LiteralExpressionSyntax literalExpression
+                        ? TryConvertMultiLineRawStringToVirtualChars(token, literalExpression, tokenIncludeDelimiters: true)
+                        : default;
+
+                case SyntaxKind.InterpolatedStringTextToken:
                     {
-                        SyntaxKind.InterpolatedStringStartToken
-                            => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedVerbatimStringStartToken
-                            => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
-                        SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken
-                            => TryConvertRawStringToVirtualChars(token, skipDelimiterQuotes: false),
-                        _ => default,
-                    };
-                }
+                        var parent = token.GetRequiredParent();
+                        var isFormatClause = parent is InterpolationFormatClauseSyntax;
+                        if (isFormatClause)
+                            parent = parent.GetRequiredParent();
+
+                        var interpolatedString = (InterpolatedStringExpressionSyntax)parent.GetRequiredParent();
+
+                        return interpolatedString.StringStartToken.Kind() switch
+                        {
+                            SyntaxKind.InterpolatedStringStartToken => TryConvertStringToVirtualChars(token, "", "", escapeBraces: true),
+                            SyntaxKind.InterpolatedVerbatimStringStartToken => TryConvertVerbatimStringToVirtualChars(token, "", "", escapeBraces: true),
+                            SyntaxKind.InterpolatedSingleLineRawStringStartToken => TryConvertSingleLineRawStringToVirtualChars(token),
+                            SyntaxKind.InterpolatedMultiLineRawStringStartToken
+                                // Format clauses must be single line, even when in a multi-line interpolation.
+                                => isFormatClause
+                                    ? TryConvertSingleLineRawStringToVirtualChars(token)
+                                    : TryConvertMultiLineRawStringToVirtualChars(token, interpolatedString, tokenIncludeDelimiters: false),
+                            _ => default,
+                        };
+                    }
             }
 
             return default;
@@ -97,8 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         private static VirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private static VirtualCharSequence TryConvertRawStringToVirtualChars(
-            SyntaxToken token, bool skipDelimiterQuotes)
+        private static VirtualCharSequence TryConvertSingleLineRawStringToVirtualChars(SyntaxToken token)
         {
             var tokenText = token.Text;
             var offset = token.SpanStart;
@@ -108,10 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
 
-            if (skipDelimiterQuotes)
+            if (token.Kind() is SyntaxKind.UTF8SingleLineRawStringLiteralToken)
+            {
+                Contract.ThrowIfFalse(tokenText is [.., 'u' or 'U', '8']);
+                endIndexExclusive -= "u8".Length;
+            }
+
+            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.UTF8SingleLineRawStringLiteralToken)
             {
                 Contract.ThrowIfFalse(tokenText[0] == '"');
-                Contract.ThrowIfFalse(tokenText[^1] == '"');
 
                 while (tokenText[startIndexInclusive] == '"')
                 {
@@ -128,6 +160,72 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
 
+        /// <summary>
+        /// Creates the sequence for the <b>content</b> characters in this <paramref name="token"/>.  This will not
+        /// include indentation whitespace that the language specifies is not part of the content.
+        /// </summary>
+        /// <param name="parentExpression">The containing expression for this token.  This is needed so that we can
+        /// determine the indentation whitespace based on the last line of the containing multiline literal.</param>
+        /// <param name="tokenIncludeDelimiters">If this token includes the quote (<c>"</c>) characters for the
+        /// delimiters inside of it or not.  If so, then those quotes will need to be skipped when determining the
+        /// content</param>
+        private static VirtualCharSequence TryConvertMultiLineRawStringToVirtualChars(
+            SyntaxToken token, ExpressionSyntax parentExpression, bool tokenIncludeDelimiters)
+        {
+            // if this is the first text content chunk of the multi-line literal.  The first chunk contains the leading
+            // indentation of the line it's on (which thus must be trimmed), while all subsequent chunks do not (because
+            // they start right after some `{...}` interpolation
+            var isFirstChunk =
+                parentExpression is LiteralExpressionSyntax ||
+                (parentExpression is InterpolatedStringExpressionSyntax { Contents: var contents } && contents.First() == token.GetRequiredParent());
+
+            if (parentExpression.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
+                return default;
+
+            // Use the parent multi-line expression to determine what whitespace to remove from the start of each line.
+            var parentSourceText = parentExpression.SyntaxTree.GetText();
+            var indentationLength = parentSourceText.Lines.GetLineFromPosition(parentExpression.Span.End).GetFirstNonWhitespaceOffset() ?? 0;
+
+            // Create a source-text view over the token.  This makes it very easy to treat the token as a set of lines
+            // that can be processed sensibly.
+            var tokenSourceText = SourceText.From(token.Text);
+
+            // If we're on the very first chunk of the multi-line raw string literal, then we want to start on line 1 so
+            // we skip the space and newline that follow the initial `"""`.
+            var startLineInclusive = tokenIncludeDelimiters ? 1 : 0;
+
+            // Similarly, if we're on the very last chunk of hte multi-line raw string literal, then we don't want to
+            // include the line contents for the line that has the final `    """` on it.
+            var lastLineExclusive = tokenIncludeDelimiters ? tokenSourceText.Lines.Count - 1 : tokenSourceText.Lines.Count;
+
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
+            for (var lineNumber = startLineInclusive; lineNumber < lastLineExclusive; lineNumber++)
+            {
+                var currentLine = tokenSourceText.Lines[lineNumber];
+                var lineSpan = currentLine.Span;
+                var lineStart = lineSpan.Start;
+
+                // If we're on the second line onwards, we want to trim the indentation if we have it.  We also always
+                // do this for the first line of the first chunk as that will contain the initial leading whitespace.
+                if (isFirstChunk || lineNumber > startLineInclusive)
+                {
+                    lineStart = lineSpan.Length > indentationLength
+                        ? lineSpan.Start + indentationLength
+                        : lineSpan.End;
+                }
+
+                // The last line of the last chunk does not include the final newline on the line.
+                var lineEnd = lineNumber == lastLineExclusive - 1 ? currentLine.End : currentLine.EndIncludingLineBreak;
+
+                // Now that we've found the start and end portions of that line, convert all the characters within to
+                // virtual chars and return.
+                for (var i = lineStart; i < lineEnd;)
+                    i += ConvertTextAtIndexToRune(tokenSourceText, i, result, token.SpanStart);
+            }
+
+            return VirtualCharSequence.Create(result.ToImmutable());
+        }
+
         private static VirtualCharSequence TryConvertStringToVirtualChars(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
@@ -138,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 return default;
             }
 
-            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter))
+            if (endDelimiter.Length > 0 && !tokenText.EndsWith(endDelimiter, StringComparison.OrdinalIgnoreCase))
             {
                 Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
@@ -238,33 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
-        {
-            // Keep in sync with TryAddSingleCharacterEscape
-            switch (ch.Value)
-            {
-                // Note: we don't care about single quote as that doesn't need to be escaped when
-                // producing a normal C# string literal.
-
-                // case '\'':
-
-                // escaped characters that translate to themselves.  
-                case '"': escapedChar = '"'; return true;
-                case '\\': escapedChar = '\\'; return true;
-
-                // translate escapes as per C# spec 2.4.4.4
-                case '\0': escapedChar = '0'; return true;
-                case '\a': escapedChar = 'a'; return true;
-                case '\b': escapedChar = 'b'; return true;
-                case '\f': escapedChar = 'f'; return true;
-                case '\n': escapedChar = 'n'; return true;
-                case '\r': escapedChar = 'r'; return true;
-                case '\t': escapedChar = 't'; return true;
-                case '\v': escapedChar = 'v'; return true;
-            }
-
-            escapedChar = default;
-            return false;
-        }
+            => ch.TryGetEscapeCharacter(out escapedChar);
 
         private static bool TryAddSingleCharacterEscape(
             ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)

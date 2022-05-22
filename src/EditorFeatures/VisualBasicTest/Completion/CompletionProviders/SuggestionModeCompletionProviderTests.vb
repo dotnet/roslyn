@@ -378,7 +378,11 @@ End Class</a>
                 Dim options As CompletionOptions
 
                 If useDebuggerOptions Then
-                    options = New CompletionOptions(FilterOutOfScopeLocals:=False, ShowXmlDocCommentCompletion:=False)
+                    options = New CompletionOptions() With
+                    {
+                        .FilterOutOfScopeLocals = False,
+                        .ShowXmlDocCommentCompletion = False
+                    }
                 Else
                     options = CompletionOptions.Default
                 End If

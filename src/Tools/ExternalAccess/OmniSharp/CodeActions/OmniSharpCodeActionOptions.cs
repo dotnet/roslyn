@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -12,9 +13,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
     internal readonly record struct OmniSharpCodeActionOptions(
         OmniSharpImplementTypeOptions ImplementTypeOptions)
     {
-        internal CodeActionOptions GetCodeActionOptions()
-            => new(ImplementTypeOptions: new(
-                InsertionBehavior: (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
-                PropertyGenerationBehavior: (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior));
+        internal CodeActionOptions GetCodeActionOptions(HostLanguageServices languageServices)
+            => CodeActionOptions.GetDefault(languageServices) with
+            {
+                ImplementTypeOptions = new()
+                {
+                    InsertionBehavior = (ImplementTypeInsertionBehavior)ImplementTypeOptions.InsertionBehavior,
+                    PropertyGenerationBehavior = (ImplementTypePropertyGenerationBehavior)ImplementTypeOptions.PropertyGenerationBehavior
+                }
+            };
     }
 }

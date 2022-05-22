@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -135,6 +136,28 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     Contract.ThrowIfNull(_workspace);
 
                     if (provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool ShouldCollapseOnOpen(string? filePath, BlockStructureOptions blockStructureOptions)
+        {
+            if (filePath is null)
+                return false;
+
+            using (_gate.DisposableWait())
+            {
+                foreach (var provider in _providers)
+                {
+                    if (!provider.IsValueCreated)
+                        continue;
+
+                    Contract.ThrowIfNull(_workspace);
+
+                    if (provider.Value.ShouldCollapseOnOpen(filePath, blockStructureOptions))
                         return true;
                 }
             }

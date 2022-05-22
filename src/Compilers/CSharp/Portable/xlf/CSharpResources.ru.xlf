@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">Доступ к статическому абстрактному элементу интерфейса возможен только для параметра типа.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">Доступ к статическому абстрактному элементу интерфейса возможен только для параметра типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -223,8 +223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUTF8">
-        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="translated">Не удается преобразовать &amp;группу методов "{0}" в тип делегата "{0}".</target>
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -468,8 +468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">Дерево выражения не может содержать доступ к статическому абстрактному элементу интерфейса.</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">Дерево выражения не может содержать доступ к статическому абстрактному элементу интерфейса.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
-        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
+        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">Невозможно использовать интерфейс "{3}" в качестве параметра типа "{2}" в универсальном типе или методе "{0}". Интерфейс ограничения "{1}" или его базовый интерфейс содержит статические абстрактные элементы.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">Невозможно использовать интерфейс "{3}" в качестве параметра типа "{2}" в универсальном типе или методе "{0}". Интерфейс ограничения "{1}" или его базовый интерфейс содержит статические абстрактные элементы.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -845,6 +845,11 @@
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Шаблоны среза можно использовать только один раз и непосредственно внутри шаблона списка.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -1563,8 +1568,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>Utf8 String Literals</source>
-        <target state="new">Utf8 String Literals</target>
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -1858,8 +1863,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">Атрибут UnmanagedCallersOnly может применяться только к обычным статическим неабстрактным методам или статическим локальным функциям.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">Атрибут UnmanagedCallersOnly может применяться только к обычным статическим неабстрактным методам или статическим локальным функциям.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">

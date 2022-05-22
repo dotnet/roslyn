@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
 
                     var language = languageService.Language;
                     var options = _globalOptions.GetCodeActionOptions(languageService);
-                    var optionsProvider = new CodeActionOptionsProvider(_ => options);
+                    var optionsProvider = options.CreateProvider();
 
                     var documentDiagnosticsPerLanguage = GetDocumentDiagnosticsMappedToNewSolution(documentDiagnosticsToFixMap, newSolution, language);
                     if (!documentDiagnosticsPerLanguage.IsEmpty)

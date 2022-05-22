@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 document,
                 moveSpan,
                 MoveTypeOperationKind.MoveTypeNamespaceScope,
-                SyntaxFormattingOptions.CreateProvider(fallbackOptions),
+                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
             var modifiedDocument = modifiedSolution.GetDocument(document.Id);
 

@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -147,7 +148,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in orderedDiagnostics)
             {
                 var document = solution.GetRequiredDocument(diagnostic.Location.SourceTree!);
-                var options = new CodeActionOptionsProvider(language => fixAllContext.State.CodeActionOptionsProvider(language) with { IsBlocking = false });
 
                 cancellationToken.ThrowIfCancellationRequested();
                 tasks.Add(Task.Run(async () =>
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     // Create a context that will add the reported code actions into this
                     using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                     var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, options, cancellationToken);
+                    var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), action, fixAllContext.State.CodeActionOptionsProvider, isBlocking: false, cancellationToken);
 
                     // Wait for the all the code actions to be reported for this diagnostic.
                     var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

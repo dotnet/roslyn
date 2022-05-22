@@ -64,9 +64,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return cancellationToken => FixAllAsync(context.Document, diagnostics, context.GetOptionsProvider(), cancellationToken);
         }
 
-        protected Task<Document> FixAsync(Document document, Diagnostic diagnostic, CodeActionOptions options, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), _ => options, cancellationToken);
-
         private Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
         {
@@ -90,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
+        /// <summary>
+        /// Fixes all <paramref name="diagnostics"/> in the specified <paramref name="editor"/>.
+        /// The fixes are applied to the <paramref name="document"/>'s syntax tree via <paramref name="editor"/>.
+        /// The implementation may query options of any document in the <paramref name="document"/>'s solution
+        /// with <paramref name="fallbackOptions"/> providing default values for options not specified explicitly in the corresponding editorconfig.
+        /// </summary>
         protected abstract Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 

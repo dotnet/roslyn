@@ -678,7 +678,7 @@ delegate";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ""),
                 // (3,9): error CS1003: Syntax error, '(' expected
                 // delegate
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", ""),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("("),
                 // (3,9): error CS1026: ) expected
                 // delegate
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ""),
