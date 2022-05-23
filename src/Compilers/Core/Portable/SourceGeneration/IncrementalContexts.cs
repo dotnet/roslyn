@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to an incremental generator when <see cref="IIncrementalGenerator.Initialize(IncrementalGeneratorInitializationContext)"/> is called
     /// </summary>
-    public readonly struct IncrementalGeneratorInitializationContext
+    public readonly partial struct IncrementalGeneratorInitializationContext
     {
         private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;

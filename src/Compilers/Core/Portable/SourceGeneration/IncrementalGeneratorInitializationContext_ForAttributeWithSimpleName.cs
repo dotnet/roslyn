@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-public static partial class IncrementalGeneratorInitializationContextExtensions
+public partial struct IncrementalGeneratorInitializationContext
 {
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
@@ -39,17 +39,15 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    internal static IncrementalValuesProvider<T> ForAttributeWithSimpleName<T>(
-        this IncrementalGeneratorInitializationContext context,
-        string simpleName)
+    internal IncrementalValuesProvider<T> ForAttributeWithSimpleName<T>(string simpleName)
         where T : SyntaxNode
     {
-        var syntaxHelper = context.SyntaxHelper;
+        var syntaxHelper = this.SyntaxHelper;
         if (!syntaxHelper.IsValidIdentifier(simpleName))
             throw new ArgumentException("<todo: add error message>", nameof(simpleName));
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        var individualFileGlobalAliasesProvider = context.SyntaxProvider.CreateSyntaxProvider(
+        var individualFileGlobalAliasesProvider = this.SyntaxProvider.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
             static (context, _) => GetGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -66,11 +64,11 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
 
         // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
         // if the compilation options stayed the same, but the compilation changed.
-        var compilationGlobalAliases = context.CompilationOptionsProvider.Select(
+        var compilationGlobalAliases = this.CompilationOptionsProvider.Select(
             (o, _) =>
             {
                 var aliases = Aliases.GetInstance();
-                context.SyntaxHelper.AddAliases(o, aliases);
+                syntaxHelper.AddAliases(o, aliases);
                 return GlobalAliases.Create(aliases.ToImmutableAndFree());
             }).WithTrackingName("compilationGlobalAliases_ForAttribute");
 
@@ -80,7 +78,7 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
-        var compilationUnitProvider = context.SyntaxProvider.CreateSyntaxProvider(
+        var compilationUnitProvider = this.SyntaxProvider.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
             static (context, _) => context.Node).WithTrackingName("compilationUnit_ForAttribute");
 

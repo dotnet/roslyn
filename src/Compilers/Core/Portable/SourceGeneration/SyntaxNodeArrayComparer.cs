@@ -8,7 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis;
 
-public static partial class IncrementalGeneratorInitializationContextExtensions
+public partial struct IncrementalGeneratorInitializationContext
 {
     private class ImmutableArrayValueComparer<T> : IEqualityComparer<ImmutableArray<T>>
     {

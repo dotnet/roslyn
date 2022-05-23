@@ -33,7 +33,7 @@ public readonly struct GeneratorAttributeSyntaxContext<TSyntaxNode>
     }
 }
 
-public static partial class IncrementalGeneratorInitializationContextExtensions
+public partial struct IncrementalGeneratorInitializationContext
 {
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
@@ -60,22 +60,28 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
     /// <remarks>
     /// The <typeparamref name="T"/> should be given the type of the syntax node that owns the <see
     /// cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax"/> that contains the matching attribute.  For
-    /// the example above, that would be a <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax"/>.  <see cref="SyntaxNode"/> can be used
-    /// as the type argument to return every syntax node of any type that has such a matching attribute on it.
+    /// the example above, that would be a <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax"/>.
+    /// <see cref="SyntaxNode"/> can be used as the type argument to return every syntax node of any type that has such
+    /// a matching attribute on it.
     /// </remarks>
-    public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
-        this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
+    public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(string fullyQualifiedMetadataName)
         where T : SyntaxNode
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     {
         return ForAttributeWithMetadataName<T, T>(
-            context,
             fullyQualifiedMetadataName,
             (context, attributeData, cancellationToken) => context.Node);
     }
 
-    public static IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TSyntaxNode, TResult>(
-        this IncrementalGeneratorInitializationContext context,
+    /// <summary>
+    /// Creates an <see cref="IncrementalValuesProvider{T}"/> that can provide a transform over all <typeparamref
+    /// name="TSyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="INamedTypeSymbol"/> with
+    /// the same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
+    /// name="fullyQualifiedMetadataName"/> should be the fully-qualified, metadata name of the attribute, including the
+    /// <c>Attribute</c> suffix.  For example <c>System.CLSCompliantAttribute</c> for <see
+    /// cref="System.CLSCompliantAttribute"/>.
+    /// </summary>
+    public IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TSyntaxNode, TResult>(
         string fullyQualifiedMetadataName,
         Func<GeneratorAttributeSyntaxContext<TSyntaxNode>, AttributeData, CancellationToken, TResult> transform)
         where TSyntaxNode : SyntaxNode
@@ -84,7 +90,7 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        var nodesWithAttributesMatchingSimpleName = context.ForAttributeWithSimpleName<TSyntaxNode>(metadataName.UnmangledTypeName);
+        var nodesWithAttributesMatchingSimpleName = this.ForAttributeWithSimpleName<TSyntaxNode>(metadataName.UnmangledTypeName);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()
@@ -100,7 +106,7 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
                      .Select(static g => new SyntaxNodeGrouping<TSyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
         var compilationAndGroupedNodesProvider = groupedNodes
-            .Combine(context.CompilationProvider)
+            .Combine(this.CompilationProvider)
             .WithTrackingName("compilationAndGroupedNodes_ForAttributeWithMetadataName");
 
         return compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
