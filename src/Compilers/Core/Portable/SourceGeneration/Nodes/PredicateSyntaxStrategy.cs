@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             public void VisitTree(
                 Lazy<SyntaxNode> root,
                 EntryState state,
-                SemanticModel? model,
+                Lazy<SemanticModel>? model,
                 CancellationToken cancellationToken)
             {
                 // We always have no inputs steps into a SyntaxInputNode, but we track the difference between "no inputs" (empty collection) and "no step information" (default value)
