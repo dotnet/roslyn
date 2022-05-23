@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly CancellationTokenSource _shutdownCancellationSource;
 
         /// <summary>
-        /// The VS process extension directory where the interactive host extension is installed.
+        /// The top level directory where all the interactive host extensions are installed (both Core and Desktop).
         /// </summary>
         private readonly string _hostDirectory;
 
