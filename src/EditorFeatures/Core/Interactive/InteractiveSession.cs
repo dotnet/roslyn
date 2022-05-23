@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Interactive
         private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
         private readonly CancellationTokenSource _shutdownCancellationSource;
+
+        /// <summary>
+        /// The VS process extension directory where the interactive host extension is installed.
+        /// </summary>
         private readonly string _hostDirectory;
 
         #region State only accessible by queued tasks
@@ -60,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         private ImmutableArray<string> _referenceSearchPaths;
         private ImmutableArray<string> _sourceSearchPaths;
         private string _workingDirectory;
+        private InteractiveHostOptions? _hostOptions;
 
         /// <summary>
         /// Buffers that need to be associated with a submission project once the process initialization completes.
@@ -91,7 +96,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             _workingDirectory = initialWorkingDirectory;
 
             _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location)!, "InteractiveHost");
-            CreateEmptyEditorConfigFile(_hostDirectory);
 
             Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             Host.ProcessInitialized += ProcessInitialized;
@@ -103,32 +107,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             _shutdownCancellationSource.Dispose();
 
             Host.Dispose();
-        }
-
-        /// <summary>
-        /// Helper to initialize the host directory with an empty editorconfig file to ensure
-        /// that we aren't applying rules to interactive documents.
-        /// </summary>
-        private static void CreateEmptyEditorConfigFile(string hostDirectory)
-        {
-            try
-            {
-                var editorConfigPath = Path.Combine(hostDirectory, ".editorconfig");
-                if (File.Exists(editorConfigPath))
-                {
-                    // There is already an editorconfig file in the host directory.
-                    // Don't do anything as its either the global one we created or
-                    // a user created once.  In either case we don't want to change it.
-                    return;
-                }
-
-                File.WriteAllText(editorConfigPath, "global = true");
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-                // At worst we may use analyzer settings from an editorconfig in a higher directory
-                // so it is totally valid to continue if we hit an error here.
-            }
         }
 
         /// <summary>
@@ -148,6 +126,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // update host state:
                 _platformInfo = platformInfo;
                 _initializationResult = result.InitializationResult;
+                _hostOptions = options;
                 UpdatePathsNoLock(result);
 
                 // Create submission projects for buffers that were added by the Interactive Window 
@@ -226,9 +205,16 @@ namespace Microsoft.CodeAnalysis.Interactive
             _currentSubmissionProjectId = ProjectId.CreateNewId(newSubmissionProjectName);
             var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
 
-            // Associate a name with both the editor document and our roslyn document so LSP can make requests on it.
-            var newSubmissionFilePath = Path.Combine(_hostDirectory, $"Submission{SubmissionCount}.{_languageInfo.Extension}");
+            // If the _initializationResult is not null we must also have the host options.
+            RoslynDebug.AssertNotNull(_hostOptions);
+            // Retrieve the directory that the host path exe is located in.
+            var hostPathDirectory = Path.GetDirectoryName(_hostOptions.HostPath);
+            RoslynDebug.AssertNotNull(hostPathDirectory);
 
+            // Create a file path for the submission located in the interactive host directory.
+            var newSubmissionFilePath = Path.Combine(hostPathDirectory, $"Submission{SubmissionCount}{_languageInfo.Extension}");
+
+            // Associate the path with both the editor document and our roslyn document so LSP can make requests on it.
             _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
             textDocument.Rename(newSubmissionFilePath);
 

@@ -33,6 +33,9 @@
       <_PublishedFiles Include="$(MSBuildProjectDirectory)\Desktop\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
       <_PublishedFiles Include="$(MSBuildProjectDirectory)\Core\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
 
+      <!-- Include empty .editorconfig file to ensure we aren't picking up settings from the users directory -->
+      <_PublishedFiles Include="$(MSBuildProjectDirectory)\.editorconfig"/>
+
       <!-- Set TargetPath -->
       <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
 
