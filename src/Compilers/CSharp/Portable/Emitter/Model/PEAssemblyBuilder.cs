@@ -366,6 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if ((needsAttributes & EmbeddableAttributes.NativeIntegerAttribute) != 0)
             {
+                Debug.Assert(Compilation.ShouldEmitNativeIntegerAttributes());
                 CreateAttributeIfNeeded(
                     ref _lazyNativeIntegerAttribute,
                     diagnostics,

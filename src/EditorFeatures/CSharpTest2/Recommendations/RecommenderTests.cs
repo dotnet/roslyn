@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             builder.AppendLine("  {");
             builder.Append("    ").Append(text);
             builder.AppendLine("  }");
-            builder.Append("}");
+            builder.Append('}');
 
             return builder.ToString();
         }

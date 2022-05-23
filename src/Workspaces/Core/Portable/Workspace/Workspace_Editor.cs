@@ -776,18 +776,5 @@ namespace Microsoft.CodeAnalysis
 
             return newSolution.GetRequiredProject(oldProject.Id);
         }
-
-        internal void RegisterDocumentOptionProviders(IEnumerable<Lazy<IDocumentOptionsProviderFactory, OrderableMetadata>> documentOptionsProviderFactories)
-        {
-            foreach (var providerFactory in ExtensionOrderer.Order(documentOptionsProviderFactories))
-            {
-                var optionsProvider = providerFactory.Value.TryCreate(this);
-
-                if (optionsProvider != null)
-                {
-                    Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(optionsProvider);
-                }
-            }
-        }
     }
 }

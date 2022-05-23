@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("omit_if_default : error", (int)AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
         public void TestParseEditorConfigAccessibilityModifiers(string args, int value, ReportDiagnostic severity)
         {
-            var storageLocation = CodeStyleOptions2.RequireAccessibilityModifiers.StorageLocations
+            var storageLocation = CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocations
                 .OfType<EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>>()
                 .Single();
             var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, args));

@@ -1309,7 +1309,7 @@ hasRelatedInterfaces:
         {
             Debug.Assert(constraintType.Type.IsInterfaceType());
 
-            Func<Symbol, bool> predicate = static m => m.IsStatic && m.IsAbstract;
+            Func<Symbol, bool> predicate = static m => m.IsStatic && (m.IsAbstract || m.IsVirtual);
             var definition = (NamedTypeSymbol)constraintType.Type.OriginalDefinition;
 
             if (definition.GetMembersUnordered().Any(predicate))

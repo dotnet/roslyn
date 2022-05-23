@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Options
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.[Shared].Extensions
+Imports Microsoft.CodeAnalysis.OrganizeImports
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImports
     <[UseExportProvider]>
@@ -24,16 +25,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine))))
 
-                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                options = options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+                Dim options = New OrganizeImportsOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                    .SeparateImportDirectiveGroups = separateImportGroups,
+                    .NewLine = If(endOfLine, OrganizeImportsOptions.Default.NewLine)
+                }
 
-                If endOfLine IsNot Nothing Then
-                    options = options.WithChangedOption(New OptionKey(FormattingOptions2.NewLine, document.Project.Language), endOfLine)
-                End If
-
-                document = document.WithSolutionOptions(options)
-
-                Dim newRoot = Await (Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
+                Dim newDocument = Await service.OrganizeImportsAsync(document, options, CancellationToken.None)
+                Dim newRoot = Await newDocument.GetSyntaxRootAsync()
                 Assert.Equal(final.Value.ReplaceLineEndings(If(endOfLine, Environment.NewLine)), newRoot.ToFullString())
             End Using
         End Function
@@ -45,14 +46,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Workspaces.UnitTests.OrganizeImport
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(initial.Value.NormalizeLineEndings()))
 
-                Dim options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                document = document.WithSolutionOptions(options)
+                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions() With
+                {
+                    .Common = New SyntaxFormattingOptions.CommonOptions() With {.SeparateImportDirectiveGroups = separateImportGroups}
+                }
 
-                Dim formattingOptions = New VisualBasicSyntaxFormattingOptions(
-                    LineFormattingOptions.Default,
-                    separateImportDirectiveGroups:=separateImportGroups)
+                Dim organizeOptions = New OrganizeImportsOptions() With
+                {
+                    .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                    .SeparateImportDirectiveGroups = separateImportGroups
+                }
 
-                Dim organizedDocument = Await Formatter.OrganizeImportsAsync(document, CancellationToken.None)
+                Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+                Dim organizedDocument = Await service.OrganizeImportsAsync(document, organizeOptions, CancellationToken.None)
                 Dim formattedDocument = Await Formatter.FormatAsync(organizedDocument, formattingOptions, CancellationToken.None)
 
                 Dim newRoot = Await formattedDocument.GetSyntaxRootAsync()

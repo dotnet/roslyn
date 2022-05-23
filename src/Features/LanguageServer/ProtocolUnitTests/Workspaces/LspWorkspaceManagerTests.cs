@@ -189,7 +189,9 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     public async Task TestLspTransfersDocumentToNewWorkspaceAsync()
     {
         var markup = "One";
-        using var testLspServer = await CreateTestLspServerAsync(markup);
+
+        // Create a server that includes the LSP misc files workspace so we can test transfers to and from it.
+        using var testLspServer = await CreateTestLspServerAsync(markup, new ClientCapabilities(), serverKind: WellKnownLspServerKinds.CSharpVisualBasicLspServer);
 
         // Create a new document, but do not update the workspace solution yet.
         var newDocumentId = DocumentId.CreateNewId(testLspServer.TestWorkspace.CurrentSolution.ProjectIds[0]);

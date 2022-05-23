@@ -1670,6 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns an instance of a symbol that represents a native integer
         /// if this underlying symbol represents System.IntPtr or System.UIntPtr.
+        /// For platforms that support numeric IntPtr/UIntPtr, those types are returned as-is.
         /// For other symbols, throws <see cref="System.InvalidOperationException"/>.
         /// </summary>
         internal abstract NamedTypeSymbol AsNativeInteger();

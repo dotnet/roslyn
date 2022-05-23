@@ -7,24 +7,26 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ImplementType
+namespace Microsoft.CodeAnalysis.ImplementType;
+
+[DataContract]
+internal readonly record struct ImplementTypeOptions
 {
-    [DataContract]
-    internal readonly record struct ImplementTypeOptions(
-        [property: DataMember(Order = 0)] ImplementTypeInsertionBehavior InsertionBehavior = ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
-        [property: DataMember(Order = 1)] ImplementTypePropertyGenerationBehavior PropertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties)
-    {
-        public ImplementTypeOptions()
-            : this(InsertionBehavior: ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind)
-        {
-        }
+    [DataMember] public ImplementTypeInsertionBehavior InsertionBehavior { get; init; } = ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+    [DataMember] public ImplementTypePropertyGenerationBehavior PropertyGenerationBehavior { get; init; } = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
 
-        public static readonly ImplementTypeOptions Default = new();
+    public ImplementTypeOptions()
+    {
     }
 
-    internal readonly record struct ImplementTypeGenerationOptions(
-        ImplementTypeOptions ImplementTypeOptions,
-        CodeAndImportGenerationOptionsProvider FallbackOptions);
+    public static readonly ImplementTypeOptions Default = new();
 }
+
+internal readonly record struct ImplementTypeGenerationOptions(
+    ImplementTypeOptions ImplementTypeOptions,
+    CleanCodeGenerationOptionsProvider FallbackOptions);
