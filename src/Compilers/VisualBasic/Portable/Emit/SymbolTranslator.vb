@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     location))
         End Sub
 
-        Friend Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
+        Friend Shared Overloads Function Translate([param] As TypeParameterSymbol) As Microsoft.Cci.IGenericParameterReference
             Debug.Assert(param Is param.OriginalDefinition)
             Return [param].GetCciAdapter()
         End Function

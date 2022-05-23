@@ -1505,7 +1505,7 @@ _Default:
         End Sub
 
         ' Gets SymbolInfo for a type or namespace or alias reference or implemented method.
-        Friend Function GetSymbolInfoForSymbol(
+        Friend Shared Function GetSymbolInfoForSymbol(
             symbol As Symbol,
             options As SymbolInfoOptions
         ) As SymbolInfo

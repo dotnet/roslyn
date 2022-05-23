@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return _serviceState;
             }
 
-            private SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
+            private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
             {
                 return new SourceFileResolver(searchPaths, baseDirectory);
             }
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
 
             // for testing purposes
-            public void EmulateClientExit()
+            public static void EmulateClientExit()
             {
                 s_clientExited.Set();
             }
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 return await completionSource.Task.ConfigureAwait(false);
             }
 
-            private async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
+            private static async Task<EvaluationState> AddReferenceAsync(Task<EvaluationState> lastTask, TaskCompletionSource<bool> completionSource, string reference)
             {
                 var state = await ReportUnhandledExceptionIfAnyAsync(lastTask).ConfigureAwait(false);
                 var success = false;
@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             // TODO(tomat): remove when the compiler supports events
             // For testing purposes only!
-            public void HookMaliciousAssemblyResolve()
+            public static void HookMaliciousAssemblyResolve()
             {
                 AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler((_, __) =>
                 {
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Remote API for testing purposes.
             /// </summary>
-            public Task RemoteConsoleWriteAsync(byte[] data, bool isError)
+            public static Task RemoteConsoleWriteAsync(byte[] data, bool isError)
             {
                 using (var stream = isError ? Console.OpenStandardError() : Console.OpenStandardOutput())
                 {
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             /// <summary>
             /// Remote API for testing purposes.
             /// </summary>
-            public Task<string> GetRuntimeDirectoryAsync()
+            public static Task<string> GetRuntimeDirectoryAsync()
                 => Task.FromResult(RuntimeEnvironment.GetRuntimeDirectory());
 
             #endregion

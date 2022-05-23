@@ -2878,7 +2878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Sub AddPropertyAndAccessors(propertySymbol As SourcePropertySymbol,
+        Private Shared Sub AddPropertyAndAccessors(propertySymbol As SourcePropertySymbol,
                                            binder As Binder,
                                            members As MembersAndInitializersBuilder)
 
@@ -2894,7 +2894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Sub AddEventAndAccessors(eventSymbol As SourceEventSymbol,
+        Private Shared Sub AddEventAndAccessors(eventSymbol As SourceEventSymbol,
                                    binder As Binder,
                                    members As MembersAndInitializersBuilder)
 
