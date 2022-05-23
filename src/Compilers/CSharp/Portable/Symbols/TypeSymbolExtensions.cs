@@ -476,6 +476,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        internal static bool IsValidScopedType(this TypeSymbol? type)
+        {
+            return type is null || type.IsErrorType() || type.IsRefLikeType;
+        }
+
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool IsNamespaceName(Symbol symbol, string[] names)

@@ -349,10 +349,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    var type = lambda.Data.ParameterTypeWithAnnotations(i);
-                    if (type.HasType && type.IsStatic)
+                    var type = data.ParameterTypeWithAnnotations(i).Type;
+                    if (type is { })
                     {
-                        Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type.Type);
+                        if (type.IsStatic)
+                        {
+                            Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type);
+                        }
+                        if ((data.Scope(i) & DeclarationScope.ValueScoped) != 0 && !type.IsValidScopedType())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
+                        }
                     }
                 }
             }

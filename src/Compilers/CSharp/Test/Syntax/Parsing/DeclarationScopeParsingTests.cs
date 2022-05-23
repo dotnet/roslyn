@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        // PROTOTYPE: These syntax errors are not helpful. Ideally, we should
+        // report a "-langversion" error for the 'scoped' keyword.
         [Fact]
         public void Method_02_CSharp10()
         {

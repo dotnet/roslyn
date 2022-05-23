@@ -542,7 +542,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ParamsCantBeWithModifier, modifier.GetLocation(), SyntaxFacts.GetText(otherModifierKind));
             }
         }
-#nullable disable
 
         private static void ReportParameterErrors(
             Symbol owner,
@@ -586,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
             {
                 // error CS1737: Optional parameters must appear after all required parameters
-                Location loc = ((ParameterSyntax)(BaseParameterSyntax)parameterSyntax).Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
+                Location loc = ((ParameterSyntax)parameterSyntax).Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
             else if (parameter.RefKind != RefKind.None &&
@@ -595,7 +594,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
+
+            if ((parameter.Scope & DeclarationScope.ValueScoped) != 0 && !parameter.Type.IsValidScopedType())
+            {
+                diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
+            }
         }
+#nullable disable
 
         internal static bool ReportDefaultParameterErrors(
             Binder binder,

@@ -1080,6 +1080,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
+            if ((localSymbol.Scope & DeclarationScope.ValueScoped) != 0 && !declTypeOpt.Type.IsValidScopedType())
+            {
+                localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
+            }
+
             localSymbol.SetTypeWithAnnotations(declTypeOpt);
 
             if (initializerOpt != null)

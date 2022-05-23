@@ -2669,7 +2669,7 @@ parse_member_name:;
             }
         }
 
-        private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result) // PROTOTYPE: Does this need to account for 'scoped'?
+        private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
                 this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
@@ -4605,11 +4605,7 @@ tryAgain:
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ReadOnlyKeyword when isFunctionPointerParameter:
                     return true;
-            }
-
-            switch (token.ContextualKind)
-            {
-                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.IdentifierToken when token.ContextualKind == SyntaxKind.ScopedKeyword:
                     return AllowScopedModifier();
             }
 

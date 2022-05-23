@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._identifierToken = identifierToken;
             this._typeSyntax = allowRefKind ? typeSyntax?.SkipRef(out this._refKind) : typeSyntax;
             this._declarationKind = declarationKind;
-            this._scope = GetScope(scoped, allowRefKind, _refKind, typeSyntax);
+            this._scope = GetScope(scoped, allowRefKind, typeSyntax);
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _valEscapeScope = Binder.ExternalScope;
         }
 
-        private static DeclarationScope GetScope(bool scoped, bool allowRefKind, RefKind refKind, TypeSyntax typeSyntax)
+        private static DeclarationScope GetScope(bool scoped, bool allowRefKind, TypeSyntax typeSyntax)
         {
             var result = DeclarationScope.None;
             if (typeSyntax is RefTypeSyntax refTypeSyntax)

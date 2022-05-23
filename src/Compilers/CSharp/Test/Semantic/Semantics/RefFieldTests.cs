@@ -4182,7 +4182,7 @@ public static class A
         public void ParameterScope_02()
         {
             var source =
-@"struct A<T>
+@"ref struct A<T>
 {
     A(scoped ref T t) { }
     T this[scoped in object o] => default;
@@ -4267,9 +4267,9 @@ class Program
         {
             var source =
 @"ref struct R { }
-delegate void D1<T>(scoped R r1);
-delegate void D2<T>(scoped ref R r2);
-delegate void D3<T>(object o, ref scoped R r3);
+delegate void D1(scoped R r1);
+delegate void D2(scoped ref R r2);
+delegate void D3(object o, ref scoped R r3);
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
@@ -4287,11 +4287,11 @@ delegate void D3<T>(object o, ref scoped R r3);
 class Program
 {
     static void F1(scoped R r1) { }
-    static void F2(ref scoped int x, scoped ref int y) { }
+    static void F2(ref scoped R x, scoped ref int y) { }
     static unsafe void Main()
     {
         delegate*<scoped R, void> f1 = &F1;
-        delegate*<ref scoped int, scoped ref int, void> f2 = &F2;
+        delegate*<ref scoped R, scoped ref int, void> f2 = &F2;
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
@@ -4303,7 +4303,7 @@ class Program
             var methods = decls.Select(d => ((FunctionPointerTypeSymbol)model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>().Type).Signature).ToArray();
 
             VerifyParameterSymbol(methods[0].Parameters[0], "scoped R", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(methods[1].Parameters[0], "ref scoped System.Int32", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(methods[1].Parameters[0], "ref scoped R", RefKind.Ref, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(methods[1].Parameters[1], "scoped ref System.Int32", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
@@ -4315,7 +4315,7 @@ class Program
 class Program
 {
     static void F1(scoped scoped R r) { }
-    static void F2(ref scoped scoped int i) { }
+    static void F2(ref scoped scoped R r) { }
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should report duplicate modifiers.
@@ -4343,7 +4343,8 @@ class Program
         public void ParameterScope_09()
         {
             var source =
-@"class Program
+@"ref struct R { }
+class Program
 {
     static void Main()
     {
@@ -4353,27 +4354,30 @@ class Program
             var comp = CreateCompilation(source);
             // The duplicated scoped modifier results in parse errors rather than a binding error.
             comp.VerifyDiagnostics(
-                // (5,18): error CS1525: Invalid expression term 'ref'
+                // (6,18): error CS1525: Invalid expression term 'ref'
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(5, 18),
-                // (5,18): error CS1073: Unexpected token 'ref'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref scoped").WithArguments("ref").WithLocation(6, 18),
+                // (6,18): error CS1073: Unexpected token 'ref'
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(5, 18),
-                // (5,29): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(6, 18),
+                // (6,29): error CS1026: ) expected
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(5, 29),
-                // (5,29): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "scoped").WithLocation(6, 29),
+                // (6,29): error CS1002: ; expected
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(5, 29),
-                // (5,40): warning CS0168: The variable 'i' is declared but never used
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "scoped").WithLocation(6, 29),
+                // (6,36): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(5, 40),
-                // (5,41): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "int").WithLocation(6, 36),
+                // (6,40): warning CS0168: The variable 'i' is declared but never used
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(5, 41),
-                // (5,41): error CS1513: } expected
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "i").WithArguments("i").WithLocation(6, 40),
+                // (6,41): error CS1002: ; expected
                 //         var f = (ref scoped scoped int i) => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(5, 41));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 41),
+                // (6,41): error CS1513: } expected
+                //         var f = (ref scoped scoped int i) => { };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 41));
         }
 
         // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',
@@ -4512,8 +4516,209 @@ class Program
             Assert.Equal(scope, local.Scope);
         }
 
-        // PROTOTYPE: Test `const scoped int local = 0;`. Are there other invalid combinations of modifiers?
+        [Fact]
+        public void ScopedRefAndRefStructOnly_01()
+        {
+            var source =
+@"struct S { }
+class Program
+{
+    static void F1(scoped S s) { }
+    static void F2(ref scoped S s) { }
+    static void F3(scoped ref S s) { }
+    static void F4(scoped ref scoped S s) { }
+    static void F5(ref scoped int i) { }
+    static void F6(in scoped  int i) { }
+    static void F7(out scoped int i) { i = 0; }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F1(scoped S s) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped S s").WithLocation(4, 20),
+                // (5,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F2(ref scoped S s) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "ref scoped S s").WithLocation(5, 20),
+                // (7,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F4(scoped ref scoped S s) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped ref scoped S s").WithLocation(7, 20),
+                // (8,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F5(ref scoped int i) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "ref scoped int i").WithLocation(8, 20),
+                // (9,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F6(in scoped  int i) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "in scoped  int i").WithLocation(9, 20),
+                // (10,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     static void F7(out scoped int i) { i = 0; }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "out scoped int i").WithLocation(10, 20));
+        }
 
-        // PROTOTYPE: 'scoped T t'  should report an error if T is not a 'ref struct'
+        [Fact]
+        public void ScopedRefAndRefStructOnly_02()
+        {
+            var source =
+@"struct S { }
+interface I
+{
+    void F1<T>(scoped T t);
+    void F2<T>(scoped T t) where T : class;
+    void F3<T>(scoped T t) where T : struct;
+    void F4<T>(scoped T t) where T : unmanaged;
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void F1<T>(scoped T t);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(4, 16),
+                // (5,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void F2<T>(scoped T t) where T : class;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(5, 16),
+                // (6,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void F3<T>(scoped T t) where T : struct;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(6, 16),
+                // (7,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //     void F4<T>(scoped T t) where T : unmanaged;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T t").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_03()
+        {
+            var source =
+@"enum E { }
+class Program
+{
+    static void Main()
+    {
+        var f = (scoped ref E x, scoped E y) => { };
+#pragma warning disable 8321
+        static void L(scoped ref E x, scoped E y) { }
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,43): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         var f = (scoped ref E x, scoped E y) => { };
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "y").WithLocation(6, 43),
+                // (8,39): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         static void L(scoped ref E x, scoped E y) { }
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped E y").WithLocation(8, 39));
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_04()
+        {
+            var source =
+@"delegate void D(scoped C c);
+class C
+{
+    static unsafe void Main()
+    {
+        delegate*<scoped C, int> d = default;
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (1,17): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                // delegate void D(scoped C c);
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped C c").WithLocation(1, 17),
+                // (6,19): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         delegate*<scoped C, int> d = default;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped C").WithLocation(6, 19));
+        }
+
+        [Theory]
+        [InlineData("ref         ")]
+        [InlineData("ref readonly")]
+        public void ScopedRefAndRefStructOnly_05(string refModifier)
+        {
+            var source =
+$@"struct S {{ }}
+class Program
+{{
+    static void F(S s)
+    {{
+        {refModifier} scoped S s1 = ref s;
+        scoped {refModifier} S s2 = ref s;
+        scoped {refModifier} scoped S s3 = ref s;
+    }}
+}}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,29): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         ref readonly scoped S s1 = ref s;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S").WithLocation(6, 29),
+                // (8,36): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped ref readonly scoped S s3 = ref s;
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "S").WithLocation(8, 36));
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_06()
+        {
+            var source =
+@"ref struct R<T> { }
+struct S<T> { }
+class Program
+{
+    static void Main()
+    {
+        scoped var x1 = new R<int>();
+        ref scoped var x2 = ref x1;
+        scoped ref var x3 = ref x1;
+        scoped ref scoped var x4 = ref x1;
+        scoped var y1 = new S<int>(); // 1
+        ref scoped var y2 = ref y1; // 2
+        scoped ref var y3 = ref y1;
+        scoped ref scoped var y4 = ref y1; // 3
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (11,16): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped var y1 = new S<int>(); // 1
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(11, 16),
+                // (12,20): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         ref scoped var y2 = ref y1; // 2
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(12, 20),
+                // (14,27): error CS8986: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         scoped ref scoped var y4 = ref y1; // 3
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "var").WithLocation(14, 27));
+        }
+
+        [Fact]
+        public void ScopedRefAndRefStructOnly_07()
+        {
+            var source =
+@"ref struct R<T> { }
+class Program
+{
+    static void F1(scoped Unknown x, scoped R<Unknown> y)
+    {
+        var f = (ref scoped Unknown u) => { };
+        scoped R<Unknown> z = y;
+        scoped var v = F2();
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F1(scoped Unknown x, scoped R<Unknown> y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 27),
+                // (4,47): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F1(scoped Unknown x, scoped R<Unknown> y)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(4, 47),
+                // (6,29): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //         var f = (ref scoped Unknown u) => { };
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(6, 29),
+                // (7,18): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //         scoped R<Unknown> z = y;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(7, 18),
+                // (8,24): error CS0103: The name 'F2' does not exist in the current context
+                //         scoped var v = F2();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "F2").WithArguments("F2").WithLocation(8, 24));
+        }
+
+        // PROTOTYPE: Test `const scoped int local = 0;`. Are there other invalid combinations of modifiers?
     }
 }

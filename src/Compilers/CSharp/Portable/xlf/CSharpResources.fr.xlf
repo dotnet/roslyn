@@ -1217,6 +1217,11 @@
         <target state="translated">Le runtime cible ne prend pas en charge les conventions d'appel par défaut des environnements extensibles ou d'exécution.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ScopedRefAndRefStructOnly">
+        <source>The 'scoped' modifier can be used for refs and ref struct values only.</source>
+        <target state="new">The 'scoped' modifier can be used for refs and ref struct values only.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SealedAPIInRecord">
         <source>'{0}' cannot be sealed because containing record is not sealed.</source>
         <target state="translated">'{0}' ne peut pas être sealed, car l'enregistrement contenant n'est pas sealed.</target>
