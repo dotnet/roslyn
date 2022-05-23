@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.SourceGeneration;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -49,18 +50,29 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
     /// </remarks>
     public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
         this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
-#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         where T : SyntaxNode
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
+    {
+        return ForAttributeWithMetadataName<T>(
+            context,
+            fullyQualifiedMetadataName,
+            (context, attributeData, cancellationToken) => (context.Node as T)!).Where(t => t != null);
+    }
+
+    public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+        this IncrementalGeneratorInitializationContext context,
+        string fullyQualifiedMetadataName,
+        Func<GeneratorSyntaxContext, AttributeData, CancellationToken, T> transform)
     {
         var metadataName = fullyQualifiedMetadataName.Contains('+')
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        var nodesWithAttributesMatchingSimpleName = context.ForAttributeWithSimpleName<T>(metadataName.UnmangledTypeName);
+        var nodesWithAttributesMatchingSimpleName = context.ForAttributeWithSimpleName<SyntaxNode>(metadataName.UnmangledTypeName);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()
-            .WithComparer(ImmutableArrayValueComparer<T>.Instance)
+            .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
             .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
 
         // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
@@ -69,7 +81,7 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
         var groupedNodes = collectedNodes.SelectMany(
             static (array, cancellationToken) =>
                 array.GroupBy(static n => n.SyntaxTree)
-                     .Select(static g => new SyntaxNodeGrouping<T>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
+                     .Select(static g => new SyntaxNodeGrouping<SyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
         var compilationAndGroupedNodesProvider = groupedNodes
             .Combine(context.CompilationProvider)
@@ -83,15 +95,20 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
             try
             {
                 var syntaxTree = grouping.SyntaxTree;
-                var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                var semanticModel = new Lazy<SemanticModel>(() => compilation.GetSemanticModel(syntaxTree));
 
                 foreach (var node in grouping.SyntaxNodes)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                    if (HasMatchingAttribute(symbol, fullyQualifiedMetadataName))
-                        result.Add(node);
+                    var symbol = semanticModel.Value.GetDeclaredSymbol(node, cancellationToken);
+                    if (HasMatchingAttribute(symbol, fullyQualifiedMetadataName, out var attributeData))
+                    {
+                        result.Add(transform(
+                            new GeneratorSyntaxContext(node, semanticModel, context.SyntaxHelper),
+                            attributeData,
+                            cancellationToken));
+                    }
                 }
 
                 return result.ToImmutable();
@@ -103,7 +120,10 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
         }).WithTrackingName("result_ForAttributeWithMetadataName");
     }
 
-    private static bool HasMatchingAttribute(ISymbol? symbol, string fullyQualifiedMetadataName)
+    private static bool HasMatchingAttribute(
+        ISymbol? symbol,
+        string fullyQualifiedMetadataName,
+        [NotNullWhen(true)] out AttributeData? attributeData)
     {
         if (symbol is not null)
         {
@@ -113,10 +133,14 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
                     continue;
 
                 if (attribute.AttributeClass.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
+                {
+                    attributeData = attribute;
                     return true;
+                }
             }
         }
 
+        attributeData = null;
         return false;
     }
 }
