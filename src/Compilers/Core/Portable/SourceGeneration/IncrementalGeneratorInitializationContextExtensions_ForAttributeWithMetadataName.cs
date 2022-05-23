@@ -18,6 +18,21 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
+public readonly struct GeneratorAttributeSyntaxContext<TSyntaxNode>
+    where TSyntaxNode : SyntaxNode
+{
+    public TSyntaxNode Node { get; }
+    public SemanticModel SemanticModel { get; }
+    public AttributeData AttributeData { get; }
+
+    internal GeneratorAttributeSyntaxContext(TSyntaxNode node, SemanticModel semanticModel, AttributeData attributeData)
+    {
+        Node = node;
+        SemanticModel = semanticModel;
+        AttributeData = attributeData;
+    }
+}
+
 public static partial class IncrementalGeneratorInitializationContextExtensions
 {
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
@@ -53,26 +68,27 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
         where T : SyntaxNode
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     {
-        return ForAttributeWithMetadataName<T>(
+        return ForAttributeWithMetadataName<T, T>(
             context,
             fullyQualifiedMetadataName,
-            (context, attributeData, cancellationToken) => (context.Node as T)!).Where(t => t != null);
+            (context, attributeData, cancellationToken) => context.Node);
     }
 
-    public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+    public static IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TSyntaxNode, TResult>(
         this IncrementalGeneratorInitializationContext context,
         string fullyQualifiedMetadataName,
-        Func<GeneratorSyntaxContext, AttributeData, CancellationToken, T> transform)
+        Func<GeneratorAttributeSyntaxContext<TSyntaxNode>, AttributeData, CancellationToken, TResult> transform)
+        where TSyntaxNode : SyntaxNode
     {
         var metadataName = fullyQualifiedMetadataName.Contains('+')
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        var nodesWithAttributesMatchingSimpleName = context.ForAttributeWithSimpleName<SyntaxNode>(metadataName.UnmangledTypeName);
+        var nodesWithAttributesMatchingSimpleName = context.ForAttributeWithSimpleName<TSyntaxNode>(metadataName.UnmangledTypeName);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()
-            .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
+            .WithComparer(ImmutableArrayValueComparer<TSyntaxNode>.Instance)
             .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
 
         // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
@@ -81,7 +97,7 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
         var groupedNodes = collectedNodes.SelectMany(
             static (array, cancellationToken) =>
                 array.GroupBy(static n => n.SyntaxTree)
-                     .Select(static g => new SyntaxNodeGrouping<SyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
+                     .Select(static g => new SyntaxNodeGrouping<TSyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
         var compilationAndGroupedNodesProvider = groupedNodes
             .Combine(context.CompilationProvider)
@@ -91,21 +107,21 @@ public static partial class IncrementalGeneratorInitializationContextExtensions
         {
             var (grouping, compilation) = tuple;
 
-            var result = ArrayBuilder<T>.GetInstance();
+            var result = ArrayBuilder<TResult>.GetInstance();
             try
             {
                 var syntaxTree = grouping.SyntaxTree;
-                var semanticModel = new Lazy<SemanticModel>(() => compilation.GetSemanticModel(syntaxTree));
+                var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
                 foreach (var node in grouping.SyntaxNodes)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = semanticModel.Value.GetDeclaredSymbol(node, cancellationToken);
+                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
                     if (HasMatchingAttribute(symbol, fullyQualifiedMetadataName, out var attributeData))
                     {
                         result.Add(transform(
-                            new GeneratorSyntaxContext(node, semanticModel, context.SyntaxHelper),
+                            new GeneratorAttributeSyntaxContext<TSyntaxNode>(node, semanticModel, attributeData),
                             attributeData,
                             cancellationToken));
                     }
