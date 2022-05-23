@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<LocalScope> LocalScopes => ImmutableArray<LocalScope>.Empty;
 
-        public IImportScope ImportScope => null;
+        public Cci.IImportScope ImportScope => null;
 
         public DebugId MethodId => default;
 
