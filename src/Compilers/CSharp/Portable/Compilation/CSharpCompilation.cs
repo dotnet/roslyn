@@ -2582,22 +2582,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A bag in which diagnostics that rely on <see cref="SourcePropertySymbolBase.FieldKeywordBackingField"/> are reported.
+        /// A bag in which circular struct diagnostics should be reported.
         /// </summary>
-        /// <remarks>
-        /// Calculating FieldKeywordBackingField requires accessor binding to be done, and we want to avoid the extra binding as much as we can.
-        /// So, diagnostics that depend on FieldKeywordBackingField are calculated later, after we're sure that FieldKeywordBackingField was already calculated.
-        /// </remarks>
-        internal BindingDiagnosticBag AfterAccessorBindingDiagnostics
+        internal BindingDiagnosticBag CircularStructDiagnostics
         {
             get
             {
-                return _afterAccessorBindingDiagnostics;
+                return _circularStructDiagnostics;
             }
         }
 
         private readonly DiagnosticBag _additionalCodegenWarnings = new DiagnosticBag();
-        private readonly BindingDiagnosticBag _afterAccessorBindingDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), new ConcurrentSet<AssemblySymbol>());
+        private readonly BindingDiagnosticBag _circularStructDiagnostics = new BindingDiagnosticBag(new DiagnosticBag(), new ConcurrentSet<AssemblySymbol>());
 
         internal DeclarationTable Declarations
         {

@@ -619,17 +619,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        /// <summary>
-        /// Performs checks that rely on <see cref="SourcePropertySymbolBase.FieldKeywordBackingField"/>.
-        /// </summary>
-        /// <remarks>
-        /// Calculating FieldKeywordBackingField requires accessor binding to be done, and we want to avoid the extra binding as much as we can.
-        /// So, diagnostics that depend on FieldKeywordBackingField are calculated later, after we're sure that FieldKeywordBackingField was already calculated.
-        /// </remarks>
-        internal virtual void AfterAccessorBindingChecks()
-        {
-        }
-
         // Note: This is no public "IsNew". This is intentional, because new has no syntactic meaning.
         // It serves only to remove a warning. Furthermore, it can not be inferred from 
         // metadata. For symbols defined in source, the modifiers in the syntax tree

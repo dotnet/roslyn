@@ -217,12 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get;
         }
 
-        internal override void AfterAccessorBindingChecks()
-        {
-            base.AfterAccessorBindingChecks();
-            this.CheckConstraintTypeConstraints(DeclaringCompilation.AfterAccessorBindingDiagnostics);
-        }
-
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
         {
             Debug.Assert(!inProgress.ContainsReference(this));
@@ -235,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset), TypeParameterBounds.Unset))
                 {
+                    this.CheckConstraintTypeConstraints(diagnostics);
                     this.CheckUnmanagedConstraint(diagnostics);
                     this.EnsureAttributesFromConstraints(diagnostics);
                     this.AddDeclarationDiagnostics(diagnostics);

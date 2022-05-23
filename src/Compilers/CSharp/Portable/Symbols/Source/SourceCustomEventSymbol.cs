@@ -210,23 +210,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _explicitInterfaceImplementations; }
         }
 
-        internal override void AfterAccessorBindingChecks()
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            base.AfterAccessorBindingChecks();
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            var compilation = DeclaringCompilation;
-            var conversions = new TypeConversions(ContainingAssembly.CorLibrary);
             if ((object)_explicitInterfaceType != null)
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 RoslynDebug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(compilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), compilation.AfterAccessorBindingDiagnostics);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
-        }
-
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
-        {
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             if (!_explicitInterfaceImplementations.IsEmpty)
             {

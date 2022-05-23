@@ -6117,8 +6117,8 @@ public unsafe struct S2
                 // (4,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
                 //     public S1* s;
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
-
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            // PROTOTYPE(semi-auto-props): (Applies to all TestERR_ManagedAddrXX tests) There shouldn't be extra bindings.
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6144,7 +6144,7 @@ public unsafe struct S2
                 //     public S1* P { get => field; }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S1").WithLocation(5, 16));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6169,7 +6169,7 @@ public unsafe class C
                     //     public void M(S1* x) { }
                     Diagnostic(ErrorCode.ERR_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 23));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6208,7 +6208,7 @@ public unsafe class C : I<S1*>
                 //     void I<S1*>.M() { }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 10));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6247,7 +6247,7 @@ public unsafe class C : I<S1*>
                 //     int I<S1*>.P { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 9));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6276,7 +6276,7 @@ public unsafe class C
                 //     public int this[S1* i]
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("S1").WithLocation(9, 25));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6301,7 +6301,7 @@ public unsafe class C
                 //     public C(S1* x) { }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 18));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6342,7 +6342,7 @@ public unsafe class C : I<S1*>
                 //     event EventHandler I<S1*>.E { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(16, 24));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6384,7 +6384,7 @@ public unsafe class C : I<MyAlias*>
                 //     event EventHandler I<MyAlias*>.E { add { } remove { } }
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "I<MyAlias*>").WithArguments("S1").WithLocation(17, 24));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6415,7 +6415,7 @@ public unsafe class C
                     //     event S1* E;
                     Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(9, 15));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
 
         [Fact]
@@ -6444,7 +6444,7 @@ public unsafe class C<T> where T : I<S1*>
                 // public unsafe class C<T> where T : I<S1*>
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "T").WithArguments("S1").WithLocation(9, 23));
 
-            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }

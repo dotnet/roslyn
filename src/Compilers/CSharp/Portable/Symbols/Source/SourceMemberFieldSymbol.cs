@@ -592,24 +592,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            var type = Type;
-            if (type.Kind != SymbolKind.PointerType && !IsFixedSizeBuffer)
+            // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
+            if (!IsFixedSizeBuffer)
             {
                 Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
             }
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-        }
-
-        internal override void AfterAccessorBindingChecks()
-        {
-            base.AfterAccessorBindingChecks();
-            var type = Type;
-            // This check prevents redundant ManagedAddr diagnostics on the underlying pointer field of a fixed-size buffer
-            if (type.Kind == SymbolKind.PointerType && !IsFixedSizeBuffer)
-            {
-                Type.CheckAllConstraints(DeclaringCompilation, new TypeConversions(this.ContainingAssembly.CorLibrary), ErrorLocation, DeclaringCompilation.AfterAccessorBindingDiagnostics);
-            }
         }
     }
 }
