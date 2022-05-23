@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-internal static partial class IncrementalGeneratorInitializationContextExtensions
+public static partial class IncrementalGeneratorInitializationContextExtensions
 {
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =

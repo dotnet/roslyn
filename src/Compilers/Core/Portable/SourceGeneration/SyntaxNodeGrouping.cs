@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal static partial class IncrementalGeneratorInitializationContextExtensions
+public static partial class IncrementalGeneratorInitializationContextExtensions
 {
     /// <summary>
     /// Wraps a grouping of nodes within a syntax tree so we can have value-semantics around them usable by the

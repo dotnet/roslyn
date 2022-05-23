@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-internal static partial class IncrementalGeneratorInitializationContextExtensions
+public static partial class IncrementalGeneratorInitializationContextExtensions
 {
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
