@@ -655,7 +655,7 @@ lAgain:
             End If
         End Function
 
-        Private Function BuildInitializerBinder(containingBinder As Binder, fieldOrProperty As Symbol, additionalFieldsOrProperties As ImmutableArray(Of Symbol)) As Binder
+        Private Shared Function BuildInitializerBinder(containingBinder As Binder, fieldOrProperty As Symbol, additionalFieldsOrProperties As ImmutableArray(Of Symbol)) As Binder
             Return BinderBuilder.CreateBinderForInitializer(containingBinder, fieldOrProperty, additionalFieldsOrProperties)
         End Function
 

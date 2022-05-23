@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Private Function GetSyntaxTree(semanticModel As SemanticModel) As SyntaxTree
+        Private Shared Function GetSyntaxTree(semanticModel As SemanticModel) As SyntaxTree
             If Not semanticModel.IsSpeculativeSemanticModel Then
                 Return semanticModel.SyntaxTree
             End If

@@ -612,8 +612,8 @@ namespace Microsoft.Cci
             int documentIndex = _symWriter.DefineDocument(
                 document.Location,
                 document.Language,
-                document.LanguageVendor,
-                document.DocumentType,
+                DebugSourceDocument.LanguageVendor,
+                DebugSourceDocument.DocumentType,
                 algorithmId,
                 checksum,
                 embeddedSource);

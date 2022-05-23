@@ -784,7 +784,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return expr.Type.IsTypeParameter()
         End Function
 
-        Private Function ParameterSlot(parameter As BoundParameter) As Integer
+        Private Shared Function ParameterSlot(parameter As BoundParameter) As Integer
             Dim sym = parameter.ParameterSymbol
             Dim slot As Integer = sym.Ordinal
             If Not sym.ContainingSymbol.IsShared Then
@@ -1178,7 +1178,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' It basically checks if the method overrides any other and method's defining type
         ''' is not a 'special' or 'special-by-ref' type. 
         ''' </summary>
-        Private Function MayUseCallForStructMethod(method As MethodSymbol) As Boolean
+        Private Shared Function MayUseCallForStructMethod(method As MethodSymbol) As Boolean
             Debug.Assert(IsVerifierValue(method.ContainingType), "this is not a value type")
 
             If Not method.IsMetadataVirtual Then
@@ -1706,7 +1706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' if result is used, and lives on heap, we must keep RHS value on the stack.
             ' otherwise we can try conjuring up the RHS value directly where it belongs.
-            If used AndAlso Not Me.TargetIsNotOnHeap(left) Then
+            If used AndAlso Not TargetIsNotOnHeap(left) Then
                 Return False
             End If
 
@@ -1759,7 +1759,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me.EmitSymbolToken(target.Type, target.Syntax)
 
             If used Then
-                Debug.Assert(Me.TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
+                Debug.Assert(TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
                 Me.EmitExpression(target, used = True)
             End If
         End Sub
@@ -1777,7 +1777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Me.EmitSymbolToken(constructor, objCreation.Syntax)
 
             If used Then
-                Debug.Assert(Me.TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
+                Debug.Assert(TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified")
                 Me.EmitExpression(target, used = True)
             End If
         End Sub
@@ -1786,10 +1786,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' we also must not be in a try, otherwise if ctor throws
         ' partially assigned value may be observed in the handler.
         Private Function PartialCtorResultCannotEscape(left As BoundExpression) As Boolean
-            Return Me._tryNestingLevel = 0 AndAlso Me.TargetIsNotOnHeap(left)
+            Return Me._tryNestingLevel = 0 AndAlso TargetIsNotOnHeap(left)
         End Function
 
-        Private Function TargetIsNotOnHeap(left As BoundExpression) As Boolean
+        Private Shared Function TargetIsNotOnHeap(left As BoundExpression) As Boolean
             Select Case left.Kind
                 Case BoundKind.Local
                     Return Not DirectCast(left, BoundLocal).LocalSymbol.IsByRef

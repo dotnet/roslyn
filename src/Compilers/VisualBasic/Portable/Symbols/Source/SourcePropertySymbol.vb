@@ -1065,7 +1065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 binder As Binder,
                                                 diagBag As DiagnosticBag) As MemberModifiers
             ' Decode the flags.
-            Dim propertyModifiers = binder.DecodeModifiers(modifiers,
+            Dim propertyModifiers = Binder.DecodeModifiers(modifiers,
                 SourceMemberFlags.AllAccessibilityModifiers Or
                 SourceMemberFlags.Default Or
                 SourceMemberFlags.Overloads Or

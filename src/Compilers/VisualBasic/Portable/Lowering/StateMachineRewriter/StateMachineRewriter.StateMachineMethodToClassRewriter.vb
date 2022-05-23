@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._hasFinalizerState = True
                 End If
 
-                Dim resumeLabel As GeneratedLabelSymbol = Me.F.GenerateLabel(ResumeLabelName)
+                Dim resumeLabel As GeneratedLabelSymbol = SyntheticBoundNodeFactory.GenerateLabel(ResumeLabelName)
                 Me.Dispatches.Add(resumeLabel, New List(Of Integer)() From {stateNumber})
                 Me.FinalizerStateMap.Add(stateNumber, Me._currentFinalizerState)
 
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <remarks>
             ''' Must remain in sync with <see cref="MakeStateMachineScope"/>.
             ''' </remarks>
-            Friend Function TryUnwrapBoundStateMachineScope(ByRef statement As BoundStatement, <Out> ByRef hoistedLocals As ImmutableArray(Of FieldSymbol)) As Boolean
+            Friend Shared Function TryUnwrapBoundStateMachineScope(ByRef statement As BoundStatement, <Out> ByRef hoistedLocals As ImmutableArray(Of FieldSymbol)) As Boolean
                 If statement.Kind = BoundKind.Block Then
                     Dim rewrittenBlock = DirectCast(statement, BoundBlock)
                     Dim rewrittenStatements = rewrittenBlock.Statements
@@ -292,14 +292,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim tryBlock As BoundBlock = Me.F.Block(DirectCast(Me.Visit(node.TryBlock), BoundStatement))
                 Dim dispatchLabel As GeneratedLabelSymbol = Nothing
                 If Me.Dispatches IsNot Nothing Then
-                    dispatchLabel = Me.F.GenerateLabel("tryDispatch")
+                    dispatchLabel = SyntheticBoundNodeFactory.GenerateLabel("tryDispatch")
 
                     If Me._hasFinalizerState Then
                         ' cause the current finalizer state to arrive here and then "return false"
-                        Dim finalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("finalizer")
+                        Dim finalizer As GeneratedLabelSymbol = SyntheticBoundNodeFactory.GenerateLabel("finalizer")
                         Me.Dispatches.Add(finalizer, New List(Of Integer)() From {Me._currentFinalizerState})
 
-                        Dim skipFinalizer As GeneratedLabelSymbol = Me.F.GenerateLabel("skipFinalizer")
+                        Dim skipFinalizer As GeneratedLabelSymbol = SyntheticBoundNodeFactory.GenerateLabel("skipFinalizer")
                         tryBlock = Me.F.Block(SyntheticBoundNodeFactory.HiddenSequencePoint(),
                                               Me.Dispatch(),
                                               Me.F.Goto(skipFinalizer),

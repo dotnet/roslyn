@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="errIdBadModifier">Error ID to report if a bad modifier is found.</param>
         ''' <param name="defaultAccessibility">The default accessibility. </param>
         ''' <returns>Flags for the modifiers.</returns>
-        Public Function DecodeModifiers(syntax As SyntaxTokenList,
+        Public Shared Function DecodeModifiers(syntax As SyntaxTokenList,
                                         allowableModifiers As SourceMemberFlags,
                                         errIdBadModifier As ERRID,
                                         defaultAccessibility As Accessibility,

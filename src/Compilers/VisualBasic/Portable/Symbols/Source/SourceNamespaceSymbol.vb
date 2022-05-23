@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Validate that Global namespace name can't be nested inside another namespace.
-        Private Sub ValidateNamespaceGlobalSyntax(node As GlobalNameSyntax, diagnostics As DiagnosticBag)
+        Private Shared Sub ValidateNamespaceGlobalSyntax(node As GlobalNameSyntax, diagnostics As DiagnosticBag)
             Dim ancestorNode = node.Parent
             Dim seenNamespaceBlock As Boolean = False
 

@@ -403,7 +403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         constructedProxyField.Type)
         End Function
 
-        Private Function MakeFrameCtor(frame As LambdaFrame, diagnostics As BindingDiagnosticBag) As BoundBlock
+        Private Shared Function MakeFrameCtor(frame As LambdaFrame, diagnostics As BindingDiagnosticBag) As BoundBlock
             Dim constructor = frame.Constructor
             Dim syntaxNode As SyntaxNode = constructor.Syntax
 

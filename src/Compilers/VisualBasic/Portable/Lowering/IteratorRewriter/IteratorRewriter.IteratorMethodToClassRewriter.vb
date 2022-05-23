@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Generate the body for Dispose().
                 F.CurrentMethod = disposeMethod
-                Dim breakLabel = F.GenerateLabel("break")
+                Dim breakLabel = SyntheticBoundNodeFactory.GenerateLabel("break")
                 Dim sections = (From ft In FinalizerStateMap
                                 Where ft.Value <> -1
                                 Group ft.Key By ft.Value Into Group
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' indirect return
 
                     If Me._exitLabel Is Nothing Then
-                        Me._exitLabel = F.GenerateLabel("exitLabel")
+                        Me._exitLabel = SyntheticBoundNodeFactory.GenerateLabel("exitLabel")
                     End If
 
                     Return Me.F.Block(
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' <next_state_label>: 
                 '     Me.state = -1
                 Dim newState = AddState()
-                Return F.SequencePoint(
+                Return SyntheticBoundNodeFactory.SequencePoint(
                     node.Syntax,
                     F.Block(
                         F.Assignment(F.Field(F.Me, Me._current, True), DirectCast(Visit(node.Expression), BoundExpression)),

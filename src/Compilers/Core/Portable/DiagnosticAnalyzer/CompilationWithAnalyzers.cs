@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void SuspendAnalysis_NoLock(Task computeTask, CancellationTokenSource cts)
+        private static void SuspendAnalysis_NoLock(Task computeTask, CancellationTokenSource cts)
         {
             if (!computeTask.IsCompleted)
             {

@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' regular case
                     builder.AddStatement(
                         Me.F.If(
-                            condition:=Me.F.Not(rewrittenIsCompleted),
+                            condition:=SyntheticBoundNodeFactory.Not(rewrittenIsCompleted),
                             thenClause:=awaitForIncompleteTask))
                 End If
 
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ImmutableArray.Create(Of LocalSymbol)(asCriticalNotifyCompletion, asNotifyCompletion),
                                 asCriticalNotifyCompletionAssignment,
                                 Me.F.If(
-                                    condition:=Me.F.Not(Me.F.ReferenceIsNothing(Me.F.Local(asCriticalNotifyCompletion, False))),
+                                    condition:=SyntheticBoundNodeFactory.Not(Me.F.ReferenceIsNothing(Me.F.Local(asCriticalNotifyCompletion, False))),
                                     thenClause:=awaitUnsafeOnCompletedCall,
                                     elseClause:=Me.F.Block(
                                         asNotifyCompletionAssignment,

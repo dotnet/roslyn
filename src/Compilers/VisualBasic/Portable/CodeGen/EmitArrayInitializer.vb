@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             indices.Pop()
         End Sub
 
-        Private Function AsConstOrDefault(init As BoundExpression) As ConstantValue
+        Private Shared Function AsConstOrDefault(init As BoundExpression) As ConstantValue
             Dim initConstantValueOpt As ConstantValue = init.ConstantValueOpt
 
             If initConstantValueOpt IsNot Nothing Then
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Next
                 Else
                     For Each init In inits
-                        Me.AsConstOrDefault(init).Serialize(bw)
+                        AsConstOrDefault(init).Serialize(bw)
                     Next
                 End If
             End If
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' <summary>
         ''' Check if it is a regular collection of expressions or there are nested initializers.
         ''' </summary>
-        Private Function IsMultidimensionalInitializer(inits As ImmutableArray(Of BoundExpression)) As Boolean
+        Private Shared Function IsMultidimensionalInitializer(inits As ImmutableArray(Of BoundExpression)) As Boolean
             Debug.Assert(inits.All(Function(init) init.Kind <> BoundKind.ArrayInitialization) OrElse
                          inits.All(Function(init) init.Kind = BoundKind.ArrayInitialization),
                          "all or none should be nested")

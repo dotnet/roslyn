@@ -703,7 +703,7 @@ namespace Microsoft.Cci
             return singleDocument;
         }
 
-        private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SequencePoint sequencePoint)
+        private static void SerializeDeltaLinesAndColumns(BlobBuilder writer, SequencePoint sequencePoint)
         {
             int deltaLines = sequencePoint.EndLine - sequencePoint.StartLine;
             int deltaColumns = sequencePoint.EndColumn - sequencePoint.StartColumn;

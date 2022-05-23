@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Function EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(
+        Friend Shared Function EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(
             ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation),
             <Out> ByRef boundAttribute As VisualBasicAttributeData,
             <Out> ByRef obsoleteData As ObsoleteAttributeData
@@ -589,7 +589,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
-        Private Sub ReportExtensionAttributeUseSiteInfo(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag)
+        Private Shared Sub ReportExtensionAttributeUseSiteInfo(attribute As VisualBasicAttributeData, nodeOpt As AttributeSyntax, compilation As VisualBasicCompilation, diagnostics As BindingDiagnosticBag)
             ' report issues with a custom extension attribute everywhere, where the attribute is used in source
             ' (we will not report in location where it's implicitly used (like the containing module or assembly of extension methods)
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing

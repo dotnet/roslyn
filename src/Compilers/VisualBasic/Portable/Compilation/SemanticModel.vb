@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend MustOverride Function GetCrefReferenceSymbolInfo(crefReference As CrefReferenceSyntax, options As SymbolInfoOptions, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
 
         ' Is this node one that could be successfully interrogated by GetSymbolInfo/GetTypeInfo/GetMemberGroup/GetConstantValue?
-        Friend Function CanGetSemanticInfo(node As VisualBasicSyntaxNode, Optional allowNamedArgumentName As Boolean = False) As Boolean
+        Friend Shared Function CanGetSemanticInfo(node As VisualBasicSyntaxNode, Optional allowNamedArgumentName As Boolean = False) As Boolean
             Debug.Assert(node IsNot Nothing)
 
             ' These aren't really expressions - it's just a manifestation of the SyntaxNode type hierarchy.
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, SpeculativeBindingOption.BindAsExpression, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Dim val As ConstantValue = Me.GetConstantValueForNode(bnodeSummary)
+                Dim val As ConstantValue = GetConstantValueForNode(bnodeSummary)
 
                 If val IsNot Nothing AndAlso Not val.IsBad Then
                     Return New [Optional](Of Object)(val.Value)
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Function GetConstantValueForNode(boundNodes As BoundNodeSummary) As ConstantValue
+        Friend Shared Function GetConstantValueForNode(boundNodes As BoundNodeSummary) As ConstantValue
             Dim constValue As ConstantValue = Nothing
             Dim lowerExpr = TryCast(boundNodes.LowestBoundNode, BoundExpression)
             If lowerExpr IsNot Nothing Then
@@ -782,7 +782,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' that way). This should get us the most "liberal" interpretation
         ''' for semantic information.
         ''' </summary>
-        Private Function MakeValueIfPossible(binder As Binder, node As BoundNode) As BoundNode
+        Private Shared Function MakeValueIfPossible(binder As Binder, node As BoundNode) As BoundNode
             ' Convert a stand-alone speculatively bound expression to an rvalue. 
             ' This will get the value of properties, convert lambdas to anonymous 
             ' delegate type, etc.
@@ -854,7 +854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Given a diagnosticInfo, add any symbols from the diagnosticInfo to the symbol builder.
-        Private Sub AddSymbolsFromDiagnosticInfo(symbolsBuilder As ArrayBuilder(Of Symbol), diagnosticInfo As DiagnosticInfo)
+        Private Shared Sub AddSymbolsFromDiagnosticInfo(symbolsBuilder As ArrayBuilder(Of Symbol), diagnosticInfo As DiagnosticInfo)
             Dim diagInfoWithSymbols = TryCast(diagnosticInfo, IDiagnosticInfoWithSymbols)
             If diagInfoWithSymbols IsNot Nothing Then
                 diagInfoWithSymbols.GetAssociatedSymbols(symbolsBuilder)
@@ -909,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Given the lower and upper bound expressions, get the type, converted type, and conversion.
-        Private Function GetSemanticType(boundNodes As BoundNodeSummary,
+        Private Shared Function GetSemanticType(boundNodes As BoundNodeSummary,
                    ByRef convertedType As TypeSymbol,
                    ByRef conversion As Conversion) As TypeSymbol
             convertedType = Nothing
@@ -1232,7 +1232,7 @@ _Default:
             Return meParam
         End Function
 
-        Private Sub GetSemanticSymbolsForLateBoundInvocation(lateInvocation As BoundLateInvocation,
+        Private Shared Sub GetSemanticSymbolsForLateBoundInvocation(lateInvocation As BoundLateInvocation,
                                                                 symbolsBuilder As ArrayBuilder(Of Symbol),
                                                                 memberGroupBuilder As ArrayBuilder(Of Symbol),
                                                                 ByRef resultKind As LookupResultKind)
@@ -1266,7 +1266,7 @@ _Default:
 
         ' Get the semantic symbols for a BoundMethodGroup. These are somewhat complex, as we want to get the result
         ' of overload resolution even though that result is associated with the parent node.
-        Private Sub GetSemanticSymbolsForMethodGroup(boundNodes As BoundNodeSummary,
+        Private Shared Sub GetSemanticSymbolsForMethodGroup(boundNodes As BoundNodeSummary,
                     symbolsBuilder As ArrayBuilder(Of Symbol),
                     memberGroupBuilder As ArrayBuilder(Of Symbol),
                     ByRef resultKind As LookupResultKind)
@@ -1333,7 +1333,7 @@ _Default:
 
         ' Get the semantic symbols for a BoundPropertyGroup. These are somewhat complex, as we want to get the result
         ' of overload resolution even though that result is associated with the parent node.
-        Private Sub GetSemanticSymbolsForPropertyGroup(boundNodes As BoundNodeSummary,
+        Private Shared Sub GetSemanticSymbolsForPropertyGroup(boundNodes As BoundNodeSummary,
                       symbolsBuilder As ArrayBuilder(Of Symbol),
                       memberGroupBuilder As ArrayBuilder(Of Symbol),
                       ByRef resultKind As LookupResultKind)
@@ -1544,7 +1544,7 @@ _Default:
         End Function
 
         ' Gets TypeInfo for a type or namespace or alias reference or implemented method.
-        Friend Function GetTypeInfoForSymbol(
+        Friend Shared Function GetTypeInfoForSymbol(
             symbol As Symbol
         ) As VisualBasicTypeInfo
 
@@ -1991,7 +1991,7 @@ _Default:
         End Sub
 
         ' Do a lookup of instance constructors, taking LookupOptions into account.
-        Private Sub LookupInstanceConstructors(
+        Private Shared Sub LookupInstanceConstructors(
             binder As Binder,
             container As NamespaceOrTypeSymbol,
             options As LookupOptions,
@@ -2820,7 +2820,7 @@ _Default:
         End Function
 
         ' Find the first parameter, if any, on method or property symbol named "argumentName"
-        Private Function FindNamedParameter(symbol As Symbol, argumentName As String) As ParameterSymbol
+        Private Shared Function FindNamedParameter(symbol As Symbol, argumentName As String) As ParameterSymbol
             Dim params As ImmutableArray(Of ParameterSymbol)
 
             If symbol.Kind = SymbolKind.Method Then
@@ -2944,7 +2944,7 @@ _Default:
             DefaultOptions = PreferConstructorsToType Or ResolveAliases
         End Enum
 
-        Friend Sub ValidateSymbolInfoOptions(options As SymbolInfoOptions)
+        Friend Shared Sub ValidateSymbolInfoOptions(options As SymbolInfoOptions)
             Debug.Assert(((options And SymbolInfoOptions.PreferConstructorsToType) <> 0) <> ((options And SymbolInfoOptions.PreferTypeToConstructors) <> 0), "Options are mutually exclusive")
             Debug.Assert(((options And SymbolInfoOptions.ResolveAliases) <> 0) <> ((options And SymbolInfoOptions.PreserveAliases) <> 0), "Options are mutually exclusive")
         End Sub

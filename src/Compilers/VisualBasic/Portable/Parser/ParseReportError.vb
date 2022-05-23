@@ -111,11 +111,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return badStmt
         End Function
 
-        Private Function ReportModifiersOnStatementError(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Shared Function ReportModifiersOnStatementError(attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
             Return ReportModifiersOnStatementError(ERRID.ERR_SpecifiersInvalidOnInheritsImplOpt, attributes, modifiers, keyword)
         End Function
 
-        Private Function ReportModifiersOnStatementError(errorId As ERRID, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
+        Private Shared Function ReportModifiersOnStatementError(errorId As ERRID, attributes As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of AttributeListSyntax), modifiers As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of KeywordSyntax), keyword As KeywordSyntax) As KeywordSyntax
             If modifiers.Any Then
                 keyword = keyword.AddLeadingSyntax(modifiers.Node, errorId)
             End If
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' // A FEATUREID_* constant defined in errors.inc
         ' // the string for the version that /LangVersion is targeting
         ' .Parser::ReportSyntaxErrorForLanguageFeature( [ unsigned Errid ] [ _In_ Token* Start ] [ unsigned Feature ] [ _In_opt_z_ const WCHAR* wszVersion ] )
-        Private Sub ReportSyntaxErrorForLanguageFeature(
+        Private Shared Sub ReportSyntaxErrorForLanguageFeature(
             Errid As ERRID,
             Start As SyntaxToken,
             Feature As UInteger,

@@ -739,7 +739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' <summary>
         ''' Some simple sanity checks if a property can actually be a withevents property
         ''' </summary>
-        Private Function IsValidWithEventsProperty(prop As PEPropertySymbol) As Boolean
+        Private Shared Function IsValidWithEventsProperty(prop As PEPropertySymbol) As Boolean
             ' NOTE: Dev10 does not make any checks. Just has comment that it could be a good idea to do in Whidbey.
             ' We will check, just to make stuff a bit more robust.
             ' It will be extremely rare that this function would fail though.

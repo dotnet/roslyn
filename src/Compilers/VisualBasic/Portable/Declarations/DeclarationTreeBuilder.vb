@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Given a set of single declarations, get the sets of global and non-global declarations.
         ' A regular declaration is put into "non-global declarations".
         ' A "Namespace Global" is not put in either place, but all its direct children are put into "global declarations".
-        Private Sub FindGlobalDeclarations(declarations As ImmutableArray(Of SingleNamespaceOrTypeDeclaration),
+        Private Shared Sub FindGlobalDeclarations(declarations As ImmutableArray(Of SingleNamespaceOrTypeDeclaration),
                                            implicitClass As SingleNamespaceOrTypeDeclaration,
                                            ByRef globalDeclarations As ImmutableArray(Of SingleNamespaceOrTypeDeclaration),
                                            ByRef nonGlobal As ImmutableArray(Of SingleNamespaceOrTypeDeclaration))
@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             nonGlobal = nonGlobalBuilder.ToImmutableAndFree()
         End Sub
 
-        Private Function UnescapeIdentifier(identifier As String) As String
+        Private Shared Function UnescapeIdentifier(identifier As String) As String
             If identifier(0) = "[" Then
                 Debug.Assert(identifier(identifier.Length - 1) = "]")
                 Return identifier.Substring(1, identifier.Length - 2)
@@ -704,7 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ToImmutableAndFree(results)
         End Function
 
-        Private Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
+        Private Shared Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
             Dim members = enumBlockSyntax.Members
 
             If (members.Count <> 0) Then
@@ -733,7 +733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return ToImmutableAndFree(results)
         End Function
 
-        Private Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As ImmutableHashSet(Of String).Builder)
+        Private Shared Sub AddMemberNames(methodDecl As MethodBaseSyntax, results As ImmutableHashSet(Of String).Builder)
             Dim name = SourceMethodSymbol.GetMemberNameFromSyntax(methodDecl)
             results.Add(name)
         End Sub

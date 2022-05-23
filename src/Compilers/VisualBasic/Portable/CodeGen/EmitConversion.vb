@@ -280,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Function IsUnboxingDirectCast(conversion As BoundDirectCast) As Boolean
+        Private Shared Function IsUnboxingDirectCast(conversion As BoundDirectCast) As Boolean
             Dim typeTo As TypeSymbol = conversion.Type
             Dim typeFrom As TypeSymbol = conversion.Operand.Type
 
@@ -439,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitPopIfUnused(used)
         End Sub
 
-        Private Function ConversionHasSideEffects(conversion As BoundConversion) As Boolean
+        Private Shared Function ConversionHasSideEffects(conversion As BoundConversion) As Boolean
             ' only some intrinsic conversions are side-effect free
             ' the only side-effect of an intrinsic conversion is a throw when we fail to convert.
             ' 
@@ -451,12 +451,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return True
         End Function
 
-        Private Function ConversionHasSideEffects(conversion As BoundDirectCast) As Boolean
+        Private Shared Function ConversionHasSideEffects(conversion As BoundDirectCast) As Boolean
             'TODO: compute this (note: returning true is safe - false would just enable optimizations)
             Return True
         End Function
 
-        Private Function ConversionHasSideEffects(conversion As BoundTryCast) As Boolean
+        Private Shared Function ConversionHasSideEffects(conversion As BoundTryCast) As Boolean
             'TODO: compute this (note: returning true is safe - false would just enable optimizations)
             Return False
         End Function

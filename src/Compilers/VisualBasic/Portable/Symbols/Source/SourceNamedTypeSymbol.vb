@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Syntax"
 
-        Friend Function GetTypeIdentifierToken(node As VisualBasicSyntaxNode) As SyntaxToken
+        Friend Shared Function GetTypeIdentifierToken(node As VisualBasicSyntaxNode) As SyntaxToken
             Select Case node.Kind
                 Case SyntaxKind.ModuleBlock, SyntaxKind.ClassBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock
                     Return DirectCast(node, TypeBlockSyntax).BlockStatement.Identifier
@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 For Each syntaxRef In SyntaxReferences
                     ' Report a warning or error for all classes missing the partial modifier
-                    CheckDeclarationPart(syntaxRef.SyntaxTree, syntaxRef.GetVisualBasicSyntax(), firstNode, foundPartial, diagnostics)
+                    CheckDeclarationPart(syntaxRef.GetVisualBasicSyntax(), firstNode, foundPartial, diagnostics)
                 Next
             End If
         End Sub
@@ -284,7 +284,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim modifiers As SyntaxTokenList = Nothing
             Dim id As SyntaxToken = Nothing
-            Dim foundModifiers = DecodeDeclarationModifiers(node, binder, diagBag, modifiers, id)
+            Dim foundModifiers = DecodeDeclarationModifiers(node, diagBag, modifiers, id)
 
             If accessModifiers <> Nothing Then
                 Dim newModifiers = foundModifiers And DeclarationModifiers.AllAccessibilityModifiers And Not accessModifiers
@@ -397,8 +397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return foundModifiers
         End Function
 
-        Private Function DecodeDeclarationModifiers(node As VisualBasicSyntaxNode,
-                                            binder As Binder,
+        Private Shared Function DecodeDeclarationModifiers(node As VisualBasicSyntaxNode,
                                             diagBag As DiagnosticBag,
                                             ByRef modifiers As SyntaxTokenList,
                                             ByRef id As SyntaxToken) As DeclarationModifiers
@@ -453,7 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
 
             If modifiers.Count <> 0 Then
-                Dim foundFlags As SourceMemberFlags = binder.DecodeModifiers(modifiers,
+                Dim foundFlags As SourceMemberFlags = Binder.DecodeModifiers(modifiers,
                     allowableModifiers,
                     err,
                     Nothing,
@@ -628,8 +627,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CheckForDuplicateTypeParameters(TypeParameters, diagBag)
         End Sub
 
-        Private Sub CheckDeclarationPart(tree As SyntaxTree,
-                                            node As VisualBasicSyntaxNode,
+        Private Sub CheckDeclarationPart(node As VisualBasicSyntaxNode,
                                             firstNode As VisualBasicSyntaxNode,
                                             foundPartial As Boolean,
                                             diagBag As BindingDiagnosticBag)
@@ -638,9 +636,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If node Is firstNode Then
                 Return
             End If
-
-            ' Set up a binder for this part of the type.
-            Dim binder As Binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, tree, Me)
 
             ' all type declarations are treated as possible partial types. Because these type have different base classes 
             ' we need to get the modifiers in different ways.
@@ -664,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' because this method was called before, we will pass a new (unused) instance of 
             ' diagnostics to avoid duplicate error messages for the same nodes
             Dim unusedDiagnostics = DiagnosticBag.GetInstance()
-            Dim foundModifiers = DecodeDeclarationModifiers(node, binder, unusedDiagnostics, modifiers, id)
+            Dim foundModifiers = DecodeDeclarationModifiers(node, unusedDiagnostics, modifiers, id)
             unusedDiagnostics.Free()
 
             If (foundModifiers And DeclarationModifiers.Partial) = 0 Then
@@ -1053,7 +1048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Check that there are no base declarations in the given list, and report the given error if any are found.
-        Private Sub CheckNoBase(Of T As InheritsOrImplementsStatementSyntax)(baseDeclList As SyntaxList(Of T),
+        Private Shared Sub CheckNoBase(Of T As InheritsOrImplementsStatementSyntax)(baseDeclList As SyntaxList(Of T),
                                 errId As ERRID,
                                 diagBag As BindingDiagnosticBag)
             If baseDeclList.Count > 0 Then
@@ -1248,7 +1243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Determines if this type is one of the special types we can't inherit from
-        Private Function IsRestrictedBaseClass(type As SpecialType) As Boolean
+        Private Shared Function IsRestrictedBaseClass(type As SpecialType) As Boolean
             Select Case type
                 Case SpecialType.System_Array,
                      SpecialType.System_Delegate,
@@ -1261,7 +1256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        Private Function AsPeOrRetargetingType(potentialBaseType As TypeSymbol) As NamedTypeSymbol
+        Private Shared Function AsPeOrRetargetingType(potentialBaseType As TypeSymbol) As NamedTypeSymbol
             Dim peType As NamedTypeSymbol = TryCast(potentialBaseType, Symbols.Metadata.PE.PENamedTypeSymbol)
             If peType Is Nothing Then
                 peType = TryCast(potentialBaseType, Retargeting.RetargetingNamedTypeSymbol)
@@ -1778,7 +1773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function BindEnumUnderlyingType(syntax As EnumBlockSyntax,
+        Private Shared Function BindEnumUnderlyingType(syntax As EnumBlockSyntax,
                                    bodyBinder As Binder,
                                    diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
 

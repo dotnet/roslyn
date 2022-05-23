@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                binder As Binder,
                                                diagBag As DiagnosticBag) As MemberModifiers
             ' Decode the flags.
-            Dim eventModifiers = binder.DecodeModifiers(modifiers,
+            Dim eventModifiers = Binder.DecodeModifiers(modifiers,
                 SourceMemberFlags.AllAccessibilityModifiers Or
                 SourceMemberFlags.Shadows Or
                 SourceMemberFlags.Shared,

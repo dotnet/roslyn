@@ -199,6 +199,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string FileName => _file;
 
-        public string PropertyName => PermissionSetAttributeWithFileReference.FilePropertyName;
+        public static string PropertyName => PermissionSetAttributeWithFileReference.FilePropertyName;
     }
 }

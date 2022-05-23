@@ -2180,7 +2180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return syntaxNode
         End Function
 
-        Private Function CreateQueryLambdaParameterSymbol(
+        Private Shared Function CreateQueryLambdaParameterSymbol(
             name As String,
             ordinal As Integer,
             type As TypeSymbol,
@@ -3276,7 +3276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(innerKeyBinder Is Nothing)
                 Debug.Assert(joinSelectorRangeVariables.SequenceEqual(outer.RangeVariables.Concat(inner.RangeVariables)))
 
-                Dim outerKeyParam As BoundLambdaParameterSymbol = parentBinder.CreateQueryLambdaParameterSymbol(
+                Dim outerKeyParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(
                                                                                                    GetQueryLambdaParameterName(outer.RangeVariables), 0,
                                                                                                    outer.CompoundVariableType,
                                                                                                    join, outer.RangeVariables)
@@ -3286,7 +3286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                                 ImmutableArray.Create(outerKeyParam))
                 outerKeyBinder = New QueryLambdaBinder(outerKeyLambdaSymbol, joinSelectorRangeVariables)
 
-                Dim innerKeyParam As BoundLambdaParameterSymbol = parentBinder.CreateQueryLambdaParameterSymbol(
+                Dim innerKeyParam As BoundLambdaParameterSymbol = CreateQueryLambdaParameterSymbol(
                                                                                                    GetQueryLambdaParameterName(inner.RangeVariables), 0,
                                                                                                    inner.CompoundVariableType,
                                                                                                    join, inner.RangeVariables)

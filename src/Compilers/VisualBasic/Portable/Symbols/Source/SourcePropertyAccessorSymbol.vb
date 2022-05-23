@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                       diagnostics As DiagnosticBag) As SourcePropertyAccessorSymbol
 
             Dim syntax = blockSyntax.BlockStatement
-            Dim modifiers = binder.DecodeModifiers(syntax.Modifiers,
+            Dim modifiers = Binder.DecodeModifiers(syntax.Modifiers,
                                                    SourceMemberFlags.AllAccessibilityModifiers,
                                                    ERRID.ERR_BadPropertyAccessorFlags,
                                                    Accessibility.NotApplicable,

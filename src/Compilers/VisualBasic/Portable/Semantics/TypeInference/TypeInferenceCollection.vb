@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Function CheckHintSatisfaction(
+        Private Shared Function CheckHintSatisfaction(
             candidateData As DominantTypeData,
             hintData As DominantTypeData,
             hintRestrictions As RequiredConversion,

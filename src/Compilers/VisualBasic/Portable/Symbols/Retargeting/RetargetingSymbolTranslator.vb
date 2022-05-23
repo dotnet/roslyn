@@ -814,7 +814,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Return lazyCustomAttributes
             End Function
 
-            Public Function Retarget(type As ErrorTypeSymbol) As ErrorTypeSymbol
+            Public Shared Function Retarget(type As ErrorTypeSymbol) As ErrorTypeSymbol
                 ' TODO: if it is no longer missing in the target assembly, then we can resolve it here.
 
                 ' A retargeted error symbol must trigger an error on use so that a dependent compilation won't

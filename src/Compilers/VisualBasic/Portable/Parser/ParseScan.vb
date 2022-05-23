@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 18421 - 18421
         ' bool .Parser::IsValidStatementTerminator( [ _In_ Token* T ] )
 
-        Friend Function IsValidStatementTerminator(t As SyntaxToken) As Boolean
+        Friend Shared Function IsValidStatementTerminator(t As SyntaxToken) As Boolean
             Debug.Assert(t IsNot Nothing)
 
             ' // The parser usually skips StatementTerminator tokens (if implicit line continuation is

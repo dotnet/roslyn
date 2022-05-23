@@ -76,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Me._method = method
                 Me._builder = builder
-                Me._exprReturnLabel = F.GenerateLabel("exprReturn")
-                Me._exitLabel = F.GenerateLabel("exitLabel")
+                Me._exprReturnLabel = SyntheticBoundNodeFactory.GenerateLabel("exprReturn")
+                Me._exitLabel = SyntheticBoundNodeFactory.GenerateLabel("exitLabel")
                 Me._owner = owner
                 Me._asyncMethodKind = GetAsyncMethodKind(Me._method)
                 Me._spillFieldAllocator = New SpillFieldAllocator(F)
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Me.Dispatch(),
                             rewrittenBody
                         ),
-                        Me.F.CatchBlocks(
+                        SyntheticBoundNodeFactory.CatchBlocks(
                             Me.F.Catch(
                                 exceptionLocal,
                                 Me.F.Block(
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)
                 Else
-                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
+                    bodyBuilder.Add(SyntheticBoundNodeFactory.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
                     bodyBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint())
                 End If
 

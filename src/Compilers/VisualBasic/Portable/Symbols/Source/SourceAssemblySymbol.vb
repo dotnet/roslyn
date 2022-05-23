@@ -1126,7 +1126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ' Checks that the integral arguments for the given well-known attribute are non-negative.
-        Private Sub ValidateIntegralAttributeNonNegativeArguments(attrData As VisualBasicAttributeData, nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
+        Private Shared Sub ValidateIntegralAttributeNonNegativeArguments(attrData As VisualBasicAttributeData, nodeOpt As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Debug.Assert(Not attrData.HasErrors)
 
             Dim argCount As Integer = attrData.CommonConstructorArguments.Length

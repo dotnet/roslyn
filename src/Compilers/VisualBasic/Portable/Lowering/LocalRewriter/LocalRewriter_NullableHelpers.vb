@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Takes two expressions and makes sequence.
         ''' </summary>
-        Private Function MakeTernaryConditionalExpression(syntax As SyntaxNode,
+        Private Shared Function MakeTernaryConditionalExpression(syntax As SyntaxNode,
                                                           condition As BoundExpression,
                                                           whenTrue As BoundExpression,
                                                           whenFalse As BoundExpression) As BoundExpression

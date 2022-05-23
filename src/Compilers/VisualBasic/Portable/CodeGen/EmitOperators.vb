@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             EmitPopIfUnused(used)
         End Sub
 
-        Private Function IsCondOperator(operationKind As BinaryOperatorKind) As Boolean
+        Private Shared Function IsCondOperator(operationKind As BinaryOperatorKind) As Boolean
             Select Case (operationKind And BinaryOperatorKind.OpMask)
                 Case BinaryOperatorKind.OrElse,
                      BinaryOperatorKind.AndAlso,
@@ -217,7 +217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Select
         End Sub
 
-        Private Function OperatorHasSideEffects(expression As BoundBinaryOperator) As Boolean
+        Private Shared Function OperatorHasSideEffects(expression As BoundBinaryOperator) As Boolean
             Dim type = expression.OperatorKind And BinaryOperatorKind.OpMask
 
             Select Case type

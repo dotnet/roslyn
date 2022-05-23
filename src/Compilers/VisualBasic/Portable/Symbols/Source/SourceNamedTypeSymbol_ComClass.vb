@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             End Sub
 
-            Private Sub GetComClassMembers(
+            Private Shared Sub GetComClassMembers(
                 comClass As SourceNamedTypeSymbol,
                 interfaceMembers As ArrayBuilder(Of KeyValuePair(Of Symbol, Integer)),
                 eventMembers As ArrayBuilder(Of KeyValuePair(Of EventSymbol, Integer)),

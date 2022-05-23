@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void UpdateLocalDiagnostics_NoLock<TKey>(
+        private static void UpdateLocalDiagnostics_NoLock<TKey>(
             DiagnosticAnalyzer analyzer,
             ImmutableArray<Diagnostic> diagnostics,
             bool overwrite,

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private Guid ExtractMvid(string path)
+        private static Guid ExtractMvid(string path)
         {
             using (FileStream source = File.OpenRead(path))
             {

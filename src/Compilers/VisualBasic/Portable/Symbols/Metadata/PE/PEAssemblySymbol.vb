@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
-            Return Assembly.Modules(0).HasGuidAttribute(Assembly.Handle, guidString)
+            Return Assembly.Modules(0).HasGuidAttribute(PEAssembly.Handle, guidString)
         End Function
 
         Friend Overrides Function AreInternalsVisibleToThisAssembly(potentialGiverOfAccess As AssemblySymbol) As Boolean
@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
             If _lazyCustomAttributes.IsDefault Then
-                PrimaryModule.LoadCustomAttributes(Me.Assembly.Handle, _lazyCustomAttributes)
+                PrimaryModule.LoadCustomAttributes(PEAssembly.Handle, _lazyCustomAttributes)
             End If
             Return _lazyCustomAttributes
         End Function
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property MetadataToken As Integer
             Get
-                Return MetadataTokens.GetToken(_assembly.Handle)
+                Return MetadataTokens.GetToken(PEAssembly.Handle)
             End Get
         End Property
 
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Get
                 If _lazyMightContainExtensionMethods = ThreeState.Unknown Then
                     Dim primaryModuleSymbol = PrimaryModule
-                    If primaryModuleSymbol.Module.HasExtensionAttribute(_assembly.Handle, ignoreCase:=True) Then
+                    If primaryModuleSymbol.Module.HasExtensionAttribute(PEAssembly.Handle, ignoreCase:=True) Then
                         _lazyMightContainExtensionMethods = ThreeState.True
                     Else
                         _lazyMightContainExtensionMethods = ThreeState.False

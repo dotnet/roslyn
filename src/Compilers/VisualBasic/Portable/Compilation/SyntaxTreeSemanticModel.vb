@@ -835,25 +835,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Get the type info of a implemented member in a implements clause.
-        Private Function GetImplementedMemberTypeInfo(memberName As QualifiedNameSyntax) As VisualBasicTypeInfo
+        Private Shared Function GetImplementedMemberTypeInfo(memberName As QualifiedNameSyntax) As VisualBasicTypeInfo
             ' Implemented members have no type.
             Return VisualBasicTypeInfo.None
         End Function
 
         ' Get the type info of a implemented member in a implements clause.
-        Private Function GetHandlesEventTypeInfo(memberName As IdentifierNameSyntax) As VisualBasicTypeInfo
+        Private Shared Function GetHandlesEventTypeInfo(memberName As IdentifierNameSyntax) As VisualBasicTypeInfo
             ' Handled events have no type.
             Return VisualBasicTypeInfo.None
         End Function
 
         ' Get the type info of a implemented member in a implements clause.
-        Private Function GetHandlesContainerTypeInfo(memberName As HandlesClauseItemSyntax) As VisualBasicTypeInfo
+        Private Shared Function GetHandlesContainerTypeInfo(memberName As HandlesClauseItemSyntax) As VisualBasicTypeInfo
             ' Handled events have no type.
             Return VisualBasicTypeInfo.None
         End Function
 
         ' Get the type info of a implemented member in a implements clause.
-        Private Function GetHandlesPropertyTypeInfo(memberName As HandlesClauseItemSyntax) As VisualBasicTypeInfo
+        Private Shared Function GetHandlesPropertyTypeInfo(memberName As HandlesClauseItemSyntax) As VisualBasicTypeInfo
             ' Handled events have no type.
             Return VisualBasicTypeInfo.None
         End Function
@@ -1544,7 +1544,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         <Conditional("DEBUG")>
-        Private Sub CheckSucceededFlagInAnalyzeDataFlow(expression As ExpressionSyntax, result As VisualBasicDataFlowAnalysis, context As RegionAnalysisContext)
+        Private Shared Sub CheckSucceededFlagInAnalyzeDataFlow(expression As ExpressionSyntax, result As VisualBasicDataFlowAnalysis, context As RegionAnalysisContext)
             If result.Succeeded OrElse result.InvalidRegionDetectedInternal OrElse context.Failed Then
                 Return
             End If
@@ -1819,7 +1819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' the uppermost block is the one which includes all the For blocks ending with 
         ''' the same Next clause
         ''' </summary>
-        Private Function IsNotUppermostForBlock(forBlockOrStatement As VisualBasicSyntaxNode) As Boolean
+        Private Shared Function IsNotUppermostForBlock(forBlockOrStatement As VisualBasicSyntaxNode) As Boolean
             Debug.Assert(forBlockOrStatement.Kind <> SyntaxKind.ForStatement)
             Debug.Assert(forBlockOrStatement.Kind <> SyntaxKind.ForEachStatement)
 

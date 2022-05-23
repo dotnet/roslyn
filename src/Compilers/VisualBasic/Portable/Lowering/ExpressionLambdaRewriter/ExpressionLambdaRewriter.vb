@@ -433,7 +433,7 @@ lSelect:
             Return ConvertRuntimeHelperToExpressionTree("Property", rewrittenReceiver, _factory.MethodInfo(getMethod))
         End Function
 
-        Private Function VisitLambda(node As BoundLambda) As BoundExpression
+        Private Shared Function VisitLambda(node As BoundLambda) As BoundExpression
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -528,7 +528,7 @@ lSelect:
             Return _factory.Array(_expressionType, newExpr.AsImmutableOrNull())
         End Function
 
-        Private Function VisitBadExpression(node As BoundBadExpression) As BoundExpression
+        Private Shared Function VisitBadExpression(node As BoundBadExpression) As BoundExpression
             Return node
         End Function
 
@@ -756,11 +756,11 @@ lSelect:
             Return ConvertRuntimeHelperToExpressionTree("New", _factory.[Typeof](type))
         End Function
 
-        Private Function IsIntegralType(type As TypeSymbol) As Boolean
+        Private Shared Function IsIntegralType(type As TypeSymbol) As Boolean
             Return GetUnderlyingType(type).IsIntegralType
         End Function
 
-        Private Function GetUnderlyingType(type As TypeSymbol) As TypeSymbol
+        Private Shared Function GetUnderlyingType(type As TypeSymbol) As TypeSymbol
             Return type.GetNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf
         End Function
 

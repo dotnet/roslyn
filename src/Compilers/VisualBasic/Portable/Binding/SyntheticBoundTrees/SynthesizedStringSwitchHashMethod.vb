@@ -59,8 +59,8 @@ start:
             Dim i As LocalSymbol = F.SynthesizedLocal(Me.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))
             Dim hashCode As LocalSymbol = F.SynthesizedLocal(Me.ContainingAssembly.GetSpecialType(SpecialType.System_UInt32))
 
-            Dim again As LabelSymbol = F.GenerateLabel("again")
-            Dim start As LabelSymbol = F.GenerateLabel("start")
+            Dim again As LabelSymbol = SyntheticBoundNodeFactory.GenerateLabel("again")
+            Dim start As LabelSymbol = SyntheticBoundNodeFactory.GenerateLabel("start")
 
             Dim text As ParameterSymbol = Me.Parameters(0)
 

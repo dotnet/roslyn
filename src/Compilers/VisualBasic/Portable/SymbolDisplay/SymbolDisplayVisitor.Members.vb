@@ -635,28 +635,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Private Function IsWithEventsProperty(symbol As ISymbol) As Boolean
+        Private Shared Function IsWithEventsProperty(symbol As ISymbol) As Boolean
             Dim vbProperty = TryCast(symbol, PropertySymbol)
             Return vbProperty IsNot Nothing AndAlso vbProperty.IsWithEvents
         End Function
 
-        Private Function IsOverloads(symbol As ISymbol) As Boolean
+        Private Shared Function IsOverloads(symbol As ISymbol) As Boolean
             Dim vbSymbol = TryCast(symbol, Symbol)
             Return vbSymbol IsNot Nothing AndAlso vbSymbol.IsOverloads
         End Function
 
-        Private Function IsDeclareMethod(method As IMethodSymbol) As Boolean
+        Private Shared Function IsDeclareMethod(method As IMethodSymbol) As Boolean
             Dim vbMethod = TryCast(method, MethodSymbol)
             Return vbMethod IsNot Nothing AndAlso vbMethod.MethodKind = MethodKind.DeclareMethod
         End Function
 
-        Private Function IsExplicitByRefParameter(parameter As IParameterSymbol) As Boolean
+        Private Shared Function IsExplicitByRefParameter(parameter As IParameterSymbol) As Boolean
             Dim vbParameter = TryCast(parameter, ParameterSymbol)
             Return vbParameter IsNot Nothing AndAlso vbParameter.IsExplicitByRef
         End Function
 
         <Conditional("DEBUG")>
-        Private Sub AssertContainingSymbol(symbol As ISymbol)
+        Private Shared Sub AssertContainingSymbol(symbol As ISymbol)
             ' Symbols which may have null containing type: Lambda methods and Synthesized global methods belonging to PrivateImplementationDetails class.
             Debug.Assert(
                 symbol.ContainingSymbol IsNot Nothing OrElse

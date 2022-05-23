@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' 3.17 The brfalse instruction transfers control to target if value (of type int32, int64, object reference, managed
         'pointer, unmanaged pointer or native int) is zero (false). If value is non-zero (true), execution continues at
         'the next instruction.
-        Private Function CanPassToBrfalse(ts As TypeSymbol) As Boolean
+        Private Shared Function CanPassToBrfalse(ts As TypeSymbol) As Boolean
             If ts.IsEnumType Then
                 ' valid enums are all primitives
                 Return True
@@ -814,7 +814,7 @@ OtherExpressions:
         End Sub
 
         <Conditional("DEBUG")>
-        Private Sub ValidateReferenceEqualityOperands(binOp As BoundBinaryOperator)
+        Private Shared Sub ValidateReferenceEqualityOperands(binOp As BoundBinaryOperator)
             Debug.Assert(binOp.Left.IsNothingLiteral() OrElse binOp.Left.Type.SpecialType = SpecialType.System_Object OrElse binOp.WasCompilerGenerated)
             Debug.Assert(binOp.Right.IsNothingLiteral() OrElse binOp.Right.Type.SpecialType = SpecialType.System_Object OrElse binOp.WasCompilerGenerated)
         End Sub
@@ -952,7 +952,7 @@ OtherExpressions:
         End Sub
 
         ' Create a label for each case block
-        Private Function CreateCaseBlockLabels(caseBlocks As ImmutableArray(Of BoundCaseBlock)) As ImmutableArray(Of GeneratedLabelSymbol)
+        Private Shared Function CreateCaseBlockLabels(caseBlocks As ImmutableArray(Of BoundCaseBlock)) As ImmutableArray(Of GeneratedLabelSymbol)
             Debug.Assert(Not caseBlocks.IsEmpty)
 
             Dim caseBlockLabels = ArrayBuilder(Of GeneratedLabelSymbol).GetInstance(caseBlocks.Length)
@@ -969,7 +969,7 @@ OtherExpressions:
         ' Creates an array of key value pairs (key: case clause constant value, value: case block label)
         ' for emitting switch table based header.
         ' This function also ensures the correct fallThroughLabel is set, i.e. case else block label if one exists, otherwise exit label.
-        Private Function GetCaseLabelsForEmitSwitchHeader(
+        Private Shared Function GetCaseLabelsForEmitSwitchHeader(
             caseBlocks As ImmutableArray(Of BoundCaseBlock),
             caseBlockLabels As ImmutableArray(Of GeneratedLabelSymbol),
             ByRef fallThroughLabel As LabelSymbol

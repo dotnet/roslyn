@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return True
         End Function
 
-        Private Function ContainsLeadingLineBreaks(node As VisualBasicSyntaxNode) As Boolean
+        Private Shared Function ContainsLeadingLineBreaks(node As VisualBasicSyntaxNode) As Boolean
             Dim lt = node.GetLeadingTrivia
             If lt IsNot Nothing Then
                 If lt.RawKind = SyntaxKind.EndOfLineTrivia Then

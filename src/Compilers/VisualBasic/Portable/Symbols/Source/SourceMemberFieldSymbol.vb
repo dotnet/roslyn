@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 errorId = ERRID.ERR_BadDimFlags1
             End If
 
-            Dim modifiers = binder.DecodeModifiers(syntax.Modifiers,
+            Dim modifiers = Binder.DecodeModifiers(syntax.Modifiers,
                                                 validFlags,
                                                 errorId,
                                                 If(container.IsValueType, Accessibility.Public, Accessibility.Private),

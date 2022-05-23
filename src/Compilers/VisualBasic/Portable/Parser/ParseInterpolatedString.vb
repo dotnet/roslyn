@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Function RemoveTrailingColonTriviaAndConvertToColonToken(
+        Private Shared Function RemoveTrailingColonTriviaAndConvertToColonToken(
                              node As VisualBasicSyntaxNode,
                              <Out> ByRef colonToken As PunctuationSyntax,
                              <Out> ByRef excessText As String

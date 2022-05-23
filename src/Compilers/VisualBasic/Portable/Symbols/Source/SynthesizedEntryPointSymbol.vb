@@ -186,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Private Function GetSyntax() As VisualBasicSyntaxNode
+        Private Shared Function GetSyntax() As VisualBasicSyntaxNode
             Return VisualBasicSyntaxTree.Dummy.GetRoot()
         End Function
 

@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return TryGetValue(text, valueProvider.CoreValueProvider, out value);
         }
 
-        private bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
+        private static bool TryGetValue<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider, [MaybeNullWhen(false)] out TValue value)
             where TKey : class
         {
             DiagnosticAnalysisContextHelpers.VerifyArguments(key, valueProvider);

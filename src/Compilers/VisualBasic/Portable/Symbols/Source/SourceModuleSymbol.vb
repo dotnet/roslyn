@@ -712,7 +712,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Visit all source types and namespaces within this source namespace or type, inclusive of this source namespace or type
-        Private Sub VisitTypesAndNamespacesWithin(ns As NamespaceOrTypeSymbol, visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task), cancellationToken As CancellationToken)
+        Private Shared Sub VisitTypesAndNamespacesWithin(ns As NamespaceOrTypeSymbol, visitor As Action(Of NamespaceOrTypeSymbol), tasks As ConcurrentStack(Of Task), cancellationToken As CancellationToken)
             Dim stack = ArrayBuilder(Of NamespaceOrTypeSymbol).GetInstance
             Try
                 stack.Push(ns)

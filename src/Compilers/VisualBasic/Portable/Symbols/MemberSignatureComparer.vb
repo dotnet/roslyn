@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Conditional("DEBUG")>
-        Private Sub CheckSymbolKind(sym As Symbol)
+        Private Shared Sub CheckSymbolKind(sym As Symbol)
             Select Case sym.Kind
                 Case SymbolKind.Method, SymbolKind.Property, SymbolKind.Event
                     Exit Select
