@@ -57,6 +57,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         // file changes its global aliases.
         var collectedGlobalAliasesProvider = individualFileGlobalAliasesProvider
             .Collect()
+            .WithComparer(ImmutableArrayValueComparer<GlobalAliases>.Instance)
             .WithTrackingName("collectedGlobalAliases_ForAttribute");
 
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider

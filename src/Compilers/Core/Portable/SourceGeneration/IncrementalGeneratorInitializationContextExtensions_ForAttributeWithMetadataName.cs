@@ -60,7 +60,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()
-            .WithComparer(SyntaxNodeArrayComparer<T>.Instance)
+            .WithComparer(ImmutableArrayValueComparer<T>.Instance)
             .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
 
         // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
