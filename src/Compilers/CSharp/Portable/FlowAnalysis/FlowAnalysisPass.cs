@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             F.Field(F.This(), field),
                             F.Default(field.Type))));
             }
-            var initializations = F.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
+            var initializations = SyntheticBoundNodeFactory.HiddenSequencePoint(F.Block(builder.ToImmutableAndFree()));
 
             return body.Update(body.Locals, body.LocalFunctions, body.Statements.Insert(index: 0, initializations));
         }

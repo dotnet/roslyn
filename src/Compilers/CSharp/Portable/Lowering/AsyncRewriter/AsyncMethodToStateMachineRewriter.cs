@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _method = method;
             _asyncMethodBuilderMemberCollection = asyncMethodBuilderMemberCollection;
             _asyncMethodBuilderField = builder;
-            _exprReturnLabel = F.GenerateLabel("exprReturn");
-            _exitLabel = F.GenerateLabel("exitLabel");
+            _exprReturnLabel = SyntheticBoundNodeFactory.GenerateLabel("exprReturn");
+            _exitLabel = SyntheticBoundNodeFactory.GenerateLabel("exitLabel");
 
             _exprRetValue = method.IsAsyncEffectivelyReturningGenericTask(F.Compilation)
                 ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, syntax: F.Syntax, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            bodyBuilder.Add(F.HiddenSequencePoint());
+            bodyBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
             bodyBuilder.Add(F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)));
             bodyBuilder.Add(CacheThisIfNeeded());
 
@@ -142,12 +142,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateTopLevelTry(
                     F.Block(ImmutableArray<LocalSymbol>.Empty,
                         // switch (state) ...
-                        F.HiddenSequencePoint(),
+                        SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         Dispatch(),
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
+                    SyntheticBoundNodeFactory.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bodyBuilder.Add(F.SequencePointWithSpan(block, block.CloseBraceToken.Span, stateDone));
-                bodyBuilder.Add(F.HiddenSequencePoint());
+                bodyBuilder.Add(SyntheticBoundNodeFactory.SequencePointWithSpan(block, block.CloseBraceToken.Span, stateDone));
+                bodyBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)_exprRetValue != null) locals.Add(_exprRetValue);
 
             var newBody =
-                F.SequencePoint(
+                SyntheticBoundNodeFactory.SequencePoint(
                     body.Syntax,
                     F.Block(
                         locals.ToImmutableAndFree(),
@@ -359,11 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         getAwaiter),
 
                     // hidden sequence point facilitates EnC method remapping, see explanation on SynthesizedLocalKind.Awaiter:
-                    F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
 
                     // if(!($awaiterTemp.IsCompleted)) { ... }
                     F.If(
-                        condition: F.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
+                        condition: SyntheticBoundNodeFactory.Not(GenerateGetIsCompleted(awaiterTemp, isCompletedMethod)),
                         thenClause: GenerateAwaitForIncompleteTask(awaiterTemp)));
             BoundExpression getResultCall = MakeCallMaybeDynamic(
                 F.Local(awaiterTemp),

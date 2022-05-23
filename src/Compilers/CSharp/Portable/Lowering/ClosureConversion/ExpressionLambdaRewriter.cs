@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression MakeConversionLambda(Conversion conversion, TypeSymbol fromType, TypeSymbol toType)
         {
             string parameterName = "p";
-            ParameterSymbol lambdaParameter = _bound.SynthesizedParameter(fromType, parameterName);
+            ParameterSymbol lambdaParameter = SyntheticBoundNodeFactory.SynthesizedParameter(fromType, parameterName);
             var param = _bound.SynthesizedLocal(ParameterExpressionType);
             var parameterReference = _bound.Local(param);
             var parameter = ExprFactory("Parameter", _bound.Typeof(fromType), _bound.Literal(parameterName));

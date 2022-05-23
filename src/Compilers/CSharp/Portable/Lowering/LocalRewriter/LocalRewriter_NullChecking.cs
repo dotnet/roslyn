@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throwIfNullMethod,
                 arg0: factory.Convert(factory.SpecialType(SpecialType.System_Object), factory.Parameter(parameter)),
                 arg1: factory.StringLiteral(parameter.Name));
-            return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+            return SyntheticBoundNodeFactory.HiddenSequencePoint(factory.ExpressionStatement(call));
         }
 
         private static BoundStatement ConstructDirectNullCheck(ParameterSymbol parameter, SyntheticBoundNodeFactory factory)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (loweredLeft.Type.IsNullableType())
             {
-                paramIsNullCondition = factory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
+                paramIsNullCondition = SyntheticBoundNodeFactory.Not(factory.MakeNullableHasValue(loweredLeft.Syntax, loweredLeft));
             }
             else
             {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectCreationExpression ex = factory.New(factory.WellKnownMethod(WellKnownMember.System_ArgumentNullException__ctorString), argumentName);
             BoundThrowStatement throwArgNullStatement = factory.Throw(ex);
 
-            return factory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
+            return SyntheticBoundNodeFactory.HiddenSequencePoint(factory.If(paramIsNullCondition, throwArgNullStatement));
         }
     }
 }

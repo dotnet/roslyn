@@ -830,7 +830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     leftBuilder.AddLocal(tmp);
                     leftBuilder.AddStatement(_F.Assignment(_F.Local(tmp), left));
                     leftBuilder.AddStatement(_F.If(
-                        node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd ? _F.Local(tmp) : _F.Not(_F.Local(tmp)),
+                        node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd ? _F.Local(tmp) : SyntheticBoundNodeFactory.Not(_F.Local(tmp)),
                         UpdateStatement(builder, _F.Assignment(_F.Local(tmp), right))));
 
                     return UpdateExpression(leftBuilder, _F.Local(tmp));

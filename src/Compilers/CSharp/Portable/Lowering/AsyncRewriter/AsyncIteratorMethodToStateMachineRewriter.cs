@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _asyncIteratorInfo = asyncIteratorInfo;
             _currentDisposalLabel = _exprReturnLabel;
-            _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
+            _exprReturnLabelTrue = SyntheticBoundNodeFactory.GenerateLabel("yieldReturn");
         }
 
         protected override BoundStatement GenerateSetResultCall()
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // <next_state_label>: ;
                 F.Label(resumeLabel));
 
-            blockBuilder.Add(F.HiddenSequencePoint());
+            blockBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
 
             blockBuilder.Add(
                 // this.state = cachedState = NotStartedStateMachine
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateJumpToCurrentDisposalLabel());
 
             blockBuilder.Add(
-                F.HiddenSequencePoint());
+                SyntheticBoundNodeFactory.HiddenSequencePoint());
 
             return F.Block(blockBuilder.ToImmutableAndFree());
         }
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var savedDisposalLabel = _currentDisposalLabel;
             if (node.FinallyBlockOpt is object)
             {
-                var finallyEntry = F.GenerateLabel("finallyEntry");
+                var finallyEntry = SyntheticBoundNodeFactory.GenerateLabel("finallyEntry");
                 _currentDisposalLabel = finallyEntry;
 
                 // Add finallyEntry label:

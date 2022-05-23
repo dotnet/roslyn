@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // the operand must be a bound throw expression
                         var operand = (BoundThrowExpression)rewrittenOperand;
-                        return _factory.ThrowExpression(operand.Expression, rewrittenType);
+                        return SyntheticBoundNodeFactory.ThrowExpression(operand.Expression, rewrittenType);
                     }
 
                 case ConversionKind.ImplicitEnumeration:

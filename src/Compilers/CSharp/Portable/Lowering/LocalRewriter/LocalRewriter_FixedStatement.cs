@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement? rewrittenBody = VisitStatement(node.Body);
             Debug.Assert(rewrittenBody is { });
             statementBuilder.Add(rewrittenBody);
-            statementBuilder.Add(_factory.HiddenSequencePoint());
+            statementBuilder.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
 
             Debug.Assert(statementBuilder.Count == numFixedLocals + 1 + 1);
 

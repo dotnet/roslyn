@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ModuleBuilderOpt.AddSynthesizedDefinition(containingType, field.GetCciAdapter());
         }
 
-        public GeneratedLabelSymbol GenerateLabel(string prefix)
+        public static GeneratedLabelSymbol GenerateLabel(string prefix)
         {
             return new GeneratedLabelSymbol(prefix);
         }
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
-        public ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol? container = null, int ordinal = 0)
+        public static ParameterSymbol SynthesizedParameter(TypeSymbol type, string name, MethodSymbol? container = null, int ordinal = 0)
         {
             return SynthesizedParameterSymbol.Create(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, name);
         }
@@ -960,12 +960,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public SyntheticSwitchSection SwitchSection(int value, params BoundStatement[] statements)
+        public static SyntheticSwitchSection SwitchSection(int value, params BoundStatement[] statements)
         {
             return new SyntheticSwitchSection(ImmutableArray.Create(value), ImmutableArray.Create(statements));
         }
 
-        public SyntheticSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
+        public static SyntheticSwitchSection SwitchSection(List<int> values, params BoundStatement[] statements)
         {
             return new SyntheticSwitchSection(ImmutableArray.CreateRange(values), ImmutableArray.Create(statements));
         }
@@ -1100,17 +1100,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundExpressionStatement(Syntax, Call(Base(baseType), ctor)) { WasCompilerGenerated = true };
         }
 
-        public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
+        public static BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
         {
             return new BoundSequencePoint(syntax, statement);
         }
 
-        public BoundStatement SequencePointWithSpan(CSharpSyntaxNode syntax, TextSpan span, BoundStatement statement)
+        public static BoundStatement SequencePointWithSpan(CSharpSyntaxNode syntax, TextSpan span, BoundStatement statement)
         {
             return new BoundSequencePointWithSpan(syntax, statement, span);
         }
 
-        public BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)
+        public static BoundStatement HiddenSequencePoint(BoundStatement? statementOpt = null)
         {
             return BoundSequencePoint.CreateHidden(statementOpt);
         }
@@ -1120,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Throw(Null(Binder.GetWellKnownType(Compilation, Microsoft.CodeAnalysis.WellKnownType.System_Exception, Diagnostics, Syntax.Location)));
         }
 
-        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
+        public static BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
         {
             return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
         }
@@ -1396,7 +1396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock, finallyLabel) { WasCompilerGenerated = true };
         }
 
-        internal ImmutableArray<BoundCatchBlock> CatchBlocks(
+        internal static ImmutableArray<BoundCatchBlock> CatchBlocks(
             params BoundCatchBlock[] catchBlocks)
         {
             return catchBlocks.AsImmutableOrNull();
@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeSymbol.IsReferenceType ? Null(typeSymbol, syntax) : Default(typeSymbol, syntax);
         }
 
-        internal BoundExpression Not(BoundExpression expression)
+        internal static BoundExpression Not(BoundExpression expression)
         {
             Debug.Assert(expression is { Type: { SpecialType: CodeAnalysis.SpecialType.System_Boolean } });
             return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, constrainedToTypeOpt: null, LookupResultKind.Viable, expression.Type);

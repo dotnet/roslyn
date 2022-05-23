@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (negated)
             {
-                result = this._factory.Not(result);
+                result = SyntheticBoundNodeFactory.Not(result);
             }
             return result;
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(_factory.Block(loweredDag));
                 Debug.Assert(node.Type is { SpecialType: SpecialType.System_Boolean });
                 LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
-                LabelSymbol afterIsPatternExpression = _factory.GenerateLabel("afterIsPatternExpression");
+                LabelSymbol afterIsPatternExpression = SyntheticBoundNodeFactory.GenerateLabel("afterIsPatternExpression");
                 LabelSymbol trueLabel = node.WhenTrueLabel;
                 LabelSymbol falseLabel = node.WhenFalseLabel;
                 if (_statements.Count != 0)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (testExpression != null)
                             {
                                 if (invert)
-                                    testExpression = _factory.Not(testExpression);
+                                    testExpression = SyntheticBoundNodeFactory.Not(testExpression);
 
                                 AddConjunct(testExpression);
                             }

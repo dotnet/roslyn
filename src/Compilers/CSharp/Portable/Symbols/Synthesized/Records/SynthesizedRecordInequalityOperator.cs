@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             try
             {
                 // => !(left == right);
-                F.CloseMethod(F.Block(F.Return(F.Not(F.Call(receiver: null, ContainingType.GetMembers(WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single(),
+                F.CloseMethod(F.Block(F.Return(SyntheticBoundNodeFactory.Not(F.Call(receiver: null, ContainingType.GetMembers(WellKnownMemberNames.EqualityOperatorName).OfType<SynthesizedRecordEqualityOperator>().Single(),
                                                             F.Parameter(Parameters[0]), F.Parameter(Parameters[1]))))));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ImmutableArray.Create(cachedState) :
                                 ImmutableArray.Create(cachedState, cachedThis),
 
-                    F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                     F.Assignment(F.Local(cachedState), F.Field(F.This(), stateField)),
                     CacheThisIfNeeded(),
                     Dispatch(),
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             newBody = HandleReturn(newBody);
-            F.CloseMethod(F.SequencePoint(body.Syntax, newBody));
+            F.CloseMethod(SyntheticBoundNodeFactory.SequencePoint(body.Syntax, newBody));
 
             /////////////////////////////////// 
             // Generate the body for Dispose().
@@ -247,10 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body = null;
             if (frame.knownStates != null)
             {
-                var breakLabel = F.GenerateLabel("break");
+                var breakLabel = SyntheticBoundNodeFactory.GenerateLabel("break");
                 var sections = from ft in frame.knownStates
                                group ft.Key by ft.Value into g
-                               select F.SwitchSection(
+                               select SyntheticBoundNodeFactory.SwitchSection(
                                     new List<int>(g),
                                     EmitFinallyFrame(g.Key, state),
                                     F.Goto(breakLabel));
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)_exitLabel == null)
                 {
-                    _exitLabel = this.F.GenerateLabel("exitLabel");
+                    _exitLabel = SyntheticBoundNodeFactory.GenerateLabel("exitLabel");
                     _methodValue = F.SynthesizedLocal(result.Type);
                 }
 
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(F.Field(F.This(), stateField), F.Literal(stateNumber)),
                 GenerateReturn(finished: false),
                 F.Label(resumeLabel),
-                F.HiddenSequencePoint(),
+                SyntheticBoundNodeFactory.HiddenSequencePoint(),
                 F.Assignment(F.Field(F.This(), stateField), F.Literal(_currentFinallyFrame.finalizeState)));
         }
 
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // handle proxy labels if have any
             if (frame.proxyLabels != null)
             {
-                var dropThrough = F.GenerateLabel("dropThrough");
+                var dropThrough = SyntheticBoundNodeFactory.GenerateLabel("dropThrough");
                 bodyStatements.Add(F.Goto(dropThrough));
                 var parent = frame.parent;
 
