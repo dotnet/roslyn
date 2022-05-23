@@ -66,13 +66,13 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
 
         // TODO: it would be nice if we had a compilation-options provider, that was we didn't need to regenerate this
         // if the compilation options stayed the same, but the compilation changed.
-        var compilationGlobalAliases = context.CompilationProvider.Select(
-            (c, _) =>
+        var compilationGlobalAliases = context.CompilationOptionsProvider.Select(
+            (o, _) =>
             {
                 var aliases = Aliases.GetInstance();
-                context.SyntaxHelper.AddAliases(c.Options, aliases);
+                context.SyntaxHelper.AddAliases(o, aliases);
                 return GlobalAliases.Create(aliases.ToImmutableAndFree());
-            }).WithTrackingName("compilationGlobalAliases_ForAttributeWithMetadataName");
+            }).WithTrackingName("compilationGlobalAliases_ForAttribute");
 
         allUpGlobalAliasesProvider = allUpGlobalAliasesProvider
             .Combine(compilationGlobalAliases)

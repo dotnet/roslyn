@@ -35,7 +35,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         {
             var hashCode = 0;
             foreach (var value in obj)
-                hashCode = Hash.Combine(hashCode, EqualityComparer<T>.Default.GetHashCode(value));
+                hashCode = Hash.Combine(hashCode, EqualityComparer<T>.Default.GetHashCode(value!));
 
             return hashCode;
         }

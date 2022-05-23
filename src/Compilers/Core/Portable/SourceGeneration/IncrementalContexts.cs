@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
 
+        internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
+
         public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
 
         public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts));
