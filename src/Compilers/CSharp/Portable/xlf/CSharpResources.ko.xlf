@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">정적 추상 인터페이스 멤버는 형식 매개 변수에서만 액세스할 수 있습니다.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">정적 추상 인터페이스 멤버는 형식 매개 변수에서만 액세스할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -468,8 +468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">식 트리는 정적 추상 인터페이스 멤버의 액세스를 포함할 수 없습니다.</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">식 트리는 정적 추상 인터페이스 멤버의 액세스를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">인터페이스 '{3}'은(는) 제네릭 유형 또는 메소드 '{0}'에서 유형 매개 변수 '{2}'(으)로 사용할 수 없습니다. 제약 조건 인터페이스 '{1}' 또는 기본 인터페이스에 정적 추상 멤버가 있습니다.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">인터페이스 '{3}'은(는) 제네릭 유형 또는 메소드 '{0}'에서 유형 매개 변수 '{2}'(으)로 사용할 수 없습니다. 제약 조건 인터페이스 '{1}' 또는 기본 인터페이스에 정적 추상 멤버가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -845,6 +845,11 @@
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">조각 패턴은 목록 패턴 내에서 바로 한 번만 사용할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -1858,8 +1863,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">'UnmanagedCallersOnly'는 일반 정적 비추상 메서드 또는 정적 로컬 함수에만 적용할 수 있습니다.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">'UnmanagedCallersOnly'는 일반 정적 비추상 메서드 또는 정적 로컬 함수에만 적용할 수 있습니다.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">

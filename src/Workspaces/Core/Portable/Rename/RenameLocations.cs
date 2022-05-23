@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Rename
         {
             var locations = ImmutableHashSet.CreateBuilder<RenameLocation>();
             var referenceSymbols = await SymbolFinder.FindRenamableReferencesAsync(
-                symbol, solution, cancellationToken).ConfigureAwait(false);
+                ImmutableArray.Create(symbol), solution, cancellationToken).ConfigureAwait(false);
 
             foreach (var referencedSymbol in referenceSymbols)
             {

@@ -34,6 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
         }
 
         protected override SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions)
-            => CSharpSyntaxWrappingOptions.Create(options, ideOptions);
+            => options.GetCSharpSyntaxWrappingOptions(ideOptions);
     }
 }

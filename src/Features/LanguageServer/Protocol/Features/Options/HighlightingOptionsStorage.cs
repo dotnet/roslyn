@@ -9,9 +9,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting;
 internal static class HighlightingOptionsStorage
 {
     public static HighlightingOptions GetHighlightingOptions(this IGlobalOptionService globalOptions, string language)
-        => new(
-            HighlightRelatedRegexComponentsUnderCursor: globalOptions.GetOption(HighlightRelatedRegexComponentsUnderCursor, language),
-            HighlightRelatedJsonComponentsUnderCursor: globalOptions.GetOption(HighlightRelatedJsonComponentsUnderCursor, language));
+        => new()
+        {
+            HighlightRelatedRegexComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedRegexComponentsUnderCursor, language),
+            HighlightRelatedJsonComponentsUnderCursor = globalOptions.GetOption(HighlightRelatedJsonComponentsUnderCursor, language)
+        };
 
     public static PerLanguageOption2<bool> HighlightRelatedRegexComponentsUnderCursor =
         new("RegularExpressionsOptions",

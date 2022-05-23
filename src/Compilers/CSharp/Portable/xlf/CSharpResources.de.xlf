@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">Auf ein statisches abstraktes Schnittstellenelement kann nur auf einen Typparameter zugegriffen werden.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">Auf ein statisches abstraktes Schnittstellenelement kann nur auf einen Typparameter zugegriffen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -468,8 +468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen Zugriff auf ein statisches abstraktes Schnittstellenelement enthalten</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">Eine Ausdrucksbaumstruktur darf keinen Zugriff auf ein statisches abstraktes Schnittstellenelement enthalten</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">Die Schnittstelle „{3}“ kann nicht als Typparameter „{2}“ im generischen Typ oder in der Methode „{0}“ verwendet werden. Die Einschränkungsschnittstelle „{1}“ oder die Basisschnittstelle weist statische abstrakte Elemente auf.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">Die Schnittstelle „{3}“ kann nicht als Typparameter „{2}“ im generischen Typ oder in der Methode „{0}“ verwendet werden. Die Einschränkungsschnittstelle „{1}“ oder die Basisschnittstelle weist statische abstrakte Elemente auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -845,6 +845,11 @@
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">Segmentmuster dürfen nur einmal und direkt innerhalb eines Listenmusters verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -1858,8 +1863,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">"UnmanagedCallersOnly" kann nur auf gewöhnliche statische, nicht abstrakte Methoden oder statische lokale Funktionen angewendet werden.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">"UnmanagedCallersOnly" kann nur auf gewöhnliche statische, nicht abstrakte Methoden oder statische lokale Funktionen angewendet werden.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">

@@ -1197,12 +1197,11 @@ class A
                 new DiagnosticDescriptor(NonCanceledDiagnosticId, "test", "test", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             private readonly AnalyzerRegisterActionKind _actionKind;
-            private readonly CancellationTokenSource _cancellationTokenSource;
+            private readonly CancellationTokenSource _cancellationTokenSource = new();
 
             public CancellationTestAnalyzer(AnalyzerRegisterActionKind actionKind)
             {
                 _actionKind = actionKind;
-                _cancellationTokenSource = new CancellationTokenSource();
                 CanceledCompilations = new ConcurrentSet<Compilation>();
             }
 

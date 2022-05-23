@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // Preload project completion providers on a background thread since loading extensions can be slow
                 // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1488945
                 if (document.GetLanguageService<CompletionService>() is CompletionServiceWithProviders completionServiceWithProviders)
-                    _ = completionServiceWithProviders.GetProjectCompletionProviders(document.Project);
+                    _ = CompletionServiceWithProviders.GetProjectCompletionProviders(document.Project);
 
                 await InitializeServiceForOpenedDocumentAsync(document).ConfigureAwait(false);
             }
