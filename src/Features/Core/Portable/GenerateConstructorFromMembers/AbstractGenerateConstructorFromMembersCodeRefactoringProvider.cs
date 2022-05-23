@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
         protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
         protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
-        protected abstract bool PrefersThrowExpression(DocumentOptionSet options);
+        protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             Action<CodeAction, TextSpan> registerSingleAction,
             Action<ImmutableArray<CodeAction>> registerMultipleActions,
             Accessibility? desiredAccessibility,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             Document document,
             TextSpan textSpan,
             Accessibility? desiredAccessibility,
-            CodeAndImportGenerationOptionsProvider fallbackOptions,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
@@ -221,8 +222,8 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             if (canAddNullCheck)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var optionValue = options.GetOption(GenerateConstructorFromMembersOptions.AddNullChecks);
+                var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                var optionValue = globalOptions.GetGenerateConstructorFromMembersOptionsAddNullChecks(document.Project.Language);
 
                 pickMemberOptions.Add(new PickMembersOption(
                     AddNullChecksId,
@@ -236,14 +237,14 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         }
 
         public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-            Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
             {
                 var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
+                    var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false);
                     if (state != null && state.MatchingConstructor == null)
                     {
                         return GetCodeActions(document, state, addNullChecks, fallbackOptions);
@@ -254,7 +255,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
             }
         }
 
-        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CodeAndImportGenerationOptionsProvider fallbackOptions)
+        private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 

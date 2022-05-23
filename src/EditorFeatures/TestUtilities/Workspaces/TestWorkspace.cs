@@ -107,8 +107,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundParser.Start();
 
             _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
-
-            RegisterDocumentOptionProviders(ExportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
         }
 
         internal static TestComposition GetComposition(TestComposition? composition)

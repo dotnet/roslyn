@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">Nejde získat přístup ke členu sdíleného abstraktního rozhraní.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="needs-review-translation">Nejde získat přístup ke členu sdíleného abstraktního rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -68,8 +68,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní {2}.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="needs-review-translation">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">

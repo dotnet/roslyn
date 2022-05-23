@@ -320,7 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     allowedModifiers |= DeclarationModifiers.Abstract;
                 }
-                else if (!isIndexer)
+
+                if (!isIndexer)
                 {
                     allowedModifiers |= DeclarationModifiers.Static;
                 }
@@ -333,7 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allowedModifiers |= DeclarationModifiers.Extern;
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(isForTypeDeclaration: false, isForInterfaceMember: isInterface,
+                                                                        modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 

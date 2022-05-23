@@ -2068,6 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+        ERR_MisplacedUnchecked = 9028,
 
         #endregion
 

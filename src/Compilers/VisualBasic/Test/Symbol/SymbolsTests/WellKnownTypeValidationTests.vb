@@ -487,6 +487,7 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor Then
                     Assert.Null(symbol) ' Not available
                 Else

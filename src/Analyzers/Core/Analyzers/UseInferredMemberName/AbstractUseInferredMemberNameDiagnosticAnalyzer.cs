@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 {
     internal abstract class AbstractUseInferredMemberNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        protected abstract void LanguageSpecificAnalyzeSyntax(SyntaxNodeAnalysisContext context, SyntaxTree syntaxTree, AnalyzerOptions options, CancellationToken cancellationToken);
+        protected abstract void AnalyzeSyntax(SyntaxNodeAnalysisContext context);
 
         public AbstractUseInferredMemberNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId,
@@ -25,15 +25,5 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        protected void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = context.Node.SyntaxTree;
-            var options = context.Options;
-
-            LanguageSpecificAnalyzeSyntax(context, syntaxTree, options, cancellationToken);
-        }
     }
 }

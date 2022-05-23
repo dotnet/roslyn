@@ -1613,6 +1613,10 @@ next:;
         internal override NamedTypeSymbol AsNativeInteger()
         {
             Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+            if (ContainingAssembly.RuntimeSupportsNumericIntPtr)
+            {
+                return this;
+            }
 
             return ContainingAssembly.GetNativeIntegerType(this);
         }
