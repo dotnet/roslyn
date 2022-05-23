@@ -12,7 +12,6 @@ using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using ICSharpCode.Decompiler;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
