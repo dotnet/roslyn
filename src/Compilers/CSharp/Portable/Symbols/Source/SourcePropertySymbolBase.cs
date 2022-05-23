@@ -486,11 +486,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Static) != 0; }
         }
 
-        internal bool IsFixed
-        {
-            get { return false; }
-        }
-
         /// <remarks>
         /// Even though it is declared with an IndexerDeclarationSyntax, an explicit
         /// interface implementation is not an indexer because it will not cause the

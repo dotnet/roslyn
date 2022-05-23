@@ -104,12 +104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend ReadOnly Property HasStructLayoutAttribute As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         Friend Overrides ReadOnly Property MarshallingCharSet As CharSet
             Get
                 Return DefaultMarshallingCharSet
