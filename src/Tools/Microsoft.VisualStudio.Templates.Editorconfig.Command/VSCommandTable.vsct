@@ -15,7 +15,7 @@
         or combo box in a toolbar. -->
     <Buttons>
       <Button guid="AddEditorConfigCmdSet" id="AddEditorConfigFileCommand" priority="0x0500" type="Button">
-        <Icon guid="ImageCatalogGuid" id="1997" />
+        <Icon guid="ImageCatalogGuid" id="1001" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>New EditorConfig</ButtonText>
@@ -23,7 +23,7 @@
         </Strings>
       </Button>
       <Button guid="AddEditorConfigCmdSet" id="AddEditorConfigFileAnyCodeCommand" priority="0x0500" type="Button">
-        <Icon guid="ImageCatalogGuid" id="1997" />
+        <Icon guid="ImageCatalogGuid" id="1001" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
           <ButtonText>New EditorConfig</ButtonText>
