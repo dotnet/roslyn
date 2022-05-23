@@ -121,14 +121,6 @@ namespace IdeCoreBenchmarks
                     (ctx, _) =>
                     {
                         var node = (ClassDeclarationSyntax)ctx.Node;
-                        /*
-                        var semanticModel = ctx.SemanticModel;
-                        var classSymbol = semanticModel.GetDeclaredSymbol(node);
-                        foreach (var attr in classSymbol.GetAttributes())
-                        {
-                            attr.AttributeClass.ToDisplayString();
-                        }
-                        */
                         return node;
                     });
 #else
