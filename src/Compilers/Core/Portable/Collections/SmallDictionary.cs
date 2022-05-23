@@ -109,10 +109,10 @@ namespace Microsoft.CodeAnalysis
             return TryGetValue(key, out value!);
         }
 
-#pragma warning disable // CA1822 Mark members as static - instance members are accessed in debug.
+#pragma warning disable CA1822 // Mark members as static - instance members are accessed in debug.
         [Conditional("DEBUG")]
         internal void AssertBalanced()
-#pragma warning restore // CA1822 Mark members as static
+#pragma warning restore CA1822 // Mark members as static
         {
 #if DEBUG
             AvlNode.AssertBalanced(_root);
