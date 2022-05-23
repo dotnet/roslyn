@@ -268,6 +268,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool IsPublic => false;
 
+        public bool MangleName => false;
+
         public Cci.IUnitReference GetUnit(EmitContext context)
         {
             Debug.Assert(context.Module == _moduleBuilder);
@@ -357,6 +359,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public override Cci.INestedTypeDefinition AsNestedTypeDefinition(EmitContext context) => this;
 
         public override Cci.INestedTypeReference AsNestedTypeReference => this;
+
+        public bool MangleName => false;
     }
 
     internal abstract class SynthesizedStaticField : Cci.IFieldDefinition
@@ -584,8 +588,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public virtual Cci.INestedTypeReference? AsNestedTypeReference => null;
 
         public Cci.ITypeDefinition AsTypeDefinition(EmitContext context) => this;
-
-        public bool MangleName => false;
 
         public virtual ushort Alignment => 0;
 
