@@ -27,8 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _sourceLocationsSeen As New ConcurrentDictionary(Of Location, Boolean)
 #End If
 
+#Disable Warning CA1822 ' Mark members as static - instance members are accessed in debug.
         <Conditional("DEBUG")>
         Private Sub CheckSourceLocationSeen(anonymous As AnonymousTypeOrDelegatePublicSymbol)
+#Enable Warning CA1822 ' Mark members as static
 #If DEBUG Then
             Dim location As Location = anonymous.Locations(0)
             If location.IsInSource Then

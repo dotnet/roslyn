@@ -195,8 +195,10 @@ namespace Microsoft.CodeAnalysis.Collections
         public int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
             => _list.BinarySearch(index, count, item, comparer);
 
+#pragma warning disable CA1822 // Mark members as static
         /// <inheritdoc cref="ImmutableList{T}.Clear()"/>
         public ImmutableSegmentedList<T> Clear()
+#pragma warning restore CA1822 // Mark members as static
             => Empty;
 
         public bool Contains(T value)

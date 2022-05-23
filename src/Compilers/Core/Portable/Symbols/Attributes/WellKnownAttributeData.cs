@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis
 #endif
         }
 
+#pragma warning disable // CA1822 Mark members as static - instance members are accessed in debug.
         [Conditional("DEBUG")]
         protected void VerifySealed(bool expected = true)
         {
@@ -60,6 +61,7 @@ namespace Microsoft.CodeAnalysis
             _anyDataStored = true;
 #endif
         }
+#pragma warning restore // CA1822 Mark members as static
 
         [Conditional("DEBUG")]
         internal static void Seal(WellKnownAttributeData data)

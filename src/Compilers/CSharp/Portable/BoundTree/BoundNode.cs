@@ -377,8 +377,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+#pragma warning disable // CA1822 Mark members as static - `this` is accessed in debug.
         [Conditional("DEBUG")]
         public void CheckLocalsDefined()
+#pragma warning restore // CA1822 Mark members as static
         {
 #if DEBUG
             LocalsScanner.CheckLocalsDefined(this);

@@ -61,8 +61,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return _builder.Count <> 0
             End Function
 
+#Disable Warning CA1822 ' Mark members as static - instance members are accessed in debug.
             <Conditional("DEBUG")>
             Friend Sub Freeze()
+#Enable Warning CA1822 ' Mark members as static
 #If DEBUG Then
                 _isFrozen = True
 #End If
