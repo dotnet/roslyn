@@ -239,8 +239,6 @@ namespace Microsoft.Cci
 
         public override void Visit(ManagedResource resourceReference)
         {
-            this.Visit(resourceReference.Attributes);
-
             IFileReference file = resourceReference.ExternalFile;
             if (file != null)
             {

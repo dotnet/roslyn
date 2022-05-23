@@ -63,16 +63,6 @@ namespace Microsoft.Cci
 
         #region ITypeDefinition Members
 
-        public ushort Alignment
-        {
-            get { return 0; }
-        }
-
-        public bool HasDeclarativeSecurity
-        {
-            get { return false; }
-        }
-
         public bool IsEnum
         {
             get { return false; }
@@ -213,11 +203,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public bool IsAlias
-        {
-            get { return false; }
-        }
-
         public bool IsValueType
         {
             get { return false; }
@@ -261,40 +246,6 @@ namespace Microsoft.Cci
         }
 
         #endregion
-
-        #region INamedTypeReference Members
-
-        public bool MangleName
-        {
-            get { return false; }
-        }
-
-        #endregion
-
-        public bool IsNested
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        public bool IsSpecializedNested
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        public ITypeReference UnspecializedVersion
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        public bool IsNamespaceTypeReference
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        public bool IsGenericTypeInstance
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
 
         public sealed override bool Equals(object? obj)
         {

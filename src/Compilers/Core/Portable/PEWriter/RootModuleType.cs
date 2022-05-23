@@ -183,11 +183,6 @@ namespace Microsoft.Cci
             get { return false; }
         }
 
-        public bool IsNested
-        {
-            get { return false; }
-        }
-
         IEnumerable<IGenericTypeParameter> ITypeDefinition.GenericParameters
         {
             get { throw ExceptionUtilities.Unreachable; }

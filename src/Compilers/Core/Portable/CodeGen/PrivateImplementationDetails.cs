@@ -438,11 +438,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ISpecializedFieldReference? AsSpecializedFieldReference => null;
 
-        public MetadataConstant Constant
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.

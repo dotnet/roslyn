@@ -33,8 +33,6 @@ namespace Microsoft.Cci
 
         public IEnumerable<IGenericMethodParameter> GenericParameters => SpecializedCollections.EmptyEnumerable<IGenericMethodParameter>();
 
-        public bool IsImplicitlyDeclared => true;
-
         public bool HasDeclarativeSecurity => false;
 
         public bool IsAbstract => false;

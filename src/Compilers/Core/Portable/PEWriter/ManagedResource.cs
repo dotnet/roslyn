@@ -86,11 +86,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public IEnumerable<ICustomAttribute> Attributes
-        {
-            get { return SpecializedCollections.EmptyEnumerable<ICustomAttribute>(); }
-        }
-
         public bool IsPublic
         {
             get { return _isPublic; }
