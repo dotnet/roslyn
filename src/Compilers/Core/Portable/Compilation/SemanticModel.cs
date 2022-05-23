@@ -774,6 +774,16 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol? GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportScope"/>s at that
+        /// point.  Scopes are ordered from closest to the passed in <paramref name="position"/> to the furthest. See
+        /// <see cref="IImportScope"/> for a deeper description of what information is available for each scope.
+        /// </summary>
+        public ImmutableArray<IImportScope> GetImportScopes(int position, CancellationToken cancellationToken = default)
+            => GetImportScopesCore(position, cancellationToken);
+
+        private protected abstract ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Determines if the symbol is accessible from the specified location.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and

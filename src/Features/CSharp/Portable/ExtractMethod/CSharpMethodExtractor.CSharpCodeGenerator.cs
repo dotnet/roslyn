@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -27,13 +28,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor
     {
-        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode>
+        private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, ExpressionSyntax, SyntaxNode, CSharpCodeGenerationOptions>
         {
             private readonly SyntaxToken _methodName;
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                OptionSet options,
+                CSharpCodeGenerationOptions options,
                 bool localFunction,
                 CancellationToken cancellationToken)
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                OptionSet options,
+                CSharpCodeGenerationOptions options,
                 bool localFunction)
             {
                 if (ExpressionCodeGenerator.IsExtractMethodOnExpression(selectionResult))
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 InsertionPoint insertionPoint,
                 SelectionResult selectionResult,
                 AnalyzerResult analyzerResult,
-                OptionSet options,
+                CSharpCodeGenerationOptions options,
                 bool localFunction)
                 : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
             {
@@ -92,9 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             private CSharpSelectionResult CSharpSelectionResult
-            {
-                get { return (CSharpSelectionResult)SelectionResult; }
-            }
+                => (CSharpSelectionResult)SelectionResult;
 
             protected override SyntaxNode GetPreviousMember(SemanticDocument document)
             {
@@ -232,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 // Static local functions are only supported in C# 8.0 and later
                 var languageVersion = SemanticDocument.SyntaxTree.Options.LanguageVersion();
 
-                if (LocalFunction && (!Options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value || languageVersion < LanguageVersion.CSharp8))
+                if (LocalFunction && (!Options.PreferStaticLocalFunction.Value || languageVersion < LanguageVersion.CSharp8))
                 {
                     isStatic = false;
                 }
@@ -850,11 +848,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 }
 
                 // For local functions, pascal case and camel case should be the most common and therefore we only consider those cases.
-                var namingPreferences = Options.GetOption(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp);
-                var localFunctionPreferences = namingPreferences.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
+                var localFunctionPreferences = Options.NamingStyle.SymbolSpecifications.Where(symbol => symbol.AppliesTo(new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction), CreateMethodModifiers(), null));
 
-                var namingRules = namingPreferences.Rules.NamingRules;
-                var localFunctionKind = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
+                var namingRules = Options.NamingStyle.Rules.NamingRules;
+                var localFunctionKind = new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction);
                 if (LocalFunction)
                 {
                     if (namingRules.Any(rule => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(localFunctionKind, CreateMethodModifiers(), null)))

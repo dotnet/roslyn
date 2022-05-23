@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -56,11 +58,9 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
             {
-                var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-
                 progressTracker.Description = this.OrganizeImportsDescription;
                 document = await RemoveSortUsingsAsync(
-                    document, enabledDiagnostics.OrganizeUsings, formattingOptions, cancellationToken).ConfigureAwait(false);
+                    document, enabledDiagnostics.OrganizeUsings, fallbackOptions, cancellationToken).ConfigureAwait(false);
                 progressTracker.ItemCompleted();
             }
 
@@ -80,25 +80,25 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private static async Task<Document> RemoveSortUsingsAsync(
-            Document document, OrganizeUsingsSet organizeUsingsSet, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+            Document document, OrganizeUsingsSet organizeUsingsSet, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
-            if (organizeUsingsSet.IsRemoveUnusedImportEnabled)
+            if (organizeUsingsSet.IsRemoveUnusedImportEnabled &&
+                document.GetLanguageService<IRemoveUnnecessaryImportsService>() is { } removeUsingsService)
             {
-                var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-                if (removeUsingsService != null)
+                using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
                 {
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_RemoveUnusedImports, cancellationToken))
-                    {
-                        document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
-                    }
+                    var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            if (organizeUsingsSet.IsSortImportsEnabled)
+            if (organizeUsingsSet.IsSortImportsEnabled &&
+                document.GetLanguageService<IOrganizeImportsService>() is { } organizeImportsService)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_SortImports, cancellationToken))
                 {
-                    document = await Formatter.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                    var organizeOptions = await document.GetOrganizeImportsOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    document = await organizeImportsService.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(false);
                 }
             }
 

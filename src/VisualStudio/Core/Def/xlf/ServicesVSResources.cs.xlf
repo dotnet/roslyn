@@ -242,6 +242,21 @@
         <target state="translated">Analýza kódu pro řešení se ukončila dříve, než se dokončila.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="new">Collapse metadata signature files to definitions on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_regions_on_file_open">
+        <source>Collapse #regions on file open</source>
+        <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="new">Collapse Source Link, Embedded, and Decompiled source to definitions on file open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Color_hints">
         <source>Color hints</source>
         <target state="translated">Barevné nápovědy</target>
@@ -447,6 +462,11 @@
         <target state="translated">Dokončit</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_text_pasted_into_string_literals_experimental">
+        <source>Fix text pasted into string literals (experimental)</source>
+        <target state="new">Fix text pasted into string literals (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="For_non_interface_members">
         <source>For non interface members</source>
         <target state="translated">Pro členy mimo rozhraní</target>
@@ -500,6 +520,11 @@
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">V jiných operátorech</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_global_imports">
+        <source>Include global imports</source>
+        <target state="new">Include global imports</target>
         <note />
       </trans-unit>
       <trans-unit id="Index">
@@ -1025,6 +1050,11 @@
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
         <target state="translated">Upřednostňovat System.HashCode v GetHashCode</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_UTF8_string_literals">
+        <source>Prefer UTF-8 string literals</source>
+        <target state="new">Prefer UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_compound_assignments">
@@ -1661,6 +1691,11 @@
         <source>Not a valid value</source>
         <target state="translated">Není platnou hodnotou.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="_0_1">
+        <source>{0} ({1})</source>
+        <target state="new">{0} ({1})</target>
+        <note>Used to show a symbol name, followed by the project name it came from</note>
       </trans-unit>
       <trans-unit id="_0_is_inherited">
         <source>'{0}' is inherited</source>

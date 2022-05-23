@@ -168,7 +168,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
             await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "// comment");
 
-            document = testLspServer.GetManager().TryGetHostLspSolution()!.Projects.Single().Documents.Single();
+            var lspSolution = await testLspServer.GetManager().TryGetHostLspSolutionAsync(CancellationToken.None).ConfigureAwait(false);
+            document = lspSolution!.Projects.Single().Documents.Single();
             results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), results.Single().ResultId);
 
             MarkupTestFile.GetSpans(
@@ -463,7 +464,8 @@ class {|Identifier:A|}
             var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
 
             Assert.Equal(2, results2.Length);
-            document = testLspServer.GetManager().TryGetHostLspSolution()!.Projects.Single().Documents.First();
+            var lspSolution = await testLspServer.GetManager().TryGetHostLspSolutionAsync(CancellationToken.None).ConfigureAwait(false);
+            document = lspSolution!.Projects.Single().Documents.First();
             sourceText = await document.GetTextAsync();
 
             MarkupTestFile.GetSpans(

@@ -39,6 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
         public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
         public int? MultiLineRawStringLiteralToken => (int)SyntaxKind.MultiLineRawStringLiteralToken;
+        public int? UTF8StringLiteralToken => (int)SyntaxKind.UTF8StringLiteralToken;
+        public int? UTF8SingleLineRawStringLiteralToken => (int)SyntaxKind.UTF8SingleLineRawStringLiteralToken;
+        public int? UTF8MultiLineRawStringLiteralToken => (int)SyntaxKind.UTF8MultiLineRawStringLiteralToken;
 
         public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 

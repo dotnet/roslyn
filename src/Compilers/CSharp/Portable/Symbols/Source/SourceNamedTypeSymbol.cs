@@ -1461,7 +1461,7 @@ next:;
                 if (data == null || data.GuidString == null)
                 {
                     int index = boundAttributes.IndexOfAttribute(this, AttributeDescription.ComImportAttribute);
-                    diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location, this.Name);
+                    diagnostics.Add(ErrorCode.ERR_ComImportWithoutUuidAttribute, allAttributeSyntaxNodes[index].Name.Location);
                 }
 
                 if (this.TypeKind == TypeKind.Class)
@@ -1590,6 +1590,10 @@ next:;
         internal override NamedTypeSymbol AsNativeInteger()
         {
             Debug.Assert(this.SpecialType == SpecialType.System_IntPtr || this.SpecialType == SpecialType.System_UIntPtr);
+            if (ContainingAssembly.RuntimeSupportsNumericIntPtr)
+            {
+                return this;
+            }
 
             return ContainingAssembly.GetNativeIntegerType(this);
         }

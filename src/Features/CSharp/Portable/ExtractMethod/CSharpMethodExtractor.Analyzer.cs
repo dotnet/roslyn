@@ -136,39 +136,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
-                switch (symbol)
+                // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise
+                // we can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
+                if (selectionOperation is not null &&
+                    NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, selectionOperation, symbol) == false)
                 {
-                    case ILocalSymbol localSymbol when localSymbol.NullableAnnotation == NullableAnnotation.Annotated:
-                    case IParameterSymbol parameterSymbol when parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated:
-
-                        // For local symbols and parameters, we can check what the flow state 
-                        // for refences to the symbols are and determine if we can change 
-                        // the nullability to a less permissive state.
-                        var references = selectionOperation.DescendantsAndSelf()
-                            .Where(IsSymbolReferencedByOperation);
-
-                        if (AreAllReferencesNotNull(references))
-                        {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                        }
-
-                        return base.GetSymbolType(semanticModel, symbol);
-
-                    default:
-                        return base.GetSymbolType(semanticModel, symbol);
+                    return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
                 }
 
-                bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
-                => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
-
-                bool IsSymbolReferencedByOperation(IOperation operation)
-                    => operation switch
-                    {
-                        ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
-                        IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                        IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
-                        _ => false
-                    };
+                return base.GetSymbolType(semanticModel, symbol);
             }
         }
     }

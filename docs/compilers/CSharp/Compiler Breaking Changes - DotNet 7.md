@@ -1,5 +1,83 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+## Checked operators on System.IntPtr and System.UIntPtr
+
+***Introduced in .NET SDK 7.0.100, Visual Studio 2022 version 17.3.***
+
+When the platform supports __numeric__ `IntPtr` and `UIntPtr` types (as indicated by the presence of
+`System.Runtime.CompilerServices.RuntimeFeature.NumericIntPtr`) the built-in operators from `nint`
+and `nuint` apply to those underlying types.
+This means that on such platforms, `IntPtr` and `UIntPtr` have built-in `checked` operators, which
+can now throw when an overflow occurs.
+
+```csharp
+IntPtr M(IntPtr x, int y)
+{
+    checked
+    {
+        return x + y; // may now throw
+    }
+}
+
+unsafe IntPtr M2(void* ptr)
+{
+    return checked((IntPtr)ptr); // may now throw
+}
+```
+
+Possible workarounds are:
+
+1. Specify `unchecked` context
+2. Downgrade to a platform/TFM without numeric `IntPtr`/`UIntPtr` types
+
+Also, implicit conversions between `IntPtr`/`UIntPtr` and other numeric types are treated as standard
+conversions on such platforms. This can affect overload resolution in some cases.
+
+## Nameof operator in attribute on method or local function
+
+***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***
+
+When the language version is C# 11 or later, a `nameof` operator in an attribute on a method
+brings the type parameters of that method in scope. The same applies for local functions.  
+A `nameof` operator in an attribute on a method, its type parameters or parameters brings
+the parameters of that method in scope. The same applies to local functions, lambdas,
+delegates and indexers.
+
+For instance, these will now be errors:
+```csharp
+class C
+{
+  class TParameter
+  {
+    internal const string Constant = """";
+  }
+  [MyAttribute(nameof(TParameter.Constant))]
+  void M<TParameter>() { }
+}
+```
+
+```csharp
+class C
+{
+  class parameter
+  {
+    internal const string Constant = """";
+  }
+  [MyAttribute(nameof(parameter.Constant))]
+  void M(int parameter) { }
+}
+```
+
+Possible workarounds are:
+
+1. Rename the type parameter or parameter to avoid shadowing the name from outer scope.
+1. Use a string literal instead of the `nameof` operator.
+1. Downgrade the `<LangVersion>` element to 9.0 or earlier.
+
+Note: The break will also apply to C# 10 and earlier when .NET 7 ships, but is
+currently scoped down to users of LangVer=preview.  
+Tracked by https://github.com/dotnet/roslyn/issues/60640
+
 ## Unsigned right shift operator
 
 ***Introduced in .NET SDK 6.0.400, Visual Studio 2022 version 17.3.***

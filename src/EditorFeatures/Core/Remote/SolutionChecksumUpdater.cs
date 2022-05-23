@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly Workspace _workspace;
         private readonly TaskQueue _textChangeQueue;
-        private readonly AsyncQueue<IAsyncToken> _workQueue;
-        private readonly object _gate;
+        private readonly AsyncQueue<IAsyncToken> _workQueue = new();
+        private readonly object _gate = new();
 
         private CancellationTokenSource _globalOperationCancellationSource;
 
@@ -40,9 +40,6 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _workspace = workspace;
             _textChangeQueue = new TaskQueue(Listener, TaskScheduler.Default);
-
-            _workQueue = new AsyncQueue<IAsyncToken>();
-            _gate = new object();
 
             // start listening workspace change event
             _workspace.WorkspaceChanged += OnWorkspaceChanged;

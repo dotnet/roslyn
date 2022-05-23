@@ -5939,13 +5939,13 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //                 2=>2,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 18),
                 // (6,18): error CS8504: Pattern missing
                 //                 2=>2,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(6, 18),
                 // (13,18): error CS1003: Syntax error, ',' expected
                 //                 2=>2,
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(13, 18),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(13, 18),
                 // (13,18): error CS8504: Pattern missing
                 //                 2=>2,
                 Diagnostic(ErrorCode.ERR_MissingPattern, "=>").WithLocation(13, 18)

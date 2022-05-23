@@ -455,6 +455,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{1}의 허위 사용자 지정 특성 '{0}'을(를) 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application">
+        <source>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</source>
+        <target state="new">Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application">
         <source>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</source>
         <target state="translated">캡처된 변수 '{0}'의 선언 범위를 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -600,6 +605,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">나머지를 만들고 속성으로 할당합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Decompiled">
+        <source>decompiled</source>
+        <target state="new">decompiled</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Deleting_0_around_an_active_statement_requires_restarting_the_application">
         <source>Deleting {0} around an active statement requires restarting the application.</source>
         <target state="translated">활성 문 주변의 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
@@ -613,6 +623,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
         <source>Deleting captured variable '{0}' requires restarting the application.</source>
         <target state="translated">캡처된 변수 '{0}'을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Directives_from_0">
+        <source>Directives from '{0}'</source>
+        <target state="new">Directives from '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">

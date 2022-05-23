@@ -19,6 +19,10 @@ internal static class BlockStructureOptionsStorage
             ShowOutliningForCommentsAndPreprocessorRegions: globalOptions.GetOption(ShowOutliningForCommentsAndPreprocessorRegions, language),
             ShowOutliningForDeclarationLevelConstructs: globalOptions.GetOption(ShowOutliningForDeclarationLevelConstructs, language),
             ShowOutliningForCodeLevelConstructs: globalOptions.GetOption(ShowOutliningForCodeLevelConstructs, language),
+            CollapseRegionsWhenFirstOpened: globalOptions.GetOption(CollapseRegionsWhenFirstOpened, language),
+            CollapseImportsWhenFirstOpened: globalOptions.GetOption(CollapseImportsWhenFirstOpened, language),
+            CollapseMetadataImplementationsWhenFirstOpened: globalOptions.GetOption(CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, language),
+            CollapseEmptyMetadataImplementationsWhenFirstOpened: globalOptions.GetOption(CollapseMetadataSignatureFilesWhenFirstOpened, language),
             CollapseRegionsWhenCollapsingToDefinitions: globalOptions.GetOption(CollapseRegionsWhenCollapsingToDefinitions, language),
             MaximumBannerLength: globalOptions.GetOption(MaximumBannerLength, language),
             IsMetadataAsSource: isMetadataAsSource);
@@ -48,6 +52,21 @@ internal static class BlockStructureOptionsStorage
     public static readonly PerLanguageOption2<bool> ShowOutliningForCodeLevelConstructs = new(
         FeatureName, "ShowOutliningForCodeLevelConstructs", BlockStructureOptions.Default.ShowOutliningForCodeLevelConstructs,
         storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowOutliningForCodeLevelConstructs"));
+
+    public static readonly PerLanguageOption2<bool> CollapseRegionsWhenFirstOpened = new(
+        FeatureName, "CollapseRegionsWhenFirstOpened", BlockStructureOptions.Default.CollapseRegionsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseRegionsWhenFirstOpened"));
+
+    public static readonly PerLanguageOption2<bool> CollapseImportsWhenFirstOpened = new(
+        FeatureName, "CollapseImportsWhenFirstOpened", BlockStructureOptions.Default.CollapseImportsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseImportsWhenFirstOpened"));
+
+    public static readonly PerLanguageOption2<bool> CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened = new(
+        FeatureName, "CollapseMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseMetadataImplementationsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseMetadataImplementationsWhenFirstOpened"));
+    public static readonly PerLanguageOption2<bool> CollapseMetadataSignatureFilesWhenFirstOpened = new(
+        FeatureName, "CollapseEmptyMetadataImplementationsWhenFirstOpened", BlockStructureOptions.Default.CollapseEmptyMetadataImplementationsWhenFirstOpened,
+        storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened"));
 
     public static readonly PerLanguageOption2<bool> CollapseRegionsWhenCollapsingToDefinitions = new(
         FeatureName, "CollapseRegionsWhenCollapsingToDefinitions", BlockStructureOptions.Default.CollapseRegionsWhenCollapsingToDefinitions,
