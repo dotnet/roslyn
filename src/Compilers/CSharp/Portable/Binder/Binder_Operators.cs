@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsTypelessExpressionAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        private static bool IsTypelessExpressionAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
         {
             // The default literal is only allowed with equality operators and both operands cannot be typeless at the same time.
             // Note: we only need to restrict expressions that can be converted to *any* type, in which case the resolution could always succeed.
@@ -2636,7 +2636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constant ?? BindUnaryOperatorCore(node, node.OperatorToken.Text, operand, diagnostics);
         }
 
-        private void ReportSuppressionIfNeeded(BoundExpression expr, BindingDiagnosticBag diagnostics)
+        private static void ReportSuppressionIfNeeded(BoundExpression expr, BindingDiagnosticBag diagnostics)
         {
             if (expr.IsSuppressed)
             {
@@ -3112,7 +3112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return operand.HasAnyErrors;
         }
 
-        private bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, BindingDiagnosticBag diagnostics)
+        private static bool IsOperatorErrors(CSharpSyntaxNode node, TypeSymbol operandType, BoundTypeExpression typeExpression, BindingDiagnosticBag diagnostics)
         {
             var targetType = typeExpression.Type;
 

@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         internal void Free(T obj)
         {
             Validate(obj);
-            ForgetTrackedObject(obj);
+            ObjectPool<T>.ForgetTrackedObject(obj);
 
             if (_firstItem == null)
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// return a larger array to the pool than was originally allocated.
         /// </summary>
         [Conditional("DEBUG")]
-        internal void ForgetTrackedObject(T old, T? replacement = null)
+        internal static void ForgetTrackedObject(T old, T? replacement = null)
         {
 #if DETECT_LEAKS
             LeakTracker tracker;

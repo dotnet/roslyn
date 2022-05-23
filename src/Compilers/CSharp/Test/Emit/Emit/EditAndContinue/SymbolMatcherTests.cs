@@ -464,7 +464,7 @@ class C
                 default,
                 null);
             var elementType = compilation1.GetMember<TypeSymbol>("C.D");
-            var member = compilation1.CreatePointerTypeSymbol(elementType);
+            var member = CSharpCompilation.CreatePointerTypeSymbol(elementType);
             var other = matcher.MapReference(member.GetCciAdapter());
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);

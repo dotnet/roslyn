@@ -105,10 +105,10 @@ namespace CSharpSyntaxGenerator
         /// cref="IEnumerable{T}"/>s of <see cref="string"/>.  All of these are flattened into a
         /// single sequence that is joined. Empty strings are ignored.
         /// </summary>
-        protected string CommaJoin(params object[] values)
+        protected static string CommaJoin(params object[] values)
             => Join(", ", values);
 
-        protected string Join(string separator, params object[] values)
+        protected static string Join(string separator, params object[] values)
             => string.Join(separator, values.SelectMany(v => (v switch
             {
                 string s => new[] { s },

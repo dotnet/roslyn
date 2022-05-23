@@ -440,7 +440,7 @@ class C
             var serializedTypeArgumentNames = typeArguments?.Select(t => (t != null) ? t.AssemblyQualifiedName : null).ToArray();
             var method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder);
 
-            return instructionDecoder.GetReturnTypeName(method);
+            return CSharpInstructionDecoder.GetReturnTypeName(method);
         }
 
         private MethodSymbol GetConstructedMethod(string source, string methodName, string[] serializedTypeArgumentNames, CSharpInstructionDecoder instructionDecoder)

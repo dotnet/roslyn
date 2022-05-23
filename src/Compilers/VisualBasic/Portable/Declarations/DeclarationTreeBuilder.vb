@@ -611,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Function GetNonTypeMemberNames(members As SyntaxList(Of StatementSyntax), ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
+        Private Shared Function GetNonTypeMemberNames(members As SyntaxList(Of StatementSyntax), ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As ImmutableHashSet(Of String)
             Dim anyMethodHadExtensionSyntax = False
             Dim anyMemberHasAttributes = False
             Dim anyNonTypeMembers = False

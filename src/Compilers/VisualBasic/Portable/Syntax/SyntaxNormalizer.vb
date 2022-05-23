@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Select
         End Function
 
-        Private Function NeedsLineBreakBetween(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia, isTrailingTrivia As Boolean) As Boolean
+        Private Shared Function NeedsLineBreakBetween(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia, isTrailingTrivia As Boolean) As Boolean
             If EndsInLineBreak(trivia) Then
                 Return False
             End If

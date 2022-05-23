@@ -625,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         End If
 
-                        container.AddMember(fieldSymbol, binder, members, omitFurtherDiagnostics)
+                        SourceMemberContainerTypeSymbol.AddMember(fieldSymbol, binder, members, omitFurtherDiagnostics)
                     Else
                         Dim propertySymbol = SourcePropertySymbol.CreateWithEvents(container,
                                                                                    binder,
@@ -637,10 +637,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         fieldOrWithEventSymbols(nameIndex) = propertySymbol
 
-                        container.AddMember(propertySymbol, binder, members, omitFurtherDiagnostics)
-                        container.AddMember(propertySymbol.GetMethod, binder, members, omitDiagnostics:=False)
-                        container.AddMember(propertySymbol.SetMethod, binder, members, omitDiagnostics:=False)
-                        container.AddMember(propertySymbol.AssociatedField, binder, members, omitDiagnostics:=False)
+                        SourceMemberContainerTypeSymbol.AddMember(propertySymbol, binder, members, omitFurtherDiagnostics)
+                        SourceMemberContainerTypeSymbol.AddMember(propertySymbol.GetMethod, binder, members, omitDiagnostics:=False)
+                        SourceMemberContainerTypeSymbol.AddMember(propertySymbol.SetMethod, binder, members, omitDiagnostics:=False)
+                        SourceMemberContainerTypeSymbol.AddMember(propertySymbol.AssociatedField, binder, members, omitDiagnostics:=False)
                     End If
                 Next
 

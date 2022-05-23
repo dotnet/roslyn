@@ -105,7 +105,7 @@ namespace BuildBoss
         /// <summary>
         /// Ensure solution files have the proper project system GUID.
         /// </summary>
-        private bool CheckProjectSystemGuid(TextWriter textWriter, IEnumerable<SolutionProjectData> dataList)
+        private static bool CheckProjectSystemGuid(TextWriter textWriter, IEnumerable<SolutionProjectData> dataList)
         {
             Guid getExpectedGuid(ProjectData data)
             {

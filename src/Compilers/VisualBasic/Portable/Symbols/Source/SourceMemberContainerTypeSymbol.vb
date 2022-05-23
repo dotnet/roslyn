@@ -2380,7 +2380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="membersAndInitializers"></param>
         ''' <param name="diagBag"></param>
         ''' <remarks></remarks>
-        Private Sub CheckForOverloadOverridesShadowsClashesInSameType(membersAndInitializers As MembersAndInitializers, diagBag As BindingDiagnosticBag)
+        Private Shared Sub CheckForOverloadOverridesShadowsClashesInSameType(membersAndInitializers As MembersAndInitializers, diagBag As BindingDiagnosticBag)
             For Each member In membersAndInitializers.Members
                 '  list may contain both properties and methods
                 Dim checkProperties As Boolean = True
@@ -2957,7 +2957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
-        Friend Sub AddMember(sym As Symbol,
+        Friend Shared Sub AddMember(sym As Symbol,
                              binder As Binder,
                              members As MembersAndInitializersBuilder,
                              omitDiagnostics As Boolean)

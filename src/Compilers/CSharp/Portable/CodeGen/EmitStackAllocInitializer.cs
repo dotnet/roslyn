@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return ArrayInitializerStyle.Element;
         }
 
-        private void StackAllocInitializerCount(ImmutableArray<BoundExpression> inits, ref int initCount, ref int constInits)
+        private static void StackAllocInitializerCount(ImmutableArray<BoundExpression> inits, ref int initCount, ref int constInits)
         {
             if (inits.Length == 0)
             {

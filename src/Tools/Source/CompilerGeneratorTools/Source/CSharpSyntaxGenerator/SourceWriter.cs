@@ -371,14 +371,14 @@ namespace CSharpSyntaxGenerator
             CloseBlock();
         }
 
-        private string GetWriterMethod(string type)
+        private static string GetWriterMethod(string type)
             => type switch
             {
                 "bool" => "WriteBoolean",
                 _ => throw new InvalidOperationException($"Type '{type}' not supported for object reader serialization."),
             };
 
-        private string GetReaderMethod(string type)
+        private static string GetReaderMethod(string type)
             => type switch
             {
                 "bool" => "ReadBoolean",
@@ -1139,10 +1139,10 @@ namespace CSharpSyntaxGenerator
             return field.Type;
         }
 
-        private string GetChildPosition(int i)
+        private static string GetChildPosition(int i)
             => i == 0 ? "Position" : "GetChildPosition(" + i + ")";
 
-        private string GetChildIndex(int i)
+        private static string GetChildIndex(int i)
             => i == 0 ? "0" : "GetChildIndex(" + i + ")";
 
         private void WriteRedAcceptMethods(Node node)
@@ -1462,7 +1462,7 @@ namespace CSharpSyntaxGenerator
         protected bool CanBeAutoCreated(Node node, Field field)
             => IsAutoCreatableToken(node, field) || IsAutoCreatableNode(field);
 
-        private bool IsAutoCreatableToken(Node node, Field field)
+        private static bool IsAutoCreatableToken(Node node, Field field)
         {
             return field.Type == "SyntaxToken"
                 && field.Kinds != null
@@ -1693,7 +1693,7 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private IEnumerable<Field> DetermineRedFactoryWithNoAutoCreatableTokenFields(Node nd)
+        private static IEnumerable<Field> DetermineRedFactoryWithNoAutoCreatableTokenFields(Node nd)
         {
             return nd.Fields.Where(f => !IsAutoCreatableToken(nd, f));
         }
@@ -1863,22 +1863,22 @@ namespace CSharpSyntaxGenerator
             }
         }
 
-        private bool CanAutoConvertFromString(Field field)
+        private static bool CanAutoConvertFromString(Field field)
         {
             return IsIdentifierToken(field) || IsIdentifierNameSyntax(field);
         }
 
-        private bool IsIdentifierToken(Field field)
+        private static bool IsIdentifierToken(Field field)
         {
             return field.Type == "SyntaxToken" && field.Kinds != null && field.Kinds.Count == 1 && field.Kinds[0].Name == "IdentifierToken";
         }
 
-        private bool IsIdentifierNameSyntax(Field field)
+        private static bool IsIdentifierNameSyntax(Field field)
         {
             return field.Type == "IdentifierNameSyntax";
         }
 
-        private string GetStringConverterMethod(Field field)
+        private static string GetStringConverterMethod(Field field)
         {
             if (IsIdentifierToken(field))
             {

@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private AssemblyMetadata CreateAssemblyMetadata(FileStream manifestModuleCopyStream, string originalPath, string shadowCopyPath)
+        private static AssemblyMetadata CreateAssemblyMetadata(FileStream manifestModuleCopyStream, string originalPath, string shadowCopyPath)
         {
             // We don't need to use the global metadata cache here since the shadow copy 
             // won't change and is private to us - only users of the same shadow copy provider see it.
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
         }
 
-        private string CreateUniqueDirectory(string basePath)
+        private static string CreateUniqueDirectory(string basePath)
         {
             int attempts = 10;
             while (true)

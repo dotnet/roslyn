@@ -220,7 +220,7 @@ Friend Class RedNodeWriter
     End Sub
 
     ' Generate a constant value
-    Private Function GetConstantValue(val As Long) As String
+    Private Shared Function GetConstantValue(val As Long) As String
         Return val.ToString()
     End Function
 
@@ -548,7 +548,7 @@ Friend Class RedNodeWriter
     End Sub
 
     ' Get modifiers
-    Private Function GetModifiers(containingStructure As ParseNodeStructure, isOverride As Boolean, name As String) As String
+    Private Shared Function GetModifiers(containingStructure As ParseNodeStructure, isOverride As Boolean, name As String) As String
         ' Is this overridable or an override?
         Dim modifiers = ""
 
@@ -633,18 +633,18 @@ Friend Class RedNodeWriter
             If child.IsList Then
                 _writer.WriteLine($"            {extraIndent}Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}", StructureTypeName(nodeStructure), ChildVarName(child))
                 _writer.WriteLine($"            {extraIndent}If slot IsNot Nothing")
-                _writer.WriteLine($"            {extraIndent}    return new SyntaxTokenList(Me, slot, {{0}}, {{1}})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                _writer.WriteLine($"            {extraIndent}    return new SyntaxTokenList(Me, slot, {{0}}, {{1}})", GetChildPosition(childIndex), GetChildIndex(childIndex))
                 _writer.WriteLine($"            {extraIndent}End If")
                 _writer.WriteLine($"            {extraIndent}Return Nothing")
             Else
                 If child.IsOptional Then
                     _writer.WriteLine($"            {extraIndent}Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}", StructureTypeName(nodeStructure), ChildVarName(child))
                     _writer.WriteLine($"            {extraIndent}If slot IsNot Nothing")
-                    _writer.WriteLine($"            {extraIndent}    return new SyntaxToken(Me, slot, {{0}}, {{1}})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                    _writer.WriteLine($"            {extraIndent}    return new SyntaxToken(Me, slot, {{0}}, {{1}})", GetChildPosition(childIndex), GetChildIndex(childIndex))
                     _writer.WriteLine($"            {extraIndent}End If")
                     _writer.WriteLine($"            {extraIndent}Return Nothing")
                 Else
-                    _writer.WriteLine($"            {extraIndent}return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}, {{2}}, {{3}})", StructureTypeName(nodeStructure), ChildVarName(child), Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                    _writer.WriteLine($"            {extraIndent}return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{{0}}).{{1}}, {{2}}, {{3}})", StructureTypeName(nodeStructure), ChildVarName(child), GetChildPosition(childIndex), GetChildIndex(childIndex))
                 End If
             End If
         ElseIf IsListStructureType(child) Then
@@ -675,7 +675,7 @@ Friend Class RedNodeWriter
         End If
     End Sub
 
-    Private Function GetChildPosition(i As Integer) As String
+    Private Shared Function GetChildPosition(i As Integer) As String
         If (i = 0) Then
             Return "Me.Position"
         Else
@@ -683,7 +683,7 @@ Friend Class RedNodeWriter
         End If
     End Function
 
-    Private Function GetChildIndex(i As Integer) As String
+    Private Shared Function GetChildIndex(i As Integer) As String
         If (i = 0) Then
             Return "0"
         Else

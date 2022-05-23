@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' // if we happen to be parsing the statement body of a single-line sub lambda).
 
         ' bool .Parser::CanFollowExpression( [ _In_ Token* T ] )
-        Private Function CanFollowExpression(t As SyntaxToken) As Boolean
+        Private Shared Function CanFollowExpression(t As SyntaxToken) As Boolean
             ' // e.g. "Aggregate" can end an expression
             Dim kind As SyntaxKind = Nothing
 
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 18635 - 18635
         ' bool .Parser::MustEndStatement( [ _In_ Token* T ] )
 
-        Private Function MustEndStatement(t As SyntaxToken) As Boolean
+        Private Shared Function MustEndStatement(t As SyntaxToken) As Boolean
             Debug.Assert(t IsNot Nothing)
             Return IsValidStatementTerminator(t)
         End Function

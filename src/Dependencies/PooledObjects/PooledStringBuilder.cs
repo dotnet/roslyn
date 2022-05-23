@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
             else
             {
-                _pool.ForgetTrackedObject(this);
+                ObjectPool<PooledStringBuilder>.ForgetTrackedObject(this);
             }
         }
 

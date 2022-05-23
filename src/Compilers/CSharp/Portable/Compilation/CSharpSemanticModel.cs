@@ -1993,7 +1993,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SymbolInfo(subpatternSymbol.GetPublicSymbol(), CandidateReason.None);
         }
 
-        private SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
+        private static SymbolInfo GetSymbolInfoForDeconstruction(BoundRecursivePattern pat)
         {
             return new SymbolInfo(pat.DeconstructMethod.GetPublicSymbol(), CandidateReason.None);
         }

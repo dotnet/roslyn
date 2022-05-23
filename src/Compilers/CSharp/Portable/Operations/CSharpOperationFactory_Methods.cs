@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Operations
 {
     internal sealed partial class CSharpOperationFactory
     {
-        internal ImmutableArray<BoundStatement> ToStatements(BoundStatement? statement)
+        internal static ImmutableArray<BoundStatement> ToStatements(BoundStatement? statement)
         {
             if (statement == null)
             {
@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.Operations
             return Create(instance);
         }
 
-        private bool IsCallVirtual(MethodSymbol? targetMethod, BoundExpression? receiver)
+        private static bool IsCallVirtual(MethodSymbol? targetMethod, BoundExpression? receiver)
         {
             return (object?)targetMethod != null && receiver != null &&
                    (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
                    !receiver.SuppressVirtualCalls;
         }
 
-        private bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
+        private static bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
             resultKind == LookupResultKind.OverloadResolutionFailure || targetMethod?.OriginalDefinition is ErrorMethodSymbol;
 
         internal IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)

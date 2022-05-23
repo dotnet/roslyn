@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         private readonly string _defaultFormat;
         private readonly string _nullString;
         private readonly string _thisString;
-        private string _hostValueNotFoundString => Resources.HostValueNotFound;
+        private static string _hostValueNotFoundString => Resources.HostValueNotFound;
 
         internal Formatter(string defaultFormat, string nullString, string thisString)
         {
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return builder.ToImmutableAndFree();
         }
 
-        protected string RemoveLeadingAndTrailingContent(string expression, int start, int length, Predicate<char> leading, Predicate<char> trailing)
+        protected static string RemoveLeadingAndTrailingContent(string expression, int start, int length, Predicate<char> leading, Predicate<char> trailing)
         {
             int oldLength = expression.Length;
             for (; start < oldLength && leading(expression[start]); start++)

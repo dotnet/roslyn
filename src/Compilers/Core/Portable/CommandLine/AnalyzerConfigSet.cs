@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
                 if (_optionsCache.TryAdd(sectionKey, result))
                 {
                     // Release the pooled object to be used as a key
-                    _sectionKeyPool.ForgetTrackedObject(sectionKey);
+                    ObjectPool<List<Section>>.ForgetTrackedObject(sectionKey);
                 }
                 else
                 {

@@ -1058,7 +1058,7 @@ namespace IOperationGenerator
             }
         }
 
-        private string GetVisitorName(Node type)
+        private static string GetVisitorName(Node type)
         {
             return type.VisitorName ?? $"Visit{GetSubName(type.Name)}";
         }
@@ -1085,7 +1085,7 @@ namespace IOperationGenerator
             return GetAllProperties(node).Where(p => IsIOperationType(p.Type)).ToList();
         }
 
-        private string GetSubName(string operationName) => operationName[1..^9];
+        private static string GetSubName(string operationName) => operationName[1..^9];
 
         private bool IsIOperationType(string typeName)
         {

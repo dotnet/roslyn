@@ -44,12 +44,12 @@ Public MustInherit Class WriteUtils
     End Function
 
     'Get a factory name from a kind
-    Protected Function FactoryName(nodeKind As ParseNodeKind) As String
+    Protected Shared Function FactoryName(nodeKind As ParseNodeKind) As String
         Return nodeKind.Name
     End Function
 
     'Get a factory name from a structure
-    Protected Function FactoryName(nodeStructure As ParseNodeStructure) As String
+    Protected Shared Function FactoryName(nodeStructure As ParseNodeStructure) As String
 #If OLDSTYLE Then
         Return nodeStructure.Name
 #Else
@@ -353,12 +353,12 @@ Public MustInherit Class WriteUtils
 #End If
 
     ' Is this type reference a list structure kind?
-    Protected Function IsListStructureType(nodeField As ParseNodeChild) As Boolean
+    Protected Shared Function IsListStructureType(nodeField As ParseNodeChild) As Boolean
         Return nodeField.IsList AndAlso (TypeOf nodeField.ChildKind Is ParseNodeKind OrElse TypeOf nodeField.ChildKind Is List(Of ParseNodeKind))
     End Function
 
     ' Is this type reference a non-list structure kind?
-    Protected Function IsNodeStructureType(nodeField As ParseNodeChild) As Boolean
+    Protected Shared Function IsNodeStructureType(nodeField As ParseNodeChild) As Boolean
         Return Not nodeField.IsList AndAlso (TypeOf nodeField.ChildKind Is ParseNodeKind OrElse TypeOf nodeField.ChildKind Is List(Of ParseNodeKind))
     End Function
 
@@ -401,7 +401,7 @@ Public MustInherit Class WriteUtils
     End Function
 
     ' Get the type name of a simple type
-    Protected Function SimpleTypeName(simpleType As SimpleType) As String
+    Protected Shared Function SimpleTypeName(simpleType As SimpleType) As String
 
         Select Case simpleType
             Case SimpleType.Bool
@@ -442,12 +442,12 @@ Public MustInherit Class WriteUtils
     End Function
 
     ' The name of the node kind enumeration
-    Protected Function NodeKindType() As String
+    Protected Shared Function NodeKindType() As String
         Return NodeKindString
     End Function
 
     ' The name of the visitor method for a structure type
-    Protected Function VisitorMethodName(nodeStructure As ParseNodeStructure) As String
+    Protected Shared Function VisitorMethodName(nodeStructure As ParseNodeStructure) As String
         Dim nodeName = nodeStructure.Name
         If nodeName.EndsWith("Syntax", StringComparison.Ordinal) Then nodeName = nodeName.Substring(0, nodeName.Length - 6)
 
@@ -455,7 +455,7 @@ Public MustInherit Class WriteUtils
     End Function
 
     ' Is this structure the root?
-    Protected Function IsRoot(nodeStructure As ParseNodeStructure) As Boolean
+    Protected Shared Function IsRoot(nodeStructure As ParseNodeStructure) As Boolean
         Return String.IsNullOrEmpty(nodeStructure.ParentStructureId)
     End Function
 
@@ -480,12 +480,12 @@ Public MustInherit Class WriteUtils
 
     ' Is this structure an ancestorOrSame of all
     Protected Function IsAncestorOfAll(parent As ParseNodeStructure, children As List(Of ParseNodeStructure)) As Boolean
-        Return children.TrueForAll(Function(child) _parseTree.IsAncestorOrSame(parent, child))
+        Return children.TrueForAll(Function(child) ParseTree.IsAncestorOrSame(parent, child))
     End Function
 
     ' Get all of the fields of a structure, including inherited fields, in the right order.
     ' TODO: need way to get the ordering right.
-    Protected Function GetAllFieldsOfStructure(struct As ParseNodeStructure) As List(Of ParseNodeField)
+    Protected Shared Function GetAllFieldsOfStructure(struct As ParseNodeStructure) As List(Of ParseNodeField)
         Dim fullList As New List(Of ParseNodeField)
 
         ' For now, just put inherited stuff at the beginning, until we design a real ordering solution
@@ -499,7 +499,7 @@ Public MustInherit Class WriteUtils
 
     ' Get all of the children of a structure, including inherited children, in the right order.
     ' The ordering is defined first by order attribute, then by declared order (base before derived)
-    Protected Function GetAllChildrenOfStructure(struct As ParseNodeStructure) As List(Of ParseNodeChild)
+    Protected Shared Function GetAllChildrenOfStructure(struct As ParseNodeStructure) As List(Of ParseNodeChild)
         Dim fullList As New List(Of Tuple(Of ParseNodeChild, Integer))
 
         ' For now, just put inherited stuff at the beginning, until we design a real ordering solution
@@ -528,7 +528,7 @@ Public MustInherit Class WriteUtils
     ' String utility functions
 
     ' Lowercase the first character o a string
-    Protected Function LowerFirstCharacter(s As String) As String
+    Protected Shared Function LowerFirstCharacter(s As String) As String
         If s Is Nothing OrElse s.Length = 0 Then
             Return s
         Else
@@ -537,7 +537,7 @@ Public MustInherit Class WriteUtils
     End Function
 
     ' Uppercase the first character o a string
-    Protected Function UpperFirstCharacter(s As String) As String
+    Protected Shared Function UpperFirstCharacter(s As String) As String
         If s Is Nothing OrElse s.Length = 0 Then
             Return s
         Else
@@ -546,7 +546,7 @@ Public MustInherit Class WriteUtils
     End Function
 
     ' Word wrap a string into lines
-    Protected Function WordWrap(text As String) As List(Of String)
+    Protected Shared Function WordWrap(text As String) As List(Of String)
         Const LineLength As Integer = 80
         Dim lines As New List(Of String)
 
@@ -900,7 +900,7 @@ Public MustInherit Class WriteUtils
         Return s
     End Function
 
-    Public Function GetChildNodeKind(nodeKind As ParseNodeKind, child As ParseNodeChild) As ParseNodeKind
+    Public Shared Function GetChildNodeKind(nodeKind As ParseNodeKind, child As ParseNodeChild) As ParseNodeKind
         Dim childNodeKind = TryCast(child.ChildKind, ParseNodeKind)
         Dim childNodeKinds = TryCast(child.ChildKind, List(Of ParseNodeKind))
 

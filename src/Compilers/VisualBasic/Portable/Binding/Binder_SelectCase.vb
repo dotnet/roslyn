@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Function reports WRN_SelectCaseInvalidRange for any invalid select case range.
         ' Returns True if an invalid range was found, False otherwise.
-        Private Function ReportInvalidSelectCaseRange(caseBlocks As ArrayBuilder(Of BoundCaseBlock), diagnostics As BindingDiagnosticBag) As Boolean
+        Private Shared Function ReportInvalidSelectCaseRange(caseBlocks As ArrayBuilder(Of BoundCaseBlock), diagnostics As BindingDiagnosticBag) As Boolean
             For Each caseBlock In caseBlocks
                 For Each caseClause In caseBlock.CaseStatement.CaseClauses
                     Select Case caseClause.Kind

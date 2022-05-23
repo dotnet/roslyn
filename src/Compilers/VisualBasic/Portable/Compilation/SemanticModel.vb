@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bnodeSummary = GetSpeculativelyBoundNodeSummary(position, expression, bindingOption, binder)
 
             If bnodeSummary.LowestBoundNode IsNot Nothing Then
-                Return Me.GetTypeInfoForNode(bnodeSummary)
+                Return GetTypeInfoForNode(bnodeSummary)
             Else
                 Return VisualBasicTypeInfo.None
             End If
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' Gets the type info from a specific bound node
-        Friend Function GetTypeInfoForNode(boundNodes As BoundNodeSummary) As VisualBasicTypeInfo
+        Friend Shared Function GetTypeInfoForNode(boundNodes As BoundNodeSummary) As VisualBasicTypeInfo
             ' Determine the type, converted type, and expression
             Dim type As TypeSymbol = Nothing
             Dim convertedType As TypeSymbol = Nothing
@@ -863,7 +863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Given a symbolsBuilder with a bunch of symbols in it, return an ImmutableArray containing
         ' just the symbols that are not ErrorTypeSymbols, and without any duplicates.
-        Friend Function RemoveErrorTypesAndDuplicates(symbolsBuilder As ArrayBuilder(Of Symbol), options As SymbolInfoOptions) As ImmutableArray(Of Symbol)
+        Friend Shared Function RemoveErrorTypesAndDuplicates(symbolsBuilder As ArrayBuilder(Of Symbol), options As SymbolInfoOptions) As ImmutableArray(Of Symbol)
             ' Common case is 0 or 1 symbol, so we optimize those cases to not allocate a HashSet, since
             ' duplicates aren't possible for those cases.
 
@@ -1245,7 +1245,7 @@ _Default:
             End If
         End Sub
 
-        Private Sub GetSemanticSymbolsForLateBoundMemberAccess(boundNodes As BoundNodeSummary,
+        Private Shared Sub GetSemanticSymbolsForLateBoundMemberAccess(boundNodes As BoundNodeSummary,
                                                                symbolsBuilder As ArrayBuilder(Of Symbol),
                                                                memberGroupBuilder As ArrayBuilder(Of Symbol),
                                                                ByRef resultKind As LookupResultKind)
@@ -2798,7 +2798,7 @@ _Default:
                                          If(resultKind = LookupResultKind.Good, CandidateReason.None, resultKind.ToCandidateReason()))
         End Function
 
-        Private Function FindNameParameterInfo(invocationInfosymbols As ImmutableArray(Of Symbol),
+        Private Shared Function FindNameParameterInfo(invocationInfosymbols As ImmutableArray(Of Symbol),
                                                arGumentName As String,
                                                reason As CandidateReason) As SymbolInfo
 

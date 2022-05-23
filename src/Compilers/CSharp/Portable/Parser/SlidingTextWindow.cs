@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     char[] oldWindow = _characterWindow;
                     char[] newWindow = new char[_characterWindow.Length * 2];
                     Array.Copy(oldWindow, 0, newWindow, 0, _characterWindowCount);
-                    s_windowPool.ForgetTrackedObject(oldWindow, newWindow);
+                    ObjectPool<char[]>.ForgetTrackedObject(oldWindow, newWindow);
                     _characterWindow = newWindow;
                 }
 

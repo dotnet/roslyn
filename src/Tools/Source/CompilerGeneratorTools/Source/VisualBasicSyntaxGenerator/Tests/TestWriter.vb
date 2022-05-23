@@ -582,7 +582,7 @@ Public Class TestWriter
         _writer.WriteLine()
     End Sub
 
-    Public Function GetInitValueForType(fieldType As String) As String
+    Public Shared Function GetInitValueForType(fieldType As String) As String
         Select Case fieldType
             Case "Integer"
                 Return "23"

@@ -128,7 +128,7 @@ Friend Class WriteCsvNames
     End Sub
 
     ' Should we generator a simplified factory method also?
-    Private Function HasSimplifiedFactory(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind) As Boolean
+    Private Shared Function HasSimplifiedFactory(nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind) As Boolean
         ' Currently, all tokens have simplified factories.
         Return nodeStructure.IsToken
     End Function

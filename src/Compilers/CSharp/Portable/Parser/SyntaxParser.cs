@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
                 else
                 {
-                    s_blendedNodesPool.ForgetTrackedObject(blendedTokens);
+                    ObjectPool<BlendedNode[]>.ForgetTrackedObject(blendedTokens);
                 }
             }
         }
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 var old = _blendedTokens;
                 Array.Resize(ref _blendedTokens, _blendedTokens.Length * 2);
-                s_blendedNodesPool.ForgetTrackedObject(old, replacement: _blendedTokens);
+                ObjectPool<BlendedNode[]>.ForgetTrackedObject(old, replacement: _blendedTokens);
             }
         }
 

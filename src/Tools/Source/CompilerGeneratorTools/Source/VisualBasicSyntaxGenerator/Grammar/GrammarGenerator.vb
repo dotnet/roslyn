@@ -243,7 +243,7 @@ Friend Class GrammarGenerator
         Throw New NotImplementedException()
     End Function
 
-    Private Function GetMappedKinds(structureNode As ParseNodeStructure,
+    Private Shared Function GetMappedKinds(structureNode As ParseNodeStructure,
                                     child As ParseNodeChild) As (nodeKind As ParseNodeKind, nodeKinds As List(Of ParseNodeKind))
         ' Ensure certain deferred collections have been computed.
         Dim unused1 = child.ChildKind()
@@ -275,7 +275,7 @@ Friend Class GrammarGenerator
         Return Nothing
     End Function
 
-    Private Function GetNonRootParent(n As ParseNodeKind) As ParseNodeStructure
+    Private Shared Function GetNonRootParent(n As ParseNodeKind) As ParseNodeStructure
         Dim current = n.NodeStructure
         While Not current.ParentStructure.IsRoot
             current = current.ParentStructure
@@ -329,7 +329,7 @@ Friend Class GrammarGenerator
         End If
     End Sub
 
-    Private Function RuleReference(name As String) As Production
+    Private Shared Function RuleReference(name As String) As Production
         Dim trimmed = If(name.EndsWith("Syntax"), name.Substring(0, name.Length - "Syntax".Length), name)
         Return New Production(
             s_normalizationRegex.Replace(trimmed, "_").ToLower(),

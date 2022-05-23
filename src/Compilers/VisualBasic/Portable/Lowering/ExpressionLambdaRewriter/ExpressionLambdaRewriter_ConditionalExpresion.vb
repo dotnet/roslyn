@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function CreateCoalesceLambdaParameterSymbol(paramType As TypeSymbol) As ParameterSymbol
+        Private Shared Function CreateCoalesceLambdaParameterSymbol(paramType As TypeSymbol) As ParameterSymbol
             Return SyntheticBoundNodeFactory.SynthesizedParameter(paramType, s_coalesceLambdaParameterName)
         End Function
 

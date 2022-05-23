@@ -892,7 +892,7 @@ class Program
             Assert.False(iNamedType.IsReadOnly);
 
             // pointer type
-            type = (TypeSymbol)comp.CreatePointerTypeSymbol(comp.ObjectType);
+            type = (TypeSymbol)CSharpCompilation.CreatePointerTypeSymbol(comp.ObjectType);
             Assert.False(type.IsReadOnly);
 
             // tuple type
@@ -1056,7 +1056,7 @@ class Program
             Assert.False(iNamedType.IsReadOnly);
 
             // pointer type
-            type = (TypeSymbol)comp.CreatePointerTypeSymbol(comp.ObjectType);
+            type = (TypeSymbol)CSharpCompilation.CreatePointerTypeSymbol(comp.ObjectType);
             Assert.False(type.IsReadOnly);
 
             // tuple type

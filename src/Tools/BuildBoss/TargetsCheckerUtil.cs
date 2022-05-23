@@ -57,7 +57,7 @@ namespace BuildBoss
             return allGood;
         }
 
-        private bool CheckProps(ProjectUtil util, TextWriter textWriter)
+        private static bool CheckProps(ProjectUtil util, TextWriter textWriter)
         {
             var allGood = true;
             foreach (var project in GetImportProjects(util))
@@ -78,7 +78,7 @@ namespace BuildBoss
             return allGood;
         }
 
-        private bool CheckTargets(ProjectUtil util, TextWriter textWriter)
+        private static bool CheckTargets(ProjectUtil util, TextWriter textWriter)
         {
             var allGood = true;
             foreach (var project in GetImportProjects(util))

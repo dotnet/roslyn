@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.Update(expression);
         }
 
-        private BoundStatement UpdateStatement(BoundSpillSequenceBuilder builder, BoundStatement statement)
+        private static BoundStatement UpdateStatement(BoundSpillSequenceBuilder builder, BoundStatement statement)
         {
             if (builder == null)
             {

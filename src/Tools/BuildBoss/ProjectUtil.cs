@@ -175,7 +175,7 @@ namespace BuildBoss
             return list;
         }
 
-        internal InternalsVisibleTo GetInternalsVisibleTo(XElement element)
+        internal static InternalsVisibleTo GetInternalsVisibleTo(XElement element)
         {
             var targetAssembly = element.Attribute("Include")?.Value.Trim();
             var key = element.Attribute("Key")?.Value.Trim();

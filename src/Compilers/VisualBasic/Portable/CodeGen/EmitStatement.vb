@@ -493,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Select
         End Function
 
-        Private Function TryReduce(condition As BoundBinaryOperator, ByRef sense As Boolean) As BoundExpression
+        Private Shared Function TryReduce(condition As BoundBinaryOperator, ByRef sense As Boolean) As BoundExpression
             Dim opKind = condition.OperatorKind And BinaryOperatorKind.OpMask
 
             Debug.Assert(opKind = BinaryOperatorKind.Equals OrElse
@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ILOpCode.Blt, ILOpCode.Ble, ILOpCode.Bgt, ILOpCode.Bge,
             ILOpCode.Bge_un, ILOpCode.Bgt_un, ILOpCode.Ble_un, ILOpCode.Blt_un}
 
-        Private Function CodeForJump(expression As BoundBinaryOperator, sense As Boolean, <Out()> ByRef revOpCode As ILOpCode) As ILOpCode
+        Private Shared Function CodeForJump(expression As BoundBinaryOperator, sense As Boolean, <Out()> ByRef revOpCode As ILOpCode) As ILOpCode
             Dim opIdx As Integer
             Dim opKind = (expression.OperatorKind And BinaryOperatorKind.OpMask)
             Dim operandType = expression.Left.Type

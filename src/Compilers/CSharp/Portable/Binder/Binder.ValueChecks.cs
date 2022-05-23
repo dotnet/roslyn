@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && receiver?.Type?.IsValueType == true;
         }
 
-        protected bool CheckMethodReturnValueKind(
+        protected static bool CheckMethodReturnValueKind(
             MethodSymbol methodSymbol,
             SyntaxNode callSyntaxOpt,
             SyntaxNode node,
@@ -1289,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, BindingDiagnosticBag diagnostics,
+        private static bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, BindingDiagnosticBag diagnostics,
                                      Symbol propertyOrEventSymbolOpt = null)
         {
             Debug.Assert(member.Kind != SymbolKind.Property);

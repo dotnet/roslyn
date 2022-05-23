@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         ///  Returns a byte blob that matches serialized content of single array initializer.    
         ///  returns -1 if the initializer is null or not an array of literals
         /// </summary>
-        private int TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out ImmutableArray<byte> data)
+        private static int TryGetRawDataForArrayInit(BoundArrayInitialization initializer, out ImmutableArray<byte> data)
         {
             data = default;
 
