@@ -2805,6 +2805,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             {
                                                 continue;
                                             }
+
+                                            // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
+                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false })
+                                            {
+                                                semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, newSymbolKey: containingSymbolKey));
+                                                continue;
+                                            }
                                         }
 
                                         // deleting symbol is not allowed
