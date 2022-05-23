@@ -130,7 +130,7 @@ namespace IdeCoreBenchmarks
             })).AsSourceGenerator();
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
-               new ISourceGenerator[] { generator }, parseOptions: CSharpParseOptions.Default);//, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.Source, trackIncrementalGeneratorSteps: false));
+               new ISourceGenerator[] { generator }, parseOptions: CSharpParseOptions.Default);
 
             var project = _workspace.CurrentSolution.Projects.Single(p => p.Name == "Microsoft.CodeAnalysis.Workspaces(netstandard2.0)");
 
