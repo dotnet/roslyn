@@ -100,7 +100,10 @@ End Class
                 Assert.Equal(1, result.Items.Count)
                 Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
                 Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Title)
-                Assert.Equal(result.GetRemainingIdentifierLineTextOnDisk(index:=0), "SerializableAttribute()") ' Navigates to constructor (which is decompiled to C#)
+
+                Assert.False(True, result.GetText())
+
+                Assert.Equal("SerializableAttribute()", result.GetRemainingIdentifierLineTextOnDisk(index:=0)) ' Navigates to constructor (which is decompiled to C#)
             End Using
         End Sub
 
@@ -385,6 +388,14 @@ public class Component
 
             Private Function Remove(item As IPeekResult) As Boolean Implements IPeekResultCollection.Remove
                 Throw New NotImplementedException()
+            End Function
+
+            Friend Function GetText() As String
+                Dim documentResult = DirectCast(Items(0), IDocumentPeekResult)
+                Dim textBufferService = _workspace.GetService(Of ITextBufferFactoryService)
+                Dim buffer = textBufferService.CreateTextBuffer(New StreamReader(documentResult.FilePath), textBufferService.InertContentType)
+
+                Return buffer.CurrentSnapshot.GetText()
             End Function
 
             ''' <summary>
