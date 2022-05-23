@@ -389,7 +389,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             // If any of the buffers in the projection graph are in the LSP editor context, then we consider this to be in an LSP context.
             // We cannot be in a partial context where some buffers are LSP and some are not.
-            var anyBufferInLspContext = textView.BufferGraph.GetTextBuffers(textBuffer => textBuffer.IsInLspEditorContext()).Any();
+            var anyBufferInLspContext = false;
+            _ = textView.BufferGraph.GetTextBuffers(textBuffer =>
+            {
+                // Just set a flag if we found one to avoid creating a collection of all the buffers
+                if (textBuffer.IsInLspEditorContext())
+                {
+                    anyBufferInLspContext = true;
+                }
+
+                return false;
+            });
+
             return anyBufferInLspContext;
         }
     }
