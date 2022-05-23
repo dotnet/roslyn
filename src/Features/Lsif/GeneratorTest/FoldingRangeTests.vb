@@ -17,6 +17,19 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         ' https://github.com/dotnet/roslyn/projects/45#card-20049168 is implemented.
         <Theory>
         <InlineData("
+using {|foldingRange:System;
+using System.Linq;|}")>
+        <InlineData("
+using {|foldingRange:S = System.String; 
+using System.Linq;|}")>
+        Public Async Function TestFoldingRangesImports(code As String) As Task
+            Await TestFoldingRanges(code, rangeKind:=FoldingRangeKind.Imports)
+        End Function
+
+        ' Expected 'FoldingRangeKind' argument would likely change for some of the tests when
+        ' https://github.com/dotnet/roslyn/projects/45#card-20049168 is implemented.
+        <Theory>
+        <InlineData("
 class C{|foldingRange:
 {
 }|}", Nothing)>
@@ -30,19 +43,17 @@ class C{|foldingRange:
             M();
         }|}
     }|}
-}|}", Nothing)>
+}|}")>
         <InlineData("
 {|foldingRange:#region
-#endregion|}", Nothing)>
-        <InlineData("
-using {|foldingRange:System;
-using System.Linq;|}", FoldingRangeKind.Imports)>
-        <InlineData("
-using {|foldingRange:S = System.String; 
-using System.Linq;|}", FoldingRangeKind.Imports)>
+#endregion|}")>
         <InlineData("
 {|foldingRange:// Comment Line 1
-// Comment Line 2|}", Nothing)>
+// Comment Line 2|}")>
+        Public Async Function TestFoldingRangesStandard(code As String) As Task
+            Await TestFoldingRanges(code, rangeKind:=Nothing)
+        End Function
+
         Public Async Function TestFoldingRanges(code As String, rangeKind As FoldingRangeKind?) As Task
             Using workspace = TestWorkspace.CreateWorkspace(
                     <Workspace>

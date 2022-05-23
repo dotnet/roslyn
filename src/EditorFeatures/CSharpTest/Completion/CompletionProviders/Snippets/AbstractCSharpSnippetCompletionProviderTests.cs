@@ -17,11 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         protected abstract string ItemToCommit { get; }
 
-        protected override TestComposition GetComposition()
-            => base.GetComposition()
-            .AddExcludedPartTypes(typeof(IRoslynLSPSnippetExpander))
-            .AddParts(typeof(TestRoslynLanguageServerSnippetExpander));
-
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSnippetCompletionProvider);
     }
