@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _workingDirectory = initialWorkingDirectory;
 
             _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location)!, "InteractiveHost");
+            CreateEmptyEditorConfigFile(_hostDirectory);
 
             Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
             Host.ProcessInitialized += ProcessInitialized;
@@ -102,6 +103,32 @@ namespace Microsoft.CodeAnalysis.Interactive
             _shutdownCancellationSource.Dispose();
 
             Host.Dispose();
+        }
+
+        /// <summary>
+        /// Helper to initialize the host directory with an empty editorconfig file to ensure
+        /// that we aren't applying rules to interactive documents.
+        /// </summary>
+        private static void CreateEmptyEditorConfigFile(string hostDirectory)
+        {
+            try
+            {
+                var editorConfigPath = Path.Combine(hostDirectory, ".editorconfig");
+                if (File.Exists(editorConfigPath))
+                {
+                    // There is already an editorconfig file in the host directory.
+                    // Don't do anything as its either the global one we created or
+                    // a user created once.  In either case we don't want to change it.
+                    return;
+                }
+
+                File.WriteAllText(editorConfigPath, "global = true");
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            {
+                // At worst we may use analyzer settings from an editorconfig in a higher directory
+                // so it is totally valid to continue if we hit an error here.
+            }
         }
 
         /// <summary>
@@ -200,16 +227,10 @@ namespace Microsoft.CodeAnalysis.Interactive
             var newSubmissionDocumentId = DocumentId.CreateNewId(_currentSubmissionProjectId, newSubmissionProjectName);
 
             // Associate a name with both the editor document and our roslyn document so LSP can make requests on it.
-            var extension = languageName switch
-            {
-                LanguageNames.CSharp => "cs",
-                LanguageNames.VisualBasic => "vb",
-                _ => throw new ArgumentException($"Unexpected language name {languageName}")
-            };
-            var submissionFilePath = Path.Combine(Path.GetTempPath(), $"Submission{SubmissionCount}.{extension}");
+            var newSubmissionFilePath = Path.Combine(_hostDirectory, $"Submission{SubmissionCount}.{_languageInfo.Extension}");
 
             _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
-            textDocument.Rename(submissionFilePath);
+            textDocument.Rename(newSubmissionFilePath);
 
             // Chain projects to the the last submission that successfully executed.
             _workspace.SetCurrentSolution(solution =>
@@ -230,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     newSubmissionDocumentId,
                     newSubmissionProjectName,
                     newSubmissionText,
-                    filePath: submissionFilePath);
+                    filePath: newSubmissionFilePath);
 
                 return solution;
             }, WorkspaceChangeKind.SolutionChanged);
