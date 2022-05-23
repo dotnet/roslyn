@@ -14742,14 +14742,13 @@ enum E { }
         public void ConversionFromNuintToDouble()
         {
             var source = """
-if (!System.Environment.Is64BitProcess)
-{
-    System.Console.Write("RAN");
-    return;
-}
+nuint x = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : unchecked((nuint)ulong.MaxValue);
 
-nuint x = unchecked((nuint)ulong.MaxValue);
-ulong y = ulong.MaxValue;
+ulong y = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : ulong.MaxValue;
 
 double a = x;
 double b = y;
@@ -14785,14 +14784,13 @@ class C
         public void ConversionFromNuintToFloat()
         {
             var source = """
-if (!System.Environment.Is64BitProcess)
-{
-    System.Console.Write("RAN");
-    return;
-}
+nuint x = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : unchecked((nuint)ulong.MaxValue);
 
-nuint x = unchecked((nuint)ulong.MaxValue);
-ulong y = ulong.MaxValue;
+ulong y = (System.IntPtr.Size == 4)
+    ? uint.MaxValue
+    : ulong.MaxValue;
 
 float a = x;
 float b = y;
