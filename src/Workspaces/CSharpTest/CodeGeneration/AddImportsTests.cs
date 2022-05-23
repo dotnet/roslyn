@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -75,10 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         {
             var doc = await GetDocument(initialText, useSymbolAnnotations);
 
-            var addImportOptions = new AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst: placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces: placeImportsInsideNamespaces,
-                AllowInHiddenRegions: false);
+            var addImportOptions = new AddImportPlacementOptions()
+            {
+                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                UsingDirectivePlacement = new CodeStyleOption2<AddImportPlacement>(placeImportsInsideNamespaces ? AddImportPlacement.InsideNamespace : AddImportPlacement.OutsideNamespace, NotificationOption2.None),
+            };
 
             var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 

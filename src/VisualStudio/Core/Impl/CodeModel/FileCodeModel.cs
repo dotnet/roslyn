@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -450,6 +451,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 return GetDocument()
                     .GetRequiredSemanticModelAsync(CancellationToken.None).AsTask();
+            });
+
+        internal CodeGenerationOptions GetDocumentOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetCodeGenerationOptionsAsync(GlobalOptions, CancellationToken.None).AsTask();
             });
 
         internal Compilation GetCompilation()

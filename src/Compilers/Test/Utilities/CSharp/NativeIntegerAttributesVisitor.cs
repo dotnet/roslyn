@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 SymbolDisplayMemberOptions.IncludeExplicitInterface).
             WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType);
 
-        protected override bool TypeRequiresAttribute(TypeSymbol? type) => type?.ContainsNativeInteger() == true;
+        protected override bool TypeRequiresAttribute(TypeSymbol? type) => type?.ContainsNativeIntegerWrapperType() == true;
 
         protected override CSharpAttributeData? GetTargetAttribute(ImmutableArray<CSharpAttributeData> attributes) =>
             GetAttribute(attributes, "System.Runtime.CompilerServices", "NativeIntegerAttribute");

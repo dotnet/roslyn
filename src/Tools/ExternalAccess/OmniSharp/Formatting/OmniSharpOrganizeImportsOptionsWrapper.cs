@@ -21,14 +21,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
         public OmniSharpOrganizeImportsOptionsWrapper(
             bool placeSystemNamespaceFirst,
             bool separateImportDirectiveGroups,
-            string newLine) : this(new OrganizeImportsOptions(
-                placeSystemNamespaceFirst,
-                separateImportDirectiveGroups,
-                newLine))
+            string newLine)
+            : this(new OrganizeImportsOptions()
+            {
+                PlaceSystemNamespaceFirst = placeSystemNamespaceFirst,
+                SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+                NewLine = newLine
+            })
         {
         }
 
         public static async ValueTask<OmniSharpOrganizeImportsOptionsWrapper> FromDocumentAsync(Document document, CancellationToken cancellationToken)
-            => new(await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
+            => new(await document.GetOrganizeImportsOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false));
     }
 }

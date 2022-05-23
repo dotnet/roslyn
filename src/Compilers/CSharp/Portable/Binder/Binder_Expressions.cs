@@ -1359,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = typeWithAnnotations.Type;
                 if (type.IsDynamic()
                     || (typeWithAnnotations.NullableAnnotation.IsAnnotated() && !type.IsValueType)
-                    || type.IsNativeIntegerType
+                    || type.IsNativeIntegerWrapperType
                     || (type.IsTupleType && !type.TupleElementNames.IsDefault))
                 {
                     diagnostics.Add(ErrorCode.ERR_AttrDependentTypeNotAllowed, errorLocation, topLevelType.ToDisplayString(SymbolDisplayFormat.CSharpShortErrorMessageFormat));
@@ -6516,7 +6516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (leftType.TypeKind == TypeKind.TypeParameter)
                 {
                     CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstract);
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteInfo, basesBeingResolved: null, options: options | LookupOptions.MustNotBeInstance | LookupOptions.MustBeAbstractOrVirtual);
                     diagnostics.Add(right, useSiteInfo);
                     if (lookupResult.IsMultiViable)
                     {
@@ -7317,7 +7317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (symbol.ContainingType?.IsInterface == true)
             {
-                if (symbol.IsStatic && symbol.IsAbstract)
+                if (symbol.IsStatic && (symbol.IsAbstract || symbol.IsVirtual))
                 {
                     Debug.Assert(symbol is not TypeSymbol);
 

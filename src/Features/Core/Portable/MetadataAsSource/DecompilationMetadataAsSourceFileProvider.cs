@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var documentName = string.Format(
                 "{0} [{1}]",
                 topLevelNamedType.Name,
-                FeaturesResources.from_metadata);
+                useDecompiler ? FeaturesResources.Decompiled : FeaturesResources.from_metadata);
 
             var documentTooltip = topLevelNamedType.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
 
@@ -204,6 +205,18 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                                                              .GetRequiredDocument(temporaryProjectInfoAndDocumentId.Item2);
 
             return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        public bool ShouldCollapseOnOpen(string filePath, BlockStructureOptions blockStructureOptions)
+        {
+            if (_generatedFilenameToInformation.TryGetValue(filePath, out var info))
+            {
+                return info.SignaturesOnly
+                    ? blockStructureOptions.CollapseEmptyMetadataImplementationsWhenFirstOpened
+                    : blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
+            }
+
+            return false;
         }
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)

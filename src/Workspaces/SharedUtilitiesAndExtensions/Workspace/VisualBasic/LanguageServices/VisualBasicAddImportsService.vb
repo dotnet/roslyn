@@ -6,18 +6,13 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
-
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports OptionSet = Microsoft.CodeAnalysis.Options.OptionSet
-#End If
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
     <ExportLanguageService(GetType(IAddImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -64,10 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
-        Public Overrides Function PlaceImportsInsideNamespaces(configOptions As AnalyzerConfigOptions, fallbackValue As Boolean) As Boolean
+        Public Overrides Function GetUsingDirectivePlacementCodeStyleOption(configOptions As AnalyzerConfigOptions, fallbackValue As CodeStyleOption2(Of AddImportPlacement)) As CodeStyleOption2(Of AddImportPlacement)
             ' Visual Basic doesn't support imports inside namespaces
-            Return False
+            Return fallbackValue
         End Function
+
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
             ' Visual Basic doesn't support static imports
             Return False

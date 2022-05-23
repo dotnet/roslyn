@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </remarks>
         private readonly ImmutableDictionary<Uri, SourceText> _trackedDocuments;
 
+        private readonly LspServices _lspServices;
+
         /// <summary>
         /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
         /// </summary>
@@ -59,9 +61,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public readonly ImmutableArray<string> SupportedLanguages;
 
-        public readonly IGlobalOptionService GlobalOptions;
-
-        public readonly ILanguageServerNotificationManager NotificationManager;
         public readonly CancellationToken QueueCancellationToken;
 
         /// <summary>
@@ -78,8 +77,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IDocumentChangeTracker documentChangeTracker,
             ImmutableDictionary<Uri, SourceText> trackedDocuments,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions,
-            ILanguageServerNotificationManager notificationManager,
+            LspServices lspServices,
             CancellationToken queueCancellationToken)
         {
             Document = document;
@@ -87,28 +85,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             ClientCapabilities = clientCapabilities;
             ServerKind = serverKind;
             SupportedLanguages = supportedLanguages;
-            GlobalOptions = globalOptions;
             _documentChangeTracker = documentChangeTracker;
             _logger = logger;
             _trackedDocuments = trackedDocuments;
-            NotificationManager = notificationManager;
+            _lspServices = lspServices;
             QueueCancellationToken = queueCancellationToken;
         }
 
         public static async Task<RequestContext?> CreateAsync(
             bool requiresLSPSolution,
+            bool mutatesSolutionState,
             TextDocumentIdentifier? textDocument,
             WellKnownLspServerKinds serverKind,
-            ILspLogger logger,
             ClientCapabilities clientCapabilities,
-            LspWorkspaceManager lspWorkspaceManager,
-            ILanguageServerNotificationManager notificationManager,
-            IDocumentChangeTracker documentChangeTracker,
             ImmutableArray<string> supportedLanguages,
-            IGlobalOptionService globalOptions,
+            LspServices lspServices,
             CancellationToken queueCancellationToken,
             CancellationToken requestCancellationToken)
         {
+            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
+            var logger = lspServices.GetRequiredService<ILspLogger>();
+            var documentChangeTracker = mutatesSolutionState ? (IDocumentChangeTracker)lspWorkspaceManager : new NonMutatingDocumentChangeTracker();
+
             // Retrieve the current LSP tracked text as of this request.
             // This is safe as all creation of request contexts cannot happen concurrently.
             var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
@@ -121,8 +119,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 return new RequestContext(
                     solution: null, logger: logger, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
-                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, globalOptions: globalOptions,
-                    notificationManager: notificationManager, queueCancellationToken: queueCancellationToken);
+                    documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
+                    queueCancellationToken: queueCancellationToken);
             }
 
             Solution? workspaceSolution;
@@ -152,8 +150,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 documentChangeTracker,
                 trackedDocuments,
                 supportedLanguages,
-                globalOptions,
-                notificationManager,
+                lspServices,
                 queueCancellationToken);
             return context;
         }
@@ -202,5 +199,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public void TraceException(Exception exception)
             => _logger.TraceException(exception);
+
+        public T GetRequiredLspService<T>() where T : class, ILspService
+        {
+            return _lspServices.GetRequiredService<T>();
+        }
     }
 }

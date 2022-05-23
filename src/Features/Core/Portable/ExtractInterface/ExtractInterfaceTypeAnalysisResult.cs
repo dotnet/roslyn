@@ -6,6 +6,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public readonly SyntaxNode TypeNode;
         public readonly INamedTypeSymbol TypeToExtractFrom;
         public readonly IEnumerable<ISymbol> ExtractableMembers;
-        public readonly CodeCleanupOptionsProvider FallbackOptions;
+        public readonly CleanCodeGenerationOptionsProvider FallbackOptions;
         public readonly string ErrorMessage;
 
         public ExtractInterfaceTypeAnalysisResult(
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             SyntaxNode typeNode,
             INamedTypeSymbol typeToExtractFrom,
             IEnumerable<ISymbol> extractableMembers,
-            CodeCleanupOptionsProvider fallbackOptions)
+            CleanCodeGenerationOptionsProvider fallbackOptions)
         {
             CanExtractInterface = true;
             DocumentToExtractFrom = documentToExtractFrom;

@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -119,6 +120,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is ((($$ 1 or 2))))"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMiddleofCompletePattern_EmptyListPattern()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is ($$ []) and var x)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -284,6 +292,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is >= 0 $$"));
+        }
+
+        [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("and")]
+        [InlineData("or")]
+        public async Task TestAfterIdentifierPatternKeyword(string precedingKeyword)
+        {
+            await VerifyKeywordAsync(InitializeObjectE +
+$@"if (e is Test.TestValue {precedingKeyword} $$)
+
+enum Test {{ TestValue }}");
         }
     }
 }
