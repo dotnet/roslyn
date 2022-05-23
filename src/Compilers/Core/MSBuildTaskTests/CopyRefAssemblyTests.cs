@@ -12,6 +12,7 @@ using System.IO;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using ICSharpCode.Decompiler;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -102,6 +103,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 engine.Log);
 
             Assert.Equal("test", File.ReadAllText(dest.Path));
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
+        public void SourceAssemblyWithDifferentDestinationAssembly()
+        {
+            var dir = TempRoot.CreateDirectory();
+            var source = dir.CreateFile("mvid1.dll");
+            File.WriteAllBytes(source.Path, TestResources.General.MVID1);
+            var sourceTimestamp = File.GetLastWriteTimeUtc(source.Path).ToString("O");
+
+            var dest = dir.CreateFile("mvid2.dll");
+            File.WriteAllBytes(dest.Path, TestResources.General.MVID2);
+            var destTimestamp = File.GetLastWriteTimeUtc(dest.Path).ToString("O");
+
+            var engine = new MockEngine();
+            var task = new CopyRefAssembly()
+            {
+                BuildEngine = engine,
+                SourcePath = source.Path,
+                DestinationPath = dest.Path,
+            };
+
+            Assert.True(task.Execute());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($$"""
+                Source reference assembly "{{source.Path}}" (timestamp "{{sourceTimestamp}}", MVID "f851dda2-6ea3-475e-8c0d-19bd3c4d9437") differs from destination "{{dest.Path}}" (timestamp "{{destTimestamp}}", MVID "8e1ed25b-2980-4f32-9dee-c1e3b0a57c4b").
+                Copying reference assembly from "{{source.Path}}" to "{{dest.Path}}".
+                """,
+                engine.Log);
         }
     }
 }
