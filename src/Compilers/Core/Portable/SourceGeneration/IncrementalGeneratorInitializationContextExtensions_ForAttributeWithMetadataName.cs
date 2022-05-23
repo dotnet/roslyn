@@ -56,8 +56,7 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        var nodesWithAttributesMatchingSimpleName = context.SyntaxProvider.CreateSyntaxProviderForAttribute<T>(
-            metadataName.UnmangledTypeName, context);
+        var nodesWithAttributesMatchingSimpleName = context.ForAttributeWithSimpleName<T>(metadataName.UnmangledTypeName);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()
@@ -119,37 +118,5 @@ internal static partial class IncrementalGeneratorInitializationContextExtension
         }
 
         return false;
-    }
-
-    private class SyntaxNodeArrayComparer<TSyntaxNode> : IEqualityComparer<ImmutableArray<TSyntaxNode>>
-        where TSyntaxNode : SyntaxNode
-    {
-        public static readonly IEqualityComparer<ImmutableArray<TSyntaxNode>> Instance = new SyntaxNodeArrayComparer<TSyntaxNode>();
-
-        public bool Equals([AllowNull] ImmutableArray<TSyntaxNode> x, [AllowNull] ImmutableArray<TSyntaxNode> y)
-        {
-            if (x == y)
-                return true;
-
-            if (x.Length != y.Length)
-                return false;
-
-            for (int i = 0, n = x.Length; i < n; i++)
-            {
-                if (x[i] != y[i])
-                    return false;
-            }
-
-            return true;
-        }
-
-        public int GetHashCode([DisallowNull] ImmutableArray<TSyntaxNode> obj)
-        {
-            var hashCode = 0;
-            foreach (var node in obj)
-                hashCode = Hash.Combine(hashCode, node.GetHashCode());
-
-            return hashCode;
-        }
     }
 }

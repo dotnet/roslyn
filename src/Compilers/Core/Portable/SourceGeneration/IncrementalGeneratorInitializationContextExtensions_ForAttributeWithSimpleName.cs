@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-internal static partial class SyntaxValueProviderExtensions
+internal static partial class IncrementalGeneratorInitializationContextExtensions
 {
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
@@ -39,10 +39,9 @@ internal static partial class SyntaxValueProviderExtensions
     /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    internal static IncrementalValuesProvider<T> CreateSyntaxProviderForAttribute<T>(
-        this SyntaxValueProvider provider,
-        string simpleName,
-        IncrementalGeneratorInitializationContext context)
+    internal static IncrementalValuesProvider<T> ForAttributeWithSimpleName<T>(
+        this IncrementalGeneratorInitializationContext context,
+        string simpleName)
         where T : SyntaxNode
     {
         var syntaxHelper = context.SyntaxHelper;
@@ -50,7 +49,7 @@ internal static partial class SyntaxValueProviderExtensions
             throw new ArgumentException("<todo: add error message>", nameof(simpleName));
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
-        var individualFileGlobalAliasesProvider = provider.CreateSyntaxProvider(
+        var individualFileGlobalAliasesProvider = context.SyntaxProvider.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
             static (context, _) => GetGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -80,7 +79,7 @@ internal static partial class SyntaxValueProviderExtensions
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Create a syntax provider for every compilation unit.
-        var compilationUnitProvider = provider.CreateSyntaxProvider(
+        var compilationUnitProvider = context.SyntaxProvider.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
             static (context, _) => context.Node).WithTrackingName("compilationUnit_ForAttribute");
 
