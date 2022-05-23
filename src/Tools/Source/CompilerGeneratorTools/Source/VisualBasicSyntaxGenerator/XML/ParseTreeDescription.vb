@@ -118,7 +118,7 @@ Public Class ParseTree
     End Sub
 
     ' Set the IsToken and IsTrivia flags on a struct
-    Private Sub SetIsTokenAndIsTrivia(struct As ParseNodeStructure)
+    Private Shared Sub SetIsTokenAndIsTrivia(struct As ParseNodeStructure)
         ' Walk the hierarchy.
         Dim parent = struct
 
@@ -212,7 +212,7 @@ Public Class ParseTree
     End Function
 
     ' Is this structure some base structure of another, or the same
-    Public Function IsAncestorOrSame(parent As ParseNodeStructure, child As ParseNodeStructure) As Boolean
+    Public Shared Function IsAncestorOrSame(parent As ParseNodeStructure, child As ParseNodeStructure) As Boolean
         Do
             If (parent Is child) Then
                 Return True

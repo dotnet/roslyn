@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        private TypeSignature DecodeGenericTypeParameter(
+        private static TypeSignature DecodeGenericTypeParameter(
             ref BlobReader signatureReader,
             ImmutableArray<string> typeParameters,
             int containingArity)

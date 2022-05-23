@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Lower each switch expression arm
                 LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
-                LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
+                LabelSymbol afterSwitchExpression = SyntheticBoundNodeFactory.GenerateLabel("afterSwitchExpression");
                 foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
                 {
                     _factory.Syntax = arm.Syntax;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (GenerateInstrumentation)
-                    result.Add(_factory.HiddenSequencePoint());
+                    result.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
                 result.Add(_factory.Label(afterSwitchExpression));
                 if (produceDetailedSequencePoints)
                     result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForEnclosingStatement));
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiver: null,
                     throwSwitchExpressionExceptionMethod,
                     arg0: unmatchedValue);
-                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+                return SyntheticBoundNodeFactory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
 
             private static BoundStatement ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(SyntheticBoundNodeFactory factory)
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var call = factory.Call(
                     receiver: null,
                     throwSwitchExpressionExceptionMethod);
-                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+                return SyntheticBoundNodeFactory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
 
             private static BoundStatement ConstructThrowInvalidOperationExceptionHelperCall(SyntheticBoundNodeFactory factory)
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var call = factory.Call(
                     receiver: null,
                     throwMethod);
-                return factory.HiddenSequencePoint(factory.ExpressionStatement(call));
+                return SyntheticBoundNodeFactory.HiddenSequencePoint(factory.ExpressionStatement(call));
             }
         }
     }

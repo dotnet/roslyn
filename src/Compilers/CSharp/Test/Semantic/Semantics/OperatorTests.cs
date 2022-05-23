@@ -7496,7 +7496,7 @@ public class RubyTime
 
                 if (name == typeNames.Length - 1)
                 {
-                    type = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte));
+                    type = CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte));
                 }
                 else if (name == typeNames.Length - 2)
                 {
@@ -7865,10 +7865,10 @@ class Module1
             types[types.Length - 3] = compilation.DynamicType;
 
             Assert.Null(types[types.Length - 2]);
-            types[types.Length - 2] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte));
+            types[types.Length - 2] = CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte));
 
             Assert.Null(types[types.Length - 1]);
-            types[types.Length - 1] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
+            types[types.Length - 1] = CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
                          select (node as BinaryExpressionSyntax)).
@@ -8025,10 +8025,10 @@ class Module1
             types[types.Length - 3] = compilation.DynamicType;
 
             Assert.Null(types[types.Length - 2]);
-            types[types.Length - 2] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte));
+            types[types.Length - 2] = CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Byte));
 
             Assert.Null(types[types.Length - 1]);
-            types[types.Length - 1] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
+            types[types.Length - 1] = CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
                          select (node as AssignmentExpressionSyntax)).
@@ -8279,8 +8279,8 @@ class Module1
                     leftType.IsPointerType() && rightType.IsPointerType())
                 {
                     signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer,
-                        compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Void)),
-                        compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Void)),
+                        CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Void)),
+                        CSharpCompilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Void)),
                         compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
                 else

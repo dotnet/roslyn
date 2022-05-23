@@ -59,7 +59,7 @@ Friend Class GreenNodeWriter
         'DumpNames("Nodes with Two Children", _nonterminalsWithTwoChildren)
     End Sub
 
-    Private Sub DumpNames(title As String, names As List(Of String))
+    Private Shared Sub DumpNames(title As String, names As List(Of String))
         Console.WriteLine(title)
         Console.WriteLine("=======================================")
         Dim sortedNames = From n In names Order By n
@@ -78,7 +78,7 @@ Friend Class GreenNodeWriter
     End Sub
 
     ' Generate a constant value
-    Private Function GetConstantValue(val As Long) As String
+    Private Shared Function GetConstantValue(val As Long) As String
         Return val.ToString()
     End Function
 
@@ -438,7 +438,7 @@ Friend Class GreenNodeWriter
         _writer.WriteLine()
     End Sub
 
-    Private Function ReaderMethod(type As String) As String
+    Private Shared Function ReaderMethod(type As String) As String
         Select Case type
             Case "Integer", "SyntaxKind", "TypeCharacter"
                 Return "ReadInt32"
@@ -449,7 +449,7 @@ Friend Class GreenNodeWriter
         End Select
     End Function
 
-    Private Function WriterMethod(type As String) As String
+    Private Shared Function WriterMethod(type As String) As String
         Select Case type
             Case "Integer", "SyntaxKind", "TypeCharacter"
                 Return "WriteInt32"
@@ -641,7 +641,7 @@ Friend Class GreenNodeWriter
     End Sub
 
     ' Get modifiers
-    Private Function GetModifiers(containingStructure As ParseNodeStructure, isOverride As Boolean, name As String) As String
+    Private Shared Function GetModifiers(containingStructure As ParseNodeStructure, isOverride As Boolean, name As String) As String
         ' Is this overridable or an override?
         Dim modifiers = ""
         'If isOverride Then

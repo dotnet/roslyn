@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 return str1.Length - str2.Length;
             }
 
-            public int Compare(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
+            public static int Compare(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
             {
                 int len = Math.Min(str1.Length, str2.Length);
                 for (int i = 0; i < len; i++)
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            public bool Equals(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
+            public static bool Equals(ReadOnlySpan<char> str1, ReadOnlySpan<char> str2)
             {
                 if (str1.Length != str2.Length)
                 {
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// These are also the rules used for VB identifier comparison.
         /// </remarks>
-        public static bool Equals(string left, string right) => s_comparer.Equals(left, right);
+        public static bool Equals(string left, string right) => OneToOneUnicodeComparer.Equals(left.AsSpan(), right.AsSpan());
 
         /// <summary>
         /// Determines if two strings are equal according to Unicode rules for case-insensitive
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// These are also the rules used for VB identifier comparison.
         /// </remarks>
-        public static bool Equals(ReadOnlySpan<char> left, ReadOnlySpan<char> right) => s_comparer.Equals(left, right);
+        public static bool Equals(ReadOnlySpan<char> left, ReadOnlySpan<char> right) => OneToOneUnicodeComparer.Equals(left, right);
 
         /// <summary>
         /// Determines if the string 'value' end with string 'possibleEnd'.
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// These are also the rules used for VB identifier comparison.
         /// </remarks>
-        public static int Compare(string left, string right) => s_comparer.Compare(left, right);
+        public static int Compare(string left, string right) => OneToOneUnicodeComparer.Compare(left.AsSpan(), right.AsSpan());
 
         /// <summary>
         /// Compares two strings according to the Unicode rules for case-insensitive
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// These are also the rules used for VB identifier comparison.
         /// </remarks>
-        public static int Compare(ReadOnlySpan<char> left, ReadOnlySpan<char> right) => s_comparer.Compare(left, right);
+        public static int Compare(ReadOnlySpan<char> left, ReadOnlySpan<char> right) => OneToOneUnicodeComparer.Compare(left, right);
 
         /// <summary>
         /// Gets a case-insensitive hash code for Unicode identifiers.

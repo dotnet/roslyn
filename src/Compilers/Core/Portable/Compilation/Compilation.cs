@@ -3190,7 +3190,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (PermissionSetFileReadException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, PermissionSetFileReadException.PropertyName, e.Message));
                     return false;
                 }
 
@@ -3352,7 +3352,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (PermissionSetFileReadException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, PermissionSetFileReadException.PropertyName, e.Message));
                     return null;
                 }
             }

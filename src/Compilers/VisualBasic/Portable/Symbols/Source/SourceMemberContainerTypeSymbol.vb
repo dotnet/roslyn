@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' it produces the flags, even in the case of potentially conflicting modifiers. We have to
         ''' return some answer even in the case of errors.
         ''' </summary>
-        Private Function ComputeTypeFlags(declaration As MergedTypeDeclaration, isTopLevel As Boolean) As SourceTypeFlags
+        Private Shared Function ComputeTypeFlags(declaration As MergedTypeDeclaration, isTopLevel As Boolean) As SourceTypeFlags
             Dim mergedModifiers As DeclarationModifiers = DeclarationModifiers.None
             For i = 0 To declaration.Declarations.Length - 1
                 mergedModifiers = mergedModifiers Or declaration.Declarations(i).Modifiers
@@ -1751,7 +1751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary> Examines the members collection and builds a set of partial methods if any, otherwise returns nothing </summary>
-        Private Function FindPartialMethodDeclarations(diagnostics As BindingDiagnosticBag, members As Dictionary(Of String, ImmutableArray(Of Symbol))) As HashSet(Of SourceMemberMethodSymbol)
+        Private Shared Function FindPartialMethodDeclarations(diagnostics As BindingDiagnosticBag, members As Dictionary(Of String, ImmutableArray(Of Symbol))) As HashSet(Of SourceMemberMethodSymbol)
             Dim partialMethods As HashSet(Of SourceMemberMethodSymbol) = Nothing
             For Each memberGroup In members
                 For Each member In memberGroup.Value
@@ -1903,7 +1903,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Sub
 
-        Private Sub ReportErrorsOnPartialMethodImplementation(partialMethod As SourceMethodSymbol,
+        Private Shared Sub ReportErrorsOnPartialMethodImplementation(partialMethod As SourceMethodSymbol,
                                                               implMethod As SourceMethodSymbol,
                                                               implMethodLocation As Location,
                                                               diagnostics As BindingDiagnosticBag)
@@ -1973,7 +1973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Compares two methods to check if the 'candidate' can be an implementation of the 'partialDeclaration'.
         ''' </summary>
-        Private Function ComparePartialMethodSignatures(partialDeclaration As SourceMethodSymbol, candidate As SourceMethodSymbol) As Boolean
+        Private Shared Function ComparePartialMethodSignatures(partialDeclaration As SourceMethodSymbol, candidate As SourceMethodSymbol) As Boolean
             ' Don't check values of optional parameters yet, this might cause an infinite cycle.
             ' Don't check ParamArray mismatch either, might cause us to bind attributes too early.
             Dim comparisons = SymbolComparisonResults.AllMismatches And
@@ -2344,7 +2344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' or date. Non const fields always require a constructor, so this function should be called to 
         ''' determine if a synthesized constructor is needed that is not listed in members list.
         ''' </summary>
-        Friend Function AnyInitializerToBeInjectedIntoConstructor(
+        Friend Shared Function AnyInitializerToBeInjectedIntoConstructor(
             initializerSet As IEnumerable(Of ImmutableArray(Of FieldOrPropertyInitializer)),
             includingNonMetadataConstants As Boolean
         ) As Boolean
@@ -2380,7 +2380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="membersAndInitializers"></param>
         ''' <param name="diagBag"></param>
         ''' <remarks></remarks>
-        Private Sub CheckForOverloadOverridesShadowsClashesInSameType(membersAndInitializers As MembersAndInitializers, diagBag As BindingDiagnosticBag)
+        Private Shared Sub CheckForOverloadOverridesShadowsClashesInSameType(membersAndInitializers As MembersAndInitializers, diagBag As BindingDiagnosticBag)
             For Each member In membersAndInitializers.Members
                 '  list may contain both properties and methods
                 Dim checkProperties As Boolean = True
@@ -2453,7 +2453,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
-        Private Function GetExplicitSymbolFlags(symbol As Symbol, ByRef shadowsExplicitly As Boolean, ByRef overloadsExplicitly As Boolean, ByRef overridesExplicitly As Boolean) As Boolean
+        Private Shared Function GetExplicitSymbolFlags(symbol As Symbol, ByRef shadowsExplicitly As Boolean, ByRef overloadsExplicitly As Boolean, ByRef overridesExplicitly As Boolean) As Boolean
             Select Case symbol.Kind
                 Case SymbolKind.Method
                     Dim sourceMethodSymbol As SourceMethodSymbol = TryCast(symbol, SourceMethodSymbol)
@@ -2717,7 +2717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If TypeKind = TypeKind.Submission Then
 
                 ' Only add a constructor if it is not shared OR if there are shared initializers
-                If Not isShared OrElse Me.AnyInitializerToBeInjectedIntoConstructor(initializers, False) Then
+                If Not isShared OrElse AnyInitializerToBeInjectedIntoConstructor(initializers, False) Then
 
                     ' a submission can only have a single declaration:
                     Dim syntaxRef = SyntaxReferences.Single()
@@ -2736,7 +2736,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' an instance constructor, or if this is a shared constructor and 
                 ' there is at least one non-constant initializers
                 Dim anyInitializersToInject As Boolean =
-                        Me.AnyInitializerToBeInjectedIntoConstructor(initializers, Not isShared)
+                        AnyInitializerToBeInjectedIntoConstructor(initializers, Not isShared)
                 ' NOTE: for shared constructor we DO NOT check for non-metadata-const 
                 '       initializers, those will be addressed later
 
@@ -2878,7 +2878,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Sub AddPropertyAndAccessors(propertySymbol As SourcePropertySymbol,
+        Private Shared Sub AddPropertyAndAccessors(propertySymbol As SourcePropertySymbol,
                                            binder As Binder,
                                            members As MembersAndInitializersBuilder)
 
@@ -2894,7 +2894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Sub AddEventAndAccessors(eventSymbol As SourceEventSymbol,
+        Private Shared Sub AddEventAndAccessors(eventSymbol As SourceEventSymbol,
                                    binder As Binder,
                                    members As MembersAndInitializersBuilder)
 
@@ -2957,7 +2957,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
-        Friend Sub AddMember(sym As Symbol,
+        Friend Shared Sub AddMember(sym As Symbol,
                              binder As Binder,
                              members As MembersAndInitializersBuilder,
                              omitDiagnostics As Boolean)
@@ -2969,7 +2969,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             AddSymbolToMembers(sym, members.Members)
         End Sub
 
-        Friend Sub AddSymbolToMembers(memberSymbol As Symbol,
+        Friend Shared Sub AddSymbolToMembers(memberSymbol As Symbol,
                                       members As Dictionary(Of String, ArrayBuilder(Of Symbol)))
 
             Dim symbols As ArrayBuilder(Of Symbol) = Nothing
@@ -3194,7 +3194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If Not MemberAndInitializerLookup.Members.TryGetValue(WellKnownMemberNames.StaticConstructorName, symbols) Then
 
                     ' call AnyInitializerToBeInjectedIntoConstructor if only there is no static constructor
-                    If Me.AnyInitializerToBeInjectedIntoConstructor(staticInitializers, True) Then
+                    If AnyInitializerToBeInjectedIntoConstructor(staticInitializers, True) Then
                         Dim syntaxRef = SyntaxReferences.First() ' use arbitrary part
                         Return New SynthesizedConstructorSymbol(syntaxRef, Me,
                                                                 isShared:=True, isDebuggable:=True,
@@ -3440,7 +3440,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Should we report implementation errors for this member?
         ' We don't report errors on accessors, because we already report the errors on their containing property/event.
-        Private Function ShouldReportImplementationError(interfaceMember As Symbol) As Boolean
+        Private Shared Function ShouldReportImplementationError(interfaceMember As Symbol) As Boolean
             Dim method = TryCast(interfaceMember, MethodSymbol)
 
             If method IsNot Nothing AndAlso

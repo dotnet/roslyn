@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return sb.ToString();
         }
 
-        private string GetFlattenedNodeText(SyntaxNode node)
+        private static string GetFlattenedNodeText(SyntaxNode node)
         {
             const int cutoff = 30;
 

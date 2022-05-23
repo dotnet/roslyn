@@ -28,11 +28,6 @@ namespace Microsoft.Cci
 
         private readonly IMethodDefinition _containingMethod;
 
-        public MetadataConstant? Constant
-        {
-            get { return null; }
-        }
-
         public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers
         {
             get { return _containingMethod.RefCustomModifiers; }

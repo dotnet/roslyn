@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                            metadataExprs.AsImmutableOrNull)
         End Function
 
-        Private Function CreateType(argument As TypedConstant, context As EmitContext) As MetadataTypeOf
+        Private Shared Function CreateType(argument As TypedConstant, context As EmitContext) As MetadataTypeOf
             Debug.Assert(argument.ValueInternal IsNot Nothing)
 
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                       moduleBeingBuilt.Translate(DirectCast(argument.TypeInternal, TypeSymbol), syntaxNodeOpt, diagnostics))
         End Function
 
-        Private Function CreateMetadataConstant(type As ITypeSymbolInternal, value As Object, context As EmitContext) As MetadataConstant
+        Private Shared Function CreateMetadataConstant(type As ITypeSymbolInternal, value As Object, context As EmitContext) As MetadataConstant
             Dim moduleBeingBuilt = DirectCast(context.Module, PEModuleBuilder)
             Return moduleBeingBuilt.CreateConstant(DirectCast(type, TypeSymbol), value, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function

@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (result.Count == 0)
                         result.Add(_factory.NoOp(NoOpStatementFlavor.Default));
 
-                    result.Add(_factory.HiddenSequencePoint());
+                    result.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
                 }
 
                 // lower the decision dag.
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 _factory.Syntax = node.Syntax;
                 if (GenerateInstrumentation)
-                    result.Add(_factory.HiddenSequencePoint());
+                    result.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
 
                 result.Add(_factory.Label(node.BreakLabel));
                 BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());

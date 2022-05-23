@@ -412,7 +412,7 @@ namespace Roslyn.Utilities
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
                 if (_valueToIdMap.Count > 1024)
                 {
-                    pool.ForgetTrackedObject(_valueToIdMap);
+                    ObjectPool<SegmentedDictionary<object, int>>.ForgetTrackedObject(_valueToIdMap);
                 }
                 else
                 {

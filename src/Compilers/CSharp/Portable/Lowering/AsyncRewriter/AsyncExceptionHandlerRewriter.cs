@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var exceptionType = _F.SpecialType(SpecialType.System_Object);
             var pendingExceptionLocal = new SynthesizedLocal(_F.CurrentFunction, TypeWithAnnotations.Create(exceptionType), SynthesizedLocalKind.TryAwaitPendingException, tryStatementSyntax);
-            var finallyLabel = _F.GenerateLabel("finallyLabel");
+            var finallyLabel = SyntheticBoundNodeFactory.GenerateLabel("finallyLabel");
             var pendingBranchVar = new SynthesizedLocal(_F.CurrentFunction, TypeWithAnnotations.Create(_F.SpecialType(SpecialType.System_Int32)), SynthesizedLocalKind.TryAwaitPendingBranch, tryStatementSyntax);
 
             var catchAll = _F.Catch(_F.Local(pendingExceptionLocal), _F.Block());
@@ -187,17 +187,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var catchAndPendException = _F.Try(
                 _F.Block(
                     finalizedRegion,
-                    _F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                     _F.Goto(finallyLabel),
                     PendBranches(frame, pendingBranchVar, finallyLabel)),
                 ImmutableArray.Create(catchAll),
                 finallyLabel: finallyLabel);
 
             BoundBlock syntheticFinallyBlock = _F.Block(
-                _F.HiddenSequencePoint(),
+                SyntheticBoundNodeFactory.HiddenSequencePoint(),
                 _F.Label(finallyLabel),
                 rewrittenFinally,
-                _F.HiddenSequencePoint(),
+                SyntheticBoundNodeFactory.HiddenSequencePoint(),
                 UnpendException(pendingExceptionLocal),
                 UnpendBranches(
                     frame,
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
 
-            statements.Add(_F.HiddenSequencePoint());
+            statements.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
 
             locals.Add(pendingExceptionLocal);
             statements.Add(_F.Assignment(_F.Local(pendingExceptionLocal), _F.Default(pendingExceptionLocal.Type)));
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var target = proxiedLabels[i - 1];
                     var parentProxy = parent.ProxyLabelIfNeeded(target);
-                    var caseStatement = _F.SwitchSection(i, _F.Goto(parentProxy));
+                    var caseStatement = SyntheticBoundNodeFactory.SwitchSection(i, _F.Goto(parentProxy));
                     cases.Add(caseStatement);
                 }
             }
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var caseStatement = _F.SwitchSection(i, unpendReturn);
+                var caseStatement = SyntheticBoundNodeFactory.SwitchSection(i, unpendReturn);
                 cases.Add(caseStatement);
             }
 
@@ -472,12 +472,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentAwaitCatchFrame = _currentAwaitCatchFrame;
             if (currentAwaitCatchFrame != null)
             {
-                var handledLabel = _F.GenerateLabel("handled");
+                var handledLabel = SyntheticBoundNodeFactory.GenerateLabel("handled");
                 var handlersList = currentAwaitCatchFrame.handlers;
                 var handlers = ArrayBuilder<SyntheticBoundNodeFactory.SyntheticSwitchSection>.GetInstance(handlersList.Count);
                 for (int i = 0, l = handlersList.Count; i < l; i++)
                 {
-                    handlers.Add(_F.SwitchSection(
+                    handlers.Add(SyntheticBoundNodeFactory.SwitchSection(
                         i + 1,
                         _F.Block(
                             handlersList[i],
@@ -489,16 +489,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         currentAwaitCatchFrame.pendingCaughtException,
                         currentAwaitCatchFrame.pendingCatch).
                         AddRange(currentAwaitCatchFrame.GetHoistedLocals()),
-                    _F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                     _F.Assignment(
                         _F.Local(currentAwaitCatchFrame.pendingCatch),
                         _F.Default(currentAwaitCatchFrame.pendingCatch.Type)),
                     tryWithCatches,
-                    _F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                     _F.Switch(
                         _F.Local(currentAwaitCatchFrame.pendingCatch),
                         handlers.ToImmutableAndFree()),
-                    _F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                     _F.Label(handledLabel));
             }
 
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     exceptionFilterPrologueOpt: filterPrologueOpt,
                     exceptionFilterOpt: null,
                     body: _F.Block(
-                        _F.HiddenSequencePoint(),
+                        SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         _F.ExpressionStatement(storePending),
                         setPendingCatchNum),
                     isSynthesizedAsyncCatchAll: node.IsSynthesizedAsyncCatchAll);
@@ -608,14 +608,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     exceptionFilterPrologueOpt: newPrologue,
                     exceptionFilterOpt: rewrittenFilter,
                     body: _F.Block(
-                        _F.HiddenSequencePoint(),
+                        SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         setPendingCatchNum),
                     isSynthesizedAsyncCatchAll: node.IsSynthesizedAsyncCatchAll);
             }
 
             var handlerStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
-            handlerStatements.Add(_F.HiddenSequencePoint());
+            handlerStatements.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
 
             if (filterOpt == null)
             {

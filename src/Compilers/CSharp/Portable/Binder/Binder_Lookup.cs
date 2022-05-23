@@ -1828,7 +1828,7 @@ symIsHidden:;
             }
         }
 
-        protected void AddLookupSymbolsInfoInAliases(
+        protected static void AddLookupSymbolsInfoInAliases(
             ImmutableDictionary<string, AliasAndUsingDirective> usingAliases,
             ImmutableArray<AliasAndExternAliasDirective> externAliases,
             LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)

@@ -1794,8 +1794,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(boundNode, BoundLambda)
         End Function
 
+#Disable Warning CA1822 ' Mark members as static - instance members are accessed in debug.
         <Conditional("DEBUG")>
         Private Sub AssertIfShouldHaveFound(node As VisualBasicSyntaxNode)
+#Enable Warning CA1822 ' Mark members as static
 #If DEBUG Then
             Debug.Assert(Not ShouldHaveFound(node))
 #End If

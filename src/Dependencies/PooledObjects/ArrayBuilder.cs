@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 }
                 else
                 {
-                    pool.ForgetTrackedObject(this);
+                    ObjectPool<ArrayBuilder<T>>.ForgetTrackedObject(this);
                 }
             }
         }

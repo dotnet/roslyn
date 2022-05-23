@@ -42,7 +42,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
+#Disable Warning CA1822 ' Mark members as static
                 Public Sub Indent()
+#Enable Warning CA1822 ' Mark members as static
                     ' NOTE: Dev11 does not seem to try pretty-indenting of the document tags
                     '       which is reasonable because we don't want to add extra indents in XML
                     'Me._indentDepth += 1

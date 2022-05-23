@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // dynamic storeNonEvent = !isEvent ? memberAccessReceiver.EV : null;
                 lhsRead = _factory.StoreToTemp(lhsRead, out BoundAssignmentOperator receiverAssignment);
                 eventTemps.Add(((BoundLocal)lhsRead).LocalSymbol);
-                var storeNonEvent = _factory.StoreToTemp(_factory.Conditional(_factory.Not(isEvent), receiverAssignment, _factory.Null(receiverAssignment.Type), receiverAssignment.Type), out BoundAssignmentOperator nonEventStore);
+                var storeNonEvent = _factory.StoreToTemp(_factory.Conditional(SyntheticBoundNodeFactory.Not(isEvent), receiverAssignment, _factory.Null(receiverAssignment.Type), receiverAssignment.Type), out BoundAssignmentOperator nonEventStore);
                 eventTemps.Add(storeNonEvent.LocalSymbol);
                 sequence.Add(nonEventStore);
 

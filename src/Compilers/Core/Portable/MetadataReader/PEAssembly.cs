@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             _owner = owner;
         }
 
-        internal EntityHandle Handle
+        internal static EntityHandle Handle
         {
             get
             {

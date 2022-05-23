@@ -575,7 +575,7 @@ Friend Class RedNodeFactoryWriter
         End If
     End Sub
 
-    Private Function HasDefaultToken(nodeStructure As ParseNodeStructure,
+    Private Shared Function HasDefaultToken(nodeStructure As ParseNodeStructure,
                              nodeKind As ParseNodeKind) As Boolean
 
         If Not nodeStructure.IsToken Then
@@ -819,7 +819,7 @@ Friend Class RedNodeFactoryWriter
         _writer.Write("{0} As {1}", FieldParamName(field, conflictName), FieldTypeRef(field))
     End Sub
 
-    Private Function CanBeIdentifierToken(child As ParseNodeChild) As Boolean
+    Private Shared Function CanBeIdentifierToken(child As ParseNodeChild) As Boolean
         Dim childKind = TryCast(child.ChildKind, ParseNodeKind)
         If childKind IsNot Nothing Then
             Return childKind.Name = "IdentifierToken"

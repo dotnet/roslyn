@@ -1023,7 +1023,7 @@ LessThanSlashTokenCase:
             Return Result
         End Function
 
-        Private Function ElementNameIsOneFromTheList(xmlElementName As XmlNodeSyntax, ParamArray names() As String) As Boolean
+        Private Shared Function ElementNameIsOneFromTheList(xmlElementName As XmlNodeSyntax, ParamArray names() As String) As Boolean
             If xmlElementName Is Nothing OrElse xmlElementName.Kind <> SyntaxKind.XmlName Then
                 Return False
             End If

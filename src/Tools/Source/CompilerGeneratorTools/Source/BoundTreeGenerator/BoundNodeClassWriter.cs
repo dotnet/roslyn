@@ -1046,7 +1046,7 @@ namespace BoundTreeGenerator
         private static bool TypeIsSymbol(Field field) => TypeIsSymbol(field.Type);
         private static bool TypeIsSymbol(string type) => type.TrimEnd('?').EndsWith("Symbol");
 
-        private string StripBound(string name)
+        private static string StripBound(string name)
         {
             if (name.StartsWith("Bound", StringComparison.Ordinal))
             {

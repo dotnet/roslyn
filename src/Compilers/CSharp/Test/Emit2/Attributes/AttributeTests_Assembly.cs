@@ -561,7 +561,7 @@ class Program
                     Assert.Equal(new byte[] { 0x7F, 0x28, 0xEA, 0xD1, 0xF4, 0xA1, 0x7C, 0xB8, 0x0C, 0x14, 0xC0, 0x2E, 0x8C, 0xFF, 0x10, 0xEC, 0xB3, 0xC2, 0xA5, 0x1D },
                         reader.GetBlobBytes(file2.HashValue));
 
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateCompilation(
@@ -592,7 +592,7 @@ class Program
                     Assert.Equal(new byte[] { 0x7F, 0x28, 0xEA, 0xD1, 0xF4, 0xA1, 0x7C, 0xB8, 0x0C, 0x14, 0xC0, 0x2E, 0x8C, 0xFF, 0x10, 0xEC, 0xB3, 0xC2, 0xA5, 0x1D },
                         reader.GetBlobBytes(file2.HashValue));
 
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateCompilation(
@@ -622,7 +622,7 @@ class Program
                     Assert.Equal(new byte[] { 0x8D, 0xFE, 0xBF, 0x49, 0x8D, 0x62, 0x2A, 0x88, 0x89, 0xD1, 0x0E, 0x00, 0x9E, 0x29, 0x72, 0xF1 },
                         reader.GetBlobBytes(file2.HashValue));
 
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateCompilation(
@@ -651,7 +651,7 @@ class Program
                     var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x7F, 0x28, 0xEA, 0xD1, 0xF4, 0xA1, 0x7C, 0xB8, 0x0C, 0x14, 0xC0, 0x2E, 0x8C, 0xFF, 0x10, 0xEC, 0xB3, 0xC2, 0xA5, 0x1D },
                         reader.GetBlobBytes(file2.HashValue));
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateEmptyCompilation(
@@ -680,7 +680,7 @@ class Program
                     Assert.Equal(new byte[] { 0xCC, 0xAE, 0xA0, 0xB4, 0x9E, 0xAE, 0x28, 0xE0, 0xA3, 0x46, 0xE9, 0xCF, 0xF3, 0xEF, 0xEA, 0xF7,
                                               0x1D, 0xDE, 0x62, 0x8F, 0xD6, 0xF4, 0x87, 0x76, 0x1A, 0xC3, 0x6F, 0xAD, 0x10, 0x1C, 0x10, 0xAC},
                         reader.GetBlobBytes(file2.HashValue));
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateEmptyCompilation(
@@ -713,7 +713,7 @@ class Program
                                               0xE6, 0x23, 0x6F, 0x2D, 0xBA, 0x04, 0xE7, 0x13, 0xE4, 0x5E, 0x8C, 0xEB, 0x80, 0x68, 0xA3, 0x17},
                         reader.GetBlobBytes(file2.HashValue));
 
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateEmptyCompilation(
@@ -748,7 +748,7 @@ class Program
                                               0xE5, 0x07, 0x2B, 0x4A, 0x18, 0x09, 0x56, 0xC9, 0x52, 0x69, 0x7D, 0xC4, 0x48, 0x63, 0x70, 0xF2},
                         reader.GetBlobBytes(file2.HashValue));
 
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             var hash_module_Comp = CreateCompilation(
@@ -773,7 +773,7 @@ class Program
                     var peReader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = peReader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm);
-                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
+                    Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(PEAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
             compilation = CreateCompilation(

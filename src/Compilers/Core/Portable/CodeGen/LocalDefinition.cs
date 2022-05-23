@@ -112,13 +112,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
             => ImmutableArray<Cci.ICustomModifier>.Empty;
 
-        public bool IsConstant
-        {
-            get { throw ExceptionUtilities.Unreachable; }
-        }
-
-        public bool IsModified => false;
-
         public LocalSlotConstraints Constraints => _constraints;
 
         public bool IsPinned

@@ -219,7 +219,7 @@ lReportErrorOnTwoTokens:
                                                    binder As Binder,
                                                    diagBag As DiagnosticBag) As SourceMethodSymbol
 
-            Dim methodModifiers = binder.DecodeModifiers(
+            Dim methodModifiers = Binder.DecodeModifiers(
                 syntax.Modifiers,
                 SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Overloads Or SourceMemberFlags.Shadows,
                 ERRID.ERR_BadDeclareFlags1,
@@ -419,7 +419,7 @@ lReportErrorOnTwoTokens:
                                                       binder As Binder,
                                                       diagBag As DiagnosticBag) As MemberModifiers
             ' Decode the flags.
-            Dim methodModifiers = binder.DecodeModifiers(modifiers,
+            Dim methodModifiers = Binder.DecodeModifiers(modifiers,
                 SourceMemberFlags.AllAccessibilityModifiers Or SourceMemberFlags.Overloads Or SourceMemberFlags.Partial Or
                 SourceMemberFlags.Shadows Or SourceMemberFlags.Shared Or
                 SourceMemberFlags.Overridable Or SourceMemberFlags.NotOverridable Or
@@ -453,7 +453,7 @@ lReportErrorOnTwoTokens:
                                                       SourceMemberFlags.Widening Or
                                                       SourceMemberFlags.Narrowing
 
-            Dim operatorModifiers = binder.DecodeModifiers(syntax.Modifiers, allowModifiers, ERRID.ERR_BadOperatorFlags1, Accessibility.Public, diagBag)
+            Dim operatorModifiers = Binder.DecodeModifiers(syntax.Modifiers, allowModifiers, ERRID.ERR_BadOperatorFlags1, Accessibility.Public, diagBag)
 
             Dim foundFlags As SourceMemberFlags = operatorModifiers.FoundFlags
             Dim computedFlags As SourceMemberFlags = operatorModifiers.ComputedFlags
@@ -852,7 +852,7 @@ lReportErrorOnTwoTokens:
 
         ' Given a syntax ref, get the symbol location to return. We return the location of the name
         ' of the method.
-        Private Function GetSymbolLocation(syntaxRef As SyntaxReference) As Location
+        Private Shared Function GetSymbolLocation(syntaxRef As SyntaxReference) As Location
             Dim syntaxNode = syntaxRef.GetVisualBasicSyntax()
             Dim syntaxTree = syntaxRef.SyntaxTree
 

@@ -530,7 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End Sub
 
-            Private Sub UpdateSymbolCacheNoLock(newSymbols As List(Of Integer), assemblies As ImmutableArray(Of AssemblyData), bindingResult As BoundInputAssembly())
+            Private Shared Sub UpdateSymbolCacheNoLock(newSymbols As List(Of Integer), assemblies As ImmutableArray(Of AssemblyData), bindingResult As BoundInputAssembly())
                 ' Add new assembly symbols into the cache
                 For Each i As Integer In newSymbols
                     Dim compilationData = TryCast(assemblies(i), AssemblyDataForCompilation)

@@ -108,7 +108,7 @@ namespace BuildBoss
             return allGood;
         }
 
-        private bool CheckNoGuidsOnProjectReferences(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
+        private static bool CheckNoGuidsOnProjectReferences(TextWriter textWriter, List<ProjectReferenceEntry> entryList)
         {
             var allGood = true;
             foreach (var entry in entryList)

@@ -88,8 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
         End Sub
 
+#Disable Warning CA1822 ' Mark members as static - instance members are accessed in debug.
         <Conditional("DEBUG")>
         Friend Sub AssertMarkAllDeferredSymbolsAsReferencedIsCalled()
+#Enable Warning CA1822 ' Mark members as static
 #If DEBUG Then
             Debug.Assert(Me._markAllDeferredSymbolsAsReferencedIsCalled = ThreeState.True)
 #End If

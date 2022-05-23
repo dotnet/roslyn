@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                     End If
 
                     If _afterLineBreak And Not isTrailing Then
-                        If Not _afterIndentation AndAlso Me.NeedsIndentAfterLineBreak(trivia) Then
+                        If Not _afterIndentation AndAlso NeedsIndentAfterLineBreak(trivia) Then
                             currentTriviaList.Add(Me.GetIndentation(GetIndentationDepth(trivia)))
                             _afterIndentation = True
                         End If
@@ -299,7 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Try
         End Function
 
-        Private Function IsLastTokenOnLine(token As SyntaxToken) As Boolean
+        Private Shared Function IsLastTokenOnLine(token As SyntaxToken) As Boolean
             Return (token.HasTrailingTrivia AndAlso token.TrailingTrivia.Last.Kind = SyntaxKind.ColonTrivia) OrElse
                 (token.Parent IsNot Nothing AndAlso token.Parent.GetLastToken() = token)
         End Function
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return _eolTrivia
         End Function
 
-        Private Function NeedsSeparatorBetween(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function NeedsSeparatorBetween(trivia As SyntaxTrivia) As Boolean
             Select Case trivia.Kind
                 Case SyntaxKind.None,
                         SyntaxKind.WhitespaceTrivia,
@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Select
         End Function
 
-        Private Function NeedsLineBreakBetween(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia, isTrailingTrivia As Boolean) As Boolean
+        Private Shared Function NeedsLineBreakBetween(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia, isTrailingTrivia As Boolean) As Boolean
             If EndsInLineBreak(trivia) Then
                 Return False
             End If
@@ -385,11 +385,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Select
         End Function
 
-        Private Function NeedsLineBreakAfter(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function NeedsLineBreakAfter(trivia As SyntaxTrivia) As Boolean
             Return trivia.Kind = SyntaxKind.CommentTrivia
         End Function
 
-        Private Function NeedsLineBreakBefore(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function NeedsLineBreakBefore(trivia As SyntaxTrivia) As Boolean
             Select Case trivia.Kind
                 Case SyntaxKind.DocumentationCommentExteriorTrivia
                     Return True
@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Select
         End Function
 
-        Private Function NeedsIndentAfterLineBreak(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function NeedsIndentAfterLineBreak(trivia As SyntaxTrivia) As Boolean
             Select Case trivia.Kind
                 Case SyntaxKind.CommentTrivia,
                         SyntaxKind.DocumentationCommentExteriorTrivia,
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Select
         End Function
 
-        Private Function NeedsSeparator(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function NeedsSeparator(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             If token.Kind = SyntaxKind.EndOfFileToken Then
                 Return False
             End If
@@ -615,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return True
         End Function
 
-        Private Function EndsInLineBreak(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function EndsInLineBreak(trivia As SyntaxTrivia) As Boolean
             If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
                 Return True
             End If
@@ -704,7 +704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
         End Sub
 
-        Private Function EndsWithColonSeparator(node As SyntaxToken) As Boolean
+        Private Shared Function EndsWithColonSeparator(node As SyntaxToken) As Boolean
             Return node.HasTrailingTrivia AndAlso
                     node.TrailingTrivia.Last.Kind = SyntaxKind.ColonTrivia
         End Function

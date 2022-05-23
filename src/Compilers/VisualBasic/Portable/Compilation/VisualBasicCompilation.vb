@@ -477,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
+        Private Shared Function CommonLanguageVersion(syntaxTrees As ImmutableArray(Of SyntaxTree)) As LanguageVersion
             ' We don't check m_Options.ParseOptions.LanguageVersion for consistency, because
             ' it isn't consistent in practice.  In fact sometimes m_Options.ParseOptions is Nothing.
             Dim result As LanguageVersion? = Nothing
@@ -781,7 +781,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub WriteValue(builder As BlobBuilder, key As String, value As String)
+        Private Shared Sub WriteValue(builder As BlobBuilder, key As String, value As String)
             builder.WriteUTF8(key)
             builder.WriteByte(0)
             builder.WriteUTF8(value)

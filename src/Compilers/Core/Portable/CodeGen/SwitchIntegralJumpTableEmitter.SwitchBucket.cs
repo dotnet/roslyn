@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
             }
 
-            private bool IsContiguous(ConstantValue lastConst, ConstantValue nextConst)
+            private static bool IsContiguous(ConstantValue lastConst, ConstantValue nextConst)
             {
                 if (!lastConst.IsNumeric || !nextConst.IsNumeric)
                 {

@@ -2013,7 +2013,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' is a value type. The reason is that in this case the initialization happens in place (not in a temporary) and 
         ''' the variable already got the object creation expression assigned.
         ''' </summary>
-        Private Function DeclaredVariableIsAlwaysAssignedBeforeInitializer(syntax As SyntaxNode, boundInitializer As BoundExpression,
+        Private Shared Function DeclaredVariableIsAlwaysAssignedBeforeInitializer(syntax As SyntaxNode, boundInitializer As BoundExpression,
                                                                            <Out> ByRef placeholder As BoundValuePlaceholderBase) As Boolean
             placeholder = Nothing
             If boundInitializer IsNot Nothing AndAlso

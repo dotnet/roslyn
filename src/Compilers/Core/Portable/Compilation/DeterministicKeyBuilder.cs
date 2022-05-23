@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        protected void WriteFilePath(
+        protected static void WriteFilePath(
             JsonWriter writer,
             string propertyName,
             string? filePath,
@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        protected void WriteType(JsonWriter writer, string key, Type? type)
+        protected static void WriteType(JsonWriter writer, string key, Type? type)
         {
             writer.WriteKey(key);
             WriteType(writer, type);
         }
 
-        protected void WriteType(JsonWriter writer, Type? type)
+        protected static void WriteType(JsonWriter writer, Type? type)
         {
             if (type is null)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        private (JsonWriter, PooledStringBuilder) CreateWriter()
+        private static (JsonWriter, PooledStringBuilder) CreateWriter()
         {
             var builder = PooledStringBuilder.GetInstance();
             var writer = new StringWriter(builder);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        private void WriteSourceText(JsonWriter writer, SourceText? sourceText)
+        private static void WriteSourceText(JsonWriter writer, SourceText? sourceText)
         {
             if (sourceText is null)
             {
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        internal void WriteMetadataReference(
+        internal static void WriteMetadataReference(
             JsonWriter writer,
             MetadataReference reference,
             ImmutableArray<KeyValuePair<string, string>> pathMap,
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void WriteEmitOptions(
+        private static void WriteEmitOptions(
             JsonWriter writer,
             EmitOptions? options,
             ImmutableArray<KeyValuePair<string, string>> pathMap,

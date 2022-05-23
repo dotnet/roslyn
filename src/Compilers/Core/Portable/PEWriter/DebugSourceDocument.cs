@@ -50,7 +50,7 @@ namespace Microsoft.Cci
             _sourceInfo = Task.FromResult(new DebugSourceInfo(checksum, algorithm));
         }
 
-        public Guid DocumentType
+        public static Guid DocumentType
         {
             get { return s_corSymDocumentTypeText; }
         }
@@ -60,7 +60,7 @@ namespace Microsoft.Cci
             get { return _language; }
         }
 
-        public Guid LanguageVendor
+        public static Guid LanguageVendor
         {
             get { return s_corSymLanguageVendorMicrosoft; }
         }

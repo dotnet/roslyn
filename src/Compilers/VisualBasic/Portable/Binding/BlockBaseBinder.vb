@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Function BuildMap(locals As ImmutableArray(Of T)) As Dictionary(Of String, T)
+        Private Shared Function BuildMap(locals As ImmutableArray(Of T)) As Dictionary(Of String, T)
             Debug.Assert(Not locals.IsEmpty)
 
             Dim map = New Dictionary(Of String, T)(locals.Length, IdentifierComparison.Comparer)

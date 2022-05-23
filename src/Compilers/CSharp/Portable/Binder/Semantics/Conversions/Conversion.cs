@@ -362,8 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#pragma warning disable // CA1822 Mark members as static - instance members are accessed in debug.
         [Conditional("DEBUG")]
         internal void AssertUnderlyingConversionsChecked()
+#pragma warning restore // CA1822 Mark members as static
         {
 #if DEBUG
             Debug.Assert(_uncommonData?._nestedConversionsChecked ?? true);
@@ -386,8 +388,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#pragma warning disable // CA1822 Mark members as static - instance members are accessed in debug.
         [Conditional("DEBUG")]
         internal void MarkUnderlyingConversionsChecked()
+#pragma warning restore // CA1822 Mark members as static
         {
 #if DEBUG
             Debug.Assert(_uncommonData is not null);
@@ -395,8 +399,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+#pragma warning disable // CA1822 Mark members as static - instance members are accessed in debug.
         [Conditional("DEBUG")]
         internal void MarkUnderlyingConversionsCheckedRecursive()
+#pragma warning restore // CA1822 Mark members as static
         {
 #if DEBUG
             if (_uncommonData is not null)

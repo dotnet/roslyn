@@ -1643,7 +1643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return arrayInitialization
         End Function
 
-        Private Function ReclassifyEmptyArrayInitialization(arrayLiteral As BoundArrayLiteral, rank As Integer) As BoundArrayInitialization
+        Private Shared Function ReclassifyEmptyArrayInitialization(arrayLiteral As BoundArrayLiteral, rank As Integer) As BoundArrayInitialization
 
             Dim arrayInitialization As BoundArrayInitialization = arrayLiteral.Initializer
 
@@ -2595,7 +2595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function TryBindInteractiveReceiver(syntax As VisualBasicSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
+        Private Shared Function TryBindInteractiveReceiver(syntax As VisualBasicSyntaxNode, currentMember As Symbol, currentType As NamedTypeSymbol, memberDeclaringType As NamedTypeSymbol) As BoundExpression
             If currentType.TypeKind = TYPEKIND.Submission AndAlso Not currentMember.IsShared Then
                 If memberDeclaringType.TypeKind = TYPEKIND.Submission Then
                     Return New BoundPreviousSubmissionReference(syntax, currentType, memberDeclaringType)

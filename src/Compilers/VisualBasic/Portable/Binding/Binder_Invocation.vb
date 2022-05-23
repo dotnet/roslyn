@@ -584,7 +584,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function ShouldBindWithoutArguments(ByRef group As BoundMethodOrPropertyGroup, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
+        Private Shared Function ShouldBindWithoutArguments(ByRef group As BoundMethodOrPropertyGroup, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
 
             If group.Kind = BoundKind.MethodGroup Then
 

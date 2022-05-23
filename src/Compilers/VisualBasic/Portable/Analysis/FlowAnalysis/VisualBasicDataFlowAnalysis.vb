@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Function Normalize(data As IEnumerable(Of Symbol)) As ImmutableArray(Of ISymbol)
+        Friend Shared Function Normalize(data As IEnumerable(Of Symbol)) As ImmutableArray(Of ISymbol)
             Dim builder = ArrayBuilder(Of Symbol).GetInstance()
             builder.AddRange(data.Where(Function(s) s.CanBeReferencedByName))
             builder.Sort(LexicalOrderSymbolComparer.Instance)

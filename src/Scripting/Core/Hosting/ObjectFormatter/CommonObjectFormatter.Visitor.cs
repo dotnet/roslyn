@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 }
             }
 
-            private bool AddMember(List<FormattedMember> members, FormattedMember member, ref int remainingLength)
+            private static bool AddMember(List<FormattedMember> members, FormattedMember member, ref int remainingLength)
             {
                 // Add this item even if we exceed the limit - its prefix might be appended to the result.
                 members.Add(member);
@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             #region Scalars
 
-            private bool IsTuple(object obj)
+            private static bool IsTuple(object obj)
             {
 #if NETSTANDARD2_0
                 if (obj is null)

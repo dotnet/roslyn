@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return pooled.ToStringAndFree();
         }
 
-        internal string GetReturnTypeName(TMethodSymbol method)
+        internal static string GetReturnTypeName(TMethodSymbol method)
         {
             return ((IMethodSymbol)method.GetISymbol()).ReturnType.ToDisplayString(DisplayFormat);
         }

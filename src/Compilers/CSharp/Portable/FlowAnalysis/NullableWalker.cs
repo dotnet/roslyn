@@ -4706,7 +4706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             slotBuilder.Free();
         }
 
-        private void LearnFromNonNullTest(int slot, ref LocalState state)
+        private static void LearnFromNonNullTest(int slot, ref LocalState state)
         {
             state[slot] = NullableFlowState.NotNull;
         }
@@ -5634,7 +5634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public bool IsDefault => Arguments.IsDefault || Results.IsDefault;
         }
 
-        private NullableFlowState LearnFromCompareExchangeMethod(in CompareExchangeInfo compareExchangeInfo)
+        private static NullableFlowState LearnFromCompareExchangeMethod(in CompareExchangeInfo compareExchangeInfo)
         {
             Debug.Assert(!compareExchangeInfo.IsDefault);
 

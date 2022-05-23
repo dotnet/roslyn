@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static string ReturnAndFree(StringBuilder builder)
         {
-            SharedPools.Default<StringBuilder>().ForgetTrackedObject(builder);
+            ObjectPool<StringBuilder>.ForgetTrackedObject(builder);
             return builder.ToString();
         }
     }

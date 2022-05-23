@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _dispatches = new Dictionary<LabelSymbol, List<int>>();
             }
 
-            resumeLabel = F.GenerateLabel("stateMachine");
+            resumeLabel = SyntheticBoundNodeFactory.GenerateLabel("stateMachine");
             var states = new List<int>();
             states.Add(stateNumber);
             _dispatches.Add(resumeLabel, states);
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundStatement Dispatch()
         {
             return F.Switch(F.Local(cachedState),
-                    (from kv in _dispatches orderby kv.Value[0] select F.SwitchSection(kv.Value, F.Goto(kv.Key))).ToImmutableArray()
+                    (from kv in _dispatches orderby kv.Value[0] select SyntheticBoundNodeFactory.SwitchSection(kv.Value, F.Goto(kv.Key))).ToImmutableArray()
                     );
         }
 
@@ -807,15 +807,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             GeneratedLabelSymbol dispatchLabel = null;
             if (_dispatches != null)
             {
-                dispatchLabel = F.GenerateLabel("tryDispatch");
+                dispatchLabel = SyntheticBoundNodeFactory.GenerateLabel("tryDispatch");
                 if (_hasFinalizerState)
                 {
                     // cause the current finalizer state to arrive here and then "return false"
-                    var finalizer = F.GenerateLabel("finalizer");
+                    var finalizer = SyntheticBoundNodeFactory.GenerateLabel("finalizer");
                     _dispatches.Add(finalizer, new List<int>() { _currentFinalizerState });
-                    var skipFinalizer = F.GenerateLabel("skipFinalizer");
+                    var skipFinalizer = SyntheticBoundNodeFactory.GenerateLabel("skipFinalizer");
                     tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
+                        SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         Dispatch(),
                         F.Goto(skipFinalizer),
                         F.Label(finalizer), // code for the finalizer here
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
+                        SyntheticBoundNodeFactory.HiddenSequencePoint(),
                         Dispatch(),
                         tryBlock);
                 }
@@ -848,19 +848,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
 
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
-                F.HiddenSequencePoint(),
+                SyntheticBoundNodeFactory.HiddenSequencePoint(),
                 F.If(
                     condition: ShouldEnterFinallyBlock(),
                     thenClause: VisitFinally(node.FinallyBlockOpt)
                 ),
-                F.HiddenSequencePoint());
+                SyntheticBoundNodeFactory.HiddenSequencePoint());
 
             BoundStatement result = node.Update(tryBlock, catchBlocks, finallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
 
             if ((object)dispatchLabel != null)
             {
                 result = F.Block(
-                    F.HiddenSequencePoint(),
+                    SyntheticBoundNodeFactory.HiddenSequencePoint(),
                     F.Label(dispatchLabel),
                     result);
             }

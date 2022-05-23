@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void GetInitialReferenceBindingsToProcess(
+        private static void GetInitialReferenceBindingsToProcess(
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<ResolvedReference> explicitReferenceMap,

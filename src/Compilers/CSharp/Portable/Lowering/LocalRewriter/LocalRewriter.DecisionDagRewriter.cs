@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!_dagNodeLabels.TryGetValue(dag, out LabelSymbol label))
                 {
-                    _dagNodeLabels.Add(dag, label = dag is BoundLeafDecisionDagNode d ? d.Label : _factory.GenerateLabel("dagNode"));
+                    _dagNodeLabels.Add(dag, label = dag is BoundLeafDecisionDagNode d ? d.Label : SyntheticBoundNodeFactory.GenerateLabel("dagNode"));
                 }
 
                 return label;
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    LabelSymbol falseLabel = _factory.GenerateLabel("relationalDispatch");
+                    LabelSymbol falseLabel = SyntheticBoundNodeFactory.GenerateLabel("relationalDispatch");
                     _loweredDecisionDag.Add(_factory.ConditionalGoto(test, falseLabel, jumpIfTrue: false));
                     LowerValueDispatchNode(rel.WhenTrue, input);
                     _loweredDecisionDag.Add(_factory.Label(falseLabel));
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             int half = count / 2;
-                            var gt = _factory.GenerateLabel("greaterThanMidpoint");
+                            var gt = SyntheticBoundNodeFactory.GenerateLabel("greaterThanMidpoint");
                             _loweredDecisionDag.Add(_factory.ConditionalGoto(MakeRelationalTest(node.Syntax, input, lessThanOrEqualOperator, cases[firstIndex + half - 1].value), gt, jumpIfTrue: false));
                             lowerFloatDispatch(firstIndex, half);
                             _loweredDecisionDag.Add(_factory.Label(gt));
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                labelToWhenExpression = _factory.GenerateLabel("sharedWhenExpression");
+                                labelToWhenExpression = SyntheticBoundNodeFactory.GenerateLabel("sharedWhenExpression");
                                 var list = ArrayBuilder<BoundWhenDecisionDagNode>.GetInstance();
                                 list.Add(whenNode);
                                 whenExpressionMap.Add(whenExpression, (labelToWhenExpression, list));
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var (_, whenNodeIdentifier) = whenNodeMap[whenNode];
                         Debug.Assert(whenNode.WhenFalse != null);
-                        whenFalseSwitchSections.Add(_factory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenFalse))));
+                        whenFalseSwitchSections.Add(SyntheticBoundNodeFactory.SwitchSection(whenNodeIdentifier, _factory.Goto(GetDagNodeLabel(whenNode.WhenFalse))));
                     }
 
                     // switch (whenNodeIdentifierLocal)
@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundStatement jumps = _factory.Switch(_factory.Local(_whenNodeIdentifierLocal), whenFalseSwitchSections.ToImmutableAndFree());
 
                     // We hide the jump back into the decision dag, as it is not logically part of the when clause
-                    sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jumps) : jumps);
+                    sectionBuilder.Add(GenerateInstrumentation ? SyntheticBoundNodeFactory.HiddenSequencePoint(jumps) : jumps);
                 }
 
                 // if (loweredWhenExpression)
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We hide the jump back into the decision dag, as it is not logically part of the when clause
                         Debug.Assert(whenFalse != null);
                         BoundStatement jump = _factory.Goto(GetDagNodeLabel(whenFalse));
-                        sectionBuilder.Add(GenerateInstrumentation ? _factory.HiddenSequencePoint(jump) : jump);
+                        sectionBuilder.Add(GenerateInstrumentation ? SyntheticBoundNodeFactory.HiddenSequencePoint(jump) : jump);
                     }
                     else
                     {
@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
                             // synchronize on changes.
                             if (GenerateInstrumentation)
-                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                                _loweredDecisionDag.Add(SyntheticBoundNodeFactory.HiddenSequencePoint());
 
                             if (nextNode != evaluationNode.Next)
                             {

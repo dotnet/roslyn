@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return MetadataTokens.GetToken(_assembly.Handle);
+                return MetadataTokens.GetToken(PEAssembly.Handle);
             }
         }
 
@@ -130,12 +130,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (this.MightContainExtensionMethods)
                 {
-                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
+                    this.PrimaryModule.LoadCustomAttributesFilterExtensions(PEAssembly.Handle,
                         ref _lazyCustomAttributes);
                 }
                 else
                 {
-                    this.PrimaryModule.LoadCustomAttributes(_assembly.Handle,
+                    this.PrimaryModule.LoadCustomAttributes(PEAssembly.Handle,
                         ref _lazyCustomAttributes);
                 }
             }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override bool GetGuidString(out string guidString)
         {
-            return Assembly.Modules[0].HasGuidAttribute(Assembly.Handle, out guidString);
+            return Assembly.Modules[0].HasGuidAttribute(PEAssembly.Handle, out guidString);
         }
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol potentialGiverOfAccess)

@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.DecodeWellKnownAttribute(ref arguments);
         }
 
-        protected bool? CalculateReferenceTypeConstraintIsNullable(TypeParameterConstraintKind constraints)
+        protected static bool? CalculateReferenceTypeConstraintIsNullable(TypeParameterConstraintKind constraints)
         {
             if ((constraints & TypeParameterConstraintKind.ReferenceType) == 0)
             {

@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        Private Function MakeEndOfInterpolatedStringToken() As SyntaxToken
+        Private Shared Function MakeEndOfInterpolatedStringToken() As SyntaxToken
             Return SyntaxFactory.Token(Nothing, SyntaxKind.EndOfInterpolatedStringToken, Nothing, String.Empty)
         End Function
 

@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //            (tempx.HasValue == tempy.HasValue));
             if (operatorKind == BinaryOperatorKind.NotEqual)
             {
-                binaryExpression = _factory.Not(binaryExpression);
+                binaryExpression = SyntheticBoundNodeFactory.Not(binaryExpression);
             }
 
             // tempx = x; 

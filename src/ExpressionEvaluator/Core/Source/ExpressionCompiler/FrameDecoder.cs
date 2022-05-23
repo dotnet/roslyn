@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             try
             {
-                GetNameWithGenericTypeArguments(workList, frame, onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(_instructionDecoder.GetReturnTypeName(method))),
+                GetNameWithGenericTypeArguments(workList, frame, onSuccess: method => completionRoutine(new DkmGetFrameReturnTypeAsyncResult(InstructionDecoder<TCompilation, TMethodSymbol, TModuleSymbol, TTypeSymbol, TTypeParameterSymbol>.GetReturnTypeName(method))),
                     onFailure: e => completionRoutine(DkmGetFrameReturnTypeAsyncResult.CreateErrorResult(e)));
             }
             catch (NotImplementedMetadataException)

@@ -1497,7 +1497,7 @@ lVbRuntimePlus:
             }
         End Function
 
-        Private Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
+        Private Shared Function LoadCoreLibraryReference(sdkPaths As List(Of String), baseDirectory As String) As CommandLineReference?
             ' Load Core library in Dev11:
             ' Traditionally VB compiler has hard-coded the name of mscorlib.dll. In the Immersive profile the
             ' library is called System.Runtime.dll. Ideally we should get rid of the dependency on the name and

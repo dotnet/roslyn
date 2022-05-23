@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
             return string.Format("({0},{1})", span.Start.Line + 1, span.Start.Character + 1);
         }
 
-        internal string GetMessagePrefix(Diagnostic diagnostic)
+        internal static string GetMessagePrefix(Diagnostic diagnostic)
         {
             string prefix;
             switch (diagnostic.Severity)

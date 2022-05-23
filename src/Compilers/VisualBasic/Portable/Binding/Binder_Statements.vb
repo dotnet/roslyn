@@ -817,7 +817,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function IsValidLabelForGoto(label As LabelSymbol, labelSyntax As LabelSyntax, diagnostics As BindingDiagnosticBag) As Boolean
+        Private Shared Function IsValidLabelForGoto(label As LabelSymbol, labelSyntax As LabelSyntax, diagnostics As BindingDiagnosticBag) As Boolean
             Dim hasError As Boolean = False
 
             Dim labelParent = DirectCast(label.LabelName.Parent, VisualBasicSyntaxNode)
@@ -2049,7 +2049,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a list of statements and puts in a scope.
         ''' </summary>
-        Friend Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As BindingDiagnosticBag, stmtListBinder As Binder) As BoundBlock
+        Friend Shared Function BindBlock(syntax As SyntaxNode, stmtList As SyntaxList(Of StatementSyntax), diagnostics As BindingDiagnosticBag, stmtListBinder As Binder) As BoundBlock
             Dim boundStatements(stmtList.Count - 1) As BoundStatement
             Dim locals As ArrayBuilder(Of LocalSymbol) = Nothing
 
@@ -4509,7 +4509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo, locals)
         End Function
 
-        Private Function GetUsingBlockLocals(currentBinder As Binder) As ImmutableArray(Of LocalSymbol)
+        Private Shared Function GetUsingBlockLocals(currentBinder As Binder) As ImmutableArray(Of LocalSymbol)
             Dim usingBlockBinder As UsingBlockBinder
 
             Do
@@ -4610,7 +4610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>Check the given type of and report WRN_MutableGenericStructureInUsing if needed.</summary>
         ''' <remarks>This function should only be called for a type of a using variable.</remarks>
-        Private Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As SyntaxNode, diagnostics As BindingDiagnosticBag)
+        Private Shared Sub ReportMutableStructureConstraintsInUsing(type As TypeSymbol, symbolName As String, syntaxNode As SyntaxNode, diagnostics As BindingDiagnosticBag)
             ' Dev10 #666593: Warn if the type of the variable is not a reference type or an immutable structure.
             If Not type.IsReferenceType Then
                 If type.IsTypeParameter Then
@@ -5286,7 +5286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
-        Private Function BindStopStatement(stopStatementSyntax As StopOrEndStatementSyntax) As BoundStatement
+        Private Shared Function BindStopStatement(stopStatementSyntax As StopOrEndStatementSyntax) As BoundStatement
             Return New BoundStopStatement(stopStatementSyntax)
         End Function
 

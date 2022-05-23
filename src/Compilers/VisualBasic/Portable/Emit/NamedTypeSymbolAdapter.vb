@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return explicitImplements.ToImmutableAndFree()
         End Function
 
-        Private Sub AddExplicitImplementations(context As EmitContext,
+        Private Shared Sub AddExplicitImplementations(context As EmitContext,
                                                implementingMethod As MethodSymbol,
                                                explicitImplements As ArrayBuilder(Of Cci.MethodImplementation),
                                                sourceNamedType As SourceNamedTypeSymbol,
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
-        Private Function IsWithEventsField(field As FieldSymbol) As Boolean
+        Private Shared Function IsWithEventsField(field As FieldSymbol) As Boolean
             ' Backing fields for WithEvents are emitted with AccessedThroughPropertyAttribute
             ' so need to be emitted even if private
             Return TypeOf field Is SourceWithEventsBackingFieldSymbol
@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' appear in the member list. We need to check this separately.
                 Dim sourceNamedType = TryCast(AdaptedNamedTypeSymbol, SourceMemberContainerTypeSymbol)
                 If sourceNamedType IsNot Nothing AndAlso Not sourceNamedType.StaticInitializers.IsDefaultOrEmpty Then
-                    Return sourceNamedType.AnyInitializerToBeInjectedIntoConstructor(sourceNamedType.StaticInitializers,
+                    Return SourceMemberContainerTypeSymbol.AnyInitializerToBeInjectedIntoConstructor(sourceNamedType.StaticInitializers,
                                                                                      includingNonMetadataConstants:=True)
                 End If
 

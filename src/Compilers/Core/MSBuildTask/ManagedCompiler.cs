@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Get the command line arguments to pass to the compiler.
         /// </summary>
-        private string[] GetArguments(string commandLineCommands, string responseFileCommands)
+        private static string[] GetArguments(string commandLineCommands, string responseFileCommands)
         {
             var commandLineArguments =
                 CommandLineUtilities.SplitCommandLineIntoArguments(commandLineCommands, removeHashComments: true);
@@ -1027,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Takes a list of files and returns the normalized locations of these files
         /// </summary>
-        private void NormalizePaths(ITaskItem[]? taskItems)
+        private static void NormalizePaths(ITaskItem[]? taskItems)
         {
             if (taskItems is null)
                 return;

@@ -356,7 +356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SpecializedCollections.EmptyEnumerable(Of Diagnostic)()
         End Function
 
-        Private Function InDocumentationComment(node As SyntaxNode) As Boolean
+        Private Shared Function InDocumentationComment(node As SyntaxNode) As Boolean
             Dim foundXml As Boolean = False
 
             While node IsNot Nothing
@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return foundXml AndAlso node IsNot Nothing AndAlso node.IsKind(SyntaxKind.DocumentationCommentTrivia)
         End Function
 
-        Private Function InDocumentationComment(node As SyntaxNodeOrToken) As Boolean
+        Private Shared Function InDocumentationComment(node As SyntaxNodeOrToken) As Boolean
             If node.IsToken Then
                 Return InDocumentationComment(node.AsToken)
             End If
@@ -379,11 +379,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return InDocumentationComment(node.AsNode)
         End Function
 
-        Private Function InDocumentationComment(token As SyntaxToken) As Boolean
+        Private Shared Function InDocumentationComment(token As SyntaxToken) As Boolean
             Return InDocumentationComment(token.Parent)
         End Function
 
-        Private Function InDocumentationComment(trivia As SyntaxTrivia) As Boolean
+        Private Shared Function InDocumentationComment(trivia As SyntaxTrivia) As Boolean
             Return InDocumentationComment(CType(trivia.Token, SyntaxToken))
         End Function
 

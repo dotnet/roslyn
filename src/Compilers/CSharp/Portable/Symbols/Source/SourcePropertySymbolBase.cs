@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsExpressionBodied
             => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
-        private void CheckInitializer(
+        private static void CheckInitializer(
             bool isAutoProperty,
             bool isInterface,
             bool isStatic,
@@ -484,11 +484,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsStatic
         {
             get { return (_modifiers & DeclarationModifiers.Static) != 0; }
-        }
-
-        internal bool IsFixed
-        {
-            get { return false; }
         }
 
         /// <remarks>

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ' returns GetType(Type) if receiver is nothing, or Nothing literal otherwise
-        Private Function LateMakeContainerArgument(node As SyntaxNode,
+        Private Shared Function LateMakeContainerArgument(node As SyntaxNode,
                                                        receiver As BoundExpression,
                                                        containerType As TypeSymbol,
                                                        typeType As TypeSymbol) As BoundExpression

@@ -133,11 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return default(TypeLayout); }
         }
 
-        internal bool HasStructLayoutAttribute
-        {
-            get { return false; }
-        }
-
         internal override CharSet MarshallingCharSet
         {
             get { return DefaultMarshallingCharSet; }

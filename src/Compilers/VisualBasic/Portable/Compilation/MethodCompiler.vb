@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         <Conditional("DEBUG")>
-        Private Sub AssertAllInitializersAreConstants(initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)))
+        Private Shared Sub AssertAllInitializersAreConstants(initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer)))
             If Not initializers.IsDefaultOrEmpty Then
                 For Each initializerGroup In initializers
                     If Not initializerGroup.IsEmpty Then
@@ -1044,7 +1044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' 
         ''' NOTE: 'constructorCallMap' is being mutated by this method
         ''' </summary>
-        Private Sub DetectAndReportCyclesInConstructorCalls(constructorCallMap As Dictionary(Of MethodSymbol, MethodSymbol), diagnostics As BindingDiagnosticBag)
+        Private Shared Sub DetectAndReportCyclesInConstructorCalls(constructorCallMap As Dictionary(Of MethodSymbol, MethodSymbol), diagnostics As BindingDiagnosticBag)
 
             Debug.Assert(constructorCallMap.Count > 0)
 

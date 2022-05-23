@@ -508,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return resultExpression
         End Function
 
-        Private Function BindNoPiaObjectCreationExpression(
+        Private Shared Function BindNoPiaObjectCreationExpression(
             node As SyntaxNode,
             [interface] As TypeSymbol,
             coClass As NamedTypeSymbol,

@@ -53,7 +53,7 @@ Public Class XmlRenamer
         Return namesToUpdate
     End Function
 
-    Private Function Cleanup(s As String) As String
+    Private Shared Function Cleanup(s As String) As String
         s = s.Trim()
         If s.StartsWith("[", StringComparison.Ordinal) AndAlso s.EndsWith("]", StringComparison.Ordinal) Then
             s = s.Substring(1, s.Length - 2)
@@ -118,7 +118,7 @@ Public Class XmlRenamer
         Next
     End Sub
 
-    Private Function IndexOfNodeKind(attrValue As String, kind As String) As Integer
+    Private Shared Function IndexOfNodeKind(attrValue As String, kind As String) As Integer
         If String.IsNullOrEmpty(attrValue) Then
             Return -1
         End If

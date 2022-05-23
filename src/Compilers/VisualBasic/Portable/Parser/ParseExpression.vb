@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return term
         End Function
 
-        Private Function CanStartConsequenceExpression(kind As SyntaxKind, qualified As Boolean) As Boolean
+        Private Shared Function CanStartConsequenceExpression(kind As SyntaxKind, qualified As Boolean) As Boolean
             Return kind = SyntaxKind.DotToken OrElse kind = SyntaxKind.ExclamationToken OrElse (qualified AndAlso kind = SyntaxKind.OpenParenToken)
         End Function
 

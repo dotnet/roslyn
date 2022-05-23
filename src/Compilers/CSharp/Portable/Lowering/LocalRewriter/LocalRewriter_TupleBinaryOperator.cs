@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The outer sequence degenerates when we known that `rightHasValue` is false
                 // Produce: !leftHasValue (or leftHasValue for inequality comparison)
                 return _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
-                    result: boolValue ? _factory.Not(leftHasValue) : leftHasValue);
+                    result: boolValue ? SyntheticBoundNodeFactory.Not(leftHasValue) : leftHasValue);
             }
 
             if (leftHasValue.ConstantValue == ConstantValue.False)
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The outer sequence degenerates when we known that `leftHasValue` is false
                 // Produce: !rightHasValue (or rightHasValue for inequality comparison)
                 return _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, outerEffects.ToImmutableAndFree(),
-                    result: boolValue ? _factory.Not(rightHasValue) : rightHasValue);
+                    result: boolValue ? SyntheticBoundNodeFactory.Not(rightHasValue) : rightHasValue);
             }
 
             // outer sequence:
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression dynamicResult = _dynamicFactory.MakeDynamicBinaryOperator(single.Kind, left, right, isCompoundAssignment: false, _compilation.DynamicType).ToExpression();
                 if (operatorKind == BinaryOperatorKind.Equal)
                 {
-                    return _factory.Not(MakeUnaryOperator(UnaryOperatorKind.DynamicFalse, left.Syntax, method: null, constrainedToTypeOpt: null, dynamicResult, boolType));
+                    return SyntheticBoundNodeFactory.Not(MakeUnaryOperator(UnaryOperatorKind.DynamicFalse, left.Syntax, method: null, constrainedToTypeOpt: null, dynamicResult, boolType));
                 }
                 else
                 {
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (operatorKind == BinaryOperatorKind.Equal)
                 {
-                    result = _factory.Not(result);
+                    result = SyntheticBoundNodeFactory.Not(result);
                 }
             }
             else

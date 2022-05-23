@@ -497,7 +497,7 @@ End Class"
             Dim serializedTypeArgumentNames = typeArguments?.Select(Function(t) t?.AssemblyQualifiedName).ToArray()
             Dim method = GetConstructedMethod(source, methodName, serializedTypeArgumentNames, instructionDecoder)
 
-            Return instructionDecoder.GetReturnTypeName(method)
+            Return VisualBasicInstructionDecoder.GetReturnTypeName(method)
         End Function
 
         Private Function GetConstructedMethod(source As String, methodName As String, serializedTypeArgumentNames() As String, instructionDecoder As VisualBasicInstructionDecoder) As MethodSymbol

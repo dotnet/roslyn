@@ -1249,7 +1249,10 @@ tryAgain:
             return _allocatedILMarkers[ilMarker].AbsoluteOffset;
         }
 
+
+#pragma warning disable CA1822 // Mark members as static - `this` is used in debug.
         private string GetDebuggerDisplay()
+#pragma warning restore CA1822 // Mark members as static
         {
 #if DEBUG
             var visType = Type.GetType("Roslyn.Test.Utilities.ILBuilderVisualizer, Roslyn.Test.Utilities", false);

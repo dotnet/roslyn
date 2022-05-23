@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Throw away the driver instance if the initialization didn't succeed.
                 if (!driver.IsInitialized || driver.WhenInitializedTask.IsCanceled)
                 {
-                    _driverPool.ForgetTrackedObject(driver);
+                    ObjectPool<AnalyzerDriver>.ForgetTrackedObject(driver);
                 }
                 else
                 {
@@ -1197,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void SuspendAnalysis_NoLock(Task computeTask, CancellationTokenSource cts)
+        private static void SuspendAnalysis_NoLock(Task computeTask, CancellationTokenSource cts)
         {
             if (!computeTask.IsCompleted)
             {
@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else
             {
-                eventQueuePool.ForgetTrackedObject(eventQueue);
+                ObjectPool<AsyncQueue<CompilationEvent>>.ForgetTrackedObject(eventQueue);
             }
         }
 

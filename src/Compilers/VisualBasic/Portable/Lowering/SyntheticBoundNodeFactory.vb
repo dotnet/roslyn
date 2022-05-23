@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End If
 
-        Public Function GenerateLabel(prefix As String) As GeneratedLabelSymbol
+        Public Shared Function GenerateLabel(prefix As String) As GeneratedLabelSymbol
             Return New GeneratedLabelSymbol(prefix)
         End Function
 
@@ -402,7 +402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New SynthesizedLocal(Me.CurrentMethod, type, kind, syntax)
         End Function
 
-        Public Function SynthesizedParameter(type As TypeSymbol, name As String, Optional container As MethodSymbol = Nothing, Optional ordinal As Integer = 0) As ParameterSymbol
+        Public Shared Function SynthesizedParameter(type As TypeSymbol, name As String, Optional container As MethodSymbol = Nothing, Optional ordinal As Integer = 0) As ParameterSymbol
             Return New SynthesizedParameterSymbol(container, type, ordinal, False, name)
         End Function
 
@@ -699,7 +699,7 @@ nextm:
 
         ''' <summary> Check for (and assert that there are no) duplicate case labels in the switch. </summary>
         <Conditional("DEBUG")>
-        Private Sub CheckSwitchSections(sections As ImmutableArray(Of BoundCaseBlock))
+        Private Shared Sub CheckSwitchSections(sections As ImmutableArray(Of BoundCaseBlock))
             Dim labels = New HashSet(Of Integer)()
             For Each s In sections
                 For Each l As BoundSimpleCaseClause In s.CaseStatement.CaseClauses
@@ -1045,7 +1045,7 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function [Not](expression As BoundExpression) As BoundExpression
+        Public Shared Function [Not](expression As BoundExpression) As BoundExpression
             Return New BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.Not, expression, False, expression.Type)
         End Function
 
@@ -1057,7 +1057,7 @@ nextm:
             Return New BoundTryStatement(Syntax, tryBlock, catchBlocks, finallyBlock, exitLabel)
         End Function
 
-        Public Function CatchBlocks(ParamArray blocks() As BoundCatchBlock) As ImmutableArray(Of BoundCatchBlock)
+        Public Shared Function CatchBlocks(ParamArray blocks() As BoundCatchBlock) As ImmutableArray(Of BoundCatchBlock)
             Return blocks.AsImmutableOrNull()
         End Function
 
@@ -1069,15 +1069,15 @@ nextm:
                                        isSynthesizedAsyncCatchAll:=isSynthesizedAsyncCatchAll)
         End Function
 
-        Public Function SequencePoint(syntax As SyntaxNode, statement As BoundStatement) As BoundStatement
+        Public Shared Function SequencePoint(syntax As SyntaxNode, statement As BoundStatement) As BoundStatement
             Return New BoundSequencePoint(syntax, statement)
         End Function
 
-        Public Function SequencePoint(syntax As SyntaxNode) As BoundStatement
+        Public Shared Function SequencePoint(syntax As SyntaxNode) As BoundStatement
             Return New BoundSequencePoint(syntax, Nothing).MakeCompilerGenerated
         End Function
 
-        Public Function SequencePointWithSpan(syntax As SyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
+        Public Shared Function SequencePointWithSpan(syntax As SyntaxNode, textSpan As TextSpan, boundStatement As BoundStatement) As BoundStatement
             Return New BoundSequencePointWithSpan(syntax, boundStatement, textSpan)
         End Function
 

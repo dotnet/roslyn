@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
             {
-                builder.Insert(0, _factory.HiddenSequencePoint());
+                builder.Insert(0, SyntheticBoundNodeFactory.HiddenSequencePoint());
             }
 
             BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);

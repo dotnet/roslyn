@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '    ' initialize [Me] if needed
                 '    thisInitialized:
                 '    ' initialize other fields
-                Dim thisInitialized = F.GenerateLabel("thisInitialized")
+                Dim thisInitialized = SyntheticBoundNodeFactory.GenerateLabel("thisInitialized")
                 bodyBuilder.Add(
                     F.If(
                     condition:=

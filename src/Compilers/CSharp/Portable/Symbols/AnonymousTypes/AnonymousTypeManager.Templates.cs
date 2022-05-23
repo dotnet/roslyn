@@ -91,8 +91,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ConcurrentDictionary<Location, bool> _sourceLocationsSeen = new ConcurrentDictionary<Location, bool>();
 #endif
 
+#pragma warning disable // CA1822 Mark members as static - instance members are accessed in debug.
         [Conditional("DEBUG")]
         private void CheckSourceLocationSeen(AnonymousTypePublicSymbol anonymous)
+#pragma warning restore // CA1822 Mark members as static
         {
 #if DEBUG
             Location location = anonymous.Locations[0];

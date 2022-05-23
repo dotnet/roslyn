@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsInvalidMoveNextMethod(MethodSymbol moveNextMethodCandidate, bool isAsync)
+        private static bool IsInvalidMoveNextMethod(MethodSymbol moveNextMethodCandidate, bool isAsync)
         {
             if (isAsync)
             {

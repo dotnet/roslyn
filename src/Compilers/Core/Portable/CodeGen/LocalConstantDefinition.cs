@@ -41,12 +41,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public Cci.ITypeReference Type => CompileTimeValue.Type;
 
-        public bool IsConstant => true;
-
         public ImmutableArray<Cci.ICustomModifier> CustomModifiers
             => ImmutableArray<Cci.ICustomModifier>.Empty;
-
-        public bool IsModified => false;
 
         public bool IsPinned => false;
 

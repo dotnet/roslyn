@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
             return TranslateSpan(entry, treeFilePath, unmappedStartPos, unmappedEndPos);
         }
 
-        protected FileLinePositionSpan TranslateSpan(in LineMappingEntry entry, string treeFilePath, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
+        protected static FileLinePositionSpan TranslateSpan(in LineMappingEntry entry, string treeFilePath, LinePosition unmappedStartPos, LinePosition unmappedEndPos)
         {
             string path = entry.MappedPathOpt ?? treeFilePath;
             var span = entry.State == PositionState.RemappedSpan ?

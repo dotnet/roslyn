@@ -178,7 +178,7 @@ namespace Microsoft.Cci
             return GetOrAddBlob(writer);
         }
 
-        private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SourceSpan span)
+        private static void SerializeDeltaLinesAndColumns(BlobBuilder writer, SourceSpan span)
         {
             int deltaLines = span.EndLine - span.StartLine;
             int deltaColumns = span.EndColumn - span.StartColumn;

@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // result = new {StateMachineType}({initialState})
             BoundStatement makeIterator = F.Assignment(F.Local(resultVariable), F.New(stateMachineType.Constructor, F.Literal(initialState)));
 
-            var thisInitialized = F.GenerateLabel("thisInitialized");
+            var thisInitialized = SyntheticBoundNodeFactory.GenerateLabel("thisInitialized");
 
             if ((object)initialThreadIdField != null)
             {
