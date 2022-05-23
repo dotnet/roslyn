@@ -427,11 +427,6 @@
         <target state="translated">Właściwość kontraktu równości rekordu „{0}” musi mieć metodę dostępu get.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EscapeParamsSpan">
-        <source>Cannot use params '{0}' in this context because it may prevent reuse at the call-site</source>
-        <target state="new">Cannot use params '{0}' in this context because it may prevent reuse at the call-site</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Jawna implementacja operatora zdefiniowanego przez użytkownika „{0}” musi być zadeklarowana jako statyczna</target>

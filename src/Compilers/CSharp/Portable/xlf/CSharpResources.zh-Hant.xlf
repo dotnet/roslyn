@@ -427,11 +427,6 @@
         <target state="translated">記錄相等 contract 屬性 '{0}' 必須要有 get 存取子。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EscapeParamsSpan">
-        <source>Cannot use params '{0}' in this context because it may prevent reuse at the call-site</source>
-        <target state="new">Cannot use params '{0}' in this context because it may prevent reuse at the call-site</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>

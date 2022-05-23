@@ -427,11 +427,6 @@
         <target state="translated">레코드 같음 계약 속성 '{0}'에는 get 접근자가 있어야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EscapeParamsSpan">
-        <source>Cannot use params '{0}' in this context because it may prevent reuse at the call-site</source>
-        <target state="new">Cannot use params '{0}' in this context because it may prevent reuse at the call-site</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">사용자 정의 연산자 '{0}'의 명시적 구현은 정적으로 선언되어야 합니다.</target>

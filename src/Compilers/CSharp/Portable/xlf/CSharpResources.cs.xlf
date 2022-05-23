@@ -427,11 +427,6 @@
         <target state="translated">Vlastnost kontraktu rovnosti záznamu {0} musí mít přístupový objekt get.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EscapeParamsSpan">
-        <source>Cannot use params '{0}' in this context because it may prevent reuse at the call-site</source>
-        <target state="new">Cannot use params '{0}' in this context because it may prevent reuse at the call-site</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Explicitní implementace uživatelem definovaného operátoru {0} musí být deklarovaná jako statická.</target>

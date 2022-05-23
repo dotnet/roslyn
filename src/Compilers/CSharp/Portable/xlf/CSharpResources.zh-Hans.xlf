@@ -427,11 +427,6 @@
         <target state="translated">记录等同性合同属性“{0}”必须具有 get 访问器。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EscapeParamsSpan">
-        <source>Cannot use params '{0}' in this context because it may prevent reuse at the call-site</source>
-        <target state="new">Cannot use params '{0}' in this context because it may prevent reuse at the call-site</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">用户定义的运算符“{0}”的显式实现必须声明为静态</target>

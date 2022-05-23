@@ -2027,8 +2027,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NullCheckingOnOutParameter = 8994,
         WRN_NullCheckingOnNullableType = 8995,
 
-        ERR_EscapeParamsSpan = 8999,
-
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
