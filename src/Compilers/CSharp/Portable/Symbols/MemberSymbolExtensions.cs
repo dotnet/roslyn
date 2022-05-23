@@ -658,5 +658,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 member.IsExplicitInterfaceImplementation() ? ExplicitInterfaceHelpers.GetMemberNameWithoutInterfaceName(member.Name) :
                 member.Name;
         }
+
+        internal static bool CanHaveFieldKeywordBackingField(this Symbol symbol)
+        {
+            Debug.Assert(symbol.ContainingSymbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.NetModule, $"Unexpected SymbolKind '{symbol.ContainingSymbol.Kind}'.");
+            return symbol is SourcePropertyAccessorSymbol { Property.IsIndexer: false };
+        }
     }
 }

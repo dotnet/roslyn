@@ -1291,7 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         INF_UnableToLoadSomeTypesInAnalyzer = 8040,
         // available 8041-8049
         ERR_InitializerOnNonAutoProperty = 8050,
-        ERR_AutoPropertyMustHaveGetAccessor = 8051,
+        ERR_AutoPropertyMustHaveGetAccessor = 8051, // PROTOTYPE(semi-auto-props): Rename this and rename the error message as well to reflect the fact that set-only auto property with field keyword is allowed.
         // ERR_AutoPropertyInitializerInInterface = 8052,
         ERR_InstancePropertyInitializerInInterface = 8053,
         ERR_EnumsCantContainDefaultConstructor = 8054,
@@ -2069,6 +2069,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
         ERR_MisplacedUnchecked = 9028,
+
+        ERR_FieldKeywordInsideNameOf = 9028,
 
         #endregion
 

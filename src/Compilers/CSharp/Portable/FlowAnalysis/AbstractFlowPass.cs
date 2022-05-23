@@ -569,9 +569,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
+                    if (Binder.IsPropertyAssignedThroughBackingField(access, _symbol))
                     {
-                        var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
+                        var property = access.PropertySymbol as SourcePropertySymbolBase;
+                        var backingField = property?.BackingField ?? property?.FieldKeywordBackingField;
                         if (backingField != null)
                         {
                             VisitFieldAccessInternal(access.ReceiverOpt, backingField);
@@ -1927,14 +1928,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // returns false if expression is not a property access
         // or if the property has a backing field
         // and accessed in a corresponding constructor
-        private bool RegularPropertyAccess(BoundExpression expr)
+        private bool RegularPropertyAccess(BoundExpression expr) // PROTOTYPE(semi-auto-props): Usages of this should be reviewed.
         {
             if (expr.Kind != BoundKind.PropertyAccess)
             {
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
+            return !Binder.IsPropertyAssignedThroughBackingField((BoundPropertyAccess)expr, _symbol); // PROTOTYPE(semi-auto-props): Revise this method call is the behavior we want and add unit tests..
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -2070,7 +2071,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
+            // PROTOTYPE(semi-auto-props): Add tests for semi auto property once assigning in constructors is supported.
+            // A test that gets to this code path can be similar to CodeGenConstructorInitTests.TestInitializerInCtor003
+            if (Binder.IsEquivalentToBackingFieldRead(node, _symbol))
             {
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)

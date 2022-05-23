@@ -306,6 +306,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if ((object)accessor != null)
                         {
+                            // If we have a property, the accessor must be SourcePropertyAccessorSymbol.
+                            Debug.Assert(!propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration) || accessor is SourcePropertyAccessorSymbol);
+                            if (accessor.CanHaveFieldKeywordBackingField())
+                            {
+                                Debug.Assert(propertyOrEventDecl.IsKind(SyntaxKind.PropertyDeclaration));
+                                resultBinder = new FieldKeywordBinder((SourcePropertyAccessorSymbol)accessor, resultBinder);
+                            }
+
                             resultBinder = new InMethodBinder(accessor, resultBinder);
                         }
                     }
@@ -405,6 +413,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var accessor = propertySymbol.GetMethod;
                     if ((object)accessor != null)
                     {
+                        if (accessor.CanHaveFieldKeywordBackingField())
+                        {
+                            resultBinder = new FieldKeywordBinder((SourcePropertyAccessorSymbol)accessor, resultBinder);
+                        }
+
                         resultBinder = new InMethodBinder(accessor, resultBinder);
                     }
 

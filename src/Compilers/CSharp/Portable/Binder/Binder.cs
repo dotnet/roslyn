@@ -194,6 +194,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
         }
 
+        internal virtual FieldSymbol? GetSymbolForPossibleFieldKeyword()
+        {
+            RoslynDebug.Assert(Next is object);
+            return this.Next.GetSymbolForPossibleFieldKeyword();
+        }
+
         /// <summary>
         /// If this binder owns a scope for locals, return syntax node that is used
         /// as the scope designator. Otherwise, null.

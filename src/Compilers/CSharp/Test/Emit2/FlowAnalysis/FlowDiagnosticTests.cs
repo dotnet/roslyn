@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    // PROTOTYPE(semi-auto-props): Add tests.
     public class FlowDiagnosticTests : FlowTestBase
     {
         [Fact]

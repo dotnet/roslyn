@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             binder = new WithNullableContextBinder(SyntaxTree, position, binder);
-
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             return new ExecutableCodeBinder(expression, binder.ContainingMemberOrLambda, binder).GetBinder(expression);
         }
 
@@ -245,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             return new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).GetBinder(attribute);
         }
 
@@ -267,6 +268,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return boundNode;
+        }
+
+        protected static Binder AddSpeculativeFieldKeywordBinderIfNeeded(Binder binder)
+        {
+            var symbol = binder.ContainingMember();
+            if (symbol.CanHaveFieldKeywordBackingField())
+            {
+                return new SpeculativeFieldKeywordBinder((SourcePropertyAccessorSymbol)symbol, binder);
+            }
+
+            return binder;
         }
 
         /// <summary>

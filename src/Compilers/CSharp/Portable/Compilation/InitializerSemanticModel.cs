@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            binder = AddSpeculativeFieldKeywordBinderIfNeeded(binder);
             binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
             speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, GetRemappedSymbols(), position);
             return true;

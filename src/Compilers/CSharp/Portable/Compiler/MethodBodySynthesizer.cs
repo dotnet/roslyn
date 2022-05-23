@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Construct a body for an auto-property accessor (updating or returning the backing field).
+        /// Construct a body for an auto-property accessor (updating or returning the backing field). This can return null on error scenarios.
         /// </summary>
         internal static BoundBlock ConstructAutoPropertyAccessorBody(SourceMemberMethodSymbol accessor)
         {
@@ -184,6 +184,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var field = property.BackingField;
+            if (field is null)
+            {
+                // This happens for public int { set; } where we produce ERR_AutoPropertyMustHaveGetAccessor
+                Debug.Assert(property.GetMethod is null);
+                return null;
+            }
+
+            Debug.Assert(!field.IsCreatedForFieldKeyword);
             var fieldAccess = new BoundFieldAccess(syntax, thisReference, field, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
             BoundStatement statement;
 

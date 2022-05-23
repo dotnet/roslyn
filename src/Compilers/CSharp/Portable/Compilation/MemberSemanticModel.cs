@@ -79,6 +79,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             _speculatedPosition = speculatedPosition;
 
             _operationFactory = new Lazy<CSharpOperationFactory>(() => new CSharpOperationFactory(this));
+
+            // If we're speculating and we're in a non-indexer property symbol, then we must have a speculative field keyword binder.
+            Debug.Assert(!IsSpeculativeSemanticModel || rootBinder.ContainingMember() is not SourcePropertyAccessorSymbol { Property.IsIndexer: false } || hasSpeculativeFieldKeywordBinderInChain(rootBinder));
+
+            static bool hasSpeculativeFieldKeywordBinderInChain(Binder rootBinder)
+            {
+                while (rootBinder is not null)
+                {
+                    if (rootBinder is SpeculativeFieldKeywordBinder)
+                    {
+                        return true;
+                    }
+
+                    if (rootBinder is FieldKeywordBinder)
+                    {
+                        Debug.Fail("Expected SpeculativeFieldKeywordBinder to be found before FieldKeywordBinder.");
+                        return false;
+                    }
+
+                    rootBinder = rootBinder.Next;
+                }
+
+                return false;
+            }
         }
 
         public override CSharpCompilation Compilation
