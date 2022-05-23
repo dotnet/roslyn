@@ -59,23 +59,23 @@ internal class GlobalAliases : IEquatable<GlobalAliases>
     public override bool Equals(object? obj)
         => this.Equals(obj as GlobalAliases);
 
-    public bool Equals(GlobalAliases? array)
+    public bool Equals(GlobalAliases? aliases)
     {
-        if (array is null)
+        if (aliases is null)
             return false;
 
-        if (ReferenceEquals(this, array))
+        if (ReferenceEquals(this, aliases))
             return true;
 
-        if (this.AliasAndSymbolNames == array.AliasAndSymbolNames)
+        if (this.AliasAndSymbolNames == aliases.AliasAndSymbolNames)
             return true;
 
-        if (this.AliasAndSymbolNames.Length != array.AliasAndSymbolNames.Length)
+        if (this.AliasAndSymbolNames.Length != aliases.AliasAndSymbolNames.Length)
             return false;
 
         for (int i = 0, n = this.AliasAndSymbolNames.Length; i < n; i++)
         {
-            if (this.AliasAndSymbolNames[i] != array.AliasAndSymbolNames[i])
+            if (this.AliasAndSymbolNames[i] != aliases.AliasAndSymbolNames[i])
                 return false;
         }
 
