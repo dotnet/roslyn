@@ -107,7 +107,7 @@ namespace IdeCoreBenchmarks
         }
 
         [Benchmark]
-        public async Task RunGeneratorOld()
+        public async Task RunGenerator()
         {
             var generator = (new PipelineCallbackGenerator(ctx =>
             {
