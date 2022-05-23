@@ -681,9 +681,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 }
 
                 SymbolKeyResolution newResolution;
-                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace)
+                if (edit.Kind is SemanticEditKind.Update or SemanticEditKind.Insert or SemanticEditKind.Replace or SemanticEditKind.Delete)
                 {
-                    newResolution = edit.Symbol.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
+                    newResolution = edit.NewSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true, cancellationToken);
                     Contract.ThrowIfNull(newResolution.Symbol);
                 }
                 else

@@ -236,7 +236,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             AssertEx.Empty(duplicateNonPartial, "Duplicate non-partial symbols");
 
             // check if we can merge edits without throwing:
-            EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var _, out var _, CancellationToken.None);
+            EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var mergedEdits, out _, CancellationToken.None);
+
+            // merging is where we fill in NewSymbol for deletes, so make sure that happened too
+            foreach (var edit in mergedEdits)
+            {
+                if (edit.Kind is SemanticEditKind.Delete &&
+                    edit.OldSymbol is IMethodSymbol)
+                {
+                    Assert.True(edit.NewSymbol is not null);
+                }
+            }
         }
 
         public static void VerifyDiagnostics(IEnumerable<RudeEditDiagnosticDescription> expected, IEnumerable<RudeEditDiagnostic> actual, SourceText newSource)
@@ -265,8 +275,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             // string comparison to simplify understanding why a test failed:
             AssertEx.Equal(
-                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.SymbolProvider(newCompilation)}"),
-                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.Symbol.Resolve(newCompilation).Symbol}"),
+                expectedSemanticEdits.Select(e => $"{e.Kind}: {e.NewSymbolProvider(newCompilation)}"),
+                actualSemanticEdits.NullToEmpty().Select(e => $"{e.Kind}: {e.NewSymbolKey.Resolve(newCompilation).Symbol}"),
                 message: message);
 
             for (var i = 0; i < actualSemanticEdits.Length; i++)
@@ -277,22 +287,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                 Assert.Equal(editKind, actualSemanticEdit.Kind);
 
-                var expectedOldSymbol = (editKind == SemanticEditKind.Update) ? expectedSemanticEdit.SymbolProvider(oldCompilation) : null;
-                var expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
+                var expectedNewSymbol = expectedSemanticEdit.NewSymbolProvider(newCompilation);
                 var symbolKey = actualSemanticEdit.Symbol;
+                var newSymbolKey = actualSemanticEdit.NewSymbolKey;
 
-                if (editKind == SemanticEditKind.Update)
+                if (editKind is SemanticEditKind.Update or SemanticEditKind.Delete)
                 {
+                    var expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
                     Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedNewSymbol, newSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
                 else if (editKind is SemanticEditKind.Insert or SemanticEditKind.Replace)
                 {
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedNewSymbol, newSymbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
                 }
                 else
                 {
-                    Assert.False(true, "Only Update, Insert or Replace allowed");
+                    Assert.False(true, "Only Update, Delete, Insert or Replace allowed");
                 }
 
                 // Partial types must match:

@@ -2064,7 +2064,10 @@ interface I { void F() {} }
                 new[]
                 {
                     DocumentResults(
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, null, DeletedSymbolDisplay(FeaturesResources.method, "C.F()")) }),
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C"))
+                        }),
 
                     DocumentResults(
                         semanticEdits: new[]
@@ -4901,8 +4904,15 @@ class C
                 "Delete [public void goo() {}]@17",
                 "Delete [()]@32");
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "public class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")));
+            edits.VerifySemantics(
+               new[] {
+                   SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.D")),
+                   SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C"))
+               },
+               capabilities: EditAndContinueCapabilities.Baseline);
+
+            //edits.VerifySemanticDiagnostics(
+            //    Diagnostic(RudeEditKind.Delete, "public class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")));
         }
 
         [Fact]
@@ -5153,11 +5163,15 @@ class D<T>
                     DocumentResults(),
 
                     DocumentResults(
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "partial struct S", DeletedSymbolDisplay(FeaturesResources.method, "F2(byte x)")) }),
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.C.F2"), newSymbolProvider: c => c.GetMember("S.C"))
+                        }),
 
                     DocumentResults(
                         semanticEdits: new[] { SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("S").GetMember<INamedTypeSymbol>("C").GetMember("F2")) })
-                });
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6027,11 +6041,12 @@ partial class C
                         }),
 
                     DocumentResults(
-                        diagnostics: new[]
+                        semanticEdits: new[]
                         {
-                            Diagnostic(RudeEditKind.Delete, "partial struct S", DeletedSymbolDisplay(FeaturesResources.method, "F()"))
-                        })
-                });
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.F"), newSymbolProvider: c => c.GetMember("S"))
+                        }),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6053,11 +6068,12 @@ partial class C
                         }),
 
                     DocumentResults(
-                        diagnostics: new[]
+                        semanticEdits: new[]
                         {
-                            Diagnostic(RudeEditKind.Delete, "partial struct S", DeletedSymbolDisplay(FeaturesResources.method, "F(int x)"))
-                        })
-                });
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.F"), newSymbolProvider: c => c.GetMember("S"))
+                        }),
+                },
+                capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
         }
 
         [Fact]
@@ -6079,10 +6095,10 @@ partial class C
                         }),
 
                     DocumentResults(
-                        diagnostics: new[]
+                        semanticEdits: new[]
                         {
-                            Diagnostic(RudeEditKind.Delete, "partial struct S", DeletedSymbolDisplay(FeaturesResources.method, "F()"))
-                        })
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("S.F"), newSymbolProvider: c => c.GetMember("S"))
+                        }),
                 });
         }
 
@@ -6540,8 +6556,9 @@ class C
                 "Delete [void goo() { }]@18",
                 "Delete [()]@26");
 
-            edits.VerifySemanticDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")));
+            edits.VerifySemantics(
+                new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C")) },
+                capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [Fact]
@@ -6563,8 +6580,9 @@ class C
                 "Delete [int goo() => 1;]@18",
                 "Delete [()]@25");
 
-            edits.VerifySemanticDiagnostics(
-                 Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")));
+            edits.VerifySemantics(
+               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C")) },
+               capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -6590,8 +6608,9 @@ class C
                 "Delete [(int a)]@42",
                 "Delete [int a]@43");
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "class C", DeletedSymbolDisplay(FeaturesResources.method, "goo(int a)")));
+            edits.VerifySemantics(
+               new[] { SemanticEdit(SemanticEditKind.Delete, c => c.GetMember("C.goo"), newSymbolProvider: c => c.GetMember("C")) },
+               capabilities: EditAndContinueCapabilities.Baseline);
         }
 
         [WorkItem(754853, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754853")]
@@ -8201,7 +8220,10 @@ public class SubClass : BaseClass, IConflict
                     DocumentResults(),
 
                     DocumentResults(
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, newSymbolProvider: c => c.GetMember("C"))
+                        }),
                 });
         }
 
@@ -8221,7 +8243,10 @@ public class SubClass : BaseClass, IConflict
                     DocumentResults(),
 
                     DocumentResults(
-                        diagnostics: new[] { Diagnostic(RudeEditKind.Delete, "partial class C", DeletedSymbolDisplay(FeaturesResources.method, "F()")) })
+                        semanticEdits: new[]
+                        {
+                            SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, newSymbolProvider: c => c.GetMember("C"))
+                        }),
                 });
         }
 
