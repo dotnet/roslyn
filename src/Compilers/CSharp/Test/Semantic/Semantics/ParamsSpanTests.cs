@@ -130,7 +130,7 @@ span
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [InlineData(LanguageVersion.CSharp10)]
-        [InlineData(LanguageVersion.Preview)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
         public void ParamsSpan_02(LanguageVersion languageVersion)
         {
             var sourceA =

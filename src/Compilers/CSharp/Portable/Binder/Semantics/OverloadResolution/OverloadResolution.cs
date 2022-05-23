@@ -2043,6 +2043,8 @@ outerDefault:
             var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
 
             // Prefer params Span<T> or ReadOnlySpan<T> over params T[].
+            // PROTOTYPE: Reconcile with the spec which states "the more specific params type
+            // is the first of: ReadOnlySpan<T>, Span<T>, T[], IEnumerable<T>".
             if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm && m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
                 var parameter1 = m1Original.Last();
