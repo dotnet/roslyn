@@ -68,7 +68,7 @@ namespace IdeCoreBenchmarks
             MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
-        private async Task LoadSolutionAsync()
+        private Task LoadSolutionAsync()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
             _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
@@ -97,6 +97,7 @@ namespace IdeCoreBenchmarks
 
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+            return Task.CompletedTask;
         }
 
         [IterationCleanup]
@@ -175,21 +176,6 @@ namespace IdeCoreBenchmarks
             Console.ReadLine();
         }
     }
-
-    //internal sealed class IncrementalGeneratorWrapper : ISourceGenerator
-    //{
-    //    internal IIncrementalGenerator Generator { get; }
-
-    //    public IncrementalGeneratorWrapper(IIncrementalGenerator generator)
-    //    {
-    //        this.Generator = generator;
-    //    }
-
-    //    // never used. Just for back compat with loading mechanism
-    //    void ISourceGenerator.Execute(GeneratorExecutionContext context) => throw ExceptionUtilities.Unreachable;
-
-    //    void ISourceGenerator.Initialize(GeneratorInitializationContext context) => throw ExceptionUtilities.Unreachable;
-    //}
 
     internal sealed class PipelineCallbackGenerator : IIncrementalGenerator
     {
