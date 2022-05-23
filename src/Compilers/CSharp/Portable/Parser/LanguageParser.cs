@@ -4490,7 +4490,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
+        /// Parses the <c>!!</c> as skipped tokens following a parameter name token.  If the parameter name
         /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned through <paramref
         /// name="equalsToken"/>.
         /// </summary>
@@ -4515,14 +4515,11 @@ tryAgain:
             }
             else if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
             {
-                // We have seen at least !
-                //
-                // We can potentially merge that with an immediately following !! or an immediately following !=
-                // All other cases are in error.
+                // We have seen at least '!'
+                // We check for a following '!' or '!=' to see if the user is trying to use '!!' (so we can give an appropriate error).
                 identifier = AddTrailingSkippedSyntax(identifier, this.AddError(this.EatToken(), ErrorCode.ERR_ParameterNullCheckingNotSupported));
                 if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
                 {
-                    // have two !'s in a row.  Merge them (reporting any errors if they cannot merge properly).
                     identifier = AddTrailingSkippedSyntax(identifier, this.EatToken());
                 }
                 else if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
