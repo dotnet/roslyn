@@ -1259,6 +1259,10 @@ tryAgain:
 
                     case DeclarationModifiers.Scoped:
                         Debug.Assert(AllowScopedModifier());
+                        if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
+                        {
+                            return;
+                        }
                         modTok = ConvertToKeyword(this.EatToken());
                         break;
 
@@ -1292,7 +1296,7 @@ tryAgain:
 
         private bool ShouldAsyncBeTreatedAsModifier(bool parsingStatementNotDeclaration)
         {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword);
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken && GetModifier(this.CurrentToken) != DeclarationModifiers.None);
 
             // Adapted from CParser::IsAsyncMethod.
 
@@ -4616,6 +4620,11 @@ tryAgain:
         {
             while (IsParameterModifier(this.CurrentToken, isFunctionPointerParameter))
             {
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && !shouldTreatAsModifier())
+                {
+                    return;
+                }
+
                 var modifier = this.EatToken();
 
                 switch (modifier.Kind)
@@ -4657,6 +4666,25 @@ tryAgain:
                 }
 
                 modifiers.Add(modifier);
+            }
+
+            bool shouldTreatAsModifier()
+            {
+                var resetPoint = this.GetResetPoint();
+
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+                this.EatToken();
+
+                bool validAsModifier = IsParameterModifier(this.CurrentToken, isFunctionPointerParameter) ||
+                    (ScanType() != ScanTypeFlags.NotType &&
+                        isFunctionPointerParameter ?
+                            this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken :
+                            this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+
+                return validAsModifier;
             }
         }
 
@@ -7197,7 +7225,23 @@ done:
                     readonlyKeyword = this.CheckFeatureAvailability(readonlyKeyword, MessageID.IDS_FeatureReadOnlyReferences);
                 }
 
-                SyntaxToken scopedKeyword = EatScopedKeywordIfAny();
+                SyntaxToken scopedKeyword = null;
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && AllowScopedModifier())
+                {
+                    var resetPoint = this.GetResetPoint();
+
+                    this.EatToken();
+                    // PROTOTYPE: Can we really assume that the type is followed by an identifier?
+                    bool shouldTreatAsModifier = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
+
+                    this.Reset(ref resetPoint);
+                    this.Release(ref resetPoint);
+
+                    if (shouldTreatAsModifier)
+                    {
+                        scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
+                    }
+                }
 
                 var type = ParseTypeCore(ParseTypeMode.AfterRef);
                 return _syntaxFactory.RefType(refKeyword, readonlyKeyword, scopedKeyword, type);
@@ -7981,11 +8025,6 @@ done:;
                 return true;
             }
 
-            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && AllowScopedModifier())
-            {
-                return true;
-            }
-
             // note: `using (` and `await using (` are already handled in ParseStatementCore.
             if (tk == SyntaxKind.UsingKeyword)
             {
@@ -8000,6 +8039,13 @@ done:;
             }
 
             tk = this.CurrentToken.ContextualKind;
+
+            if (tk == SyntaxKind.ScopedKeyword &&
+                AllowScopedModifier() &&
+                ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true))
+            {
+                return true;
+            }
 
             var isPossibleAttributeOrModifier = (IsAdditionalLocalFunctionModifier(tk) || tk == SyntaxKind.OpenBracketToken)
                 && (tk != SyntaxKind.AsyncKeyword || ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true));
@@ -9961,20 +10007,9 @@ tryAgain:
                 if (k == SyntaxKind.AsyncKeyword)
                 {
                     // check for things like "async async()" where async is the type and/or the function name
+                    if (!shouldTreatAsModifier())
                     {
-                        var resetPoint = this.GetResetPoint();
-
-                        var invalid = !IsPossibleStartOfTypeDeclaration(this.EatToken().Kind) &&
-                            !IsDeclarationModifier(this.CurrentToken.Kind) && !IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) &&
-                            (ScanType() == ScanTypeFlags.NotType || this.CurrentToken.Kind != SyntaxKind.IdentifierToken);
-
-                        this.Reset(ref resetPoint);
-                        this.Release(ref resetPoint);
-
-                        if (invalid)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
                     mod = this.EatContextualToken(k);
@@ -9985,6 +10020,10 @@ tryAgain:
                 }
                 else if (k == SyntaxKind.ScopedKeyword)
                 {
+                    if (!shouldTreatAsModifier())
+                    {
+                        break;
+                    }
                     mod = this.EatContextualToken(k);
                 }
                 else
@@ -10003,6 +10042,23 @@ tryAgain:
                 }
 
                 list.Add(mod);
+            }
+
+            bool shouldTreatAsModifier()
+            {
+                var resetPoint = this.GetResetPoint();
+
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+                this.EatToken();
+
+                bool validAsModifier = IsDeclarationModifier(this.CurrentToken.Kind) ||
+                    IsAdditionalLocalFunctionModifier(this.CurrentToken.Kind) ||
+                    (ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken);
+
+                this.Reset(ref resetPoint);
+                this.Release(ref resetPoint);
+
+                return validAsModifier;
             }
         }
 

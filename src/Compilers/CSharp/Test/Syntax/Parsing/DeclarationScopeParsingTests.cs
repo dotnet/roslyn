@@ -14,8 +14,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Method_01(LanguageVersion langVersion)
+        {
+            string source = "void F(scoped x, ref scoped y) { }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "F");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
-        public void Method_01()
+        public void Method_02()
         {
             string source = "void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) { }";
             UsingDeclaration(source, TestOptions.RegularNext);
@@ -84,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_01_CSharp10()
+        public void Method_02_CSharp10()
         {
             string source = "void F(scoped int a, scoped ref int b, scoped in int c, scoped out int d) { }";
             UsingDeclaration(source, TestOptions.Regular10,
@@ -209,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_02()
+        public void Method_03()
         {
             string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
             UsingDeclaration(source, TestOptions.RegularNext);
@@ -268,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_02_CSharp10()
+        public void Method_03_CSharp10()
         {
             string source = "void F(ref scoped int b, in scoped int c, out scoped int d) { }";
             UsingDeclaration(source, TestOptions.Regular10,
@@ -369,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_03()
+        public void Method_04()
         {
             string source = "scoped R F() => default;";
             UsingDeclaration(source, TestOptions.RegularNext);
@@ -401,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_04()
+        public void Method_05()
         {
             string source = "ref scoped R F() => default;";
             UsingDeclaration(source, TestOptions.RegularNext);
@@ -437,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_05()
+        public void Method_06()
         {
             string source = "void F(scoped scoped ref int i) { }";
             UsingDeclaration(source, TestOptions.RegularNext);
@@ -475,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Method_06()
+        public void Method_07()
         {
             string source = "void F(ref scoped scoped R r) { }";
             UsingDeclaration(source, TestOptions.RegularNext);
@@ -512,8 +559,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Lambda_01(LanguageVersion langVersion)
+        {
+            string source = "(scoped x, ref scoped y) => null";
+            UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
         [Fact]
-        public void Lambda_01()
+        public void Lambda_02()
         {
             string source = "(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
             UsingExpression(source, TestOptions.RegularNext);
@@ -577,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_01_CSharp10()
+        public void Lambda_02_CSharp10()
         {
             string source = "(scoped int a, scoped ref int b, scoped in int c, scoped out int d) => null";
             UsingExpression(source, TestOptions.Regular10,
@@ -601,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_02()
+        public void Lambda_03()
         {
             string source = "(ref scoped int a, out scoped int b, in scoped int c) => null";
             UsingExpression(source, TestOptions.RegularNext);
@@ -655,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_02_CSharp10()
+        public void Lambda_03_CSharp10()
         {
             string source = "(ref scoped int a, out scoped int b, in scoped int c) => null";
             UsingExpression(source, TestOptions.Regular10,
@@ -686,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_03()
+        public void Lambda_04()
         {
             string source = "(scoped R a, scoped ref R b, ref scoped R c) => null";
             UsingExpression(source, TestOptions.RegularNext);
@@ -739,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_04()
+        public void Lambda_05()
         {
             string source = "(scoped scoped ref int i) => null";
             UsingExpression(source, TestOptions.RegularNext);
@@ -772,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_05()
+        public void Lambda_06()
         {
             string source = "(ref scoped scoped R r) => { }";
             UsingExpression(source, TestOptions.RegularNext,
@@ -803,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Lambda_06()
+        public void Lambda_07()
         {
             string source = "([A] scoped R a, [B] scoped ref R b, [C] ref scoped R c) => null";
             UsingExpression(source, TestOptions.RegularNext);
@@ -894,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void Lambda_07(LanguageVersion langVersion)
+        public void Lambda_08(LanguageVersion langVersion)
         {
             string source = $"scoped () => t";
             UsingExpression(source, TestOptions.Regular.WithLanguageVersion(langVersion));
@@ -1426,71 +1515,16 @@ scoped ref readonly scoped S c;
             EOF();
         }
 
-        // PROTOTYPE: LDM breaking change: 'scoped' parsed as modifier.
-        [Fact]
-        public void Local_04()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Local_04(LanguageVersion langVersion)
         {
             string source =
 @"scoped a;
 ref scoped b;
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
-                // (1,8): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // scoped a;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(1, 8),
-                // (2,12): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // ref scoped b;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(2, 12));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                    }
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.EmptyStatement);
-                    {
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void Local_04_CSharp10()
-        {
-            string source =
-@"scoped a;
-ref scoped b;
-";
-            UsingCompilationRoot(source, TestOptions.Regular10);
+            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1539,9 +1573,10 @@ ref scoped b;
             EOF();
         }
 
-        // PROTOTYPE: LDM breaking change: 'scoped' parsed as modifier.
-        [Fact]
-        public void Local_05()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Local_05(LanguageVersion langVersion)
         {
             string source =
 @"class Program
@@ -1552,97 +1587,7 @@ ref scoped b;
         ref readonly scoped b;
     }
 }";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
-                // (5,17): error CS1001: Identifier expected
-                //         scoped a;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(5, 17),
-                // (6,30): error CS1001: Identifier expected
-                //         ref readonly scoped b;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 30));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "Program");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
-                    {
-                        N(SyntaxKind.StaticKeyword);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
-                        }
-                        N(SyntaxKind.IdentifierToken, "Main");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "a");
-                                    }
-                                    M(SyntaxKind.VariableDeclarator);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.RefType);
-                                    {
-                                        N(SyntaxKind.RefKeyword);
-                                        N(SyntaxKind.ReadOnlyKeyword);
-                                        N(SyntaxKind.ScopedKeyword);
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "b");
-                                        }
-                                    }
-                                    M(SyntaxKind.VariableDeclarator);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void Local_05_CSharp10()
-        {
-            string source =
-@"class Program
-{
-    static void Main()
-    {
-        scoped a;
-        ref readonly scoped b;
-    }
-}";
-            UsingCompilationRoot(source, TestOptions.Regular10);
+            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1720,49 +1665,49 @@ ref scoped b;
 scoped ref scoped b;
 ref scoped scoped c;
 ";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
-                // (1,15): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // scoped scoped a;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(1, 15),
-                // (2,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-                // scoped ref scoped b;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(2, 19));
+            UsingCompilationRoot(source, TestOptions.RegularNext);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "a");
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.EmptyStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                    }
-                }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.EmptyStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
                         N(SyntaxKind.SemicolonToken);
                     }
                 }
@@ -1973,9 +1918,9 @@ scoped ref readonly scoped var c;
 @"ref scoped readonly S a;
 ";
             UsingCompilationRoot(source, TestOptions.RegularNext,
-                // (1,12): error CS1031: Type expected
+                // (1,12): error CS1585: Member modifier 'readonly' must precede the member type and name
                 // ref scoped readonly S a;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 12),
                 // (1,12): error CS0106: The modifier 'readonly' is not valid for this item
                 // ref scoped readonly S a;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 12));
@@ -1987,10 +1932,9 @@ scoped ref readonly scoped var c;
                     N(SyntaxKind.RefType);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ScopedKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "scoped");
                         }
                     }
                 }
@@ -2026,12 +1970,12 @@ scoped ref readonly scoped var c;
 scoped scoped var b;
 ";
             UsingCompilationRoot(source, TestOptions.RegularNext,
-                    // (1,8): error CS1031: Type expected
-                    // scoped scoped int a;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithArguments("scoped").WithLocation(1, 8),
-                    // (2,8): error CS1031: Type expected
-                    // scoped scoped var b;
-                    Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithArguments("scoped").WithLocation(2, 8));
+                // (1,15): error CS1003: Syntax error, ',' expected
+                // scoped scoped int a;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(1, 15),
+                // (2,8): error CS1031: Type expected
+                // scoped scoped var b;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithArguments("scoped").WithLocation(2, 8));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2039,17 +1983,15 @@ scoped scoped var b;
                 {
                     N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.IdentifierToken, "scoped");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "a");
+                                N(SyntaxKind.IdentifierToken, "scoped");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -2080,8 +2022,56 @@ scoped scoped var b;
             EOF();
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Local_11(LanguageVersion langVersion)
+        {
+            string source = @"delegate*<scoped, ref scoped> f;";
+            UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.FunctionPointerType);
+                    {
+                        N(SyntaxKind.DelegateKeyword);
+                        N(SyntaxKind.AsteriskToken);
+                        N(SyntaxKind.FunctionPointerParameterList);
+                        {
+                            N(SyntaxKind.LessThanToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.FunctionPointerParameter);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                        }
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "f");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
         [Fact]
-        public void Local_11()
+        public void Local_12()
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
             UsingStatement(source, TestOptions.RegularPreview);
@@ -2147,7 +2137,7 @@ scoped scoped var b;
         }
 
         [Fact]
-        public void Local_11_CSharp10()
+        public void Local_12_CSharp10()
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
             UsingStatement(source, TestOptions.Regular10,
@@ -2431,7 +2421,6 @@ readonly scoped record struct C();
             EOF();
         }
 
-        // PROTOTYPE: LDM: Is this context-specific handling of `scoped` reasonable?
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
@@ -2585,51 +2574,15 @@ readonly scoped record struct C();
             EOF();
         }
 
-        [Fact]
-        public void Type_06()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Type_06(LanguageVersion langVersion)
         {
             string source =
 @"delegate ref scoped B();
 ";
-            UsingCompilationRoot(source, TestOptions.RegularPreview,
-                // (1,22): error CS1001: Identifier expected
-                // delegate ref scoped B();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(1, 22));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.DelegateDeclaration);
-                {
-                    N(SyntaxKind.DelegateKeyword);
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "B");
-                        }
-                    }
-                    M(SyntaxKind.IdentifierToken);
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void Type_06_CSharp10()
-        {
-            string source =
-@"delegate ref scoped B();
-";
-            UsingCompilationRoot(source, TestOptions.Regular10);
+            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -2722,9 +2675,10 @@ readonly scoped record struct C();
             EOF();
         }
 
-        // PROTOTYPE: LDM breaking change: 'scoped' parsed as modifier.
-        [Fact]
-        public void LocalAssignment()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void LocalAssignment(LanguageVersion langVersion)
         {
             string source =
 @"class Program
@@ -2735,99 +2689,7 @@ readonly scoped record struct C();
         scoped = true;
     }
 }";
-            UsingCompilationRoot(source, TestOptions.RegularNext,
-                // (6,16): error CS1031: Type expected
-                //         scoped = true;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "=").WithLocation(6, 16),
-                // (6,16): error CS1001: Identifier expected
-                //         scoped = true;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(6, 16));
-
-            N(SyntaxKind.CompilationUnit);
-            {
-                N(SyntaxKind.ClassDeclaration);
-                {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "Program");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.MethodDeclaration);
-                    {
-                        N(SyntaxKind.StaticKeyword);
-                        N(SyntaxKind.PredefinedType);
-                        {
-                            N(SyntaxKind.VoidKeyword);
-                        }
-                        N(SyntaxKind.IdentifierToken, "Main");
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
-                        N(SyntaxKind.Block);
-                        {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.BoolKeyword);
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "scoped");
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                        N(SyntaxKind.EqualsValueClause);
-                                        {
-                                            N(SyntaxKind.EqualsToken);
-                                            N(SyntaxKind.TrueLiteralExpression);
-                                            {
-                                                N(SyntaxKind.TrueKeyword);
-                                            }
-                                        }
-                                    }
-                                }
-                                N(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                    }
-                    N(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.EndOfFileToken);
-            }
-            EOF();
-        }
-
-        [Fact]
-        public void LocalAssignment_CSharp10()
-        {
-            string source =
-@"class Program
-{
-    static void Main()
-    {
-        bool scoped;
-        scoped = true;
-    }
-}";
-            UsingCompilationRoot(source, TestOptions.Regular10);
+            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {

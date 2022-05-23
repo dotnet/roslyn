@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     result |= DeclarationScope.RefScoped;
                 }
-                @scoped = (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword);
+                scoped = (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword);
             }
             if (scoped)
             {
