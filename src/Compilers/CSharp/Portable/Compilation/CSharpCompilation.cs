@@ -4011,6 +4011,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal bool ShouldEmitNativeIntegerAttributes()
+        {
+            return !Assembly.RuntimeSupportsNumericIntPtr;
+        }
+
         internal bool ShouldEmitNullableAttributes(Symbol symbol)
         {
             RoslynDebug.Assert(symbol is object);

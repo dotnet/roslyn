@@ -2068,8 +2068,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+        ERR_MisplacedUnchecked = 9028,
 
-        ERR_FieldKeywordInsideNameOf = 9028,
+        // PROTOTYPE(semi-auto-props): Consider the numbering later.
+        ERR_FieldKeywordInsideNameOf = 9500,
 
         #endregion
 

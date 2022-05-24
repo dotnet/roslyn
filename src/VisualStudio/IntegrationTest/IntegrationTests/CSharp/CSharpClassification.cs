@@ -106,7 +106,7 @@ class Program : Attribute
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void VerifyProjectConfigChange()
         {
             VisualStudio.Editor.SetText(@"

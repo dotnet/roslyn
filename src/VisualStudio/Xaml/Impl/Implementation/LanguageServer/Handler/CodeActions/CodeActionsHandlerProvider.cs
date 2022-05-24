@@ -14,45 +14,48 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    /// <summary>
-    /// Exports all the code action handlers together to ensure they
-    /// share the same code actions cache state.
-    /// </summary>
-    /// <remarks>
-    /// Same as C# and VB but for XAML. See also <seealso cref="Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActionsHandlerProvider"/>.
-    /// </remarks>
-    [ExportXamlLspRequestHandlerProvider(typeof(CodeActionsHandler), typeof(CodeActionResolveHandler), typeof(RunCodeActionHandler)), Shared]
-    internal class CodeActionsHandlerProvider : IRequestHandlerProvider
+    [ExportStatelessXamlLspService(typeof(CodeActionsHandler)), Shared]
+    internal class XamlCodeActionsHandler : CodeActionsHandler
     {
-        private readonly ICodeFixService _codeFixService;
-        private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeActionsHandlerProvider(
+        public XamlCodeActionsHandler(
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions)
+            IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
         {
-            _codeFixService = codeFixService;
-            _codeRefactoringService = codeRefactoringService;
-            _threadingContext = threadingContext;
-            _globalOptions = globalOptions;
         }
+    }
 
-        public ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+    [ExportStatelessXamlLspService(typeof(CodeActionResolveHandler)), Shared]
+    internal class XamlCodeActionResolveHandler : CodeActionResolveHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public XamlCodeActionResolveHandler(
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            IGlobalOptionService globalOptions) : base(codeFixService, codeRefactoringService, globalOptions)
         {
-            var codeActionsCache = new CodeActionsCache();
-            return ImmutableArray.Create<IRequestHandler>(
-                new CodeActionsHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
-                new CodeActionResolveHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
-                new RunCodeActionHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext));
+        }
+    }
+
+    [ExportStatelessXamlLspService(typeof(RunCodeActionHandler)), Shared]
+    internal class XamlRunCodeActionHandler : RunCodeActionHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public XamlRunCodeActionHandler(
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext) : base(codeFixService, codeRefactoringService, globalOptions, threadingContext)
+        {
         }
     }
 }

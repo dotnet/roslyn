@@ -49,18 +49,24 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
             // the originating project), then we're in teh same project and we should try to get global import
             // information to display.
-            if (remappedProject != document.Project)
-                includeGlobalImports = false;
+            var remapped = remappedProject != document.Project;
 
-            if (!includeGlobalImports && symbolKeyAndLineNumbers.IsEmpty)
-                return ImmutableArray<InheritanceMarginItem>.Empty;
+            using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var result);
 
-            return await GetInheritanceMemberItemAsync(
-                remappedProject,
-                documentForGlobalImports: includeGlobalImports ? document : null,
-                spanToSearch,
-                symbolKeyAndLineNumbers,
-                cancellationToken).ConfigureAwait(false);
+            if (includeGlobalImports && !remapped)
+                result.AddRange(await GetGlobalImportItemsAsync(document, spanToSearch, frozenPartialSemantics: true, cancellationToken).ConfigureAwait(false));
+
+            if (!symbolKeyAndLineNumbers.IsEmpty)
+            {
+                result.AddRange(await GetSymbolItemsAsync(
+                    remappedProject,
+                    document: remapped ? null : document,
+                    symbolKeyAndLineNumbers,
+                    frozenPartialSemantics: true,
+                    cancellationToken).ConfigureAwait(false));
+            }
+
+            return result.ToImmutable();
         }
 
         private async ValueTask<(Project remapped, SymbolKeyAndLineNumberArray symbolKeyAndLineNumbers)> GetMemberSymbolKeysAsync(
