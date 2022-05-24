@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     // The option page configuration is duplicated in PackageRegistration.pkgdef
     [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
     [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
+    [ProvideToolWindow(typeof(SampleToolWindow))]
     internal sealed class RoslynPackage : AbstractPackage
     {
         // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
@@ -170,6 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // doc events and appropriately map files to/from it and other relevant workspaces (like the
             // metadata-as-source workspace).
             await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
+
+            this.ComponentModel.GetService<SampleToolWindowFactory>().Initialize(this);
         }
 
         private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
@@ -238,6 +241,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             }
 
             if (toolWindowType == typeof(StackTraceExplorerToolWindow).GUID)
+            {
+                return this;
+            }
+
+            if (toolWindowType == typeof(SampleToolWindow).GUID)
             {
                 return this;
             }

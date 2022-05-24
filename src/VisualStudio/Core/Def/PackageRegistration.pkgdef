@@ -54,6 +54,12 @@
 "Name"="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer.StackTraceExplorerToolWindow"
 @="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
 
+// The tool window configuration is duplicated in RoslynPackage
+// [ProvideToolWindow(typeof(SampleToolWindow))]
+[$RootKey$\ToolWindows\{F85D2A49-72B5-4B38-ABED-6F177D88F81D}]
+"Name"="Microsoft.VisualStudio.LanguageServices.SampleToolWindow"
+@="{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+
 // 68b46364-d378-42f2-9e72-37d86c5f4468 is the guid for SettingsEditorFactory
 // 6cf2e545-6109-4730-8883-cf43d7aec3e1 is the guid for RoslynPackage
 [$RootKey$\Editors\{68b46364-d378-42f2-9e72-37d86c5f4468}]
