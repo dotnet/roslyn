@@ -16,7 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits MethodToClassRewriter(Of TProxy)
 
             Protected Friend ReadOnly F As SyntheticBoundNodeFactory
-            Protected NextState As Integer = 0
+            Protected NextState As Integer = StateMachineStates.InitialIteratorState
+            Protected NextFinalizerState As Integer = StateMachineStates.FirstIteratorFinalizeState
 
             ''' <summary>
             ''' The "state" of the state machine that is the translation of the iterator method.
@@ -145,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If Not Me._hasFinalizerState Then
-                    Me._currentFinalizerState = Me.NextState
-                    Me.NextState += 1
+                    Me._currentFinalizerState = Me.NextFinalizerState
+                    Me.NextFinalizerState -= 1
                     Me._hasFinalizerState = True
                 End If
 
