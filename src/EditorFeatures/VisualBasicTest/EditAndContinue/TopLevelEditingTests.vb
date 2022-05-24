@@ -1429,8 +1429,10 @@ End Class"
             EditAndContinueValidation.VerifySemantics(
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
-                    DocumentResults(
-                        diagnostics:={Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.method, "C.F()"))}),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.F"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                    }),
                     DocumentResults(
                         semanticEdits:={
                             SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember("M"))
@@ -2906,8 +2908,12 @@ End Class
                 "Delete [Public Sub goo()]@15",
                 "Delete [()]@29")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Public Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>
@@ -3091,11 +3097,16 @@ End Structure
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)},
                 {
                     DocumentResults(),
-                    DocumentResults(
-                        diagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Structure S", DeletedSymbolDisplay(FeaturesResources.method, "F2(x As Byte)"))}),
-                    DocumentResults(
-                        semanticEdits:={SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember(Of NamedTypeSymbol)("C").GetMember("F2"))})
-                })
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.C.F2"), newSymbolProvider:=Function(c) c.GetMember("S.C"))
+                    }),
+                    DocumentResults(semanticEdits:=
+                    {
+                        SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("S").GetMember(Of NamedTypeSymbol)("C").GetMember("F2"))
+                    })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -4155,11 +4166,12 @@ End Structure
                     {
                         SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.F"))
                     }),
-                    DocumentResults(diagnostics:=
+                    DocumentResults(semanticEdits:=
                     {
-                        Diagnostic(RudeEditKind.Delete, "Partial Structure S", DeletedSymbolDisplay(FeaturesResources.method, "F()"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.F"), newSymbolProvider:=Function(c) c.GetMember("S"))
                     })
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -4193,11 +4205,12 @@ End Structure
                     {
                         SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.F"))
                     }),
-                    DocumentResults(diagnostics:=
+                    DocumentResults(semanticEdits:=
                     {
-                        Diagnostic(RudeEditKind.Delete, "Partial Structure S", DeletedSymbolDisplay(FeaturesResources.method, "F(a As Integer)"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.F"), newSymbolProvider:=Function(c) c.GetMember("S"))
                     })
-                })
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -4231,9 +4244,9 @@ End Structure
                     {
                         Diagnostic(RudeEditKind.InsertGenericMethod, "Sub F(Of T)()", FeaturesResources.method)
                     }),
-                    DocumentResults(diagnostics:=
+                    DocumentResults(semanticEdits:=
                     {
-                        Diagnostic(RudeEditKind.Delete, "Partial Structure S", DeletedSymbolDisplay(FeaturesResources.method, "F()"))
+                        SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("S.F"), newSymbolProvider:=Function(c) c.GetMember("S"))
                     })
                 })
         End Sub
@@ -4417,8 +4430,11 @@ End Structure
                 "Delete [Sub goo()]@8",
                 "Delete [()]@15")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo()")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>
@@ -4446,8 +4462,11 @@ End Structure
                 "Delete [a As Integer]@16",
                 "Delete [a]@16")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo(a As Integer)")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>
@@ -4464,8 +4483,11 @@ End Structure
                 "Delete [a As Integer]@30",
                 "Delete [a]@30")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "goo(a As Integer)")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.Goo"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                })
         End Sub
 
         <Fact>
@@ -4646,8 +4668,13 @@ Imports System.Runtime.InteropServices
                 "Delete [b As Integer]@53",
                 "Delete [b]@53")
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "f(a As Integer, b As Integer)")))
+            edits.VerifySemantics(
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("C.D.f")),
+                    SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember("C.f"), newSymbolProvider:=Function(c) c.GetMember("C"))
+                },
+                capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)
         End Sub
 
         <Fact>
@@ -5417,7 +5444,10 @@ End Interface
                 {
                     DocumentResults(),
                     DocumentResults(
-                        diagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Class C", DeletedSymbolDisplay(FeaturesResources.method, "F()"))})
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart, newSymbolProvider:=Function(c) c.GetMember("C"))
+                        })
                 })
         End Sub
 
@@ -5434,7 +5464,11 @@ End Interface
                 {
                     DocumentResults(),
                     DocumentResults(
-                        diagnostics:={Diagnostic(RudeEditKind.Delete, "Partial Class C", DeletedSymbolDisplay(FeaturesResources.method, "F()"))})
+                        semanticEdits:=
+                        {
+                            SemanticEdit(SemanticEditKind.Delete, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)("F").PartialImplementationPart, newSymbolProvider:=Function(c) c.GetMember("C"))
+                        }
+                    )
                 })
         End Sub
 
