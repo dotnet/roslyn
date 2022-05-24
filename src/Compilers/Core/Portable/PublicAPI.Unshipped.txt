@@ -1,11 +1,6 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 abstract Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultResult.get -> TResult
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
-Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext<TSyntaxNode>
-Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext<TSyntaxNode>.AttributeData.get -> Microsoft.CodeAnalysis.AttributeData!
-Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext<TSyntaxNode>.GeneratorAttributeSyntaxContext() -> void
-Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext<TSyntaxNode>.Node.get -> TSyntaxNode!
-Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext<TSyntaxNode>.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel!
 Microsoft.CodeAnalysis.IImportScope
 Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
 Microsoft.CodeAnalysis.IImportScope.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
