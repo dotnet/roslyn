@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">Dostęp do statycznej składowej interfejsu abstrakcyjnego można uzyskać tylko w przypadku parametru typu.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">Dostęp do statycznej składowej interfejsu abstrakcyjnego można uzyskać tylko w przypadku parametru typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -468,8 +468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">Drzewo wyrażenia nie może zawierać dostępu do statycznej składowej abstrakcyjnej w interfejsie</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">Drzewo wyrażenia nie może zawierać dostępu do statycznej składowej abstrakcyjnej w interfejsie</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">Interfejsu "{3}" nie można użyć jako parametru typu "{2}" w typie ogólnym lub metodzie "{0}". Interfejs ograniczenia "{1}" lub jego interfejs podstawowy ma statyczne składowe abstrakcyjne.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">Interfejsu "{3}" nie można użyć jako parametru typu "{2}" w typie ogólnym lub metodzie "{0}". Interfejs ograniczenia "{1}" lub jego interfejs podstawowy ma statyczne składowe abstrakcyjne.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -1863,8 +1863,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">Element „UnmanagedCallersOnly” można stosować tylko do zwykłych statycznych metod nieabstrakcyjnych lub statycznych funkcji lokalnych.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">Element „UnmanagedCallersOnly” można stosować tylko do zwykłych statycznych metod nieabstrakcyjnych lub statycznych funkcji lokalnych.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
