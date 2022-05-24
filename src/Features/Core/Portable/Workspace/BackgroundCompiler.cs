@@ -8,22 +8,24 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
 {
     internal sealed class BackgroundCompiler : IDisposable
     {
-        private Workspace _workspace;
-        private readonly TaskQueue _taskQueue;
+        private Workspace? _workspace;
+        private readonly AsyncBatchingWorkQueue<CancellationToken> _workQueue;
 
+        private readonly object _gate = new();
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
-        private Compilation?[]? _mostRecentCompilations;
+        private readonly List<Compilation> _mostRecentCompilations = new();
 
-        private readonly object _buildGate = new();
-        private CancellationTokenSource _cancellationSource = new();
+        private readonly CancellationSeries _cancellationSeries = new();
+
+        private readonly CancellationTokenSource _disposalCancellationSource = new();
 
         public BackgroundCompiler(Workspace workspace)
         {
@@ -31,7 +33,11 @@ namespace Microsoft.CodeAnalysis.Host
 
             // make a scheduler that runs on the thread pool
             var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
+            _workQueue = new AsyncBatchingWorkQueue<CancellationToken>(
+                DelayTimeSpan.NearImmediate,
+                BuildCompilationsForVisibleDocumentsAsync,
+                listenerProvider.GetListener(),
+                _disposalCancellationSource.Token);
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workspace.DocumentOpened += OnDocumentOpened;
@@ -40,141 +46,98 @@ namespace Microsoft.CodeAnalysis.Host
 
         public void Dispose()
         {
+            _disposalCancellationSource.Cancel();
+            _cancellationSeries.Dispose();
+
+            lock (_gate)
+            {
+                _mostRecentCompilations.Clear();
+            }
+
             if (_workspace != null)
             {
-                CancelBuild(releasePreviousCompilations: true);
-
                 _workspace.DocumentClosed -= OnDocumentClosed;
                 _workspace.DocumentOpened -= OnDocumentOpened;
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
-                _workspace = null!;
+                _workspace = null;
             }
         }
 
         private void OnDocumentOpened(object? sender, DocumentEventArgs args)
-            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
+            => Rebuild();
 
         private void OnDocumentClosed(object? sender, DocumentEventArgs args)
-            => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
+            => Rebuild();
 
         private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
+            => Rebuild();
+
+        private void Rebuild()
         {
-            switch (args.Kind)
-            {
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionRemoved:
-                    CancelBuild(releasePreviousCompilations: true);
-                    break;
-
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.ProjectRemoved:
-                    if (args.NewSolution.ProjectIds.Count == 0)
-                    {
-                        // Close solution no longer triggers a SolutionRemoved event,
-                        // so we need to make an explicitly check for ProjectRemoved event.
-                        CancelBuild(releasePreviousCompilations: true);
-                    }
-                    else
-                    {
-                        Rebuild(args.NewSolution);
-                    }
-
-                    break;
-
-                default:
-                    Rebuild(args.NewSolution, args.ProjectId);
-                    break;
-            }
+            var nextToken = _cancellationSeries.CreateNext();
+            _workQueue.AddWork(nextToken);
         }
 
-        private void Rebuild(Solution solution, ProjectId? initialProject = null)
+        private async ValueTask BuildCompilationsForVisibleDocumentsAsync(
+            ImmutableSegmentedList<CancellationToken> cancellationTokens, CancellationToken disposalToken)
         {
-            lock (_buildGate)
+            var workspace = _workspace;
+            if (workspace is null)
+                return;
+
+            // Because we always cancel the previous token prior to queuing new work, there can only be at most one
+            // actual real cancellation token that is not already canceled.
+            var cancellationToken = cancellationTokens.SingleOrDefault(ct => !ct.IsCancellationRequested);
+
+            // if we didn't get an actual non-canceled token back, then this batch was entirely canceled and we have
+            // nothing to do.
+            if (cancellationToken == default)
+                return;
+
+            using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, disposalToken);
+            await BuildCompilationsForVisibleDocumentsAsync(workspace.CurrentSolution, source.Token).ConfigureAwait(false);
+        }
+
+        private async ValueTask BuildCompilationsForVisibleDocumentsAsync(
+            Solution solution, CancellationToken cancellationToken)
+        {
+            var trackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            var visibleProjectIds = trackingService.GetVisibleDocuments().Select(d => d.ProjectId).ToSet();
+            var activeProjectId = trackingService.TryGetActiveDocument()?.ProjectId;
+
+            using var _ = ArrayBuilder<Compilation>.GetInstance(out var compilations);
+
+            await GetCompilationAsync(activeProjectId).ConfigureAwait(false);
+
+            foreach (var projectId in visibleProjectIds)
             {
-                // Keep the previous compilations around so that we can incrementally
-                // build the current compilations without rebuilding the entire DeclarationTable
-                CancelBuild(releasePreviousCompilations: false);
-
-                var allOpenProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
-
-                // don't even get started if there is nothing to do
-                if (allOpenProjects.Count > 0)
+                if (projectId != activeProjectId)
                 {
-                    _ = BuildCompilationsAsync(solution, initialProject, allOpenProjects);
+                    await GetCompilationAsync(projectId).ConfigureAwait(false);
                 }
             }
-        }
 
-        private void CancelBuild(bool releasePreviousCompilations)
-        {
-            lock (_buildGate)
+            lock (_gate)
             {
-                _cancellationSource.Cancel();
-                _cancellationSource = new CancellationTokenSource();
-                if (releasePreviousCompilations)
-                {
-                    _mostRecentCompilations = null;
-                }
-            }
-        }
-
-        private Task BuildCompilationsAsync(
-            Solution solution,
-            ProjectId? initialProject,
-            ISet<ProjectId> allOpenProjects)
-        {
-            var cancellationToken = _cancellationSource.Token;
-            return _taskQueue.ScheduleTask(
-                "BackgroundCompiler.BuildCompilationsAsync",
-                () => BuildCompilationsAsync(solution, initialProject, allOpenProjects, cancellationToken),
-                cancellationToken);
-        }
-
-        private Task BuildCompilationsAsync(
-            Solution solution,
-            ProjectId? initialProject,
-            ISet<ProjectId> projectsToBuild,
-            CancellationToken cancellationToken)
-        {
-            var allProjectIds = new List<ProjectId>();
-            if (initialProject != null)
-            {
-                allProjectIds.Add(initialProject);
+                _mostRecentCompilations.Clear();
+                _mostRecentCompilations.AddRange(compilations);
             }
 
-            allProjectIds.AddRange(projectsToBuild.Where(p => p != initialProject));
+            return;
 
-            var logger = Logger.LogBlock(FunctionId.BackgroundCompiler_BuildCompilationsAsync, cancellationToken);
+            async ValueTask GetCompilationAsync(ProjectId? projectId)
+            {
+                var project = solution.GetProject(projectId);
+                if (project is null)
+                    return;
 
-            var compilationTasks = allProjectIds
-                .Select(solution.GetProject)
-                .Select(async p =>
-                {
-                    if (p is null)
-                        return null;
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                if (compilation is null)
+                    return;
 
-                    return await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                })
-                .ToArray();
-            return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
-                {
-                    logger.Dispose();
-                    if (t.Status == TaskStatus.RanToCompletion)
-                    {
-                        lock (_buildGate)
-                        {
-                            if (!cancellationToken.IsCancellationRequested)
-                            {
-                                _mostRecentCompilations = t.Result;
-                            }
-                        }
-                    }
-                },
-                CancellationToken.None,
-                TaskContinuationOptions.None,
-                TaskScheduler.Default);
+                compilations.AddIfNotNull(compilation);
+            }
         }
     }
 }
