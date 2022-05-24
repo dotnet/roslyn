@@ -180,7 +180,7 @@ internal partial class SolutionState
 
             try
             {
-                workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+                workspace.LogTestMessage(static compilation => $"Beginning to create a skeleton assembly for {compilation.AssemblyName}...", compilation);
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
@@ -191,7 +191,7 @@ internal partial class SolutionState
 
                     if (emitResult.Success)
                     {
-                        workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                        workspace.LogTestMessage(static compilation => $"Successfully emitted a skeleton assembly for {compilation.AssemblyName}", compilation);
 
                         var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
                         var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
@@ -203,11 +203,11 @@ internal partial class SolutionState
                     }
                     else
                     {
-                        workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+                        workspace.LogTestMessage(static compilation => $"Failed to create a skeleton assembly for {compilation.AssemblyName}:", compilation);
 
                         foreach (var diagnostic in emitResult.Diagnostics)
                         {
-                            workspace.LogTestMessage("  " + diagnostic.GetMessage());
+                            workspace.LogTestMessage(static diagnostic => "  " + diagnostic.GetMessage(), diagnostic);
                         }
 
                         // log emit failures so that we can improve most common cases
@@ -225,7 +225,7 @@ internal partial class SolutionState
             }
             finally
             {
-                workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
+                workspace.LogTestMessage(static compilation => $"Done trying to create a skeleton assembly for {compilation.AssemblyName}", compilation);
             }
         }
 

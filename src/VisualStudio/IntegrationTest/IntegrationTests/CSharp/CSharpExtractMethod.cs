@@ -50,6 +50,7 @@ public class Program
             VisualStudio.Editor.PlaceCaret("Console", charsOffset: -1);
             VisualStudio.Editor.PlaceCaret("World", charsOffset: 4, extendSelection: true);
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Refactor_ExtractMethod);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ExtractMethod);
 
             var expectedMarkup = @"
 using System;
@@ -91,6 +92,7 @@ public class Program
             VisualStudio.Editor.PlaceCaret("int result", charsOffset: -8);
             VisualStudio.Editor.PlaceCaret("result;", charsOffset: 4, extendSelection: true);
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Refactor_ExtractMethod);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.ExtractMethod);
 
             var expectedMarkup = @"
 using System;
