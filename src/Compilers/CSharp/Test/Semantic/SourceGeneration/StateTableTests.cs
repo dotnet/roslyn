@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
 
             values = ImmutableArray.Create(1, 2, 3);
 
-            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are removed.
+            // second time we'll see that the "Input" step is modified, but the outputs of the "SelectMany" step are modified.
             dstBuilder = GetBuilder(dstBuilder.ToImmutable(), trackIncrementalGeneratorSteps: true);
             var table = dstBuilder.GetLatestStateTableForNode(transformNode);
 
