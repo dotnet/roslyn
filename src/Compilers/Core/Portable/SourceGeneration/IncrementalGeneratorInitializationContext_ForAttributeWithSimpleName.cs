@@ -49,7 +49,7 @@ public partial struct IncrementalGeneratorInitializationContext
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = this.SyntaxProvider.CreateSyntaxProvider(
             static (n, _) => n is ICompilationUnitSyntax,
-            static (context, _) => GetGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
+            static (context, _) => getGlobalAliasesInCompilationUnit(context.SyntaxHelper, context.Node)).WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
         // Create an aggregated view of all global aliases across all files.  This should only update when an individual
         // file changes its global aliases.
@@ -95,18 +95,18 @@ public partial struct IncrementalGeneratorInitializationContext
             .WithTrackingName("result_ForAttribute");
 
         return result;
-    }
 
-    private static GlobalAliases GetGlobalAliasesInCompilationUnit(
-        ISyntaxHelper syntaxHelper,
-        SyntaxNode compilationUnit)
-    {
-        Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
-        var globalAliases = Aliases.GetInstance();
+        static GlobalAliases getGlobalAliasesInCompilationUnit(
+            ISyntaxHelper syntaxHelper,
+            SyntaxNode compilationUnit)
+        {
+            Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
+            var globalAliases = Aliases.GetInstance();
 
-        syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
+            syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
 
-        return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
+            return GlobalAliases.Create(globalAliases.ToImmutableAndFree());
+        }
     }
 
     private static ImmutableArray<T> GetMatchingNodes<T>(
