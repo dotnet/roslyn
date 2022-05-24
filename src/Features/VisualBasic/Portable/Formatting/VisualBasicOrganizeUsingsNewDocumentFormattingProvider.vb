@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.OrganizeImports
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -18,8 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Function FormatNewDocumentAsync(document As Document, hintDocument As Document, options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements INewDocumentFormattingProvider.FormatNewDocumentAsync
-            Return Formatter.OrganizeImportsAsync(document, cancellationToken)
+        Public Async Function FormatNewDocumentAsync(document As Document, hintDocument As Document, options As CodeCleanupOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements INewDocumentFormattingProvider.FormatNewDocumentAsync
+            Dim service = document.GetRequiredLanguageService(Of IOrganizeImportsService)
+            Dim organizeOptions = Await document.GetOrganizeImportsOptionsAsync(options.GetOrganizeImportsOptions(), cancellationToken).ConfigureAwait(False)
+            Return Await service.OrganizeImportsAsync(document, organizeOptions, cancellationToken).ConfigureAwait(False)
         End Function
     End Class
 End Namespace

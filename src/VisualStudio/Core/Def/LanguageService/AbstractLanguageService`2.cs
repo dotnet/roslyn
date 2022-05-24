@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -197,19 +199,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     v, Package.ComponentModel).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
-            var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
             // If the file is metadata as source, and the user has the preference set to collapse them, then
             // always collapse all metadata as source
-            var collapseAllImplementations = isOpenMetadataAsSource &&
-                workspace.Options.GetOption<bool>(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, openDocument.Project.Language);
+            var globalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
+            var masWorkspace = openDocument?.Project.Solution.Workspace as MetadataAsSourceWorkspace;
+            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: masWorkspace is not null);
+            var collapseAllImplementations = masWorkspace is not null &&
+                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options);
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, collapseAllImplementations);
 
-            // If this is a metadata-to-source view, we want to consider the file read-only
-            if (isOpenMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
+            // If this is a metadata-to-source view, we want to consider the file read-only and prevent
+            // it from being re-opened when VS is opened
+            if (masWorkspace is not null && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
-                ((IVsTextBuffer)vsTextLines).SetStateFlags((uint)BUFFERSTATEFLAGS.BSF_USER_READONLY);
+                ErrorHandler.ThrowOnFailure(vsTextLines.GetStateFlags(out var flags));
+                flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
+                ErrorHandler.ThrowOnFailure(vsTextLines.SetStateFlags(flags));
 
                 var runningDocumentTable = (IVsRunningDocumentTable)SystemServiceProvider.GetService(typeof(SVsRunningDocumentTable));
                 var runningDocumentTable4 = (IVsRunningDocumentTable4)runningDocumentTable;
@@ -217,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (runningDocumentTable4.IsMonikerValid(openDocument.FilePath))
                 {
                     var cookie = runningDocumentTable4.GetDocumentCookie(openDocument.FilePath);
-                    runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU | (uint)_VSRDTFLAGS.RDT_CantSave, fSet: 1);
+                    runningDocumentTable.ModifyDocumentFlags(cookie, (uint)_VSRDTFLAGS.RDT_DontAddToMRU | (uint)_VSRDTFLAGS.RDT_CantSave | (uint)_VSRDTFLAGS.RDT_DontAutoOpen, fSet: 1);
                 }
             }
         }

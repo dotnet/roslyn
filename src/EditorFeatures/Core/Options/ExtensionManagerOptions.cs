@@ -11,18 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class ExtensionManagerOptions : IOptionProvider
+    internal sealed class ExtensionManagerOptions
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExtensionManagerOptions()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            DisableCrashingExtensions);
-
         public static readonly Option2<bool> DisableCrashingExtensions = new(
             nameof(ExtensionManagerOptions), nameof(DisableCrashingExtensions), defaultValue: true);
     }

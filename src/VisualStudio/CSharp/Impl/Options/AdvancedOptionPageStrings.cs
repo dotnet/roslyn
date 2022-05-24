@@ -204,8 +204,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Collapse_usings_on_file_open
             => CSharpVSResources.Collapse_usings_on_file_open;
 
-        public static string Option_Collapse_metadata_on_file_open
-            => ServicesVSResources.Collapse_metadata_on_file_open;
+        public static string Option_Collapse_sourcelink_embedded_decompiled_files_on_open
+            => ServicesVSResources.Collapse_sourcelink_embedded_decompiled_files_on_open;
+
+        public static string Option_Collapse_metadata_signature_files_on_open
+            => ServicesVSResources.Collapse_metadata_signature_files_on_open;
 
         public static string Option_Show_outlining_for_declaration_level_constructs
             => ServicesVSResources.Show_outlining_for_declaration_level_constructs;
