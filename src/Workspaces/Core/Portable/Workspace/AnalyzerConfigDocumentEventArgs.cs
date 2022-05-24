@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class AnalyzerConfigDocumentEventArgs : EventArgs, ITextDocumentEventArgs<AnalyzerConfigDocument>
+    public class AnalyzerConfigDocumentEventArgs : EventArgs
     {
         public AnalyzerConfigDocument Document { get; }
 

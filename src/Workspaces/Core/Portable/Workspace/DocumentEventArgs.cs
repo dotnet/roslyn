@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    public class DocumentEventArgs : EventArgs, ITextDocumentEventArgs<Document>
+    public class DocumentEventArgs : EventArgs
     {
         public Document Document { get; }
 
