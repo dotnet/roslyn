@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-public readonly struct GeneratorAttributeSyntaxContext<TSyntaxNode>
+internal readonly struct GeneratorAttributeSyntaxContext<TSyntaxNode>
     where TSyntaxNode : SyntaxNode
 {
     public TSyntaxNode Node { get; }

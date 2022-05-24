@@ -14,7 +14,7 @@ public partial struct IncrementalGeneratorInitializationContext
     {
         public static readonly IEqualityComparer<ImmutableArray<T>> Instance = new ImmutableArrayValueComparer<T>();
 
-        public bool Equals([AllowNull] ImmutableArray<T> x, [AllowNull] ImmutableArray<T> y)
+        public bool Equals(ImmutableArray<T> x, ImmutableArray<T> y)
         {
             if (x == y)
                 return true;
@@ -31,7 +31,7 @@ public partial struct IncrementalGeneratorInitializationContext
             return true;
         }
 
-        public int GetHashCode([DisallowNull] ImmutableArray<T> obj)
+        public int GetHashCode(ImmutableArray<T> obj)
         {
             var hashCode = 0;
             foreach (var value in obj)
