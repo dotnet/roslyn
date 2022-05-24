@@ -10353,6 +10353,32 @@ class C { }
             Assert.Equal("System.String", symbol.ToTestDisplayString());
         }
 
+        [Fact]
+        public void XmlDoc_Cref_Member()
+        {
+            var src = """
+/// <summary>Summary <see cref="nint"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int @nint;
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.True(symbol.IsNativeIntegerType);
+            Assert.Equal("nint", symbol.ToTestDisplayString());
+        }
+
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)
         {
             // PEVerify is skipped because it reports "Type load failed" because of the above corlib,

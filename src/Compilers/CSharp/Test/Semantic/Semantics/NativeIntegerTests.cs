@@ -14883,6 +14883,32 @@ class C { }
         }
 
         [Fact]
+        public void XmlDoc_Cref_Member()
+        {
+            var src = """
+/// <summary>Summary <see cref="nint"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int @nint;
+}
+""";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.True(symbol.IsNativeIntegerType);
+            Assert.Equal("nint", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void XmlDoc_Cref_NamedType()
         {
             var src = """
