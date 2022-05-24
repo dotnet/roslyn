@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
     {
         public readonly SemanticEditKind Kind;
         public readonly Func<Compilation, ISymbol> SymbolProvider;
-        public readonly Func<Compilation, ISymbol>? NewSymbolProvider;
+        public readonly Func<Compilation, ISymbol> NewSymbolProvider;
 
         public SemanticEditDescription(
             SemanticEditKind kind,

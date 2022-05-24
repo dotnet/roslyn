@@ -2807,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                                             }
 
                                             // Deleting an ordinary method is allowed, and we store the newContainingSymbol in NewSymbol for later use
-                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false })
+                                            if (oldSymbol is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsExtern: false, ContainingType.TypeKind: TypeKind.Class or TypeKind.Struct })
                                             {
                                                 semanticEdits.Add(new SemanticEditInfo(editKind, symbolKey, syntaxMap, syntaxMapTree: null, partialType: null, newSymbolKey: containingSymbolKey));
                                                 continue;
