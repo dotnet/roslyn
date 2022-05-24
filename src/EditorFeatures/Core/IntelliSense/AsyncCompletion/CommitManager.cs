@@ -246,8 +246,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-            // Specifically for snippets, we use reflection to try and invoke the LanguageServerSnippetExpander's
-            // TryExpand method and determine if it succeeded or not.
+            // Specifically for snippets, we check to see if the associated completion item is a snippet,
+            // and if so, we call upon the LanguageServerSnippetExpander's TryExpand to insert the snippet.
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
                 var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
