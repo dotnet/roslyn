@@ -7,8 +7,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -17,10 +19,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly ImmutableArray<FixAllScope> s_defaultSupportedFixAllScopes =
             ImmutableArray.Create(FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution,
                 FixAllScope.ContainingMember, FixAllScope.ContainingType);
-
-#if CODE_STYLE
-        private static readonly CodeActionOptionsProvider s_codeStyleOptionsProvider = new(_ => default);
-#endif
 
         private readonly bool _supportsFixAll;
 
@@ -49,12 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     if (filteredDiagnostics.Length == 0)
                         return document;
 
-#if CODE_STYLE
-                    var optionsProvider = s_codeStyleOptionsProvider;
-#else
-                    var optionsProvider = fixAllContext.State.CodeActionOptionsProvider;
-#endif
-                    return await FixAllAsync(document, filteredDiagnostics, optionsProvider, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    return await FixAllAsync(document, filteredDiagnostics, fixAllContext.GetOptionsProvider(), fixAllContext.CancellationToken).ConfigureAwait(false);
                 },
                 s_defaultSupportedFixAllScopes);
         }
@@ -67,18 +60,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected Func<CancellationToken, Task<Document>> GetDocumentUpdater(CodeFixContext context, Diagnostic? diagnostic = null)
         {
-#if CODE_STYLE
-            var optionsProvider = s_codeStyleOptionsProvider;
-#else
-            var optionsProvider = context.Options;
-#endif
             var diagnostics = ImmutableArray.Create(diagnostic ?? context.Diagnostics[0]);
-
-            return cancellationToken => FixAllAsync(context.Document, diagnostics, optionsProvider, cancellationToken);
+            return cancellationToken => FixAllAsync(context.Document, diagnostics, context.GetOptionsProvider(), cancellationToken);
         }
-
-        protected Task<Document> FixAsync(Document document, Diagnostic diagnostic, CodeActionOptions options, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), _ => options, cancellationToken);
 
         private Task<Document> FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
@@ -103,8 +87,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return document.WithSyntaxRoot(newRoot);
         }
 
+        /// <summary>
+        /// Fixes all <paramref name="diagnostics"/> in the specified <paramref name="editor"/>.
+        /// The fixes are applied to the <paramref name="document"/>'s syntax tree via <paramref name="editor"/>.
+        /// The implementation may query options of any document in the <paramref name="document"/>'s solution
+        /// with <paramref name="fallbackOptions"/> providing default values for options not specified explicitly in the corresponding editorconfig.
+        /// </summary>
         protected abstract Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken);
+            Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Whether or not this diagnostic should be included when performing a FixAll.  This is
@@ -118,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         ///
         /// This overload differs from <see cref="IncludeDiagnosticDuringFixAll(Diagnostic)"/> in
         /// that it also passes along the <see cref="FixAllState"/> in case that would be useful
-        /// (for example if the <see cref="FixAllState.CodeActionEquivalenceKey"/> is used.
+        /// (for example if the <see cref="IFixAllState.CodeActionEquivalenceKey"/> is used.
         ///
         /// Only one of these three overloads needs to be overridden if you want to customize
         /// behavior.
@@ -139,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// By default, all diagnostics will be included in fix-all unless they are filtered out
         /// here. If only the diagnostic needs to be queried to make this determination, only this
         /// overload needs to be overridden.  However, if information from <see cref="FixAllState"/>
-        /// is needed (for example <see cref="FixAllState.CodeActionEquivalenceKey"/>), then <see
+        /// is needed (for example <see cref="IFixAllState.CodeActionEquivalenceKey"/>), then <see
         /// cref="IncludeDiagnosticDuringFixAll(Diagnostic, Document, SemanticModel, string, CancellationToken)"/>
         /// should be overridden instead.
         ///

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
                         Type: null,
                         PositionalPatternClause: null,
                         Designation: null,
-                        PropertyPatternClause: { Subpatterns: { Count: 1 } subpatterns }
+                        PropertyPatternClause.Subpatterns: { Count: 1 } subpatterns
                     }
                 } &&
                 subpatterns[0] is { ExpressionColon: { } inner } &&

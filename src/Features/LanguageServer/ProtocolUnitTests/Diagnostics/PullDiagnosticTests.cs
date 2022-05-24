@@ -10,8 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 using Microsoft.CodeAnalysis.Options;
@@ -22,6 +21,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -83,9 +83,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
 
             await OpenDocumentAsync(testLspServer, document);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-
-            Assert.Empty(results.Single().Diagnostics);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]
@@ -101,10 +99,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             await OpenDocumentAsync(testLspServer, document);
 
             // Ensure we get no diagnostics when feature flag is off.
-            testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.Options.WithChangedOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag, false));
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), false);
 
-            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
-            Assert.Empty(results.Single().Diagnostics);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]
@@ -119,7 +116,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
             await OpenDocumentAsync(testLspServer, document);
 
-            testLspServer.TestWorkspace.SetOptions(testLspServer.TestWorkspace.Options.WithChangedOption(DiagnosticOptions.LspPullDiagnosticsFeatureFlag, true));
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(new OptionKey(DiagnosticOptions.LspPullDiagnosticsFeatureFlag), true);
 
             var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
             Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
@@ -519,6 +516,32 @@ class B {";
             Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsIncludesSourceGeneratorDiagnostics(bool useVSDiagnostics)
+        {
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            var generator = new DiagnosticProducingGenerator(context => Location.Create(context.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                document.Project.Id,
+                new TestGeneratorReference(generator));
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            var diagnostic = Assert.Single(results.Single().Diagnostics);
+            Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        }
+
         #endregion
 
         #region Workspace Diagnostics
@@ -554,6 +577,62 @@ class B {";
         }
 
         [Theory, CombinatorialData]
+        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOffWithFileInProjectOpen(bool useVSDiagnostics)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            var firstDocument = testLspServer.GetCurrentSolution().Projects.Single().Documents.First();
+            await OpenDocumentAsync(testLspServer, firstDocument);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            Assert.Empty(results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsIncludesSourceGeneratorDiagnosticsClosedFSAOn(bool useVSDiagnostics)
+        {
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: true);
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            var generator = new DiagnosticProducingGenerator(context => Location.Create(context.Compilation.SyntaxTrees.Single(), new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                document.Project.Id,
+                new TestGeneratorReference(generator));
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            var diagnostic = Assert.Single(results.Single().Diagnostics);
+            Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsDoesNotIncludeSourceGeneratorDiagnosticsClosedFSAOffAndNoFilesOpen(bool useVSDiagnostics)
+        {
+            var markup = "// Hello, World";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics, pullDiagnostics: true);
+
+            var generator = new DiagnosticProducingGenerator(
+                context => Location.Create(
+                    context.Compilation.SyntaxTrees.Single(),
+                    new TextSpan(0, 10)));
+
+            testLspServer.TestWorkspace.OnAnalyzerReferenceAdded(
+                testLspServer.GetCurrentSolution().Projects.Single().Id,
+                new TestGeneratorReference(generator));
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+            Assert.Empty(results);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode(bool useVSDiagnostics)
         {
             var markup1 =
@@ -562,11 +641,7 @@ class B {";
             using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
 
-            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-
-            Assert.Equal(2, results.Length);
-            Assert.Empty(results[0].Diagnostics);
-            Assert.Empty(results[1].Diagnostics);
+            await Assert.ThrowsAsync<StreamJsonRpc.RemoteInvocationException>(async () => await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics));
         }
 
         [Theory, CombinatorialData]

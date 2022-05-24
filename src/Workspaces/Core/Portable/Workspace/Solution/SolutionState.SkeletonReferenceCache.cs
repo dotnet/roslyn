@@ -101,6 +101,9 @@ internal partial class SolutionState
             }
         }
 
+        public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
+            => _skeletonReferenceSet?.TryGetAlreadyBuiltMetadataReference(properties);
+
         public async Task<MetadataReference?> GetOrBuildReferenceAsync(
             ICompilationTracker compilationTracker,
             SolutionState solution,
@@ -177,7 +180,7 @@ internal partial class SolutionState
 
             try
             {
-                workspace.LogTestMessage($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+                workspace.LogTestMessage(static compilation => $"Beginning to create a skeleton assembly for {compilation.AssemblyName}...", compilation);
 
                 using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                 {
@@ -188,7 +191,7 @@ internal partial class SolutionState
 
                     if (emitResult.Success)
                     {
-                        workspace.LogTestMessage($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                        workspace.LogTestMessage(static compilation => $"Successfully emitted a skeleton assembly for {compilation.AssemblyName}", compilation);
 
                         var temporaryStorageService = workspace.Services.GetRequiredService<ITemporaryStorageService>();
                         var storage = temporaryStorageService.CreateTemporaryStreamStorage(cancellationToken);
@@ -200,11 +203,11 @@ internal partial class SolutionState
                     }
                     else
                     {
-                        workspace.LogTestMessage($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+                        workspace.LogTestMessage(static compilation => $"Failed to create a skeleton assembly for {compilation.AssemblyName}:", compilation);
 
                         foreach (var diagnostic in emitResult.Diagnostics)
                         {
-                            workspace.LogTestMessage("  " + diagnostic.GetMessage());
+                            workspace.LogTestMessage(static diagnostic => "  " + diagnostic.GetMessage(), diagnostic);
                         }
 
                         // log emit failures so that we can improve most common cases
@@ -222,7 +225,7 @@ internal partial class SolutionState
             }
             finally
             {
-                workspace.LogTestMessage($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
+                workspace.LogTestMessage(static compilation => $"Done trying to create a skeleton assembly for {compilation.AssemblyName}", compilation);
             }
         }
 
@@ -265,6 +268,18 @@ internal partial class SolutionState
                 _documentationProvider = documentationProvider;
             }
 
+            public MetadataReference? TryGetAlreadyBuiltMetadataReference(MetadataReferenceProperties properties)
+            {
+                // lookup first and eagerly return cached value if we have it.
+                lock (_metadataReferences)
+                {
+                    if (TryGetExisting_NoLock(properties, out var metadataReference))
+                        return metadataReference;
+                }
+
+                return null;
+            }
+
             public MetadataReference? GetMetadataReference(MetadataReferenceProperties properties)
             {
                 // lookup first and eagerly return cached value if we have it.
@@ -290,21 +305,21 @@ internal partial class SolutionState
 
                     return metadataReference;
                 }
+            }
 
-                bool TryGetExisting_NoLock(MetadataReferenceProperties properties, out MetadataReference? metadataReference)
-                {
-                    metadataReference = null;
-                    if (!_metadataReferences.TryGetValue(properties, out var weakMetadata))
-                        return false;
+            private bool TryGetExisting_NoLock(MetadataReferenceProperties properties, out MetadataReference? metadataReference)
+            {
+                metadataReference = null;
+                if (!_metadataReferences.TryGetValue(properties, out var weakMetadata))
+                    return false;
 
-                    // If we are pointing at a null-weak reference (not a weak reference that points to null), then we 
-                    // know we failed to create the metadata the last time around, and we can shortcircuit immediately,
-                    // returning null *with* success to bubble that up.
-                    if (weakMetadata == null)
-                        return true;
+                // If we are pointing at a null-weak reference (not a weak reference that points to null), then we 
+                // know we failed to create the metadata the last time around, and we can shortcircuit immediately,
+                // returning null *with* success to bubble that up.
+                if (weakMetadata == null)
+                    return true;
 
-                    return weakMetadata.TryGetTarget(out metadataReference);
-                }
+                return weakMetadata.TryGetTarget(out metadataReference);
             }
 
             private MetadataReference? CreateReference(ImmutableArray<string> aliases, bool embedInteropTypes, DocumentationProvider documentationProvider)

@@ -4,10 +4,12 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,8 +25,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         public DocumentPullDiagnosticHandler(
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource)
-            : base(diagnosticService, editAndContinueDiagnosticUpdateSource)
+            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IGlobalOptionService globalOptions)
+            : base(diagnosticService, editAndContinueDiagnosticUpdateSource, globalOptions)
         {
             _analyzerService = analyzerService;
         }
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             if (!context.IsTracking(context.Document.GetURI()))
             {
-                context.TraceInformation($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
+                context.TraceWarning($"Ignoring diagnostics request for untracked document: {context.Document.GetURI()}");
                 return ImmutableArray<Document>.Empty;
             }
 

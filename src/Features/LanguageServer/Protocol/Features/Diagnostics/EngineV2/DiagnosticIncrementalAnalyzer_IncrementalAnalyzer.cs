@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var isActiveDocument = _documentTrackingService.TryGetActiveDocument() == document.Id;
                 var isOpenDocument = document.IsOpen();
-                var isGeneratedRazorDocument = document.Services.GetService<DocumentPropertiesService>()?.DiagnosticsLspClientName != null;
+                var isGeneratedRazorDocument = document.IsRazorDocument();
 
                 // Only analyze open/active documents, unless it is a generated Razor document.
                 if (!isActiveDocument && !isOpenDocument && !isGeneratedRazorDocument)
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
-                    var logTelemetry = document.Project.Solution.Options.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
+                    var logTelemetry = GlobalOptions.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
                     foreach (var stateSet in nonCachedStateSets)
                     {
                         var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
@@ -120,12 +121,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
-            // Perf optimization. check whether we want to analyze this project or not.
-            if (!FullAnalysisEnabled(project, forceAnalyzerRun: false))
-            {
-                return;
-            }
-
             await AnalyzeProjectAsync(project, forceAnalyzerRun: false, cancellationToken).ConfigureAwait(false);
         }
 
@@ -137,18 +132,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             try
             {
                 var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
-                var options = project.Solution.Options;
+
+                // get driver only with active analyzers.
+                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 var activeAnalyzers = stateSets
                                         .Select(s => s.Analyzer)
-                                        .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(options));
+                                        .Where(a => DocumentAnalysisExecutor.IsAnalyzerEnabledForProject(a, project, GlobalOptions) && !a.IsOpenFileOnly(ideOptions.CleanupOptions?.SimplifierOptions));
 
-                // get driver only with active analyzers.
-                var ideOptions = AnalyzerService.GlobalOptions.GetIdeAnalyzerOptions(project);
+                CompilationWithAnalyzers? compilationWithAnalyzers = null;
 
-                var compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                if (FullAnalysisEnabled(project, forceAnalyzerRun))
+                {
+                    compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, activeAnalyzers, includeSuppressedDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                }
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, ideOptions, stateSets, forceAnalyzerRun, cancellationToken).ConfigureAwait(false);
                 if (result.OldResult == null)
@@ -373,19 +372,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }
 
-            // Compute analyzer config options for computing effective severity.
-            // Note that these options are not cached onto the project, so we compute it once upfront. 
-            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
-
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project, analyzerConfigOptions)).ToList();
+            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project)).ToList();
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project, AnalyzerConfigOptionsResult? analyzerConfigOptions)
+        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
         {
-            // PERF: Don't query descriptors for compiler analyzer or file content load analyzer, always execute them.
-            if (analyzer == FileContentLoadAnalyzer.Instance || analyzer.IsCompilerAnalyzer())
+            // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
+            if (analyzer == FileContentLoadAnalyzer.Instance ||
+                analyzer == GeneratorDiagnosticsPlaceholderAnalyzer.Instance ||
+                analyzer.IsCompilerAnalyzer())
             {
                 return true;
             }
@@ -412,7 +409,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // For most of analyzers, the number of diagnostic descriptors is small, so this should be cheap.
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
-            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!, analyzerConfigOptions) != ReportDiagnostic.Hidden);
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
+            return descriptors.Any(d => d.GetEffectiveSeverity(project.CompilationOptions!, analyzerConfigOptions?.AnalyzerOptions, analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(

@@ -38,10 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
         /// </summary>
-        public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
+        public static AttributeSemanticModel Create(SyntaxTreeSemanticModel containingSemanticModel, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Symbol? attributeTarget, Binder rootBinder, ImmutableDictionary<Symbol, Symbol> parentRemappedSymbolsOpt)
         {
+            // PROTOTYPE: There was a conflict here that I resolved "naively". It needs to be revised more carefully, and will need more tests.
+            // Basically a parameter `attributeTarget` was introduced, while I was calculating `attributedMember` here.
+            // Now we have both `attributeTarget` and `attributedMember`
+            // We need to test attribute application to types, regular methods, operators, parameters, assemblies, etc.
+            rootBinder = attributeTarget is null ? rootBinder : new ContextualAttributeBinder(rootBinder, attributeTarget);
             var attributedMember = GetAttributedMemberFromNode(syntax, containingSemanticModel);
-            return new AttributeSemanticModel(syntax, attributeType, attributedMember: attributedMember, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
+            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
         }
 
         /// <summary>

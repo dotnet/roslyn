@@ -133,13 +133,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene o del relativo parametro di tipo vincolato ad esso, mentre il tipo del secondo operando deve essere int</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene o del relativo parametro di tipo vincolato ad esso, mentre il tipo del secondo operando deve essere int</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">È possibile accedere a un membro di interfaccia astratto statico solo in un parametro di tipo.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">È possibile accedere a un membro di interfaccia astratto statico solo in un parametro di tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -223,8 +223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUTF8">
-        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="translated">Non è possibile convertire il gruppo di &amp;metodi '{0}' nel tipo delegato '{0}'.</target>
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -468,8 +468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">Un albero delle espressioni non può contenere un accesso del membro di interfaccia astratto statico</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">Un albero delle espressioni non può contenere un accesso del membro di interfaccia astratto statico</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
-        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
+        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">Non è possibile usare l'interfaccia '{3}' come parametro di tipo '{2}' nel metodo o nel tipo generico '{0}'. L'interfaccia di vincolo '{1}' o la relativa interfaccia di base contiene membri statici astratti.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">Non è possibile usare l'interfaccia '{3}' come parametro di tipo '{2}' nel metodo o nel tipo generico '{0}'. L'interfaccia di vincolo '{1}' o la relativa interfaccia di base contiene membri statici astratti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -845,6 +845,11 @@
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">I modelli di sezione possono essere usati solo una volta e direttamente all'interno di un modello di elenco.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -1547,6 +1552,11 @@
         <target state="translated">struct di record</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">ToString sealed nel record</target>
@@ -1558,8 +1568,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>Utf8 String Literals</source>
-        <target state="new">Utf8 String Literals</target>
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -1853,8 +1863,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">'UnmanagedCallersOnly' può essere applicato solo a metodi non astratti statici normali o funzioni locali statiche.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">'UnmanagedCallersOnly' può essere applicato solo a metodi non astratti statici normali o funzioni locali statiche.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -5856,8 +5866,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene, mentre il tipo del secondo operando deve essere int</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene, mentre il tipo del secondo operando deve essere int</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

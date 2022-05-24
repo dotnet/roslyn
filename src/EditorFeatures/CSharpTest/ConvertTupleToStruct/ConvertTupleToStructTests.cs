@@ -375,7 +375,7 @@ internal struct NewStruct
     }
 }";
             var symbolSpecification = new SymbolSpecification(
-                null,
+                Guid.NewGuid(),
                 "Name2",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter)),
                 accessibilityList: default,

@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -65,6 +66,6 @@ internal record struct TypeScriptRequestContext(Solution? Solution, Document? Do
 /// </summary>
 internal record struct TypeScriptTextDocumentIdentifier(Uri Uri, string? ProjectId);
 
-internal interface IVSTypeScriptRequestHandler
+internal interface IVSTypeScriptRequestHandler : ILspService
 {
 }

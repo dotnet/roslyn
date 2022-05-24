@@ -12,5 +12,6 @@
     <SolidColorBrush x:Key="BackgroundBrush">LightGray</SolidColorBrush>
     <SolidColorBrush x:Key="AccentBarBrush">Blue</SolidColorBrush>
     <SolidColorBrush x:Key="ButtonBorderBrush">White</SolidColorBrush>
+    <SolidColorBrush x:Key="GrayTextBrush">Gray</SolidColorBrush>
     <Style TargetType="Button" x:Key="ButtonStyle" BasedOn="{StaticResource {x:Type Button}}"/>
 </ResourceDictionary>

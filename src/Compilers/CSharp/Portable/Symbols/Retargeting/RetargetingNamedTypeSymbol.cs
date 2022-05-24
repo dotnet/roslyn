@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(_underlyingType.LookupMetadataType(ref typeName), RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-        private static ExtendedErrorTypeSymbol CyclicInheritanceError(RetargetingNamedTypeSymbol type, TypeSymbol declaredBase)
+        private static ExtendedErrorTypeSymbol CyclicInheritanceError(TypeSymbol declaredBase)
         {
-            var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase, type);
+            var info = new CSDiagnosticInfo(ErrorCode.ERR_ImportedCircularBase, declaredBase);
             return new ExtendedErrorTypeSymbol(declaredBase, LookupResultKind.NotReferencable, info, true);
         }
 
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                     if ((object)acyclicBase != null && BaseTypeAnalysis.TypeDependsOn(acyclicBase, this))
                     {
-                        return CyclicInheritanceError(this, acyclicBase);
+                        return CyclicInheritanceError(acyclicBase);
                     }
 
                     Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType);
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 ImmutableArray<NamedTypeSymbol> result = declaredInterfaces
-                    .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+                    .SelectAsArray(t => BaseTypeAnalysis.TypeDependsOn(t, this) ? CyclicInheritanceError(t) : t);
 
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }

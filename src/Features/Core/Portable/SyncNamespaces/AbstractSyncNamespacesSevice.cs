@@ -112,12 +112,13 @@ namespace Microsoft.CodeAnalysis.SyncNamespaces
                 ImmutableArray.Create(firstDiagnostic),
                 (a, _) => action ??= a,
                 options,
+                isBlocking: false,
                 cancellationToken);
             await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
             return new FixAllContext(
                 new FixAllState(
-                    fixAllProvider: null,
+                    fixAllProvider: NoOpFixAllProvider.Instance,
                     diagnosticSpan: firstDiagnostic.Location.SourceSpan,
                     document,
                     document.Project,

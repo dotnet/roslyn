@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddOperatorTo(destination As TypeBlockSyntax,
                             method As IMethodSymbol,
-                            options As CodeGenerationOptions,
+                            options As CodeGenerationContextInfo,
                             availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim methodDeclaration = GenerateOperatorDeclaration(method, options)
 
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Function GenerateOperatorDeclaration(method As IMethodSymbol,
-                                                    options As CodeGenerationOptions) As StatementSyntax
+                                                    options As CodeGenerationContextInfo) As StatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function GenerateOperatorDeclarationWorker(method As IMethodSymbol,
-                                                           options As CodeGenerationOptions) As StatementSyntax
+                                                           options As CodeGenerationContextInfo) As StatementSyntax
             Dim operatorSyntaxKind = SyntaxFacts.GetOperatorKind(method.MetadataName)
             If operatorSyntaxKind = SyntaxKind.None Then
                 Throw New ArgumentException(String.Format(WorkspacesResources.Cannot_generate_code_for_unsupported_operator_0, method.Name), NameOf(method))

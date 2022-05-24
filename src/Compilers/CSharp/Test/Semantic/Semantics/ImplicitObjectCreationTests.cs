@@ -4855,5 +4855,53 @@ class C
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "new T()").WithLocation(13, 18)
                 );
         }
+
+        [Fact, WorkItem(60960, "https://github.com/dotnet/roslyn/issues/60960")]
+        public void TestInCollectionInitializer()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+_ = new List<A> {new A()};
+_ = new MyList<A> {new A()};
+
+_ = new List<A> {new()};
+_ = new MyList<A> {new()};
+
+class MyList<T> : List<T>
+{
+    [Obsolete(""Message"")]
+    public new void Add(T value) { }
+}
+
+class A
+{
+    [Obsolete(""Message"")]
+    public A() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,18): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new List<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new A()").WithArguments("A.A()", "Message").WithLocation(5, 18),
+                // (6,20): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new MyList<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new A()").WithArguments("A.A()", "Message").WithLocation(6, 20),
+                // (6,20): warning CS1062: The best overloaded Add method 'MyList<A>.Add(A)' for the collection initializer element is obsolete. Message
+                // _ = new MyList<A> {new A()};
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new A()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(6, 20),
+                // (8,18): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new List<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new()").WithArguments("A.A()", "Message").WithLocation(8, 18),
+                // (9,20): warning CS0618: 'A.A()' is obsolete: 'Message'
+                // _ = new MyList<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "new()").WithArguments("A.A()", "Message").WithLocation(9, 20),
+                // (9,20): warning CS1062: The best overloaded Add method 'MyList<A>.Add(A)' for the collection initializer element is obsolete. Message
+                // _ = new MyList<A> {new()};
+                Diagnostic(ErrorCode.WRN_DeprecatedCollectionInitAddStr, "new()").WithArguments("MyList<A>.Add(A)", "Message").WithLocation(9, 20)
+                );
+        }
     }
 }

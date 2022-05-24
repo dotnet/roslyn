@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactory;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public List<object> Items { get; set; }
         public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
@@ -62,6 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _textEditorFactoryService = _componentModel.GetService<ITextEditorFactoryService>();
             _projectionBufferFactory = _componentModel.GetService<IProjectionBufferFactoryService>();
             _editorOptions = _componentModel.GetService<IEditorOptionsFactoryService>();
+            _globalOptions = _componentModel.GetService<IGlobalOptionService>();
+
             this.Language = language;
 
             _contentType = _contentTypeRegistryService.GetContentType(ContentTypeNames.CSharpContentType);
@@ -135,7 +138,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             project = project.WithMetadataReferences(referenceAssemblies);
 
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
-            var formattingOptions = SyntaxFormattingOptions.Create(OptionStore.GetOptions(), document.Project.Solution.Workspace.Services, document.Project.Language);
+            var fallbackFormattingOptions = _globalOptions.GetSyntaxFormattingOptions(document.Project.LanguageServices);
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var configOptions = OptionStore.GetOptions().AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var formattingOptions = formattingService.GetFormattingOptions(configOptions, fallbackFormattingOptions);
             var formatted = Formatter.FormatAsync(document, formattingOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
             var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextSynchronously(CancellationToken.None).ToString(), _contentType);

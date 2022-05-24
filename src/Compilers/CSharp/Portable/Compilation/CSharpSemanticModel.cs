@@ -1599,9 +1599,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Method type parameters are not in scope outside a method
                 // body unless the position is either:
                 // a) in a type-only context inside an expression, or
-                // b) inside of an XML name attribute in an XML doc comment.
+                // b) inside of an XML name attribute in an XML doc comment,
+                // c) inside a nameof context.
                 var parentExpr = token.Parent as ExpressionSyntax;
-                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr))
+                if (parentExpr != null && !(parentExpr.Parent is XmlNameAttributeSyntax) && !SyntaxFacts.IsInTypeOnlyContext(parentExpr) && !binder.IsInsideNameof)
                 {
                     options |= LookupOptions.MustNotBeMethodTypeParameter;
                 }
@@ -5286,6 +5287,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override ISymbol GetEnclosingSymbolCore(int position, CancellationToken cancellationToken)
         {
             return this.GetEnclosingSymbol(position, cancellationToken);
+        }
+
+        private protected sealed override ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken)
+        {
+            position = CheckAndAdjustPosition(position);
+            var binder = GetEnclosingBinder(position);
+            var builder = ArrayBuilder<IImportScope>.GetInstance();
+
+            for (var chain = binder?.ImportChain; chain != null; chain = chain.ParentOpt)
+            {
+                var imports = chain.Imports;
+                if (imports.IsEmpty)
+                    continue;
+
+                Debug.Assert(imports.Usings.All(static u => u.UsingDirectiveReference != null));
+
+                // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
+                // node corresponding to this set of imports and chain it to that.
+                builder.Add(new SimpleImportScope(
+                    imports.UsingAliases.SelectAsArray(static kvp => kvp.Value.Alias.GetPublicSymbol()),
+                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
+                    imports.Usings.SelectAsArray(static n => new ImportedNamespaceOrType(n.NamespaceOrType.GetPublicSymbol(), n.UsingDirectiveReference)),
+                    xmlNamespaces: ImmutableArray<ImportedXmlNamespace>.Empty));
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)

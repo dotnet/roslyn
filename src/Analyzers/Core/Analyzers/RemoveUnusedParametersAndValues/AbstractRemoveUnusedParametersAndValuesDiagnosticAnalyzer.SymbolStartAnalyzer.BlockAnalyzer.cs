@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // All operation blocks for a symbol belong to the same tree.
                     var firstBlock = context.OperationBlocks[0];
                     if (!symbolStartAnalyzer._compilationAnalyzer.TryGetOptions(firstBlock.Syntax.SyntaxTree,
-                                                                                firstBlock.Language,
                                                                                 context.Options,
-                                                                                context.CancellationToken,
                                                                                 out var options))
                     {
                         return;
@@ -595,7 +593,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
 
                                     if (shouldReport)
                                     {
-                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, context.CancellationToken);
+                                        _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options);
                                     }
                                 }
 

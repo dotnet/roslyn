@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
             }
         }
 
-        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             string? newLine = null;
             SourceText? sourceText = null;
@@ -97,12 +98,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc
                     continue;
                 }
 
-#if CODE_STYLE
-                var optionSet = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(node.SyntaxTree, cancellationToken);
-#else
-                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
-                newLine ??= optionSet.GetOption(FormattingOptions2.NewLine);
+                if (newLine == null)
+                {
+                    var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    newLine = optionsProvider.GetLineFormattingOptions().NewLine;
+                }
+
                 // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
                 // So we create a new /// <inheritdoc/> comment.
                 var xmlSpaceAfterTripleSlash = Token(leading: TriviaList(DocumentationCommentExterior("///")), SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);

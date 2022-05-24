@@ -133,13 +133,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it, and the type of the second operand must be int</source>
-        <target state="translated">오버로드된 Shift 연산자의 첫 번째 피연산자는 포함하는 형식 또는 제한된 형식 매개 변수와 동일한 형식이어야 하며 두 번째 피연산자의 형식은 int여야 합니다.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type or its type parameter constrained to it</source>
+        <target state="needs-review-translation">오버로드된 Shift 연산자의 첫 번째 피연산자는 포함하는 형식 또는 제한된 형식 매개 변수와 동일한 형식이어야 하며 두 번째 피연산자의 형식은 int여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">정적 추상 인터페이스 멤버는 형식 매개 변수에서만 액세스할 수 있습니다.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">정적 추상 인터페이스 멤버는 형식 매개 변수에서만 액세스할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -223,8 +223,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUTF8">
-        <source>The input string cannot be converted into the equivalent UTF8 byte representation. {0}</source>
-        <target state="new">The input string cannot be converted into the equivalent UTF8 byte representation. {0}</target>
+        <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
+        <target state="new">The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
@@ -238,8 +238,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertAddressOfToDelegate">
-        <source>Cannot convert &amp;method group '{0}' to delegate type '{0}'.</source>
-        <target state="translated">메서드 그룹 '{0}'을(를) 대리자 형식 '{0}'(으)로 변환할 수 없습니다(&amp;M).</target>
+        <source>Cannot convert &amp;method group '{0}' to delegate type '{1}'.</source>
+        <target state="new">Cannot convert &amp;method group '{0}' to delegate type '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -468,8 +468,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">식 트리는 정적 추상 인터페이스 멤버의 액세스를 포함할 수 없습니다.</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">식 트리는 정적 추상 인터페이스 멤버의 액세스를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsUTF8StringLiterals">
-        <source>An expression tree may not contain UTF8 string conversion or literal.</source>
-        <target state="new">An expression tree may not contain UTF8 string conversion or literal.</target>
+        <source>An expression tree may not contain UTF-8 string conversion or literal.</source>
+        <target state="new">An expression tree may not contain UTF-8 string conversion or literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -588,8 +588,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">인터페이스 '{3}'은(는) 제네릭 유형 또는 메소드 '{0}'에서 유형 매개 변수 '{2}'(으)로 사용할 수 없습니다. 제약 조건 인터페이스 '{1}' 또는 기본 인터페이스에 정적 추상 멤버가 있습니다.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">인터페이스 '{3}'은(는) 제네릭 유형 또는 메소드 '{0}'에서 유형 매개 변수 '{2}'(으)로 사용할 수 없습니다. 제약 조건 인터페이스 '{1}' 또는 기본 인터페이스에 정적 추상 멤버가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -845,6 +845,11 @@
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
         <target state="translated">조각 패턴은 목록 패턴 내에서 바로 한 번만 사용할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -1547,6 +1552,11 @@
         <target state="translated">레코드 구조체</target>
         <note>'record structs' is not localizable.</note>
       </trans-unit>
+      <trans-unit id="IDS_FeatureRelaxedShiftOperator">
+        <source>relaxed shift operator</source>
+        <target state="new">relaxed shift operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">레코드의 봉인된 ToString</target>
@@ -1558,8 +1568,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUTF8StringLiterals">
-        <source>Utf8 String Literals</source>
-        <target state="new">Utf8 String Literals</target>
+        <source>UTF-8 string literals</source>
+        <target state="new">UTF-8 string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -1853,8 +1863,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">'UnmanagedCallersOnly'는 일반 정적 비추상 메서드 또는 정적 로컬 함수에만 적용할 수 있습니다.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">'UnmanagedCallersOnly'는 일반 정적 비추상 메서드 또는 정적 로컬 함수에만 적용할 수 있습니다.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
@@ -5855,8 +5865,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadShiftOperatorSignature">
-        <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
-        <target state="translated">오버로드된 시프트 연산자의 첫 번째 피연산자는 포함하는 형식과 동일한 형식이어야 하며 두 번째 피연산자는 정수 형식이어야 합니다.</target>
+        <source>The first operand of an overloaded shift operator must have the same type as the containing type</source>
+        <target state="needs-review-translation">오버로드된 시프트 연산자의 첫 번째 피연산자는 포함하는 형식과 동일한 형식이어야 하며 두 번째 피연산자는 정수 형식이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">

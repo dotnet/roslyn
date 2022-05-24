@@ -3348,7 +3348,7 @@ parse_member_name:;
                     {
                         possibleConversion = false;
                     }
-                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword) // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                    else if (this.PeekToken(1).Kind is SyntaxKind.CheckedKeyword or SyntaxKind.UncheckedKeyword)
                     {
                         possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(2).Kind);
                     }
@@ -3392,7 +3392,7 @@ parse_member_name:;
                 }
 
                 opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+                var checkedKeyword = TryEatCheckedOrHandleUnchecked(ref opKeyword);
 
                 this.Release(ref point);
                 point = GetResetPoint();
@@ -3510,6 +3510,19 @@ parse_member_name:;
             }
         }
 
+        private SyntaxToken TryEatCheckedOrHandleUnchecked(ref SyntaxToken operatorKeyword)
+        {
+            if (CurrentToken.Kind == SyntaxKind.UncheckedKeyword)
+            {
+                // if we encounter `operator unchecked`, we place the `unchecked` as skipped trivia on `operator`
+                var misplacedToken = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedUnchecked);
+                operatorKeyword = AddTrailingSkippedSyntax(operatorKeyword, misplacedToken);
+                return null;
+            }
+
+            return TryEatToken(SyntaxKind.CheckedKeyword);
+        }
+
         private OperatorDeclarationSyntax ParseOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
@@ -3517,7 +3530,7 @@ parse_member_name:;
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // https://github.com/dotnet/roslyn/issues/60394 : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+            var checkedKeyword = TryEatCheckedOrHandleUnchecked(ref opKeyword);
             SyntaxToken opToken;
             int opTokenErrorOffset;
             int opTokenErrorWidth;
@@ -6649,7 +6662,7 @@ tryAgain:
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
                     {
-                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName, separator.ToString());
+                        separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     }
 
                     // If the left hand side is not an identifier name then the user has done
@@ -9090,7 +9103,7 @@ tryAgain:
             if (this.CurrentToken.Kind == SyntaxKind.ForKeyword)
             {
                 var skippedForToken = this.EatToken();
-                skippedForToken = this.AddError(skippedForToken, ErrorCode.ERR_SyntaxError, SyntaxFacts.GetText(SyntaxKind.ForEachKeyword), SyntaxFacts.GetText(SyntaxKind.ForKeyword));
+                skippedForToken = this.AddError(skippedForToken, ErrorCode.ERR_SyntaxError, SyntaxFacts.GetText(SyntaxKind.ForEachKeyword));
                 @foreach = ConvertToMissingWithTrailingTrivia(skippedForToken, SyntaxKind.ForEachKeyword);
             }
             else
@@ -9962,7 +9975,7 @@ tryAgain:
                 else if (list.Any(mod.RawKind))
                 {
                     // check for duplicates, can only be const
-                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected, mod.Text);
+                    mod = this.AddError(mod, ErrorCode.ERR_TypeExpected);
                 }
 
                 list.Add(mod);
@@ -13076,7 +13089,9 @@ tryAgain:
                     // Unparenthesized lambda case
                     // x => ...
                     // x!! => ...
-                    var identifier = this.ParseIdentifierToken();
+                    var identifier = (this.CurrentToken.Kind != SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken) ?
+                        this.EatTokenAsKind(SyntaxKind.IdentifierToken) :
+                        this.ParseIdentifierToken();
 
                     ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
 

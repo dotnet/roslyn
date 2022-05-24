@@ -10,6 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -47,9 +49,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TestWorkspace workspace,
             ITextBuffer buffer,
             int indentationLine,
-            char ch)
+            char ch,
+            bool useTabs)
         {
-            await TokenFormatWorkerAsync(workspace, buffer, indentationLine, ch);
+            await TokenFormatWorkerAsync(workspace, buffer, indentationLine, ch, useTabs);
 
             return buffer.CurrentSnapshot.GetLineFromLineNumber(indentationLine).GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(TestEditorOptions.Instance);
         }
@@ -58,14 +61,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             TestWorkspace workspace,
             ITextBuffer buffer,
             int indentationLine,
-            char ch)
+            char ch,
+            bool useTabs)
         {
-            await TokenFormatWorkerAsync(workspace, buffer, indentationLine, ch);
+            await TokenFormatWorkerAsync(workspace, buffer, indentationLine, ch, useTabs);
 
             return buffer.CurrentSnapshot.GetText();
         }
 
-        private static async Task TokenFormatWorkerAsync(TestWorkspace workspace, ITextBuffer buffer, int indentationLine, char ch)
+        private static async Task TokenFormatWorkerAsync(TestWorkspace workspace, ITextBuffer buffer, int indentationLine, char ch, bool useTabs)
         {
             var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().First();
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
@@ -84,8 +88,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             var rules = ImmutableArray.Create(formattingRuleProvider.CreateRule(document, position)).AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var options = new IndentationOptions(
-                await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false),
-                AutoFormattingOptions.Default);
+                new CSharpSyntaxFormattingOptions
+                {
+                    Common = new SyntaxFormattingOptions.CommonOptions()
+                    {
+                        LineFormatting = new LineFormattingOptions { UseTabs = useTabs }
+                    }
+                });
 
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);
             var changes = await formatter.FormatTokenAsync(token, CancellationToken.None);
@@ -114,8 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code, composition: s_composition);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             if (baseIndentation.HasValue)
             {
@@ -125,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
             }
 
             var buffer = workspace.Documents.First().GetTextBuffer();
-            return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
+            return await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch, useTabs);
         }
     }
 }

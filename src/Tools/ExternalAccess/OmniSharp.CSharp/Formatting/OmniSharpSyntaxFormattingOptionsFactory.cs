@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting;
@@ -77,14 +78,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
             bool newLineForMembersInObjectInit,
             bool newLineForMembersInAnonymousTypes,
             bool newLineForClausesInQuery)
-            => new(formattingOptions: new CSharpSyntaxFormattingOptions(
-                    new LineFormattingOptions(
-                        UseTabs: useTabs,
-                        TabSize: tabSize,
-                        IndentationSize: indentationSize,
-                        NewLine: newLine),
-                    separateImportDirectiveGroups: separateImportDirectiveGroups,
-                    spacing:
+            => new(new(
+                FormattingOptions: new CSharpSyntaxFormattingOptions()
+                {
+                    Common = new SyntaxFormattingOptions.CommonOptions()
+                    {
+                        LineFormatting = new LineFormattingOptions()
+                        {
+                            UseTabs = useTabs,
+                            TabSize = tabSize,
+                            IndentationSize = indentationSize,
+                            NewLine = newLine
+                        },
+                        SeparateImportDirectiveGroups = separateImportDirectiveGroups,
+                    },
+                    Spacing =
                         (spacingAfterMethodDeclarationName ? SpacePlacement.AfterMethodDeclarationName : 0) |
                         (spaceBetweenEmptyMethodDeclarationParentheses ? SpacePlacement.BetweenEmptyMethodDeclarationParentheses : 0) |
                         (spaceWithinMethodDeclarationParenthesis ? SpacePlacement.WithinMethodDeclarationParenthesis : 0) |
@@ -107,8 +115,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                         (spaceBeforeComma ? SpacePlacement.BeforeComma : 0) |
                         (spaceAfterDot ? SpacePlacement.AfterDot : 0) |
                         (spaceBeforeDot ? SpacePlacement.BeforeDot : 0),
-                    spacingAroundBinaryOperator: (BinaryOperatorSpacingOptions)spacingAroundBinaryOperator,
-                    newLines:
+                    SpacingAroundBinaryOperator = (BinaryOperatorSpacingOptions)spacingAroundBinaryOperator,
+                    NewLines =
                         (newLineForMembersInObjectInit ? NewLinePlacement.BeforeMembersInObjectInitializers : 0) |
                         (newLineForMembersInAnonymousTypes ? NewLinePlacement.BeforeMembersInAnonymousTypes : 0) |
                         (newLineForElse ? NewLinePlacement.BeforeElse : 0) |
@@ -124,15 +132,16 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp.Formatting
                         (newLinesForBracesInLambdaExpressionBody ? NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody : 0) |
                         (newLinesForBracesInControlBlocks ? NewLinePlacement.BeforeOpenBraceInControlBlocks : 0) |
                         (newLineForClausesInQuery ? NewLinePlacement.BetweenQueryExpressionClauses : 0),
-                    labelPositioning: (LabelPositionOptions)labelPositioning,
-                    indentation:
+                    LabelPositioning = (LabelPositionOptions)labelPositioning,
+                    Indentation =
                         (indentBraces ? IndentationPlacement.Braces : 0) |
                         (indentBlock ? IndentationPlacement.BlockContents : 0) |
                         (indentSwitchCaseSection ? IndentationPlacement.SwitchCaseContents : 0) |
                         (indentSwitchCaseSectionWhenBlock ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
                         (indentSwitchSection ? IndentationPlacement.SwitchSection : 0),
-                    wrappingKeepStatementsOnSingleLine: wrappingKeepStatementsOnSingleLine,
-                    wrappingPreserveSingleLine: wrappingPreserveSingleLine),
-                simplifierOptions: CSharpSimplifierOptions.Default);
+                    WrappingKeepStatementsOnSingleLine = wrappingKeepStatementsOnSingleLine,
+                    WrappingPreserveSingleLine = wrappingPreserveSingleLine
+                },
+                SimplifierOptions: CSharpSimplifierOptions.Default));
     }
 }

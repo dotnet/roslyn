@@ -26,17 +26,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     internal static class ExtractTypeHelpers
     {
-        public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CancellationToken cancellationToken)
+        public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
             var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Workspace.Services);
 
             var context = new CodeGenerationContext(generateMethodBodies: true);
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = options.GetInfo(context, document.Project);
 
             var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
-            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, options, cancellationToken)
+            var newTypeNode = codeGenService.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, info, cancellationToken)
                 .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
 
             var typeAnnotation = new SyntaxAnnotation();
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEnumerable<string> folders,
             INamedTypeSymbol newSymbol,
             Document hintDocument,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
@@ -82,13 +84,15 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var namespaceParts = namespaceWithoutRoot.Split('.').Where(s => !string.IsNullOrEmpty(s));
             var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
-                newDocument.Project.Solution,
+                new CodeGenerationSolutionContext(
+                    newDocument.Project.Solution,
+                    context,
+                    fallbackOptions),
                 newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
                 newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
-                context,
                 cancellationToken).ConfigureAwait(false);
 
-            var newCleanupOptions = await CodeCleanupOptions.FromDocumentAsync(newTypeDocument, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
             if (formattingService is not null)
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return (formattedDocument, typeAnnotation);
         }
 
-        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions options, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
+        public static string GetTypeParameterSuffix(Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, IEnumerable<ISymbol> extractableMembers, CancellationToken cancellationToken)
         {
             var typeParameters = GetRequiredTypeParametersForMembers(type, extractableMembers);
 
@@ -124,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             var typeParameterNames = typeParameters.SelectAsArray(p => p.Name);
             var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
 
-            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, options, cancellationToken).ToString();
+            return Formatter.Format(syntaxGenerator.SyntaxGeneratorInternal.TypeParameterList(typeParameterNames), document.Project.Solution.Workspace.Services, formattingOptions, cancellationToken).ToString();
         }
 
         public static ImmutableArray<ITypeParameterSymbol> GetRequiredTypeParametersForMembers(INamedTypeSymbol type, IEnumerable<ISymbol> includedMembers)

@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         methodHandle = candidateMethod.Handle;
                         string stateMachineTypeName;
                         if (module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out stateMachineTypeName) ||
-                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName))
+                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.IteratorStateMachineAttribute, out stateMachineTypeName) ||
+                            module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncIteratorStateMachineAttribute, out stateMachineTypeName))
                         {
                             if (metadataDecoder.GetTypeSymbolForSerializedType(stateMachineTypeName).OriginalDefinition.Equals(containingType))
                             {

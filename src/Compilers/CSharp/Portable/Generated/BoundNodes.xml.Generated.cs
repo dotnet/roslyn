@@ -6310,16 +6310,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedObjectCreationExpression : BoundExpression
     {
-        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, bool hasErrors = false)
+        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, Binder binder, bool hasErrors = false)
             : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.ArgumentRefKindsOpt = argumentRefKindsOpt;
             this.InitializerOpt = initializerOpt;
+            this.Binder = binder;
         }
 
 
@@ -6332,14 +6334,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
 
         public InitializerExpressionSyntax? InitializerOpt { get; }
+
+        public Binder Binder { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitUnconvertedObjectCreationExpression(this);
 
-        public BoundUnconvertedObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt)
+        public BoundUnconvertedObjectCreationExpression Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, Binder binder)
         {
-            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerOpt != this.InitializerOpt)
+            if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerOpt != this.InitializerOpt || binder != this.Binder)
             {
-                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, this.HasErrors);
+                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, binder, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11613,7 +11617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt);
+            return node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt, node.Binder);
         }
         public override BoundNode? VisitObjectCreationExpression(BoundObjectCreationExpression node)
         {
@@ -13693,12 +13697,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt, node.Binder);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt);
+                updatedNode = node.Update(arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.InitializerOpt, node.Binder);
             }
             return updatedNode;
         }
@@ -15994,6 +15998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("initializerOpt", node.InitializerOpt, null),
+            new TreeDumperNode("binder", node.Binder, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

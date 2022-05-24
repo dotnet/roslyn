@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -31,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     {
         public FormattingEngineTests(ITestOutputHelper output) : base(output) { }
 
-        private static Dictionary<OptionKey2, object> SmartIndentButDoNotFormatWhileTyping()
+        private static OptionsCollection SmartIndentButDoNotFormatWhileTyping()
         {
-            return new Dictionary<OptionKey2, object>
+            return new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.Smart },
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false },
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false },
+                { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.Smart },
+                { AutoFormattingOptionsStorage.FormatOnTyping, false },
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false },
             };
         }
 
@@ -420,7 +421,7 @@ class Program
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var syntaxRoot = await document.GetSyntaxRootAsync();
-            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None).ConfigureAwait(false);
+            var options = CSharpSyntaxFormattingOptions.Default;
             var node = Formatter.Format(syntaxRoot, spans, workspace.Services, options, rules: null, CancellationToken.None);
             Assert.Equal(expected, node.ToFullString());
         }
@@ -1071,9 +1072,9 @@ class C : Attribute
     class C1<U>
 {
 }";
-            var globalOptions = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp), FormattingOptions.IndentStyle.None }
+                { IndentationOptionsStorage.SmartIndent, FormattingOptions2.IndentStyle.None }
             };
             AssertFormatAfterTypeChar(code, expected, globalOptions);
         }
@@ -1102,9 +1103,9 @@ class C : Attribute
 }
 ";
 
-            var globalOptions = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnCloseBrace, false }
             };
 
             AssertFormatAfterTypeChar(code, expected, globalOptions);
@@ -1134,9 +1135,9 @@ class C : Attribute
 }
 ";
 
-            var globalOptions = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnTyping, false }
             };
 
             AssertFormatAfterTypeChar(code, expected, globalOptions);
@@ -1166,9 +1167,9 @@ class C : Attribute
     }
 }";
 
-            var globalOptions = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnTyping, false }
             };
 
             AssertFormatAfterTypeChar(code, expected, globalOptions);
@@ -1224,9 +1225,9 @@ class C : Attribute
 }
 ";
 
-            var globalOptions = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnSemicolon, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnSemicolon, false }
             };
 
             AssertFormatAfterTypeChar(code, expected, globalOptions);
@@ -1256,9 +1257,9 @@ class C : Attribute
 }
 ";
 
-            var globalOptions = new Dictionary<OptionKey2, object>
+            var globalOptions = new OptionsCollection(LanguageNames.CSharp)
             {
-                { new OptionKey2(AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp), false }
+                { AutoFormattingOptionsStorage.FormatOnTyping, false }
             };
 
             AssertFormatAfterTypeChar(code, expected, globalOptions);
@@ -1625,6 +1626,54 @@ class C
                         }
                     }
                     );
+            }
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code, spans: null);
+        }
+
+        [WpfFact]
+        [WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
+        public async Task FormatLambdaWithComment()
+        {
+            var code = @"namespace N
+{
+    public class C
+    {
+        protected void Render()
+        {
+if (true)
+            {
+            M(() => 
+            {
+                if (true)
+                {
+/* marker */
+                                    }
+                                });
+                }
+        }
+    }
+}
+";
+            var expected = @"namespace N
+{
+    public class C
+    {
+        protected void Render()
+        {
+            if (true)
+            {
+                M(() =>
+                {
+                    if (true)
+                    {
+                        /* marker */
+                    }
+                });
             }
         }
     }
@@ -2563,17 +2612,11 @@ interface I1
             AssertFormatAfterTypeChar(code, expected);
         }
 
-        private static void AssertFormatAfterTypeChar(string code, string expected, Dictionary<OptionKey2, object> globalOptions = null, ParseOptions parseOptions = null)
+        private static void AssertFormatAfterTypeChar(string code, string expected, OptionsCollection globalOptions = null, ParseOptions parseOptions = null)
         {
             using var workspace = TestWorkspace.CreateCSharp(code, parseOptions: parseOptions);
-            if (globalOptions != null)
-            {
-                var options = workspace.GlobalOptions;
-                foreach (var entry in globalOptions)
-                {
-                    options.SetGlobalOption((OptionKey)entry.Key, entry.Value);
-                }
-            }
+
+            globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
             var subjectDocument = workspace.Documents.Single();
 

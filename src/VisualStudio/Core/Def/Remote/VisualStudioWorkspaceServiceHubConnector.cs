@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private Task<RemoteHostClient?>? _remoteClientInitializationTask;
         private SolutionChecksumUpdater? _checksumUpdater;
 #pragma warning disable IDE0044 // Add readonly modifier
-        private CancellationTokenSource _disposalCancellationSource;
+        private CancellationTokenSource _disposalCancellationSource = new();
 #pragma warning restore IDE0044 // Add readonly modifier
 
         [ImportingConstructor]
@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _listenerProvider = listenerProvider;
             _threadingContext = threadingContext;
             _globalOptions = globalOptions;
-            _disposalCancellationSource = new CancellationTokenSource();
         }
 
         public void StartListening(Workspace workspace, object serviceOpt)

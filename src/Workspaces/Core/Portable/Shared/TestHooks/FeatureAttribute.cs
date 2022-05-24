@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string ErrorList = nameof(ErrorList);
         public const string ErrorSquiggles = nameof(ErrorSquiggles);
         public const string EventHookup = nameof(EventHookup);
+        public const string ExtractMethod = nameof(ExtractMethod);
         public const string FindReferences = nameof(FindReferences);
         public const string GlobalOperation = nameof(GlobalOperation);
         public const string GoToBase = nameof(GoToBase);
@@ -57,5 +58,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public const string LanguageServer = nameof(LanguageServer);
         public const string ValueTracking = nameof(ValueTracking);
         public const string Workspace = nameof(Workspace);
+        public const string AddImportsOnPaste = nameof(AddImportsOnPaste);
     }
 }

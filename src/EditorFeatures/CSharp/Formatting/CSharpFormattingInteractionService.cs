@@ -91,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             TextSpan? textSpan,
             CancellationToken cancellationToken)
         {
-            var options = await _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: true, cancellationToken).ConfigureAwait(false);
+            var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
+            var options = await _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, explicitFormat: true, cancellationToken).ConfigureAwait(false);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
@@ -103,8 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public async Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
+            var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
+            var options = await _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, explicitFormat: true, cancellationToken).ConfigureAwait(false);
             var service = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var options = await _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: true, cancellationToken).ConfigureAwait(false);
             return await service.GetFormattingChangesOnPasteAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
         }
 
@@ -118,10 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             if (await service.ShouldFormatOnTypedCharacterAsync(document, typedChar, position, cancellationToken).ConfigureAwait(false))
             {
-                var formattingOptions = await _indentationManager.GetInferredFormattingOptionsAsync(document, explicitFormat: false, cancellationToken).ConfigureAwait(false);
-                var autoFormattingOptions = _globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp);
-                var indentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp);
-                var indentationOptions = new IndentationOptions(formattingOptions, autoFormattingOptions, indentStyle);
+                var fallbackOptions = _globalOptions.GetCSharpSyntaxFormattingOptions();
+                var formattingOptions = await _indentationManager.GetInferredFormattingOptionsAsync(document, fallbackOptions, explicitFormat: false, cancellationToken).ConfigureAwait(false);
+
+                var indentationOptions = new IndentationOptions(formattingOptions)
+                {
+                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(LanguageNames.CSharp),
+                    IndentStyle = _globalOptions.GetOption(IndentationOptionsStorage.SmartIndent, LanguageNames.CSharp)
+                };
 
                 return await service.GetFormattingChangesOnTypedCharacterAsync(document, position, indentationOptions, cancellationToken).ConfigureAwait(false);
             }

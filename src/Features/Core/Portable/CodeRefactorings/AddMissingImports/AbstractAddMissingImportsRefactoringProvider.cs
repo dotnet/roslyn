@@ -7,8 +7,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -35,10 +37,10 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             // Check pasted text span for missing imports
             var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
 
-            var cleanupOptions = await CodeCleanupOptions.FromDocumentAsync(document, fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
             var options = new AddMissingImportsOptions(
                 cleanupOptions,
-                context.Options(document.Project.LanguageServices).HideAdvancedMembers);
+                context.Options.GetOptions(document.Project.LanguageServices).HideAdvancedMembers);
 
             var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             if (!analysis.CanAddMissingImports)
@@ -46,25 +48,18 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 return;
             }
 
-            var addImportsCodeAction = new AddMissingImportsCodeAction(
+            var addImportsCodeAction = CodeAction.Create(
                 CodeActionTitle,
-                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, cancellationToken));
+                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, options.CleanupOptions.FormattingOptions, cancellationToken),
+                CodeActionTitle);
 
             context.RegisterRefactoring(addImportsCodeAction, textSpan);
         }
 
-        private static async Task<Solution> AddMissingImportsAsync(Document document, IAddMissingImportsFeatureService addMissingImportsService, AddMissingImportsAnalysisResult analysis, CancellationToken cancellationToken)
+        private static async Task<Solution> AddMissingImportsAsync(Document document, IAddMissingImportsFeatureService addMissingImportsService, AddMissingImportsAnalysisResult analysis, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
         {
-            var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(document, analysis, cancellationToken).ConfigureAwait(false);
+            var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(document, analysis, formattingOptions, cancellationToken).ConfigureAwait(false);
             return modifiedDocument.Project.Solution;
-        }
-
-        private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
-        {
-            public AddMissingImportsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
         }
     }
 }

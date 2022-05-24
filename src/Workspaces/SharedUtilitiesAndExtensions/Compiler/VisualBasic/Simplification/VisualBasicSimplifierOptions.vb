@@ -6,47 +6,38 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports System.Runtime.Serialization
+Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
     <DataContract>
     Friend NotInheritable Class VisualBasicSimplifierOptions
         Inherits SimplifierOptions
+        Implements IEquatable(Of VisualBasicSimplifierOptions)
 
-        Public Sub New(
-            qualifyFieldAccess As CodeStyleOption2(Of Boolean),
-            qualifyPropertyAccess As CodeStyleOption2(Of Boolean),
-            qualifyMethodAccess As CodeStyleOption2(Of Boolean),
-            qualifyEventAccess As CodeStyleOption2(Of Boolean),
-            preferPredefinedTypeKeywordInMemberAccess As CodeStyleOption2(Of Boolean),
-            preferPredefinedTypeKeywordInDeclaration As CodeStyleOption2(Of Boolean))
+        Public Shared ReadOnly [Default] As New VisualBasicSimplifierOptions()
 
-            MyBase.New(
-                qualifyFieldAccess,
-                qualifyPropertyAccess,
-                qualifyMethodAccess,
-                qualifyEventAccess,
-                preferPredefinedTypeKeywordInMemberAccess,
-                preferPredefinedTypeKeywordInDeclaration)
-        End Sub
+        Public Overrides Function Equals(obj As Object) As Boolean
+            Return Equals(TryCast(obj, VisualBasicSimplifierOptions))
+        End Function
 
-        Public Shared ReadOnly [Default] As New VisualBasicSimplifierOptions(
-            qualifyFieldAccess:=CodeStyleOptions2.QualifyFieldAccess.DefaultValue,
-            qualifyPropertyAccess:=CodeStyleOptions2.QualifyPropertyAccess.DefaultValue,
-            qualifyMethodAccess:=CodeStyleOptions2.QualifyMethodAccess.DefaultValue,
-            qualifyEventAccess:=CodeStyleOptions2.QualifyEventAccess.DefaultValue,
-            preferPredefinedTypeKeywordInMemberAccess:=CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.DefaultValue,
-            preferPredefinedTypeKeywordInDeclaration:=CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration.DefaultValue)
+        Public Overloads Function Equals(other As VisualBasicSimplifierOptions) As Boolean Implements IEquatable(Of VisualBasicSimplifierOptions).Equals
+            Return other IsNot Nothing AndAlso
+                   Common.Equals(other.Common)
+        End Function
 
-        Friend Overloads Shared Function Create(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSimplifierOptions) As VisualBasicSimplifierOptions
-            fallbackOptions = If(fallbackOptions, VisualBasicSimplifierOptions.Default)
-
-            Return New VisualBasicSimplifierOptions(
-                qualifyFieldAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyFieldAccess, fallbackOptions.QualifyFieldAccess),
-                qualifyPropertyAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyPropertyAccess, fallbackOptions.QualifyPropertyAccess),
-                qualifyMethodAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyMethodAccess, fallbackOptions.QualifyMethodAccess),
-                qualifyEventAccess:=options.GetEditorConfigOption(CodeStyleOptions2.QualifyEventAccess, fallbackOptions.QualifyEventAccess),
-                preferPredefinedTypeKeywordInMemberAccess:=options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, fallbackOptions.PreferPredefinedTypeKeywordInMemberAccess),
-                preferPredefinedTypeKeywordInDeclaration:=options.GetEditorConfigOption(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, fallbackOptions.PreferPredefinedTypeKeywordInDeclaration))
+        Public Overrides Function GetHashCode() As Integer
+            Return Common.GetHashCode()
         End Function
     End Class
+
+    Friend Module VisualBasicSimplifierOptionsProviders
+        <Extension>
+        Friend Function GetVisualBasicSimplifierOptions(options As AnalyzerConfigOptions, fallbackOptions As VisualBasicSimplifierOptions) As VisualBasicSimplifierOptions
+            fallbackOptions = If(fallbackOptions, VisualBasicSimplifierOptions.Default)
+            Return New VisualBasicSimplifierOptions() With
+            {
+                .Common = options.GetCommonSimplifierOptions(fallbackOptions.Common)
+            }
+        End Function
+    End Module
 End Namespace

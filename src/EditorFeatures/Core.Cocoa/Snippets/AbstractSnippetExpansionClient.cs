@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
 
-            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
+            SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, GlobalOptions, CancellationToken.None);
 
             if (isFullSnippetFormat)
             {
@@ -147,8 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document != null)
                     {
-                        var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, documentOptions.GetOption(FormattingOptions.TabSize));
+                        var lineFormattingOptions = document.GetLineFormattingOptionsAsync(GlobalOptions, CancellationToken.None).AsTask().WaitAndGetResult(CancellationToken.None);
+                        _indentDepth = lineText.GetColumnFromLineOffset(lineText.Length, lineFormattingOptions.TabSize);
                     }
                     else
                     {

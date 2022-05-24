@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-                    private readonly object _gate;
+                    private readonly object _gate = new();
 
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
@@ -41,12 +41,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
-                        _gate = new object();
 
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers

@@ -488,6 +488,8 @@ class Test
             var externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
             Assert.Equal("A", externAliasSymbol.Name);
             Assert.Equal(aliasedGlobalNamespace, externAliasSymbol.Target);
+            Assert.Equal(1, externAliasSymbol.DeclaringSyntaxReferences.Length);
+            Assert.Same(externAliasSyntax, externAliasSymbol.DeclaringSyntaxReferences.Single().GetSyntax());
 
             var usingAliasSymbol = model.GetDeclaredSymbol(usingSyntax);
             Assert.Equal("C", usingAliasSymbol.Name);
