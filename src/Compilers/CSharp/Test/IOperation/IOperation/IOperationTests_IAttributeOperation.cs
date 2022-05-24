@@ -511,6 +511,43 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'B
         }
 
         [Fact]
+        public void BadAttributeParameterType2()
+        {
+            string source = @"
+[/*<bind>*/Boom(null)/*</bind>*/]
+class Boom : System.Attribute
+{
+    public Boom(int? x = 0) { }
+
+    static void Main()
+    {
+        typeof(Boom).GetCustomAttributes(true);
+    }
+}";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (2,2): error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
+                // [/*<bind>*/Boom/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?").WithLocation(2, 12)
+            };
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Boom(null)')
+  IObjectCreationOperation (Constructor: Boom..ctor([System.Int32? x = 0])) (OperationKind.ObjectCreation, Type: Boom, IsInvalid, IsImplicit) (Syntax: 'Boom(null)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'null')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void AttributeWithExplicitNullArgument()
         {
             string source = @"

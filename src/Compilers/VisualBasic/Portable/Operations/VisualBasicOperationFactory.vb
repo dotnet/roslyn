@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
         Private Function CreateBoundAttributeOperation(boundAttribute As BoundAttribute) As IAttributeOperation
             Dim isAttributeImplicit = boundAttribute.WasCompilerGenerated
-            If boundAttribute.HasErrors Then
+            If boundAttribute.HasErrors OrElse boundAttribute.ConstructorArguments.Length <> boundAttribute.Constructor.ParameterCount Then
                 Dim invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit:=True)
                 Return New AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isAttributeImplicit)
             End If

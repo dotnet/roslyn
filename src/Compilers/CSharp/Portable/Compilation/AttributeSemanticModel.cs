@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We need to test attribute application to types, regular methods, operators, parameters, assemblies, etc.
             rootBinder = attributeTarget is null ? rootBinder : new ContextualAttributeBinder(rootBinder, attributeTarget);
             var attributedMember = GetAttributedMemberFromNode(syntax, containingSemanticModel);
-            return new AttributeSemanticModel(syntax, attributeType, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
+            return new AttributeSemanticModel(syntax, attributeType, attributedMember, aliasOpt, rootBinder, containingSemanticModel, parentRemappedSymbolsOpt: parentRemappedSymbolsOpt);
         }
 
         /// <summary>
