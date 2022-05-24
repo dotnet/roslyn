@@ -20,7 +20,7 @@ try {
     # Look for our own initial commit in the target repo's history.
     # If it's there, they've already switched to using git merge to freshen up.
     # Using Apply-Template would just complicate future merges, so block it.
-    git log 05f49ce799c1f9cc696d53eea89699d80f59f833 ^HEAD | Out-Null
+    git merge-base --is-ancestor 05f49ce799c1f9cc696d53eea89699d80f59f833 HEAD | Out-Null
     if ($LASTEXITCODE -eq 0) {
         Write-Error 'The target repo already has Library.Template history merged into it. Use `git merge` instead of this script to freshen your repo. See the README.md file for details.'
         exit 1

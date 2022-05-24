@@ -1,23 +1,23 @@
 steps:
 
 - script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
-  displayName: dotnet build
+  displayName: 🛠 dotnet build
 
 - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
-  displayName: dotnet test
+  displayName: 🧪 dotnet test
 
 - powershell: azure-pipelines/variables/_pipelines.ps1
   failOnStderr: true
-  displayName: Update pipeline variables based on build outputs
+  displayName: ⚙ Update pipeline variables based on build outputs
   condition: succeededOrFailed()
 
 - powershell: azure-pipelines/artifacts/_pipelines.ps1 -ArtifactNameSuffix "-$(Agent.JobName)"
   failOnStderr: true
-  displayName: Publish artifacts
+  displayName: 📢 Publish artifacts
   condition: succeededOrFailed()
 
 - bash: bash <(curl -s https://codecov.io/bash)
-  displayName: Publish code coverage results to codecov.io
+  displayName: 📢 Publish code coverage results to codecov.io
   condition: ne(variables['codecov_token'], '')
   timeoutInMinutes: 3
   continueOnError: true

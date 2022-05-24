@@ -42,7 +42,13 @@ $Artifacts |% {
     }
 }
 
-$Artifacts |% { "$($_.ArtifactName)$ArtifactNameSuffix" } | Get-Unique |% {
+$ArtifactNames = $Artifacts |% { "$($_.ArtifactName)$ArtifactNameSuffix" }
+$ArtifactNames += Get-ChildItem env:ARTIFACTSTAGED_* |% {
+    # Return from ALLCAPS to the actual capitalization used for the artifact.
+    $artifactNameAllCaps = "$($_.Name.Substring('ARTIFACTSTAGED_'.Length))"
+    (Get-ChildItem $ArtifactStagingFolder\$artifactNameAllCaps* -Filter $artifactNameAllCaps).Name
+}
+$ArtifactNames | Get-Unique |% {
     $artifact = New-Object -TypeName PSObject
     Add-Member -InputObject $artifact -MemberType NoteProperty -Name Name -Value $_
     Add-Member -InputObject $artifact -MemberType NoteProperty -Name Path -Value (Join-Path $ArtifactStagingFolder $_)

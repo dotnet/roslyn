@@ -12,7 +12,7 @@
       Value = an array of paths (absolute or relative to the BaseDirectory) to files to include in the artifact.
               FileInfo objects are also allowed.
 .PARAMETER Force
-    Executes artifact scripts even if they have already been uploaded.
+    Executes artifact scripts even if they have already been staged.
 #>
 
 param (
@@ -28,14 +28,14 @@ Function EnsureTrailingSlash($path) {
     $path.Replace('\', [IO.Path]::DirectorySeparatorChar)
 }
 
-Function Test-ArtifactUploaded($artifactName) {
-    $varName = "ARTIFACTUPLOADED_$($artifactName.ToUpper())"
+Function Test-ArtifactStaged($artifactName) {
+    $varName = "ARTIFACTSTAGED_$($artifactName.ToUpper())"
     Test-Path "env:$varName"
 }
 
 Get-ChildItem "$PSScriptRoot\*.ps1" -Exclude "_*" -Recurse | % {
     $ArtifactName = $_.BaseName
-    if ($Force -or !(Test-ArtifactUploaded($ArtifactName + $ArtifactNameSuffix))) {
+    if ($Force -or !(Test-ArtifactStaged($ArtifactName + $ArtifactNameSuffix))) {
         $totalFileCount = 0
         $fileGroups = & $_
         if ($fileGroups) {
@@ -65,6 +65,6 @@ Get-ChildItem "$PSScriptRoot\*.ps1" -Exclude "_*" -Recurse | % {
             Write-Warning "No files found for the `"$ArtifactName`" artifact."
         }
     } else {
-        Write-Host "Skipping $ArtifactName because it has already been uploaded." -ForegroundColor DarkGray
+        Write-Host "Skipping $ArtifactName because it has already been staged." -ForegroundColor DarkGray
     }
 }
