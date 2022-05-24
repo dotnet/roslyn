@@ -23,8 +23,16 @@ namespace Microsoft.CodeAnalysis.Host
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
         private readonly List<Compilation> _mostRecentCompilations = new();
 
+        /// <summary>
+        /// Cancellation series controlling the individual pieces of work added to <see cref="_workQueue"/>.  Every time
+        /// we add a new item, we cancel the prior item so that batch can stop as soon as possible and move onto the
+        /// next batch.
+        /// </summary>
         private readonly CancellationSeries _cancellationSeries = new();
 
+        /// <summary>
+        /// Token to stop work entirely when this object is disposed.
+        /// </summary>
         private readonly CancellationTokenSource _disposalCancellationSource = new();
 
         public BackgroundCompiler(Workspace workspace)
