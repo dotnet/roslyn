@@ -1242,61 +1242,184 @@ class C
 class C
 {
     private int i;
-    public required ref int Prop => ref i;
+    public required ref int Prop1 => ref i;
+    public required ref readonly int Prop2 => ref i;
 }
 ");
 
         comp.VerifyDiagnostics(
-            // (5,29): error CS9505: Required member 'C.Prop' must be settable.
-            //     public required ref int Prop => ref i;
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop").WithArguments("C.Prop").WithLocation(5, 29)
+                // (5,29): error CS9505: Required member 'C.Prop1' must be settable.
+                //     public required ref int Prop1 => ref i;
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(5, 29),
+                // (5,29): error CS9514: Ref returning properties cannot be required.
+                //     public required ref int Prop1 => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop1").WithLocation(5, 29),
+                // (6,38): error CS9505: Required member 'C.Prop2' must be settable.
+                //     public required ref readonly int Prop2 => ref i;
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop2").WithArguments("C.Prop2").WithLocation(6, 38),
+                // (6,38): error CS9514: Ref returning properties cannot be required.
+                //     public required ref readonly int Prop2 => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop2").WithLocation(6, 38)
         );
     }
 
-    [Fact]
-    public void UnsettableMembers()
+    [Theory]
+    [InlineData("internal")]
+    [InlineData("internal protected")]
+    [InlineData("protected")]
+    [InlineData("private protected")]
+    [InlineData("private")]
+    public void UnsettableMembers(string setterAccessibility)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
+        var comp = CreateCompilationWithRequiredMembers($$"""
 #pragma warning disable CS0649 // Unassigned field
-class C
+public class C
 {
     public required readonly int Field;
     public required int Prop1 { get; }
-    public required int Prop2 { get; protected set; }
+    public required int Prop2 { get; {{setterAccessibility}} set; }
 }
-");
+""");
 
         comp.VerifyDiagnostics(
-            // (5,34): error CS9505: Required member 'C.Field' must be settable.
+            // (4,34): error CS9505: Required member 'C.Field' must be settable.
             //     public required readonly int Field;
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field").WithArguments("C.Field").WithLocation(5, 34),
-            // (6,25): error CS9505: Required member 'C.Prop1' must be settable.
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field").WithArguments("C.Field").WithLocation(4, 34),
+            // (5,25): error CS9505: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(6, 25),
-            // PROTOTYPE(req): Better error message?
-            // (7,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
-            //     public required int Prop2 { get; protected set; }
-            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(7, 25)
+            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(5, 25),
+            // (6,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
+            //     public required int Prop2 { get; private set; }
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(6, 25)
         );
     }
 
     [Fact]
-    public void ObsoleteMember()
+    public void ObsoleteMember_NoObsoleteContext()
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-using System;
-#pragma warning disable CS0649 // Unassigned field
-class C
-{
-    [Obsolete]
-    public required int Field;
-    [Obsolete]
-    public required int Prop1 { get; set; }
-}
-");
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            #pragma warning disable CS0649 // Unassigned field
+            class C
+            {
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+            """);
 
-        // PROTOTYPE(req): Confirm with LDM whether we want a warning here.
+        comp.VerifyDiagnostics(
+            // (6,25): warning CS9513: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("C.Field").WithLocation(6, 25),
+            // (8,25): warning CS9513: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Prop1 { get; set; }
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("C.Prop1").WithLocation(8, 25)
+        );
+    }
+
+    [Fact]
+    public void ObsoleteMember_NoObsoleteContext_Struct()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            #pragma warning disable CS0649 // Unassigned field
+            struct S
+            {
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+            """);
+
+        comp.VerifyDiagnostics(
+            // (6,25): warning CS9513: Required member 'S.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("S.Field").WithLocation(6, 25),
+            // (8,25): warning CS9513: Required member 'S.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Prop1 { get; set; }
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("S.Prop1").WithLocation(8, 25)
+        );
+    }
+
+    [Fact]
+    public void ObsoleteMember_ObsoleteContext()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            #pragma warning disable CS0649 // Unassigned field
+            [Obsolete]
+            class C
+            {
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+            """);
+
         comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ObsoleteMember_ObsoleteOrSetsRequiredMembersConstructors_01()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            #pragma warning disable CS0649 // Unassigned field
+            class C
+            {
+                [Obsolete]
+                public C() { }
+                [SetsRequiredMembers]
+                public C(int i) { }
+
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+
+            """);
+
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ObsoleteMember_ObsoleteOrSetsRequiredMembersConstructors_02()
+    {
+        var comp = CreateCompilationWithRequiredMembers("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+            #pragma warning disable CS0649 // Unassigned field
+            class C
+            {
+                [Obsolete]
+                public C() { }
+                [SetsRequiredMembers]
+                public C(int i) { }
+
+                public C(bool b) { }
+
+                [Obsolete]
+                public required int Field;
+                [Obsolete]
+                public required int Prop1 { get; set; }
+            }
+
+            """);
+
+        comp.VerifyDiagnostics(
+            // (14,25): warning CS9513: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Field;
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("C.Field").WithLocation(14, 25),
+            // (16,25): warning CS9513: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            //     public required int Prop1 { get; set; }
+            Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("C.Prop1").WithLocation(16, 25)
+        );
     }
 
     [Fact]
@@ -3668,7 +3791,7 @@ public class Derived : Base
                 public string Prop2 { get; set; } = null!;
 
                 [SetsRequiredMembers]
-                protected Base() {}
+                protected Base() {} // 1
             }
             
             public class Derived : Base
@@ -3676,26 +3799,29 @@ public class Derived : Base
                 public required string Prop3 { get; set; }
                 public string Prop4 { get; set; }
             
-                public Derived() : base()
+                public Derived() : base() // 2
                 {
                     Prop1.ToString();
                     Prop2.ToString();
-                    Prop3.ToString(); // 1
-                    Prop4.ToString(); // 2
+                    Prop3.ToString(); // 3
+                    Prop4.ToString(); // 4
                 }
             }
             """;
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
+            // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     protected Base() {} // 1
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
             // (17,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
-            //     public Derived() : base()
+            //     public Derived() : base() // 2
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(17, 24),
             // (21,9): warning CS8602: Dereference of a possibly null reference.
-            //         Prop3.ToString(); // 1
+            //         Prop3.ToString(); // 3
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
             // (22,9): warning CS8602: Dereference of a possibly null reference.
-            //         Prop4.ToString(); // 2
+            //         Prop4.ToString(); // 4
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop4").WithLocation(22, 9)
         );
     }
@@ -3737,6 +3863,9 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
+            // (17,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+            //     public Derived(int unused) : base()
+            Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(17, 12),
             // (22,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)

@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (symbol.IsRequired())
+                if (symbol.IsRequired() && constructor.ShouldCheckRequiredMembers())
                 {
                     return;
                 }

@@ -199,7 +199,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((result & DeclarationModifiers.Required) != 0)
                 {
-                    // PROTOTYPE(req): capture the allowed modifier combinations in the specification
                     // The modifier 'required' is not valid for this item
                     diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
                 }

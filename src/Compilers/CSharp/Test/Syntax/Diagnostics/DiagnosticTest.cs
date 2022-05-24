@@ -272,6 +272,7 @@ class X
                         case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
                         case ErrorCode.WRN_NullCheckedHasDefaultNull:
                         case ErrorCode.WRN_NullCheckingOnNullableType:
+                        case ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

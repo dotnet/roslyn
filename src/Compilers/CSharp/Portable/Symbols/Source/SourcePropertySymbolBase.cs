@@ -677,6 +677,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
+            if (RefKind != RefKind.None && IsRequired)
+            {
+                // Ref returning properties cannot be required.
+                diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
+            }
+
             if (IsAutoPropertyWithGetAccessor)
             {
                 Debug.Assert(GetMethod is object);
