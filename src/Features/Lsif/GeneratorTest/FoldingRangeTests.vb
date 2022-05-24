@@ -17,19 +17,6 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         ' https://github.com/dotnet/roslyn/projects/45#card-20049168 is implemented.
         <Theory>
         <InlineData("
-using {|foldingRange:System;
-using System.Linq;|}")>
-        <InlineData("
-using {|foldingRange:S = System.String; 
-using System.Linq;|}")>
-        Public Async Function TestFoldingRangesImports(code As String) As Task
-            Await TestFoldingRanges(code, rangeKind:=FoldingRangeKind.Imports)
-        End Function
-
-        ' Expected 'FoldingRangeKind' argument would likely change for some of the tests when
-        ' https://github.com/dotnet/roslyn/projects/45#card-20049168 is implemented.
-        <Theory>
-        <InlineData("
 class C{|foldingRange:
 {
 }|}", Nothing)>
@@ -43,18 +30,20 @@ class C{|foldingRange:
             M();
         }|}
     }|}
-}|}")>
+}|}", Nothing)>
         <InlineData("
 {|foldingRange:#region
-#endregion|}")>
+#endregion|}", Nothing)>
+        <InlineData("
+using {|foldingRange:System;
+using System.Linq;|}", "imports")>
+        <InlineData("
+using {|foldingRange:S = System.String; 
+using System.Linq;|}", "imports")>
         <InlineData("
 {|foldingRange:// Comment Line 1
-// Comment Line 2|}")>
-        Public Async Function TestFoldingRangesStandard(code As String) As Task
-            Await TestFoldingRanges(code, rangeKind:=Nothing)
-        End Function
-
-        Public Async Function TestFoldingRanges(code As String, rangeKind As FoldingRangeKind?) As Task
+// Comment Line 2|}", Nothing)>
+        Public Async Function TestFoldingRanges(code As String, rangeKind As String) As Task
             Using workspace = TestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
@@ -75,15 +64,18 @@ class C{|foldingRange:
             End Using
         End Function
 
-        Private Shared Function CreateFoldingRange(kind As FoldingRangeKind?, range As Range) As FoldingRange
-            Return New FoldingRange() With
+        Private Shared Function CreateFoldingRange(kind As String, range As Range) As FoldingRange
+            Dim foldingRange As FoldingRange = New FoldingRange() With
             {
-                .kind = kind,
                 .StartCharacter = range.Start.Character,
                 .EndCharacter = range.End.Character,
                 .StartLine = range.Start.Line,
                 .EndLine = range.End.Line
             }
+            If kind IsNot Nothing Then
+                foldingRange.Kind = New FoldingRangeKind(kind)
+            End If
+            Return foldingRange
         End Function
     End Class
 End Namespace
