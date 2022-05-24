@@ -109,7 +109,7 @@ public partial struct IncrementalGeneratorInitializationContext
             .Combine(this.CompilationProvider)
             .WithTrackingName("compilationAndGroupedNodes_ForAttributeWithMetadataName");
 
-        return compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
+        var finalProvider = compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
         {
             var (grouping, compilation) = tuple;
 
@@ -124,7 +124,7 @@ public partial struct IncrementalGeneratorInitializationContext
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                    if (HasMatchingAttribute(symbol, fullyQualifiedMetadataName, out var attributeData))
+                    if (hasMatchingAttribute(symbol, fullyQualifiedMetadataName, out var attributeData))
                     {
                         result.Add(transform(
                             new GeneratorAttributeSyntaxContext<TSyntaxNode>(node, semanticModel, attributeData),
@@ -140,29 +140,31 @@ public partial struct IncrementalGeneratorInitializationContext
                 result.Free();
             }
         }).WithTrackingName("result_ForAttributeWithMetadataName");
-    }
 
-    private static bool HasMatchingAttribute(
-        ISymbol? symbol,
-        string fullyQualifiedMetadataName,
-        [NotNullWhen(true)] out AttributeData? attributeData)
-    {
-        if (symbol is not null)
+        return finalProvider;
+
+        static bool hasMatchingAttribute(
+            ISymbol? symbol,
+            string fullyQualifiedMetadataName,
+            [NotNullWhen(true)] out AttributeData? attributeData)
         {
-            foreach (var attribute in symbol.GetAttributes())
+            if (symbol is not null)
             {
-                if (attribute.AttributeClass is null)
-                    continue;
-
-                if (attribute.AttributeClass.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
+                foreach (var attribute in symbol.GetAttributes())
                 {
-                    attributeData = attribute;
-                    return true;
+                    if (attribute.AttributeClass is null)
+                        continue;
+
+                    if (attribute.AttributeClass.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
+                    {
+                        attributeData = attribute;
+                        return true;
+                    }
                 }
             }
-        }
 
-        attributeData = null;
-        return false;
+            attributeData = null;
+            return false;
+        }
     }
 }
