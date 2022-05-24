@@ -113,7 +113,7 @@ namespace IdeCoreBenchmarks
             var generator = (new PipelineCallbackGenerator(ctx =>
             {
                 Console.WriteLine("Registering");
-#if false
+#if true
                 var input = ctx.SyntaxProvider.CreateSyntaxProvider<ClassDeclarationSyntax>(
                     (c, _) =>
                     {
@@ -132,7 +132,7 @@ namespace IdeCoreBenchmarks
                         return node;
                     });
 #else
-                var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("System.Text.Json.Serialization.JsonSerializableAttribute");
+                // var input = ctx.ForAttributeWithMetadataName<ClassDeclarationSyntax>("System.Text.Json.Serialization.JsonSerializableAttribute");
                 // var input = ctx.ForAttributeWithSimpleName<ClassDeclarationSyntax>("JsonSerializableAttribute");
 #endif
                 ctx.RegisterSourceOutput(input, (spc, node) => { });

@@ -64,7 +64,7 @@ public partial struct IncrementalGeneratorInitializationContext
     /// <see cref="SyntaxNode"/> can be used as the type argument to return every syntax node of any type that has such
     /// a matching attribute on it.
     /// </remarks>
-    public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(string fullyQualifiedMetadataName)
+    internal IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(string fullyQualifiedMetadataName)
         where T : SyntaxNode
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     {
@@ -81,7 +81,7 @@ public partial struct IncrementalGeneratorInitializationContext
     /// <c>Attribute</c> suffix.  For example <c>System.CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
     /// </summary>
-    public IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TSyntaxNode, TResult>(
+    internal IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TSyntaxNode, TResult>(
         string fullyQualifiedMetadataName,
         Func<GeneratorAttributeSyntaxContext<TSyntaxNode>, AttributeData, CancellationToken, TResult> transform)
         where TSyntaxNode : SyntaxNode

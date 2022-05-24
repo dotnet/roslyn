@@ -28,8 +28,6 @@ Microsoft.CodeAnalysis.GeneratorTimingInfo
 Microsoft.CodeAnalysis.GeneratorTimingInfo.ElapsedTime.get -> System.TimeSpan
 Microsoft.CodeAnalysis.GeneratorTimingInfo.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorTimingInfo.GeneratorTimingInfo() -> void
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ForAttributeWithMetadataName<T>(string! fullyQualifiedMetadataName) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<T!>
-Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.ForAttributeWithMetadataName<TSyntaxNode, TResult>(string! fullyQualifiedMetadataName, System.Func<Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext<TSyntaxNode!>, Microsoft.CodeAnalysis.AttributeData!, System.Threading.CancellationToken, TResult>! transform) -> Microsoft.CodeAnalysis.IncrementalValuesProvider<TResult>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
