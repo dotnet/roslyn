@@ -202,6 +202,11 @@
         <target state="translated">使用建構函式的區塊主體</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_block_body_for_conversion_operators">
+        <source>Use block body for conversion operators</source>
+        <target state="new">Use block body for conversion operators</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_block_body_for_indexers">
         <source>Use block body for indexers</source>
         <target state="translated">使用索引子的區塊主體</target>
@@ -245,6 +250,11 @@
       <trans-unit id="Use_expression_body_for_constructors">
         <source>Use expression body for constructors</source>
         <target state="translated">使用建構函式的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_conversion_operators">
+        <source>Use expression body for conversion operators</source>
+        <target state="new">Use expression body for conversion operators</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_indexers">

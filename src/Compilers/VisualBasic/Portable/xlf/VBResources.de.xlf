@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="translated">Auf einen freigegebenen abstrakten Schnittstellenmember kann nicht zugegriffen werden.</target>
+        <source>A shared abstract or virtual interface member cannot be accessed.</source>
+        <target state="needs-review-translation">Auf einen freigegebenen abstrakten Schnittstellenmember kann nicht zugegriffen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -63,8 +63,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
-        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="translated">{0} „{1}“ kann die Schnittstelle „{3}“ nicht implementieren, da sie freigegebene abstrakte „{2}“ enthält.</target>
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
+        <target state="needs-review-translation">{0} „{1}“ kann die Schnittstelle „{3}“ nicht implementieren, da sie freigegebene abstrakte „{2}“ enthält.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
