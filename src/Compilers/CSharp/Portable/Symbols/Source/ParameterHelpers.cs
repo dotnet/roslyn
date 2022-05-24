@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (!defaultExpression.HasAnyErrors &&
-                !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() || convertedExpression is BoundConversion { Conversion.IsUTF8StringLiteral: true } ?
+                !IsValidDefaultValue(defaultExpression.IsImplicitObjectCreation() ?
                     convertedExpression : defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
