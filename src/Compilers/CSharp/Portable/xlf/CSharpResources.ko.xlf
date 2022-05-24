@@ -1207,6 +1207,11 @@
         <target state="translated">참조 할당의 왼쪽은 참조 로컬 또는 매개 변수여야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefReturningPropertiesCannotBeRequired">
+        <source>Ref returning properties cannot be required.</source>
+        <target state="new">Ref returning properties cannot be required.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">부동 소수점 NaN에는 관계형 패턴을 사용할 수 없습니다.</target>

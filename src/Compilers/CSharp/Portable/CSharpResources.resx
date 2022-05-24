@@ -7142,6 +7142,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ObsoleteMembersShouldNotBeRequired_Title" xml:space="preserve">
     <value>Members attributed with 'ObsoleteAttribute' should not be required unless the containing type is obsolete or all constructors are obsolete.</value>
   </data>
+  <data name="ERR_RefReturningPropertiesCannotBeRequired" xml:space="preserve">
+    <value>Ref returning properties cannot be required.</value>
+  </data>
   <data name="ERR_MisplacedUnchecked" xml:space="preserve">
     <value>Unexpected keyword 'unchecked'</value>
   </data>

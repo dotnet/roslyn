@@ -1242,14 +1242,24 @@ class C
 class C
 {
     private int i;
-    public required ref int Prop => ref i;
+    public required ref int Prop1 => ref i;
+    public required ref readonly int Prop2 => ref i;
 }
 ");
 
         comp.VerifyDiagnostics(
-            // (5,29): error CS9505: Required member 'C.Prop' must be settable.
-            //     public required ref int Prop => ref i;
-            Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop").WithArguments("C.Prop").WithLocation(5, 29)
+                // (5,29): error CS9505: Required member 'C.Prop1' must be settable.
+                //     public required ref int Prop1 => ref i;
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(5, 29),
+                // (5,29): error CS9514: Ref returning properties cannot be required.
+                //     public required ref int Prop1 => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop1").WithLocation(5, 29),
+                // (6,38): error CS9505: Required member 'C.Prop2' must be settable.
+                //     public required ref readonly int Prop2 => ref i;
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop2").WithArguments("C.Prop2").WithLocation(6, 38),
+                // (6,38): error CS9514: Ref returning properties cannot be required.
+                //     public required ref readonly int Prop2 => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop2").WithLocation(6, 38)
         );
     }
 
@@ -3781,7 +3791,7 @@ public class Derived : Base
                 public string Prop2 { get; set; } = null!;
 
                 [SetsRequiredMembers]
-                protected Base() {}
+                protected Base() {} // 1
             }
             
             public class Derived : Base
@@ -3789,12 +3799,12 @@ public class Derived : Base
                 public required string Prop3 { get; set; }
                 public string Prop4 { get; set; }
             
-                public Derived() : base()
+                public Derived() : base() // 2
                 {
-                    Prop1.ToString(); // 1
+                    Prop1.ToString();
                     Prop2.ToString();
-                    Prop3.ToString(); // 2
-                    Prop4.ToString(); // 3
+                    Prop3.ToString(); // 3
+                    Prop4.ToString(); // 4
                 }
             }
             """;
@@ -3805,13 +3815,13 @@ public class Derived : Base
             //     protected Base() {} // 1
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
             // (17,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
-            //     public Derived() : base()
+            //     public Derived() : base() // 2
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(17, 24),
             // (21,9): warning CS8602: Dereference of a possibly null reference.
-            //         Prop3.ToString(); // 2
+            //         Prop3.ToString(); // 3
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop3").WithLocation(21, 9),
             // (22,9): warning CS8602: Dereference of a possibly null reference.
-            //         Prop4.ToString(); // 3
+            //         Prop4.ToString(); // 4
             Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop4").WithLocation(22, 9)
         );
     }

@@ -2090,5 +2090,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewConstraintCannotHaveRequiredMembers = 9511,
         ERR_UnsupportedCompilerFeature = 9512,
         WRN_ObsoleteMembersShouldNotBeRequired = 9513,
+        ERR_RefReturningPropertiesCannotBeRequired = 9514,
     }
 }

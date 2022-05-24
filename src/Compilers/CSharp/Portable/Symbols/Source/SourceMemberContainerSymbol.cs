@@ -632,11 +632,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             EnsureFieldDefinitionsNoted();
-
+                            cancellationToken.ThrowIfCancellationRequested();
 
                             if (state.NotePartComplete(CompletionPart.MembersCompletedChecksStarted))
                             {
-                                cancellationToken.ThrowIfCancellationRequested();
                                 var diagnostics = BindingDiagnosticBag.GetInstance();
                                 AfterMembersCompletedChecks(diagnostics);
                                 AddDeclarationDiagnostics(diagnostics);
