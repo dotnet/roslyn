@@ -632,7 +632,7 @@ $@"class C
         }
 
         [Fact]
-        public async Task DontSuggestRequiredInInterface()
+        public async Task DoNotSuggestRequiredInInterface()
         {
             var markup = $$"""
                 interface I
@@ -644,7 +644,7 @@ $@"class C
         }
 
         [Fact]
-        public async Task DontSuggestRequiredOnStaticMembers()
+        public async Task DoNotSuggestRequiredOnStaticMembers()
         {
             var markup = $$"""
                 class C 
@@ -656,7 +656,7 @@ $@"class C
         }
 
         [Fact]
-        public async Task DontSuggestStaticOnRequiredMembers()
+        public async Task DoNotSuggestStaticOnRequiredMembers()
         {
             var markup = $$"""
                 class C 
@@ -668,7 +668,7 @@ $@"class C
         }
 
         [Fact]
-        public async Task DontSuggestRequiredOnRequiredMembers()
+        public async Task DoNotSuggestRequiredOnRequiredMembers()
         {
             var markup = $$"""
                 class C 
