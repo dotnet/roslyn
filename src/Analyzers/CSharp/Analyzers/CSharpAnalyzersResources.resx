@@ -182,6 +182,9 @@
   <data name="Use_block_body_for_operators" xml:space="preserve">
     <value>Use block body for operators</value>
   </data>
+  <data name="Use_block_body_for_conversion_operators" xml:space="preserve">
+    <value>Use block body for conversion operators</value>
+  </data>
   <data name="Use_block_body_for_properties" xml:space="preserve">
     <value>Use block body for properties</value>
   </data>
@@ -196,6 +199,9 @@
   </data>
   <data name="Use_expression_body_for_operators" xml:space="preserve">
     <value>Use expression body for operators</value>
+  </data>
+  <data name="Use_expression_body_for_conversion_operators" xml:space="preserve">
+    <value>Use expression body for conversion operators</value>
   </data>
   <data name="Use_expression_body_for_properties" xml:space="preserve">
     <value>Use expression body for properties</value>
