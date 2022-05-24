@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 => EditAndContinueMethodDebugInformation.Create(
                     compressedSlotMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLocalSlotMap),
                     compressedLambdaMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap),
-                    compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncLambdaAndClosureMap));
+                    compressedStateMachineStateMap: GetCdiBytes(methodHandle, PortableCustomDebugInfoKinds.EncStateMachineStateMap));
 
             private ImmutableArray<byte> GetCdiBytes(MethodDefinitionHandle methodHandle, Guid kind)
                 => TryGetCustomDebugInformation(_pdbReader, methodHandle, kind, out var cdi) ?

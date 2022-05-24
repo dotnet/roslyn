@@ -466,7 +466,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax.IsKind(SyntaxKind.UsingStatement) ||
                 syntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
                 syntax.IsKind(SyntaxKind.ForEachStatement) ||
-                syntax.IsKind(SyntaxKind.LockStatement));
+                syntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
+                syntax.IsKind(SyntaxKind.LockStatement), $"Unexpected syntax: {syntax.Kind()}");
 
             if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, out var finalizeState) != true)
             {

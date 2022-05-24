@@ -4584,6 +4584,276 @@ class C
         }
 
         [Fact]
+        public void UpdateIterator_YieldReturn_Add_Finally_Foreach_ForEachVar_Using_Lock()
+        {
+            var source0 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F() 
+    {
+        <N:0>using var <N:1>x = D()</N:1>;</N:0>
+
+        <N:2>using</N:2> (var <N:3>y = D()</N:3>)
+            <N:4>foreach</N:4> (var z in E())
+                <N:5>foreach</N:5> (var (u, w) in E())
+                    <N:6>lock</N:6> (x)
+                    {
+                        <N:7>yield return 1;</N:7>
+                    }
+    }
+
+    static IDisposable D() => null;
+    static IEnumerable<(int, int)> E() => null;
+}");
+            var source1 = MarkedSource(@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    static IEnumerable<int> F() 
+    {
+        <N:0>using var <N:1>x = D()</N:1>;</N:0>
+
+        <N:2>using</N:2> (var <N:3>y = D()</N:3>)
+            <N:4>foreach</N:4> (var z in E())
+                <N:5>foreach</N:5> (var (u, w) in E())
+                    <N:6>lock</N:6> (x)
+                    {
+                        <N:7>yield return 1;</N:7>
+                        yield return 2;
+                    }
+    }
+
+    static IDisposable D() => null;
+    static IEnumerable<(int, int)> E() => null;
+}");
+            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyDiagnostics();
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                 generation0,
+                 ImmutableArray.Create(
+                     SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            v0.VerifyPdb("C.F", @"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;F&gt;d__0"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""31"" />
+          <slot kind=""0"" offset=""90"" />
+          <slot kind=""5"" offset=""123"" />
+          <slot kind=""0"" offset=""123"" />
+          <slot kind=""5"" offset=""174"" />
+          <slot kind=""0"" offset=""194"" />
+          <slot kind=""0"" offset=""197"" />
+          <slot kind=""3"" offset=""234"" />
+          <slot kind=""2"" offset=""234"" />
+        </encLocalSlotMap>
+        <encStateMachineStateMap>
+          <state number=""-3"" offset=""16"" />
+          <state number=""-4"" offset=""68"" />
+          <state number=""-5"" offset=""123"" />
+          <state number=""-6"" offset=""174"" />
+          <state number=""-7"" offset=""234"" />
+          <state number=""1"" offset=""302"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>");
+
+            diff1.VerifyIL("C.<F>d__0.System.Collections.IEnumerator.MoveNext", @"
+{
+  // Code size      433 (0x1b1)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1,
+                System.ValueTuple<int, int> V_2)
+  .try
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int C.<F>d__0.<>1__state""
+    IL_0006:  stloc.1
+    IL_0007:  ldloc.1
+    IL_0008:  switch    (
+        IL_001b,
+        IL_001d,
+        IL_0022)
+    IL_0019:  br.s       IL_0027
+    IL_001b:  br.s       IL_002e
+    IL_001d:  br         IL_0110
+    IL_0022:  br         IL_012d
+    IL_0027:  ldc.i4.0
+    IL_0028:  stloc.0
+    IL_0029:  leave      IL_01af
+    IL_002e:  ldarg.0
+    IL_002f:  ldc.i4.m1
+    IL_0030:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0035:  nop
+    IL_0036:  ldarg.0
+    IL_0037:  call       ""System.IDisposable C.D()""
+    IL_003c:  stfld      ""System.IDisposable C.<F>d__0.<x>5__1""
+    IL_0041:  ldarg.0
+    IL_0042:  ldc.i4.s   -3
+    IL_0044:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0049:  ldarg.0
+    IL_004a:  call       ""System.IDisposable C.D()""
+    IL_004f:  stfld      ""System.IDisposable C.<F>d__0.<y>5__2""
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.s   -4
+    IL_0057:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_005c:  nop
+    IL_005d:  ldarg.0
+    IL_005e:  call       ""System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> C.E()""
+    IL_0063:  callvirt   ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>>.GetEnumerator()""
+    IL_0068:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__3""
+    IL_006d:  ldarg.0
+    IL_006e:  ldc.i4.s   -5
+    IL_0070:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0075:  br         IL_016e
+    IL_007a:  ldarg.0
+    IL_007b:  ldarg.0
+    IL_007c:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__3""
+    IL_0081:  callvirt   ""System.ValueTuple<int, int> System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>>.Current.get""
+    IL_0086:  stfld      ""System.ValueTuple<int, int> C.<F>d__0.<z>5__4""
+    IL_008b:  nop
+    IL_008c:  ldarg.0
+    IL_008d:  call       ""System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>> C.E()""
+    IL_0092:  callvirt   ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> System.Collections.Generic.IEnumerable<System.ValueTuple<int, int>>.GetEnumerator()""
+    IL_0097:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__5""
+    IL_009c:  ldarg.0
+    IL_009d:  ldc.i4.s   -6
+    IL_009f:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_00a4:  br         IL_0144
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__5""
+    IL_00af:  callvirt   ""System.ValueTuple<int, int> System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>>.Current.get""
+    IL_00b4:  stloc.2
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldloc.2
+    IL_00b7:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+    IL_00bc:  stfld      ""int C.<F>d__0.<u>5__10""
+    IL_00c1:  ldarg.0
+    IL_00c2:  ldloc.2
+    IL_00c3:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_00c8:  stfld      ""int C.<F>d__0.<w>5__11""
+    IL_00cd:  ldarg.0
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldfld      ""System.IDisposable C.<F>d__0.<x>5__1""
+    IL_00d4:  stfld      ""System.IDisposable C.<F>d__0.<>s__8""
+    IL_00d9:  ldarg.0
+    IL_00da:  ldc.i4.0
+    IL_00db:  stfld      ""bool C.<F>d__0.<>s__9""
+    IL_00e0:  ldarg.0
+    IL_00e1:  ldc.i4.s   -7
+    IL_00e3:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_00e8:  ldarg.0
+    IL_00e9:  ldfld      ""System.IDisposable C.<F>d__0.<>s__8""
+    IL_00ee:  ldarg.0
+    IL_00ef:  ldflda     ""bool C.<F>d__0.<>s__9""
+    IL_00f4:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_00f9:  nop
+    IL_00fa:  nop
+    IL_00fb:  ldarg.0
+    IL_00fc:  ldc.i4.1
+    IL_00fd:  stfld      ""int C.<F>d__0.<>2__current""
+    IL_0102:  ldarg.0
+    IL_0103:  ldc.i4.1
+    IL_0104:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0109:  ldc.i4.1
+    IL_010a:  stloc.0
+    IL_010b:  leave      IL_01af
+    IL_0110:  ldarg.0
+    IL_0111:  ldc.i4.s   -7
+    IL_0113:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0118:  ldarg.0
+    IL_0119:  ldc.i4.2
+    IL_011a:  stfld      ""int C.<F>d__0.<>2__current""
+    IL_011f:  ldarg.0
+    IL_0120:  ldc.i4.2
+    IL_0121:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0126:  ldc.i4.1
+    IL_0127:  stloc.0
+    IL_0128:  leave      IL_01af
+    IL_012d:  ldarg.0
+    IL_012e:  ldc.i4.s   -7
+    IL_0130:  stfld      ""int C.<F>d__0.<>1__state""
+    IL_0135:  nop
+    IL_0136:  ldarg.0
+    IL_0137:  call       ""void C.<F>d__0.<>m__Finally5()""
+    IL_013c:  nop
+    IL_013d:  ldarg.0
+    IL_013e:  ldnull
+    IL_013f:  stfld      ""System.IDisposable C.<F>d__0.<>s__8""
+    IL_0144:  ldarg.0
+    IL_0145:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__5""
+    IL_014a:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_014f:  brtrue     IL_00a9
+    IL_0154:  ldarg.0
+    IL_0155:  call       ""void C.<F>d__0.<>m__Finally4()""
+    IL_015a:  nop
+    IL_015b:  ldarg.0
+    IL_015c:  ldnull
+    IL_015d:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__5""
+    IL_0162:  ldarg.0
+    IL_0163:  ldflda     ""System.ValueTuple<int, int> C.<F>d__0.<z>5__4""
+    IL_0168:  initobj    ""System.ValueTuple<int, int>""
+    IL_016e:  ldarg.0
+    IL_016f:  ldfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__3""
+    IL_0174:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0179:  brtrue     IL_007a
+    IL_017e:  ldarg.0
+    IL_017f:  call       ""void C.<F>d__0.<>m__Finally3()""
+    IL_0184:  nop
+    IL_0185:  ldarg.0
+    IL_0186:  ldnull
+    IL_0187:  stfld      ""System.Collections.Generic.IEnumerator<System.ValueTuple<int, int>> C.<F>d__0.<>s__3""
+    IL_018c:  ldarg.0
+    IL_018d:  call       ""void C.<F>d__0.<>m__Finally2()""
+    IL_0192:  nop
+    IL_0193:  ldarg.0
+    IL_0194:  ldnull
+    IL_0195:  stfld      ""System.IDisposable C.<F>d__0.<y>5__2""
+    IL_019a:  ldc.i4.0
+    IL_019b:  stloc.0
+    IL_019c:  br.s       IL_019e
+    IL_019e:  ldarg.0
+    IL_019f:  call       ""void C.<F>d__0.<>m__Finally1()""
+    IL_01a4:  nop
+    IL_01a5:  leave.s    IL_01af
+  }
+  fault
+  {
+    IL_01a7:  ldarg.0
+    IL_01a8:  call       ""void C.<F>d__0.Dispose()""
+    IL_01ad:  nop
+    IL_01ae:  endfinally
+  }
+  IL_01af:  ldloc.0
+  IL_01b0:  ret
+}");
+        }
+
+        [Fact]
         public void UpdateAsyncEnumerable_AwaitAndYield_Add()
         {
             var source0 = MarkedSource(@"
