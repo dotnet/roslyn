@@ -243,6 +243,34 @@ namespace X
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        public void TestWinMdExpData_SemiAutoProperty()
+        {
+            var text = @"
+public class C
+{
+    public int P { get => field; }
+}
+";
+
+            string expected = @"<?xml version=""1.0"" encoding=""utf-16""?>
+<token-map>
+  <token-location token=""0x02xxxxxx"" file=""source.cs"" start-line=""2"" start-column=""14"" end-line=""2"" end-column=""15""/>
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""2"" start-column=""14"" end-line=""2"" end-column=""15""/>
+  <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""4"" start-column=""16"" end-line=""4"" end-column=""17""/>
+  <token-location token=""0x17xxxxxx"" file=""source.cs"" start-line=""4"" start-column=""16"" end-line=""4"" end-column=""17""/>
+  <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""4"" start-column=""20"" end-line=""4"" end-column=""23""/>
+</token-map>";
+
+            var compilation = CreateCompilationWithMscorlib45(
+                text,
+                options: TestOptions.ReleaseWinMD,
+                sourceFileName: "source.cs").VerifyDiagnostics();
+
+            string actual = PdbTestUtilities.GetTokenToLocationMap(compilation, true);
+            AssertXml.Equal(expected, actual);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         public void TestWinMdExpData_AnonymousTypes()
         {
             #region "Source"

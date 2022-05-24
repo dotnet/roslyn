@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private string _lazyName;
         private readonly bool _bodyShouldBeSynthesized;
         private readonly bool _isExpressionBodied;
-        private readonly bool _containsFieldKeyword;
+        private readonly bool _containsFieldIdentifier;
         private readonly bool _usesInit;
 
         public static SourcePropertyAccessorSymbol CreateAccessorSymbol(
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE(semi-auto-props): Figure out what is going to be more efficient, to go after tokens and then
         // checking their parent, or to go after nodes (IdentifierNameSyntax) first and then checking the underlying token.
         // PROTOTYPE(semi-auto-props): Filter out identifiers that syntactically cannot be keywords. For example those that follow a ., a -> or a :: in names. Something else?
-        private static bool NodeContainsFieldKeyword(CSharpSyntaxNode? node)
+        private static bool NodeContainsFieldIdentifier(CSharpSyntaxNode? node)
         {
             if (node is null)
             {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _property = property;
             _bodyShouldBeSynthesized = false;
             _isExpressionBodied = true;
-            _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(syntax);
+            _containsFieldIdentifier = !property.IsIndexer && NodeContainsFieldIdentifier(syntax);
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _property = property;
             _bodyShouldBeSynthesized = bodyShouldBeSynthesized;
-            _containsFieldKeyword = property.IsIndexer ? false : NodeContainsFieldKeyword(getAccessorSyntax(syntax));
+            _containsFieldIdentifier = !property.IsIndexer && NodeContainsFieldIdentifier(getAccessorSyntax(syntax));
             Debug.Assert(!_property.IsExpressionBodied, "Cannot have accessors in expression bodied lightweight properties");
             _isExpressionBodied = !hasBlockBody && hasExpressionBody;
             _usesInit = usesInit;
@@ -459,8 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This is only calculated from syntax, so we don't know if it
         /// will bind to something or will create a backing field.
         /// </remarks>
-        // PROTOTYPE(semi-auto-props): Rename to ContainsFieldKeywordSyntactically or similar.
-        internal bool ContainsFieldKeyword => _containsFieldKeyword;
+        internal bool ContainsFieldIdentifier => _containsFieldIdentifier;
 
         /// <summary>
         /// Indicates whether this accessor has no body in source and a body will be synthesized by the compiler.

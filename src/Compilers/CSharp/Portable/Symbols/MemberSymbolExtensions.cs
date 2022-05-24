@@ -641,6 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Event:
                     field = ((EventSymbol)member).AssociatedField;
                     return (object)field != null;
+                // PROTOTYPE(semi-auto-props): Revise if we need to do something for FieldKeywordBackingfield.
                 default:
                     field = null;
                     return false;

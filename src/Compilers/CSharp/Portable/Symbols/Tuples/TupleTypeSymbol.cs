@@ -1081,6 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 case SymbolKind.Event:
                                     var underlyingEvent = (EventSymbol)member;
+                                    // PROTOTYPE(semi-auto-props): Do we need to do something for properties with FieldKeywordBackingField?
                                     var underlyingAssociatedField = underlyingEvent.AssociatedField;
                                     // The field is not part of the members list
                                     if (underlyingAssociatedField is object)

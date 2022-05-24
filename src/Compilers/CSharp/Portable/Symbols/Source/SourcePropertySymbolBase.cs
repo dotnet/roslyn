@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this is SourcePropertySymbol propertySymbol)
             {
-                if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } getMethod)
+                if (propertySymbol.GetMethod is SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true } getMethod)
                 {
                     noteAccessorBinding();
                     var binder = getMethod.TryGetBodyBinder();
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // If we still don't have a backing field after binding the getter, try binding the setter.
                 if (_lazyBackingFieldSymbol == _lazyBackingFieldSymbolSentinel &&
-                    propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldKeyword: true } setMethod)
+                    propertySymbol.SetMethod is SourcePropertyAccessorSymbol { ContainsFieldIdentifier: true } setMethod)
                 {
                     noteAccessorBinding();
                     setMethod.TryGetBodyBinder()?.BindMethodBody(setMethod.SyntaxNode, BindingDiagnosticBag.Discarded);
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties. Consider also the BackingField?.GetAttributes() call in GetAttributesBag. Should it handle FieldKeywordBackingField? Add a test.
                 return _getMethod?.BodyShouldBeSynthesized == true ||
                     _setMethod?.BodyShouldBeSynthesized == true;
             }
@@ -1626,6 +1626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     var diagnostics = BindingDiagnosticBag.GetInstance();
                                     var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
+
                                     foreach (var parameter in this.Parameters)
                                     {
                                         parameter.ForceComplete(locationOpt, cancellationToken);

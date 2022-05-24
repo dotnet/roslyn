@@ -3461,7 +3461,7 @@ public class Point
         }
 
         [Fact]
-        public void Test_ContainsFieldKeywordAPI()
+        public void Test_ContainsFieldIdentifierAPI()
         {
             var comp = CreateCompilation(@"
 public class C1
@@ -3483,12 +3483,12 @@ public class C2
 
             var accessorsC1 = comp.GetTypeByMetadataName("C1").GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(2, accessorsC1.Length);
-            Assert.False(accessorsC1[0].ContainsFieldKeyword);
-            Assert.False(accessorsC1[1].ContainsFieldKeyword);
+            Assert.False(accessorsC1[0].ContainsFieldIdentifier);
+            Assert.False(accessorsC1[1].ContainsFieldIdentifier);
 
             var accessorsC2 = comp.GetTypeByMetadataName("C2").GetMembers().OfType<SourcePropertyAccessorSymbol>().ToArray();
             Assert.Equal(1, accessorsC2.Length);
-            Assert.False(accessorsC2[0].ContainsFieldKeyword);
+            Assert.False(accessorsC2[0].ContainsFieldIdentifier);
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
@@ -6093,6 +6093,358 @@ public class C
             comp.VerifyDiagnostics();
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr01()
+        {
+            var comp = CreateCompilation(@"
+public unsafe struct S1
+{
+    public S1* s;
+    public object P { get => field; }
+}
+public unsafe struct S2
+{
+    public S2* s;
+    public int P { get => field; }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (4,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     public S1* s;
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "s").WithArguments("S1").WithLocation(4, 16));
+            // PROTOTYPE(semi-auto-props): (Applies to all TestERR_ManagedAddrXX tests) There shouldn't be extra bindings.
+            Assert.Equal(2, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr02()
+        {
+            var comp = CreateCompilation(@"
+public unsafe struct S1
+{
+    public object s;
+    public S1* P { get => field; }
+}
+public unsafe struct S2
+{
+    public int s;
+    public S2* P { get => field; }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     public S1* P { get => field; }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "P").WithArguments("S1").WithLocation(5, 16));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr03()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe class C
+{
+    public void M(S1* x) { }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                    // (9,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                    //     public void M(S1* x) { }
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 23));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr04()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe interface I<T>
+{
+    void M();
+}
+
+public unsafe class C : I<S1*>
+{
+    void I<S1*>.M() { }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (12,21): error CS0306: The type 'S1*' may not be used as a type argument
+                // public unsafe class C : I<S1*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(12, 21),
+                // (12,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // public unsafe class C : I<S1*>
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(12, 21),
+                // (14,10): error CS0306: The type 'S1*' may not be used as a type argument
+                //     void I<S1*>.M() { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<S1*>").WithArguments("S1*").WithLocation(14, 10),
+                // (14,10): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     void I<S1*>.M() { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 10));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr05()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe interface I<T>
+{
+    int P { get; set; }
+}
+
+public unsafe class C : I<S1*>
+{
+    int I<S1*>.P { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (12,21): error CS0306: The type 'S1*' may not be used as a type argument
+                // public unsafe class C : I<S1*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(12, 21),
+                // (12,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // public unsafe class C : I<S1*>
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(12, 21),
+                // (14,9): error CS0306: The type 'S1*' may not be used as a type argument
+                //     int I<S1*>.P { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<S1*>").WithArguments("S1*").WithLocation(14, 9),
+                // (14,9): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     int I<S1*>.P { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(14, 9));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr06()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe class C
+{
+    public int this[S1* i]
+    {
+        get => 0;
+        set => _ = value;
+    }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (9,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     public int this[S1* i]
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "i").WithArguments("S1").WithLocation(9, 25));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr07()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe class C
+{
+    public C(S1* x) { }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     public C(S1* x) { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "x").WithArguments("S1").WithLocation(9, 18));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr08()
+        {
+            var comp = CreateCompilation(@"
+using System;
+
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe interface I<T>
+{
+    event EventHandler E;
+}
+
+public unsafe class C : I<S1*>
+{
+    event EventHandler I<S1*>.E { add { } remove { } }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (14,21): error CS0306: The type 'S1*' may not be used as a type argument
+                // public unsafe class C : I<S1*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(14, 21),
+                // (14,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // public unsafe class C : I<S1*>
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(14, 21),
+                // (16,24): error CS0306: The type 'S1*' may not be used as a type argument
+                //     event EventHandler I<S1*>.E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<S1*>").WithArguments("S1*").WithLocation(16, 24),
+                // (16,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     event EventHandler I<S1*>.E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<S1*>").WithArguments("S1").WithLocation(16, 24));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr09()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using MyAlias = S1;
+
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe interface I<T>
+{
+    event EventHandler E;
+}
+
+public unsafe class C : I<MyAlias*>
+{
+    event EventHandler I<MyAlias*>.E { add { } remove { } }
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (15,21): error CS0306: The type 'S1*' may not be used as a type argument
+                // public unsafe class C : I<MyAlias*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "C").WithArguments("S1*").WithLocation(15, 21),
+                // (15,21): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // public unsafe class C : I<MyAlias*>
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C").WithArguments("S1").WithLocation(15, 21),
+                // (17,24): error CS0306: The type 'S1*' may not be used as a type argument
+                //     event EventHandler I<MyAlias*>.E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "I<MyAlias*>").WithArguments("S1*").WithLocation(17, 24),
+                // (17,24): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                //     event EventHandler I<MyAlias*>.E { add { } remove { } }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "I<MyAlias*>").WithArguments("S1").WithLocation(17, 24));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr10()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public unsafe class C
+{
+    event S1* E;
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                    // (9,15): error CS0066: 'C.E': event must be of a delegate type
+                    //     event S1* E;
+                    Diagnostic(ErrorCode.ERR_EventNotDelegate, "E").WithArguments("C.E").WithLocation(9, 15),
+                    // (9,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                    //     event S1* E;
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("S1").WithLocation(9, 15),
+                    // (9,15): warning CS0067: The event 'C.E' is never used
+                    //     event S1* E;
+                    Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(9, 15));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
+
+        [Fact]
+        public void TestERR_ManagedAddr11()
+        {
+            var comp = CreateCompilation(@"
+public struct S1
+{
+    public object P { get => field; }
+}
+
+public interface I<T> { }
+
+public unsafe class C<T> where T : I<S1*>
+{
+}
+", options: TestOptions.UnsafeDebugDll);
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+
+            comp.VerifyDiagnostics(
+                // (9,23): error CS0306: The type 'S1*' may not be used as a type argument
+                // public unsafe class C<T> where T : I<S1*>
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "T").WithArguments("S1*").WithLocation(9, 23),
+                // (9,23): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S1')
+                // public unsafe class C<T> where T : I<S1*>
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "T").WithArguments("S1").WithLocation(9, 23));
+
+            Assert.Equal(1, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
     }
 }
