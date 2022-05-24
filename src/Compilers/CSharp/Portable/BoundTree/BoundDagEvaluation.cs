@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundDagIndexEvaluation e => e.Property,
                     BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
                     BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagBindingEvaluation e => e.VariableAccess.ExpressionSymbol,
                     BoundDagAssignmentEvaluation => null,
                     _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
                 };
@@ -156,5 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.IsEquivalentTo(obj) &&
                 this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
         }
+    }
+
+    partial class BoundDagBindingEvaluation
+    {
+        public bool IsDisjunctive => this.VariableAccess.ExpressionSymbol is SourceLocalSymbol.Merged;
     }
 }

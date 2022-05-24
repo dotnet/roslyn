@@ -2982,7 +2982,7 @@ False
 ");
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(pattern-variables) ERR_DesignatorBeneathPatternCombinator")]
     public void ListPattern_Negated_01()
     {
         var source = @"
@@ -3036,7 +3036,7 @@ class X
             );
     }
 
-    [Fact]
+    [Fact(Skip = "PROTOTYPE(pattern-variables) ERR_DesignatorBeneathPatternCombinator")]
     public void ListPattern_Negated_02()
     {
         var source = @"

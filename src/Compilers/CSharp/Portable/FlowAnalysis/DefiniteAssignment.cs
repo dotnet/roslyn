@@ -1457,8 +1457,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // we do not track definite assignment for pattern variables when they are
                             // promoted to fields for top-level code in scripts and interactive
-                            int slot = GetOrCreateSlot(symbol);
-                            SetSlotState(slot, assigned: written || !this.State.Reachable);
+                            if (!IsAssigned(pattern.VariableAccess, out int unassignedSlot))
+                            {
+                                SetSlotState(unassignedSlot, assigned: written || !this.State.Reachable);
+                            }
+                            else
+                            {
+                                Diagnostics.Add(ErrorCode.ERR_LocalDuplicate, node.Syntax.Location, symbol.Name);
+                            }
                         }
 
                         if (written) NoteWrite(pattern.VariableAccess, value, read);
@@ -1724,34 +1730,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitPattern(BoundPattern pattern)
         {
-            base.VisitPattern(pattern);
-            var whenFail = StateWhenFalse;
-            SetState(StateWhenTrue);
-            assignPatternVariablesAndMarkReadFields(pattern);
-            SetConditionalState(this.State, whenFail);
-
-            // Find the pattern variables of the pattern, and make them definitely assigned if <paramref name="definitely"/>.
-            // That would be false under "not" and "or" patterns.
-            void assignPatternVariablesAndMarkReadFields(BoundPattern pattern, bool definitely = true)
+            Debug.Assert(!IsConditionalState);
             {
                 switch (pattern.Kind)
                 {
                     case BoundKind.DeclarationPattern:
                         {
-                            var pat = (BoundDeclarationPattern)pattern;
-                            if (definitely)
-                                Assign(pat, value: null, isRef: false, read: false);
+                            Split();
+                            var whenFail = StateWhenFalse;
+                            SetState(StateWhenTrue);
+                            Assign(pattern, value: null, isRef: false, read: false);
+                            SetConditionalState(this.State, whenFail);
                             break;
                         }
                     case BoundKind.DiscardPattern:
                     case BoundKind.TypePattern:
-                        break;
+                        {
+                            Split();
+                            break;
+                        }
                     case BoundKind.SlicePattern:
                         {
                             var pat = (BoundSlicePattern)pattern;
                             if (pat.Pattern != null)
                             {
-                                assignPatternVariablesAndMarkReadFields(pat.Pattern, definitely);
+                                VisitPattern(pat.Pattern);
+                            }
+                            else
+                            {
+                                Split();
                             }
                             break;
                         }
@@ -1759,16 +1766,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var pat = (BoundConstantPattern)pattern;
                             this.VisitRvalue(pat.Value);
+                            Split();
                             break;
                         }
                     case BoundKind.RecursivePattern:
                         {
                             var pat = (BoundRecursivePattern)pattern;
+                            Split();
+                            var whenFail = StateWhenFalse;
                             if (!pat.Deconstruction.IsDefaultOrEmpty)
                             {
                                 foreach (var subpat in pat.Deconstruction)
                                 {
-                                    assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
+                                    SetState(StateWhenTrue);
+                                    VisitPattern(subpat.Pattern);
                                 }
                             }
                             if (!pat.Properties.IsDefaultOrEmpty)
@@ -1788,57 +1799,82 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             member = member.Receiver;
                                         }
                                     }
-                                    assignPatternVariablesAndMarkReadFields(sub.Pattern, definitely);
+                                    SetState(StateWhenTrue);
+                                    VisitPattern(sub.Pattern);
                                 }
                             }
-                            if (definitely)
-                                Assign(pat, null, false, false);
+                            SetState(StateWhenTrue);
+                            Assign(pat, value: null, isRef: false, read: false);
+                            SetConditionalState(this.State, whenFail);
                             break;
                         }
                     case BoundKind.ITuplePattern:
                         {
                             var pat = (BoundITuplePattern)pattern;
-                            foreach (var subpat in pat.Subpatterns)
+                            Split();
+                            var whenFail = StateWhenFalse;
+                            foreach (BoundSubpattern subpat in pat.Subpatterns)
                             {
-                                assignPatternVariablesAndMarkReadFields(subpat.Pattern, definitely);
+                                SetState(StateWhenTrue);
+                                VisitPattern(subpat.Pattern);
                             }
+                            SetConditionalState(StateWhenTrue, whenFail);
                             break;
                         }
                     case BoundKind.ListPattern:
                         {
                             var pat = (BoundListPattern)pattern;
+                            Split();
+                            var whenFail = StateWhenFalse;
                             foreach (BoundPattern p in pat.Subpatterns)
                             {
-                                assignPatternVariablesAndMarkReadFields(p, definitely);
+                                SetState(StateWhenTrue);
+                                VisitPattern(p);
                             }
-                            if (definitely)
-                                Assign(pat, null, false, false);
+                            SetState(StateWhenTrue);
+                            Assign(pat, value: null, isRef: false, read: false);
+                            SetConditionalState(this.State, whenFail);
                             break;
                         }
                     case BoundKind.RelationalPattern:
                         {
                             var pat = (BoundRelationalPattern)pattern;
                             this.VisitRvalue(pat.Value);
+                            Split();
                             break;
                         }
                     case BoundKind.NegatedPattern:
                         {
                             var pat = (BoundNegatedPattern)pattern;
-                            assignPatternVariablesAndMarkReadFields(pat.Negated, definitely: false);
+                            VisitPattern(pat.Negated);
+                            SetConditionalState(this.StateWhenFalse, this.StateWhenTrue);
                             break;
                         }
                     case BoundKind.BinaryPattern:
                         {
                             var pat = (BoundBinaryPattern)pattern;
-                            bool def = definitely && !pat.Disjunction;
-                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
-                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                            VisitPattern(pat.Left);
+                            var leftWhenTrue = StateWhenTrue;
+                            var leftWhenFalse = StateWhenFalse;
+                            if (pat.Disjunction)
+                            {
+                                SetState(leftWhenFalse);
+                                VisitPattern(pat.Right);
+                                Join(ref this.StateWhenTrue, ref leftWhenTrue);
+                            }
+                            else
+                            {
+                                SetState(leftWhenTrue);
+                                VisitPattern(pat.Right);
+                                Join(ref this.StateWhenFalse, ref leftWhenFalse);
+                            }
                             break;
                         }
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
                 }
             }
+            Debug.Assert(IsConditionalState);
         }
 
         public override BoundNode VisitBlock(BoundBlock node)

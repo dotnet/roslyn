@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests4 : PatternMatchingTestBase

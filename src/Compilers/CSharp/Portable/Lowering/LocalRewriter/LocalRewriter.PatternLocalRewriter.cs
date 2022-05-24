@@ -297,6 +297,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression output = _tempAllocator.GetTemp(outputTemp);
                             return _factory.AssignmentExpression(output, access);
                         }
+                    case BoundDagBindingEvaluation e:
+                        {
+                            Debug.Assert(e.IsDisjunctive);
+                            return e.VariableAccess != input
+                                ? _factory.AssignmentExpression(e.VariableAccess, input)
+                                : null;
+                        }
 
                     case BoundDagAssignmentEvaluation:
                     default:
@@ -538,12 +545,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We share a slot for a user-declared pattern-matching variable with a pattern temp if there
                         // is no user-written when-clause that could modify the variable before the matching
                         // automaton is done with it (checked by the caller).
-                        foreach (BoundPatternBinding binding in w.Bindings)
+                        foreach (var binding in w.Bindings)
                         {
                             if (binding.VariableAccess is BoundLocal l)
                             {
                                 Debug.Assert(l.LocalSymbol.DeclarationKind == LocalDeclarationKind.PatternVariable);
-                                _ = _tempAllocator.TrySetTemp(binding.TempContainingValue, binding.VariableAccess);
+                                _ = _tempAllocator.TrySetTemp(binding.Input, binding.VariableAccess);
                             }
                         }
                     }
@@ -580,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (node)
                     {
                         case BoundWhenDecisionDagNode n:
-                            return n.Bindings.Any(b => b.TempContainingValue.IsOriginalInput);
+                            return n.Bindings.Any(b => b.Input.IsOriginalInput);
                         case BoundTestDecisionDagNode t:
                             return t.Test.Input.IsOriginalInput;
                         case BoundEvaluationDecisionDagNode e:

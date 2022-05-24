@@ -4882,9 +4882,6 @@ public class X
                 // (202,23): error CS0128: A local variable named 'x15' is already defined in this scope
                 //             case long x15 when Dummy(x15):
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x15").WithArguments("x15").WithLocation(202, 23),
-                // (202,38): error CS0165: Use of unassigned local variable 'x15'
-                //             case long x15 when Dummy(x15):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x15").WithArguments("x15").WithLocation(202, 38),
                 // (213,43): error CS0128: A local variable named 'x16' is already defined in this scope
                 //             case 1 when Dummy(true is var x16, x16):
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x16").WithArguments("x16").WithLocation(213, 43),
@@ -4983,6 +4980,8 @@ public class X
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[0], x14Ref);
             VerifyModelForDeclarationOrVarSimplePattern(model, x14Decl[1], true);
 
+            // PROTOTYPE(pattern-variables) Semantic Model
+#if false
             var x15Decl = GetPatternDeclarations(tree, "x15").ToArray();
             var x15Ref = GetReferences(tree, "x15").ToArray();
             Assert.Equal(2, x15Decl.Length);
@@ -4992,6 +4991,7 @@ public class X
                 VerifyModelForDeclarationOrVarSimplePattern(model, x15Decl[0], x15Ref[i]);
             }
             VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x15Decl[1]);
+#endif
 
             var x16Decl = GetPatternDeclarations(tree, "x16").ToArray();
             var x16Ref = GetReferences(tree, "x16").ToArray();
