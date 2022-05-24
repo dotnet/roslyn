@@ -977,10 +977,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              emitTestCoverageData:=False,
                                                              dynamicAnalysisSpans:=dynamicAnalysisSpans)
                         End If
-
-                        lambdaDebugInfoBuilder.Free()
-                        closureDebugInfoBuilder.Free()
-                        stateMachineStateDebugInfoBuilder.Free()
                     End If
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
