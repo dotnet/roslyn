@@ -1372,6 +1372,11 @@
         <target state="translated">매개 변수 없는 구조체 생성자</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureParamsSpan">
+        <source>params Span&lt;T&gt;</source>
+        <target state="new">params Span&lt;T&gt;</target>
+        <note>params Span&lt;T&gt; is not localizable</note>
+      </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">레코드의 위치 필드</target>

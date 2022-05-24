@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class ParameterHelpers
     {
+#nullable enable
         public static ImmutableArray<ParameterSymbol> MakeParameters(
             Binder binder,
             Symbol owner,
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int firstDefault = -1;
 
             var builder = ArrayBuilder<TParameterSymbol>.GetInstance();
-            var mustBeLastParameter = (ParameterSyntax)null;
+            var mustBeLastParameter = (ParameterSyntax?)null;
 
             foreach (var parameterSyntax in parametersList)
             {
@@ -219,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!parsingFunctionPointer)
             {
                 var methodOwner = owner as MethodSymbol;
-                var typeParameters = (object)methodOwner != null ?
+                var typeParameters = methodOwner is { } ?
                     methodOwner.TypeParameters :
                     default(ImmutableArray<TypeParameterSymbol>);
 
@@ -233,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters;
         }
 
-#nullable enable
         internal static void EnsureIsReadOnlyAttributeExists(PEModuleBuilder moduleBuilder, ImmutableArray<ParameterSymbol> parameters)
         {
             EnsureIsReadOnlyAttributeExists(moduleBuilder.Compilation, parameters, diagnostics: null, modifyCompilation: false, moduleBuilder);
@@ -343,7 +343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static Location GetParameterLocation(ParameterSymbol parameter) => parameter.GetNonNullSyntaxNode().Location;
-#nullable disable
 
         private static void CheckParameterModifiers(BaseParameterSyntax parameter, BindingDiagnosticBag diagnostics, bool parsingFunctionPointerParams)
         {
@@ -507,16 +506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1100: Method '{0}' has a parameter modifier 'this' which is not on the first parameter
                 diagnostics.Add(ErrorCode.ERR_BadThisParam, thisKeyword.GetLocation(), owner.Name);
             }
-            else if (parameter.IsParams && owner.IsOperator())
-            {
-                // error CS1670: params is not valid in this context
-                diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
-            }
-            else if (parameter.IsParams && !parameter.TypeWithAnnotations.IsSZArray())
-            {
-                // error CS0225: The params parameter must be a single dimensional array
-                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
-            }
             else if (parameter.TypeWithAnnotations.IsStatic)
             {
                 Debug.Assert(parameter.ContainingSymbol is FunctionPointerMethodSymbol or { ContainingType: not null });
@@ -538,7 +527,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
+            else if (parameter.IsParams)
+            {
+                if (owner.IsOperator())
+                {
+                    // error CS1670: params is not valid in this context
+                    diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
+                }
+                else if (!parameter.Type.IsParamsType(parameter.DeclaringCompilation))
+                {
+                    // PROTOTYPE: Update error message to include 'Span<T>' and 'ReadOnlySpan<T>'.
+                    // error CS0225: The params parameter must be a single dimensional array
+                    diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
+                }
+                else if (!parameter.Type.IsSZArray())
+                {
+                    MessageID.IDS_FeatureParamsSpan.CheckFeatureAvailability(diagnostics, parameterSyntax, paramsKeyword.GetLocation());
+                }
+            }
         }
+#nullable disable
 
         internal static bool ReportDefaultParameterErrors(
             Binder binder,

@@ -1677,6 +1677,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
 
+        internal static bool IsParamsType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            return type.IsSZArray() ||
+                type.IsReadOnlySpanType(compilation) ||
+                type.IsSpanType(compilation);
+        }
+
+        internal static bool IsSpanType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            return type is NamedTypeSymbol { Arity: 1 } namedType &&
+                (object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Span_T);
+        }
+
+        internal static bool IsReadOnlySpanType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            return type is NamedTypeSymbol { Arity: 1 } namedType &&
+                (object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T);
+        }
+
+        internal static TypeWithAnnotations GetParamsElementType(this TypeSymbol type)
+        {
+            if (type is ArrayTypeSymbol arrayType)
+            {
+                return arrayType.ElementTypeWithAnnotations;
+            }
+            if (type is NamedTypeSymbol { Arity: 1 } namedType)
+            {
+                Debug.Assert(IsNamespaceName(namedType.ContainingSymbol, new[] { "System" }));
+                Debug.Assert(namedType.Name is "Span" or "ReadOnlySpan");
+                return namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            }
+            throw ExceptionUtilities.UnexpectedValue(type);
+        }
+
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
         {
             var namedType = type as NamedTypeSymbol;
@@ -1701,7 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            if ((object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
             {
                 return true;
             }
@@ -1715,7 +1749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+            return (object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
         }
 
         internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1725,7 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+            return (object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
         }
 
         /// <summary>

@@ -1008,7 +1008,7 @@ outerDefault:
         // We need to know if this is a valid formal parameter list with a parameter array
         // as the final formal parameter. We might be in an error recovery scenario
         // where the params array is not an array type.
-        public static bool IsValidParams(Symbol member)
+        public bool IsValidParams(Symbol member)
         {
             // A varargs method is never a valid params method.
             if (member.GetIsVararg())
@@ -1026,10 +1026,10 @@ outerDefault:
             return IsValidParamsParameter(final);
         }
 
-        public static bool IsValidParamsParameter(ParameterSymbol final)
+        public bool IsValidParamsParameter(ParameterSymbol final)
         {
             Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsParamsType(Compilation);
         }
 
         /// <summary>
@@ -1634,13 +1634,15 @@ outerDefault:
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
-        private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
+        private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result, int parameterCount)
         {
             var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && type.IsSZArray())
+                parameter.IsParams &&
+                parameter.Ordinal == parameterCount - 1 &&
+                type.IsParamsType(Compilation))
             {
-                return ((ArrayTypeSymbol)type).ElementType;
+                return type.GetParamsElementType().Type;
             }
             else
             {
@@ -1732,6 +1734,9 @@ outerDefault:
             var m1LeastOverriddenParameters = m1.LeastOverriddenMember.GetParameters();
             var m2LeastOverriddenParameters = m2.LeastOverriddenMember.GetParameters();
 
+            int m1ParameterCount = m1.Member.GetParameterCount();
+            int m2ParameterCount = m2.Member.GetParameterCount();
+
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
             for (i = 0; i < arguments.Count; ++i)
@@ -1748,10 +1753,10 @@ outerDefault:
                 }
 
                 var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                var type1 = GetParameterType(parameter1, m1.Result);
+                var type1 = GetParameterType(parameter1, m1.Result, m1ParameterCount);
 
                 var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
-                var type2 = GetParameterType(parameter2, m2.Result);
+                var type2 = GetParameterType(parameter2, m2.Result, m2ParameterCount);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -1863,13 +1868,11 @@ outerDefault:
             // following tie-breaking rules are applied, in order, to determine the better function
             // member. 
 
-            int m1ParameterCount;
-            int m2ParameterCount;
             int m1ParametersUsedIncludingExpansionAndOptional;
             int m2ParametersUsedIncludingExpansionAndOptional;
 
-            GetParameterCounts(m1, arguments, out m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
-            GetParameterCounts(m2, arguments, out m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
+            GetParameterCounts(m1, arguments, m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
+            GetParameterCounts(m2, arguments, m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
 
             // We might have got out of the loop above early and allSame isn't completely calculated.
             // We need to ensure that we are not going to skip over the next 'if' because of that.
@@ -1892,10 +1895,10 @@ outerDefault:
                     }
 
                     var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                    var type1 = GetParameterType(parameter1, m1.Result);
+                    var type1 = GetParameterType(parameter1, m1.Result, m1ParameterCount);
 
                     var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
-                    var type2 = GetParameterType(parameter2, m2.Result);
+                    var type2 = GetParameterType(parameter2, m2.Result, m2ParameterCount);
 
                     var type1Normalized = type1;
                     var type2Normalized = type2;
@@ -2036,11 +2039,31 @@ outerDefault:
 
             // NB: OriginalDefinition, not ConstructedFrom.  Substitutions into containing symbols
             // must also be ignored for this tie-breaker.
+            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
+            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
+
+            // Prefer params Span<T> or ReadOnlySpan<T> over params T[].
+            // PROTOTYPE: Reconcile with the spec which states "the more specific params type
+            // is the first of: ReadOnlySpan<T>, Span<T>, T[], IEnumerable<T>".
+            if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm && m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
+            {
+                var parameter1 = m1Original.Last();
+                var parameter2 = m2Original.Last();
+
+                Debug.Assert(parameter1.IsParams);
+                Debug.Assert(parameter2.IsParams);
+
+                switch (parameter1.Type.IsSZArray(), parameter2.Type.IsSZArray())
+                {
+                    case (false, true):
+                        return BetterResult.Left;
+                    case (true, false):
+                        return BetterResult.Right;
+                }
+            }
 
             var uninst1 = ArrayBuilder<TypeSymbol>.GetInstance();
             var uninst2 = ArrayBuilder<TypeSymbol>.GetInstance();
-            var m1Original = m1.LeastOverriddenMember.OriginalDefinition.GetParameters();
-            var m2Original = m2.LeastOverriddenMember.OriginalDefinition.GetParameters();
             for (i = 0; i < arguments.Count; ++i)
             {
                 // If these are both applicable varargs methods and we're looking at the __arglist argument
@@ -2053,10 +2076,10 @@ outerDefault:
                 }
 
                 var parameter1 = GetParameter(i, m1.Result, m1Original);
-                uninst1.Add(GetParameterType(parameter1, m1.Result));
+                uninst1.Add(GetParameterType(parameter1, m1.Result, m1ParameterCount));
 
                 var parameter2 = GetParameter(i, m2.Result, m2Original);
-                uninst2.Add(GetParameterType(parameter2, m2.Result));
+                uninst2.Add(GetParameterType(parameter2, m2.Result, m2ParameterCount));
             }
 
             result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
@@ -2191,10 +2214,8 @@ outerDefault:
         }
 #nullable disable
 
-        private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
+        private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {
-            declaredParameterCount = m.Member.GetParameterCount();
-
             if (m.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
                 if (arguments.Count < declaredParameterCount)
@@ -3236,7 +3257,7 @@ outerDefault:
                 var parameter = parameters[parm];
                 var type = parameter.TypeWithAnnotations;
 
-                types.Add(parm == parameters.Length - 1 ? ((ArrayTypeSymbol)type.Type).ElementTypeWithAnnotations : type);
+                types.Add(parm == parameters.Length - 1 ? type.Type.GetParamsElementType() : type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, isMethodGroupConversion, allowRefOmittedArguments, binder, ref hasAnyRefOmittedArgument);

@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
             {
-                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, methodOrIndexer, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                actualArguments[actualArguments.Length - 1] = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
             }
 
             if (isComReceiver)
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
                     a = firstNonParamArrayArgumentIndex - 1;
 
-                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), compilation, localRewriter: null);
+                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), compilation, BindingDiagnosticBag.Discarded);
                 }
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lastParam.IsParams);
 
                 // Create an empty array for omitted param array argument.
-                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, compilation, localRewriter: null);
+                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, compilation, BindingDiagnosticBag.Discarded);
                 ArgumentKind kind = ArgumentKind.ParamArray;
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, lastParam.GetPublicSymbol(), argument));
@@ -1027,7 +1027,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BuildParamsArray(
             SyntaxNode syntax,
-            Symbol methodOrIndexer,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<ParameterSymbol> parameters,
@@ -1092,19 +1091,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
+            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, _diagnostics);
         }
 
+        // PROTOTYPE: Consider moving this to initial binding, similar to the handling of default values.
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
             TypeSymbol paramArrayType,
             ImmutableArray<BoundExpression> arrayArgs,
             CSharpCompilation compilation,
-            LocalRewriter? localRewriter)
+            BindingDiagnosticBag diagnostics)
         {
+            if (!paramArrayType.IsSZArray())
+            {
+                return CreateParamsSpan(syntax, paramArrayType, arrayArgs, compilation, diagnostics);
+            }
 
             TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
-            BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
-
+            BoundExpression arraySize = new BoundLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, hasErrors: false) { WasCompilerGenerated = true };
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create(arraySize),
@@ -1113,18 +1116,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        /// <summary>
-        /// To create literal expression for IOperation, set localRewriter to null.
-        /// </summary>
-        private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, LocalRewriter? localRewriter)
+        private static BoundExpression CreateParamsSpan(
+            SyntaxNode syntax,
+            TypeSymbol paramArrayType,
+            ImmutableArray<BoundExpression> arrayArgs,
+            CSharpCompilation compilation,
+            BindingDiagnosticBag diagnostics)
         {
-            if (localRewriter != null)
+            var elementType = paramArrayType.GetParamsElementType().Type;
+
+            // PROTOTYPE: If we actually allocate from the stack, it may be necessary to
+            // clear the execution stack before allocation. (See corresponding requirement
+            // for 'stackalloc' in LocalRewriter.VisitStackAllocArrayCreationBase().)
+
+            // For now, simply allocate the array on the heap: new Span<T>(new T[length] { ... })
+            var array = CreateParamArrayArgument(
+                syntax,
+                ArrayTypeSymbol.CreateSZArray(compilation.SourceAssembly, TypeWithAnnotations.Create(elementType)),
+                arrayArgs,
+                compilation,
+                diagnostics);
+
+            var spanConstructor = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__ctorArray, diagnostics, syntax.Location);
+            if (spanConstructor is null)
             {
-                return localRewriter.MakeLiteral(syntax, constantValue, type);
+                return createBadExpression(syntax, paramArrayType, arrayArgs);
             }
-            else
+
+            var spanType = spanConstructor.ContainingType.Construct(elementType);
+            spanConstructor = spanConstructor.AsMember(spanType);
+
+            BoundExpression span = new BoundObjectCreationExpression(
+                syntax,
+                spanConstructor,
+                ImmutableArray.Create(array))
+            { WasCompilerGenerated = true };
+
+            if (paramArrayType.IsReadOnlySpanType(compilation))
             {
-                return new BoundLiteral(syntax, constantValue, type, constantValue.IsBad) { WasCompilerGenerated = true };
+                var spanToReadOnlySpanOperator = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, diagnostics, syntax.Location);
+                if (spanToReadOnlySpanOperator is null)
+                {
+                    return createBadExpression(syntax, paramArrayType, ImmutableArray.Create(span));
+                }
+
+                spanToReadOnlySpanOperator = spanToReadOnlySpanOperator.AsMember(spanType);
+
+                // Convert Span<T> to ReadOnlySpan<T>.
+                span = new BoundCall(
+                    syntax,
+                    receiverOpt: null,
+                    method: spanToReadOnlySpanOperator,
+                    arguments: ImmutableArray.Create<BoundExpression>(span),
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    type: spanToReadOnlySpanOperator.ReturnType)
+                { WasCompilerGenerated = true };
+            }
+
+            return span;
+
+            static BoundExpression createBadExpression(SyntaxNode syntax, TypeSymbol type, ImmutableArray<BoundExpression> childArgs)
+            {
+                return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, childArgs, type)
+                { WasCompilerGenerated = true };
             }
         }
 

@@ -1106,6 +1106,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 gotError = ReportUnsafeIfNotAllowed(node, diagnostics) || gotError;
             }
 
+            if (expanded &&
+                !method.Parameters[^1].Type.IsSZArray() && !CheckFeatureAvailability(node, MessageID.IDS_FeatureParamsSpan, diagnostics))
+            {
+                gotError = true;
+            }
+
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver);

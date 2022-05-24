@@ -918,8 +918,10 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
                     case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Span_T__ctorArray:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:

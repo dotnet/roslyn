@@ -436,8 +436,10 @@ namespace Microsoft.CodeAnalysis
         System_ObsoleteAttribute__ctor,
 
         System_Span_T__ctor,
+        System_Span_T__ctorArray,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
+        System_Span_T__op_Implicit_SpanReadOnlySpan,
 
         System_ReadOnlySpan_T__ctor,
         System_ReadOnlySpan_T__get_Item,
