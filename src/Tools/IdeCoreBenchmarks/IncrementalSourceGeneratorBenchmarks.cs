@@ -68,7 +68,7 @@ namespace IdeCoreBenchmarks
             MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
-        private async Task LoadSolutionAsync()
+        private Task LoadSolutionAsync()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
             _solutionPath = Path.Combine(roslynRoot, @"Roslyn.sln");
@@ -97,6 +97,7 @@ namespace IdeCoreBenchmarks
 
             var solution = _workspace.OpenSolutionAsync(_solutionPath, progress: null, CancellationToken.None).Result;
             Console.WriteLine("Finished opening roslyn: " + (DateTime.Now - start));
+            return Task.CompletedTask;
         }
 
         [IterationCleanup]
