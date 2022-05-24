@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis
         {
             Node = node;
             _semanticModel = semanticModel;
-
             SyntaxHelper = syntaxHelper;
         }
 
