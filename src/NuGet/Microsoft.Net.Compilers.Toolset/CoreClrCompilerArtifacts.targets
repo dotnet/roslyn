@@ -33,6 +33,7 @@
          https://github.com/NuGet/Home/issues/3584 -->
       <CoreClrCompilerBinArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\System.*.dll"/>
       <CoreClrCompilerBinRuntimesArtifact Include="$(ArtifactsBinDir)csc\$(Configuration)\net6.0\publish\runtimes\**" />
+
     </ItemGroup>
   </Target>
 </Project>

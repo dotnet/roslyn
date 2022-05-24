@@ -7,7 +7,6 @@
       "src\\Metalama\\Metalama.Compiler.Sdk\\Metalama.Compiler.Sdk.csproj",
       "src\\Metalama\\Metalama.Compiler.Shared\\Metalama.Compiler.Shared.shproj",
       "src\\Metalama\\Metalama.Compiler.UnitTests\\Metalama.Compiler.UnitTests.csproj",
-      "src\\Metalama\\Metalama.RoslynUtilities\\Metalama.RoslynUtilities.csproj",
       "src\\Compilers\\CSharp\\CSharpAnalyzerDriver\\CSharpAnalyzerDriver.shproj",
       "src\\Compilers\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.csproj",
       "src\\Compilers\\CSharp\\Test\\CommandLine\\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj",
@@ -85,7 +84,8 @@
       "src\\Workspaces\\Remote\\Core\\Microsoft.CodeAnalysis.Remote.Workspaces.csproj",
       "src\\Workspaces\\Remote\\ServiceHub\\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj",
       "src\\Workspaces\\SharedUtilitiesAndExtensions\\Compiler\\Core\\CompilerExtensions.shproj",
-      "src\\Workspaces\\VisualBasic\\Portable\\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj"
+      "src\\Workspaces\\VisualBasic\\Portable\\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj",
+      "src\\Metalama\\Metalama.Compiler.BuildTasks\\Metalama.Compiler.BuildTasks.csproj"
     ]
   }
 }
