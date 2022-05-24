@@ -7536,21 +7536,33 @@ False
 }");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shl
-  IL_0003:  ret
+  IL_0002:  sizeof     ""nint""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shl
+  IL_000e:  ret
 }");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shr
-  IL_0003:  ret
+  IL_0002:  sizeof     ""nint""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr
+  IL_000e:  ret
 }");
         }
 
@@ -7750,21 +7762,33 @@ False
 }");
             verifier.VerifyIL("Program.ShiftLeft",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shl
-  IL_0003:  ret
+  IL_0002:  sizeof     ""nuint""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shl
+  IL_000e:  ret
 }");
             verifier.VerifyIL("Program.ShiftRight",
 @"{
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.0
   IL_0001:  ldarg.1
-  IL_0002:  shr.un
-  IL_0003:  ret
+  IL_0002:  sizeof     ""nuint""
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr.un
+  IL_000e:  ret
 }");
         }
 
@@ -10156,22 +10180,34 @@ public class C
             var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp);
-            var expectedIL = @"
+            verifier.VerifyIL("C.M1", shiftRight("nint"));
+            verifier.VerifyIL("C.M2", shiftRight("nuint"));
+            verifier.VerifyIL("C.M3", shiftRight("nint"));
+            verifier.VerifyIL("C.M4", shiftRight("nuint"));
+            verifier.VerifyIL("C.M5", shiftRight("nint"));
+            verifier.VerifyIL("C.M6", shiftRight("nuint"));
+
+            return;
+
+            static string shiftRight(string type)
+            {
+                return $$"""
 {
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       15 (0xf)
+  .maxstack  4
   IL_0000:  ldarg.1
   IL_0001:  ldarg.2
-  IL_0002:  shr.un
-  IL_0003:  ret
+  IL_0002:  sizeof     "{{type}}"
+  IL_0008:  ldc.i4.8
+  IL_0009:  mul
+  IL_000a:  ldc.i4.1
+  IL_000b:  sub
+  IL_000c:  and
+  IL_000d:  shr.un
+  IL_000e:  ret
 }
-";
-            verifier.VerifyIL("C.M1", expectedIL);
-            verifier.VerifyIL("C.M2", expectedIL);
-            verifier.VerifyIL("C.M3", expectedIL);
-            verifier.VerifyIL("C.M4", expectedIL);
-            verifier.VerifyIL("C.M5", expectedIL);
-            verifier.VerifyIL("C.M6", expectedIL);
+""";
+            }
         }
 
         [Fact]
@@ -10393,7 +10429,7 @@ public class C
             validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
 
             // lifted count (sampler)
-            CompileAndVerify("""
+            compileAndVerify("""
 class C
 {
     nint? M(nint value, int? count) => value >> count;
@@ -10403,7 +10439,7 @@ class C
 {
   // Code size       49 (0x31)
   .maxstack  4
-  .locals init (System.IntPtr V_0,
+  .locals init (nint V_0,
                 int? V_1,
                 nint? V_2)
   IL_0000:  ldarg.1
@@ -10420,7 +10456,7 @@ class C
   IL_0017:  ldloc.0
   IL_0018:  ldloca.s   V_1
   IL_001a:  call       ""int int?.GetValueOrDefault()""
-  IL_001f:  sizeof     ""System.IntPtr""
+  IL_001f:  sizeof     ""nint""
   IL_0025:  ldc.i4.8
   IL_0026:  mul
   IL_0027:  ldc.i4.1
@@ -10433,7 +10469,7 @@ class C
 ");
 
             // lifted value and lifted count (sampler)
-            CompileAndVerify("""
+            compileAndVerify("""
 class C
 {
     nint? M(nint? value, int? count) => value >> count;
@@ -10464,7 +10500,7 @@ class C
   IL_0021:  call       ""nint nint?.GetValueOrDefault()""
   IL_0026:  ldloca.s   V_1
   IL_0028:  call       ""int int?.GetValueOrDefault()""
-  IL_002d:  sizeof     ""System.IntPtr""
+  IL_002d:  sizeof     ""nint""
   IL_0033:  ldc.i4.8
   IL_0034:  mul
   IL_0035:  ldc.i4.1
@@ -10628,6 +10664,12 @@ class C
   IL_002f:  ret
 }}
 ";
+            }
+
+            CompilationVerifier compileAndVerify(CSharpTestSource source)
+            {
+                var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols });
+                return CompileAndVerify(comp);
             }
 
             void validate(string type, string value, string binaryOp, string result32Bits, string result64Bits, string expectedIL)
