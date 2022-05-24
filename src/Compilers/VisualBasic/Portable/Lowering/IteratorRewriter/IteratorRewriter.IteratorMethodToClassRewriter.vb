@@ -24,20 +24,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private _methodValue As LocalSymbol
             Private _tryNestingLevel As Integer
 
-            Friend Sub New(method As MethodSymbol,
-                           F As SyntheticBoundNodeFactory,
+            Friend Sub New(F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            current As FieldSymbol,
                            hoistedVariables As IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
-                           SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
                            slotAllocatorOpt As VariableSlotAllocator,
-                           nextFreeHoistedLocalSlot As Integer,
                            diagnostics As BindingDiagnosticBag)
 
-                MyBase.New(F, state, hoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                MyBase.New(F, state, hoistedVariables, localProxies, slotAllocatorOpt, diagnostics)
 
-                Me._current = current
+                _current = current
             End Sub
 
             Public Sub GenerateMoveNextAndDispose(Body As BoundStatement,
