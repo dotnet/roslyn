@@ -251,7 +251,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
                 var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
-                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, triggerSnapshotSpan, _textView))
+
+                if (!_languageServerSnippetExpander.TryExpand(lspSnippetText!, triggerSnapshotSpan, _textView))
                 {
                     FatalError.ReportAndCatch(new InvalidOperationException("The invoked LSP snippet expander came back as false."), ErrorSeverity.Critical);
                 }
