@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.6.0-beta.1" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0-beta.4" />
-    <PackageReference Include="LibGit2Sharp" Version="0.26.2" />
+    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
     <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.201.0-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.201.0-preview" />
