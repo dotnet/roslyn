@@ -134,8 +134,10 @@ namespace Microsoft.CodeAnalysis.Host
             var visibleProjectIds = trackingService.GetVisibleDocuments().Select(d => d.ProjectId).ToSet();
             var activeProjectId = trackingService.TryGetActiveDocument()?.ProjectId;
 
+            // Prioritize the project for the active document first.
             await GetCompilationAsync(activeProjectId).ConfigureAwait(false);
 
+            // Then handle any visible documents (as long as we didn't already handle it above).
             foreach (var projectId in visibleProjectIds)
             {
                 if (projectId != activeProjectId)
