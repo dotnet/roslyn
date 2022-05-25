@@ -4381,6 +4381,32 @@ class Program
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 41));
         }
 
+        [Fact]
+        public void ParameterScope_10()
+        {
+            var source =
+@"ref struct scoped { }
+class Program
+{
+    static void F1(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // ref struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 12));
+
+            var method = comp.GetMember<MethodSymbol>("Program.F1");
+            // PROTOTYPE: Enable after adding 'scoped' to SymbolDisplay.
+            //VerifyParameterSymbol(method.Parameters[0], "scoped scoped x", RefKind.None, DeclarationScope.ValueScoped);
+            //VerifyParameterSymbol(method.Parameters[1], "ref scoped y", RefKind.Ref, DeclarationScope.None);
+            //VerifyParameterSymbol(method.Parameters[2], "ref scoped scoped y", RefKind.Ref, DeclarationScope.ValueScoped);
+            //VerifyParameterSymbol(method.Parameters[3], "scoped ref scoped z", RefKind.Ref, DeclarationScope.ValueScoped | DeclarationScope.RefScoped);
+        }
+
+        // PROTOTYPE: Test 'scoped' with 'this'.
+        // PROTOTYPE: Test 'scoped' with 'params'.
+
         // PROTOTYPE: Report error for implicit conversion between delegate types that differ by 'scoped',
         // and between function pointer types and methods that differ by 'scoped'.
 
@@ -4505,10 +4531,10 @@ class Program
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[1], RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[2], RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[3], RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+            VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[3], "scoped ref scoped R r4", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
         }
 
         [Fact]
@@ -4556,10 +4582,63 @@ class Program
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(8, 23));
         }
 
-        private static void VerifyLocalSymbol(LocalSymbol local, RefKind expectedRefKind, DeclarationScope scope)
+        [Fact]
+        public void LocalScope_03()
+        {
+            var source =
+@"scoped s1 = default;
+ref scoped s2 = ref s1;
+scoped scoped s3 = default;
+scoped ref scoped s4 = ref s1;
+ref struct scoped { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
+                // scoped scoped s3 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
+                // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // ref struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+            VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.None);
+            VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.None);
+            VerifyLocalSymbol(locals[2], "scoped scoped s3", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyLocalSymbol(locals[3], "scoped ref scoped s4", RefKind.Ref, DeclarationScope.RefScoped);
+        }
+
+        [Fact]
+        public void LocalScope_04()
+        {
+            var source =
+@"bool scoped;
+scoped = true;
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,6): warning CS0219: The variable 'scoped' is assigned but its value is never used
+                // bool scoped;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "scoped").WithArguments("scoped").WithLocation(1, 6));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+
+            VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.None);
+        }
+
+        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope scope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
             Assert.Equal(scope, local.Scope);
+            // PROTOTYPE: Enable after adding 'scoped' to SymbolDisplay.
+            //Assert.Equal(expectedDisplayString.Replace("scoped ", ""), local.ToTestDisplayString());
         }
 
         [Fact]

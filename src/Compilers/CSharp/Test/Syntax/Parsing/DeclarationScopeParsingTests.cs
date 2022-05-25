@@ -561,6 +561,137 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Fact]
+        public void Method_08()
+        {
+            string source = "void F(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }";
+            UsingDeclaration(source, TestOptions.RegularNext);
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "F");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "z");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "w");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Method_09(LanguageVersion langVersion)
+        {
+            string source = "void F(scoped.nested x, ref scoped.nested y) { }";
+            UsingDeclaration(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "F");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "nested");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "nested");
+                            }
+                        }
+                        N(SyntaxKind.IdentifierToken, "y");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
@@ -1581,6 +1712,80 @@ ref scoped b;
         public void Local_05(LanguageVersion langVersion)
         {
             string source =
+@"scoped.nested a;
+ref scoped.nested b;
+";
+            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.QualifiedName);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                }
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "nested");
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "a");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.RefType);
+                            {
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "scoped");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "nested");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void Local_06(LanguageVersion langVersion)
+        {
+            string source =
 @"class Program
 {
     static void Main()
@@ -1660,7 +1865,7 @@ ref scoped b;
         }
 
         [Fact]
-        public void Local_06()
+        public void Local_07()
         {
             string source =
 @"scoped scoped a;
@@ -1742,7 +1947,7 @@ ref scoped scoped c;
         }
 
         [Fact]
-        public void Local_07()
+        public void Local_08()
         {
             string source =
 @"scoped var a;
@@ -1824,7 +2029,7 @@ ref scoped var c;
         }
 
         [Fact]
-        public void Local_08()
+        public void Local_09()
         {
             string source =
 @"scoped ref readonly var a;
@@ -1914,7 +2119,7 @@ scoped ref readonly scoped var c;
         }
 
         [Fact]
-        public void Local_09()
+        public void Local_10()
         {
             string source =
 @"ref scoped readonly S a;
@@ -1965,7 +2170,7 @@ scoped ref readonly scoped var c;
         }
 
         [Fact]
-        public void Local_10()
+        public void Local_11()
         {
             string source =
 @"scoped scoped int a;
@@ -2027,7 +2232,7 @@ scoped scoped var b;
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void Local_11(LanguageVersion langVersion)
+        public void FunctionPointer_01(LanguageVersion langVersion)
         {
             string source = @"delegate*<scoped, ref scoped> f;";
             UsingStatement(source, TestOptions.Regular.WithLanguageVersion(langVersion));
@@ -2073,7 +2278,7 @@ scoped scoped var b;
         }
 
         [Fact]
-        public void Local_12()
+        public void FunctionPointer_02()
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
             UsingStatement(source, TestOptions.RegularPreview);
@@ -2139,7 +2344,7 @@ scoped scoped var b;
         }
 
         [Fact]
-        public void Local_12_CSharp10()
+        public void FunctionPointer_03()
         {
             string source = @"delegate*<scoped R, ref scoped R, scoped ref int, void> f;";
             UsingStatement(source, TestOptions.Regular10,
@@ -2680,7 +2885,7 @@ readonly scoped record struct C();
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void LocalAssignment(LanguageVersion langVersion)
+        public void LocalAssignment_01(LanguageVersion langVersion)
         {
             string source =
 @"class Program
@@ -2751,6 +2956,61 @@ readonly scoped record struct C();
                         }
                     }
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void LocalAssignment_02(LanguageVersion langVersion)
+        {
+            string source =
+@"bool scoped;
+scoped = true;
+";
+            UsingCompilationRoot(source, TestOptions.Regular.WithLanguageVersion(langVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.BoolKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "scoped");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

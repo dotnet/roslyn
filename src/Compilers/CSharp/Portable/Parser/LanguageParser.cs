@@ -2672,8 +2672,7 @@ parse_member_name:;
         private bool IsMisplacedModifier(SyntaxListBuilder modifiers, SyntaxList<AttributeListSyntax> attributes, TypeSyntax type, out MemberDeclarationSyntax result)
         {
             if (GetModifier(this.CurrentToken) != DeclarationModifiers.None &&
-                this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
-                this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                this.CurrentToken.ContextualKind is not (SyntaxKind.PartialKeyword or SyntaxKind.AsyncKeyword or SyntaxKind.ScopedKeyword) &&
                 IsComplete(type))
             {
                 var misplacedModifier = this.CurrentToken;
