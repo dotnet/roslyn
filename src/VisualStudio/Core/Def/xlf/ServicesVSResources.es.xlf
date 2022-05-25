@@ -1297,6 +1297,11 @@
         <target state="translated">Mostrar el comando "Quitar referencias sin usar" en el Explorador de soluciones (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostrar lista de finalización</target>
