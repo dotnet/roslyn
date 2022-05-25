@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly IGlobalOptionService _globalOptions;
-        
+
         internal TPackage Package { get; }
         internal VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
 
