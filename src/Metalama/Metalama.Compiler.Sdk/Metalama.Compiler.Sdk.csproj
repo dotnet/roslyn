@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <DefineConstants>METALAMA_COMPILER_INTERFACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);METALAMA_COMPILER_INTERFACE</DefineConstants>
     <IsPackable>true</IsPackable>
     <AssemblyName>Metalama.Compiler.Interface</AssemblyName>
     <PackageId>Metalama.Compiler.Sdk</PackageId>
