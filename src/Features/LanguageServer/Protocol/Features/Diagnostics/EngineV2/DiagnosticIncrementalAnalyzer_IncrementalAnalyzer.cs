@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return list of <see cref="StateSet"/> to be used for full solution analysis.
         /// </summary>
-        private IReadOnlyList<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
+        private ImmutableArray<StateSet> GetStateSetsForFullSolutionAnalysis(ImmutableArray<StateSet> stateSets, Project project)
         {
             // If full analysis is off, remove state that is created from build.
             // this will make sure diagnostics from build (converted from build to live) will never be cleared
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // We do so by retaining only those state sets that are
                 // either not for compiler analyzer or those which are for compiler
                 // analyzer, but not from build.
-                stateSets = stateSets.Where(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
+                stateSets = stateSets.WhereAsArray(s => !s.Analyzer.IsCompilerAnalyzer() || !s.FromBuild(project.Id));
             }
 
             if (!analyzersFullSolutionAnalysisEnabled)
@@ -395,12 +395,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // We do so by retaining only those state sets that are
                 // either for the special compiler/workspace analyzers or those which are for
                 // other analyzers, but not from build.
-                stateSets = stateSets.Where(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer() || !s.FromBuild(project.Id));
+                stateSets = stateSets.WhereAsArray(s => s.Analyzer.IsCompilerAnalyzer() || s.Analyzer.IsWorkspaceDiagnosticAnalyzer() || !s.FromBuild(project.Id));
             }
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.Where(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project)).ToList();
+            return stateSets.WhereAsArray(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project));
         }
 
         private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
