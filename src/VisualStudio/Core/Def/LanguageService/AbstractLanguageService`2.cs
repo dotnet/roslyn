@@ -34,8 +34,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         internal TPackage Package { get; }
         internal VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
 
@@ -57,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         // Note: The lifetime for state in this class is carefully managed.  For every bit of state
         // we set up, there is a corresponding tear down phase which deconstructs the state in the
         // reverse order it was created in.
+        internal IGlobalOptionService GlobalOptions { get; private set; }
         internal VisualStudioWorkspaceImpl Workspace { get; private set; }
         internal IVsEditorAdaptersFactoryService EditorAdaptersFactoryService { get; private set; }
         internal HostDiagnosticUpdateSource HostDiagnosticUpdateSource { get; private set; }
@@ -74,7 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected AbstractLanguageService(TPackage package)
         {
-            _globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
             Package = package;
         }
 
@@ -137,6 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // This method should only contain calls to acquire services off of the component model
             // or service providers.  Anything else which is more complicated should go in Initialize
             // instead.
+            this.GlobalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
             this.Workspace = this.Package.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
             this.EditorAdaptersFactoryService = this.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             this.HostDiagnosticUpdateSource = this.Package.ComponentModel.GetService<HostDiagnosticUpdateSource>();
