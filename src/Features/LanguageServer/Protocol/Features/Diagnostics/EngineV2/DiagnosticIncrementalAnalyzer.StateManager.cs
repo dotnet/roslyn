@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// 
             /// since this has a side-effect, this should never be called concurrently. and incremental analyzer (solution crawler) should guarantee that.
             /// </summary>
-            public IEnumerable<StateSet> GetOrUpdateStateSets(Project project)
+            public ImmutableArray<StateSet> GetOrUpdateStateSets(Project project)
             {
                 var projectStateSets = GetOrUpdateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
+                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
