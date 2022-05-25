@@ -43,16 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _nextState = slotAllocator?.GetFirstUnusedStateMachineState(increasing) ?? firstState;
         }
 
-        public static bool IsResumableStateSyntaxNode(SyntaxNode node)
-            => node.IsKind(SyntaxKind.YieldReturnStatement) ||
-               node.IsKind(SyntaxKind.AwaitExpression) ||
-               node is CommonForEachStatementSyntax { AwaitKeyword.IsMissing: false }
-                    or LocalDeclarationStatementSyntax { AwaitKeyword.IsMissing: false }
-                    or UsingStatementSyntax { AwaitKeyword.IsMissing: false };
-
         public int AllocateState(SyntaxNode awaitOrYieldReturnSyntax)
         {
-            Debug.Assert(IsResumableStateSyntaxNode(awaitOrYieldReturnSyntax));
+            Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(awaitOrYieldReturnSyntax));
 
             int direction = _increasing ? +1 : -1;
 

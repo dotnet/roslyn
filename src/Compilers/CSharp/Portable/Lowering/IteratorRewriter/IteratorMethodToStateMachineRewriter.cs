@@ -460,15 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntax = statement.Syntax;
 
-            // these nodes have to be tracked by the IDE EnC analyzer
-            Debug.Assert(
-                syntax.IsKind(SyntaxKind.TryStatement) ||
-                syntax.IsKind(SyntaxKind.UsingStatement) ||
-                syntax.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                syntax.IsKind(SyntaxKind.ForEachStatement) ||
-                syntax.IsKind(SyntaxKind.ForEachVariableStatement) ||
-                syntax.IsKind(SyntaxKind.LockStatement), $"Unexpected syntax: {syntax.Kind()}");
-
             if (slotAllocatorOpt?.TryGetPreviousStateMachineState(syntax, out var finalizeState) != true)
             {
                 finalizeState = _nextFinalizeState--;

@@ -211,13 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AddStateDebugInfo(SyntaxNode node, int stateNumber)
         {
-            Debug.Assert(
-                ResumableStateMachineStateAllocator.IsResumableStateSyntaxNode(node) ||
-                node.IsKind(SyntaxKind.TryStatement) ||
-                node.IsKind(SyntaxKind.UsingStatement) ||
-                node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                node.IsKind(SyntaxKind.LockStatement) ||
-                node.IsKind(SyntaxKind.ForEachStatement));
+            Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
             _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, stateNumber));
