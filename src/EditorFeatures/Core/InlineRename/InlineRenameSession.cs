@@ -867,6 +867,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
             finally
             {
+                // If we successfully update the workspace then make sure the undo transaction is committed and is
+                // always able to undo anything any other external listener did.
                 undoTransaction.Commit();
             }
         }

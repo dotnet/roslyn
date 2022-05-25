@@ -225,24 +225,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var undoHistory = _undoHistoryRegistry.RegisterHistory(_stateMachine.Buffer);
                 using var localUndoTransaction = undoHistory.CreateTransaction(EditorFeaturesResources.Text_Buffer_Change);
 
-                try
-                {
-                    var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: true);
-                    localUndoTransaction.AddUndo(undoPrimitiveBefore);
+                var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: true);
+                localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
-                    if (!workspace.TryApplyChanges(newSolution))
-                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+                if (!workspace.TryApplyChanges(newSolution))
+                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
-                    return null;
-                }
-                finally
-                {
-                    // Never resume tracking session on redo
-                    var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
-                    localUndoTransaction.AddUndo(undoPrimitiveAfter);
+                // If we successfully update the workspace then make sure the undo transaction is committed and is
+                // always able to undo anything any other external listener did.
 
-                    localUndoTransaction.Complete();
-                }
+                // Never resume tracking session on redo
+                var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
+                localUndoTransaction.AddUndo(undoPrimitiveAfter);
+
+                localUndoTransaction.Complete();
+
+                return null;
             }
 
             /// <summary>
@@ -270,18 +268,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var undoPrimitiveBefore = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
                 localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
+                if (!workspace.TryApplyChanges(newSolution))
+                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+
                 try
                 {
-                    if (!workspace.TryApplyChanges(newSolution))
-                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
-
                     if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
-                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
+                        return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
                     return null;
                 }
                 finally
                 {
+                    // If we successfully update the workspace then make sure the undo transaction is committed and is
+                    // always able to undo anything any other external listener did.
+
                     // Never resume tracking session on redo
                     var undoPrimitiveAfter = new UndoPrimitive(_stateMachine.Buffer, trackingSessionId, shouldRestoreStateOnUndo: false);
                     localUndoTransaction.AddUndo(undoPrimitiveAfter);
