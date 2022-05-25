@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var isClosed = document == null;
 
                 var openBuffer = _openTextBuffers[textBuffer];
-                openBuffer.Disconnect(isClosed);
+                openBuffer.DisconnectAndRollbackEdits(isClosed);
             }
 
             this.UndoManager.Disconnect();

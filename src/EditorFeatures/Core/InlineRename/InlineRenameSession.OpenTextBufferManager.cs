@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            internal void Disconnect(bool documentIsClosed)
+            internal void DisconnectAndRollbackEdits(bool documentIsClosed)
             {
                 _session._threadingContext.ThrowIfNotOnUIThread();
 
