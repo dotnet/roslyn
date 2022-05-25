@@ -592,9 +592,9 @@ class D { }
             var classCy = classDy.BaseType;
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
 
+            // Make the second document active so that the background compiler processes its project automatically.
             trackingService.SetActiveDocument(document2.Id);
 
-            // open both documents so background compiler works on their compilations
             workspace.OpenDocument(document1.Id);
             workspace.OpenDocument(document2.Id);
 
