@@ -856,16 +856,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 if (newDocument.SupportsSyntaxTree)
                 {
-                    // We pass CancellationToken.None here because we don't have a usable token to pass. The IUIThreadOperationContext
-                    // passed here as a cancellation token, but the caller in CommitCore has already turned off cancellation
-                    // because we're committed to the update at this point. If we ever want to pass cancellation here, we'd want to move this
-                    // part back out of this method and before the point where we've already opened a global transaction.
-                    var root = newDocument.GetSyntaxRootSynchronously(CancellationToken.None);
+                    var root = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                     finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
                 }
                 else
                 {
-                    var newText = newDocument.GetTextSynchronously(CancellationToken.None);
+                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     finalSolution = finalSolution.WithDocumentText(id, newText);
                 }
 
@@ -887,7 +883,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
                     .ToList();
 
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
                 {
                     var notificationService = _workspace.Services.GetService<INotificationService>();
