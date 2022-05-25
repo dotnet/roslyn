@@ -706,8 +706,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 catch (InvalidOperationException ex) when (FatalError.ReportAndCatch(ex))
                 {
-                    // Unreachable code due to ReportAndCatch
-                    Contract.ThrowIfTrue(true);
                 }
             }
         }
