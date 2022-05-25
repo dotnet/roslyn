@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             operationContext.TakeOwnership();
                             var notificationService = _workspace.Services.GetService<INotificationService>();
                             notificationService.SendNotification(
-                                error, EditorFeaturesResources.Rename_Symbol, NotificationSeverity.Error);
+                                error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
                         }
                     });
             }
@@ -806,13 +806,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         /// <summary>
         /// Returns non-null error message if renaming fails.
         /// </summary>
-        private string TryApplyRename(Solution newSolution)
+        private (NotificationSeverity severity, string message)? TryApplyRename(Solution newSolution)
         {
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
             if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
-                return EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid;
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
             using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
             var finalSolution = newSolution.Workspace.CurrentSolution;
@@ -845,25 +845,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             if (!_workspace.TryApplyChanges(finalSolution))
-                return EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace;
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
-            // Since rename can apply file changes as well, and those file
-            // changes can generate new document ids, include added documents
-            // as well as changed documents. This also ensures that any document
-            // that was removed is not included
-            var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
+            try
+            {
+                // Since rename can apply file changes as well, and those file
+                // changes can generate new document ids, include added documents
+                // as well as changed documents. This also ensures that any document
+                // that was removed is not included
+                var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
 
-            var finalChangedIds = finalChanges
-                .GetProjectChanges()
-                .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
-                .ToList();
+                var finalChangedIds = finalChanges
+                    .GetProjectChanges()
+                    .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                    .ToList();
 
-            var result = !_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText)
-                ? EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated
-                : null;
+                if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
+                    return (NotificationSeverity.Warning, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
-            undoTransaction.Commit();
-            return result;
+                return null;
+            }
+            finally
+            {
+                undoTransaction.Commit();
+            }
         }
 
         internal bool TryGetContainingEditableSpan(SnapshotPoint point, out SnapshotSpan editableSpan)

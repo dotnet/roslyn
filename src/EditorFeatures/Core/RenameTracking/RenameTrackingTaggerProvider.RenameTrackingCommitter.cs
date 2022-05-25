@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             /// <summary>
             /// Returns non-null error message if renaming fails.
             /// </summary>
-            public string TryCommit(CancellationToken cancellationToken)
+            public (NotificationSeverity severity, string message)? TryCommit(CancellationToken cancellationToken)
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             /// <summary>
             /// Returns non-null error message if renaming fails.
             /// </summary>
-            private string TryApplyChangesToWorkspace(CancellationToken cancellationToken)
+            private (NotificationSeverity, string)? TryApplyChangesToWorkspace(CancellationToken cancellationToken)
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // Now that the solution is back in its original state, notify third parties about
                     // the coming rename operation.
                     if (!_refactorNotifyServices.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, renameTrackingSolutionSet.Symbol, newName, throwOnFailure: false))
-                        return EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid;
+                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
                     // move all changes to final solution based on the workspace's current solution, since the current solution
                     // got updated when we reset it above.
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             /// <summary>
             /// Returns non-null error message if renaming fails.
             /// </summary>
-            private string TryUpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
+            private (NotificationSeverity, string)? TryUpdateWorkspaceForResetOfTypedIdentifier(Workspace workspace, Solution newSolution, int trackingSessionId)
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     localUndoTransaction.AddUndo(undoPrimitiveBefore);
 
                     if (!workspace.TryApplyChanges(newSolution))
-                        return EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace;
+                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
                     return null;
                 }
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             /// <summary>
             /// Returns non-null error message if renaming fails.
             /// </summary>
-            private string TryUpdateWorkspaceForGlobalIdentifierRename(
+            private (NotificationSeverity, string)? TryUpdateWorkspaceForGlobalIdentifierRename(
                 Workspace workspace,
                 Solution newSolution,
                 string undoName,
@@ -273,10 +273,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 try
                 {
                     if (!workspace.TryApplyChanges(newSolution))
-                        return EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace;
+                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
                     if (!_refactorNotifyServices.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure: false))
-                        return EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated;
+                        return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
                     return null;
                 }

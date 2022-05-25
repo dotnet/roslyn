@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         var notificationService = workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
-                            error, EditorFeaturesResources.Rename_Symbol, NotificationSeverity.Error);
+                            error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
                     }
                 }
             }
