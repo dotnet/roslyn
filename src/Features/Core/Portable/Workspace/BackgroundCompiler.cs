@@ -105,14 +105,14 @@ namespace Microsoft.CodeAnalysis.Host
 
             // Because we always cancel the previous token prior to queuing new work, there can only be at most one
             // actual real cancellation token that is not already canceled.
-            var cancellationToken = cancellationTokens.SingleOrDefault(ct => !ct.IsCancellationRequested);
+            var cancellationToken = cancellationTokens.SingleOrNull(ct => !ct.IsCancellationRequested);
 
             // if we didn't get an actual non-canceled token back, then this batch was entirely canceled and we have
             // nothing to do.
-            if (cancellationToken == default)
+            if (cancellationToken is null)
                 return;
 
-            using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, disposalToken);
+            using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken.Value, disposalToken);
             await AddCompilationsForVisibleDocumentsAsync(
                 workspace.CurrentSolution, compilations, source.Token).ConfigureAwait(false);
         }

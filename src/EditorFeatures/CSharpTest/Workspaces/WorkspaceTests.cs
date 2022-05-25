@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -31,9 +32,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
     [UseExportProvider]
     public partial class WorkspaceTests : TestBase
     {
-        private static TestWorkspace CreateWorkspace(string workspaceKind = null, bool disablePartialSolutions = true, bool shareGlobalOptions = false)
+        private static TestWorkspace CreateWorkspace(
+            string workspaceKind = null,
+            bool disablePartialSolutions = true,
+            bool shareGlobalOptions = false,
+            TestComposition composition = null)
         {
-            var composition = EditorTestCompositions.EditorFeatures;
+            composition ??= EditorTestCompositions.EditorFeatures;
             if (shareGlobalOptions)
             {
                 composition = composition.AddParts(typeof(TestOptionsServiceWithSharedGlobalOptionsServiceFactory));
@@ -562,7 +567,10 @@ class D { }
         [WpfFact]
         public async Task TestGetCompilationOnCrossLanguageDependentProjectChangedInProgress()
         {
-            using var workspace = CreateWorkspace(disablePartialSolutions: false);
+            var composition = EditorTestCompositions.EditorFeatures.AddParts(typeof(TestDocumentTrackingService));
+
+            using var workspace = CreateWorkspace(disablePartialSolutions: false, composition: composition);
+            var trackingService = (TestDocumentTrackingService)workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var solutionX = workspace.CurrentSolution;
 
             var document1 = new TestHostDocument(@"public class C { }");
@@ -583,6 +591,8 @@ class D { }
             var classDy = compilation2y.SourceModule.GlobalNamespace.GetTypeMembers("D").Single();
             var classCy = classDy.BaseType;
             Assert.NotEqual(TypeKind.Error, classCy.TypeKind);
+
+            trackingService.SetActiveDocument(document2.Id);
 
             // open both documents so background compiler works on their compilations
             workspace.OpenDocument(document1.Id);
