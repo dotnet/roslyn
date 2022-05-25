@@ -62,5 +62,10 @@ namespace Microsoft.CodeAnalysis
         /// Display `System.[U]IntPtr` instead of `n[u]int`.
         /// </summary>
         UseNativeIntegerUnderlyingType = 1 << 7,
+
+        /// <summary>
+        /// Display `MyType@File.cs` instead of `MyType`.
+        /// </summary>
+        IncludeContainingFileForFileTypes = 1 << 8,
     }
 }

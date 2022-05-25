@@ -64,9 +64,22 @@ public class FileModifierTests : CSharpTestBase
             // (1,12): error CS8652: The feature 'file types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // file class Outer
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "Outer").WithArguments("file types").WithLocation(1, 12));
+        verify();
 
         comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
+        verify();
+
+        void verify()
+        {
+            var outer = comp.GetMember<NamedTypeSymbol>("Outer");
+            Assert.Equal(Accessibility.Internal, outer.DeclaredAccessibility);
+            Assert.True(((SourceMemberContainerTypeSymbol)outer).IsFile);
+
+            var classC = comp.GetMember<NamedTypeSymbol>("Outer.C");
+            Assert.Equal(Accessibility.Private, classC.DeclaredAccessibility);
+            Assert.False(((SourceMemberContainerTypeSymbol)classC).IsFile);
+        }
     }
 
     [Fact]
@@ -258,20 +271,29 @@ public class FileModifierTests : CSharpTestBase
         // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
         // expectedOutput: "1"
         var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var cs = comp.GetMembers("C");
+        var tree = comp.SyntaxTrees[0];
+        var expectedSymbol = cs[0];
         verify();
 
         // expectedOutput: "2"
         comp = CreateCompilation(new[] { source1, source2 + main });
+        cs = comp.GetMembers("C");
+        tree = comp.SyntaxTrees[1];
+        expectedSymbol = cs[1];
         verify();
 
         void verify()
         {
             comp.VerifyDiagnostics();
-
-            var cs = comp.GetMembers("C");
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+            var cReference = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last().Expression;
+            var info = model.GetTypeInfo(cReference);
+            Assert.Equal(expectedSymbol.GetPublicSymbol(), info.Type);
         }
     }
 
@@ -399,6 +421,12 @@ public class FileModifierTests : CSharpTestBase
         var c1 = cs[1];
         Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
         Assert.Equal(comp.SyntaxTrees[2], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
+
+        var tree = comp.SyntaxTrees[2];
+        var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+        var cReference = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last().Expression;
+        var info = model.GetTypeInfo(cReference);
+        Assert.Equal(c1.GetPublicSymbol(), info.Type);
     }
 
     [Fact]
@@ -458,6 +486,12 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(2, syntaxReferences.Length);
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[0].SyntaxTree);
         Assert.Equal(comp.SyntaxTrees[1], syntaxReferences[1].SyntaxTree);
+
+        var tree = comp.SyntaxTrees[1];
+        var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+        var cReference = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last().Expression;
+        var info = model.GetTypeInfo(cReference);
+        Assert.Equal(c1.GetPublicSymbol(), info.Type);
     }
 
     [Theory]
@@ -509,6 +543,12 @@ public class FileModifierTests : CSharpTestBase
         var c1 = cs[1];
         Assert.True(c1 is SourceMemberContainerTypeSymbol { IsFile: true });
         Assert.Equal(comp.SyntaxTrees[1], c1.DeclaringSyntaxReferences.Single().SyntaxTree);
+
+        var tree = comp.SyntaxTrees[1];
+        var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+        var cReference = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last().Expression;
+        var info = model.GetTypeInfo(cReference);
+        Assert.Equal(c1.GetPublicSymbol(), info.Type);
     }
 
     [Fact]
@@ -745,6 +785,158 @@ public class FileModifierTests : CSharpTestBase
         Assert.True(cs[0] is SourceMemberContainerTypeSymbol { IsFile: true });
         Assert.True(cs[1] is SourceMemberContainerTypeSymbol { IsFile: true });
         Assert.True(cs[2] is SourceMemberContainerTypeSymbol { IsFile: false });
+    }
+
+    [Theory]
+    [InlineData("file", "file")]
+    [InlineData("file", "")]
+    [InlineData("", "file")]
+    public void Duplication_10(string firstFileModifier, string secondFileModifier)
+    {
+        var source1 = $$"""
+            using System;
+
+            partial class Program
+            {
+                {{firstFileModifier}} class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+            }
+            """;
+
+        var source2 = $$"""
+            using System;
+
+            partial class Program
+            {
+                {{secondFileModifier}} class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(2);
+                    }
+                }
+            }
+            """;
+
+        var main = """
+            partial class Program
+            {
+                static void Main()
+                {
+                    Program.C.M();
+                }
+            }
+            """;
+
+        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
+        // expectedOutput: "1"
+        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var cs = comp.GetMembers("Program.C");
+        var tree = comp.SyntaxTrees[0];
+        var expectedSymbol = cs[0];
+        verify();
+
+        // expectedOutput: "2"
+        comp = CreateCompilation(new[] { source1, source2 + main });
+        cs = comp.GetMembers("Program.C");
+        tree = comp.SyntaxTrees[1];
+        expectedSymbol = cs[1];
+        verify();
+
+        void verify()
+        {
+            comp.VerifyDiagnostics();
+            Assert.Equal(2, cs.Length);
+            Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+            var cReference = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+            var info = model.GetTypeInfo(cReference);
+            Assert.Equal(expectedSymbol.GetPublicSymbol(), info.Type);
+        }
+    }
+
+    [Theory]
+    [InlineData("file", "file")]
+    [InlineData("file", "")]
+    [InlineData("", "file")]
+    public void Duplication_11(string firstFileModifier, string secondFileModifier)
+    {
+        var source1 = $$"""
+            using System;
+
+            {{firstFileModifier}} partial class Outer
+            {
+                internal class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(1);
+                    }
+                }
+            }
+            """;
+
+        var source2 = $$"""
+            using System;
+
+            {{secondFileModifier}} partial class Outer
+            {
+                internal class C
+                {
+                    public static void M()
+                    {
+                        Console.Write(2);
+                    }
+                }
+            }
+            """;
+
+        var main = """
+            class Program
+            {
+                static void Main()
+                {
+                    Outer.C.M();
+                }
+            }
+            """;
+
+        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
+        // expectedOutput: "1"
+        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var outers = comp.GetMembers("Outer");
+        var cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
+        var tree = comp.SyntaxTrees[0];
+        var expectedSymbol = cs[0];
+        verify();
+
+        // expectedOutput: "2"
+        comp = CreateCompilation(new[] { source1, source2 + main });
+        outers = comp.GetMembers("Outer");
+        cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
+        tree = comp.SyntaxTrees[1];
+        expectedSymbol = cs[1];
+        verify();
+
+        void verify()
+        {
+            comp.VerifyDiagnostics();
+            Assert.Equal(2, cs.Length);
+            Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
+            Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+            var cReference = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Last();
+            var info = model.GetTypeInfo(cReference);
+            Assert.Equal(expectedSymbol.GetPublicSymbol(), info.Type);
+        }
     }
 
     [Fact]
@@ -1826,6 +2018,86 @@ public class FileModifierTests : CSharpTestBase
             // (8,7): error CS9302: File type 'C' cannot be used as a base type of non-file type 'D'.
             // class D : C1 { } // 1
             Diagnostic(ErrorCode.ERR_FileTypeBase, "D").WithArguments("NS.C", "NS.D").WithLocation(8, 7));
+    }
+
+    [Fact]
+    public void SymbolDisplay()
+    {
+        var source1 = """
+            file class C1
+            {
+                public static void M() { }
+            }
+            """;
+
+        var source2 = """
+            file class C2
+            {
+                public static void M() { }
+            }
+            """;
+
+        var comp = CreateCompilation(new[]
+        {
+            SyntaxFactory.ParseSyntaxTree(source1, TestOptions.RegularPreview),
+            SyntaxFactory.ParseSyntaxTree(source2, TestOptions.RegularPreview, path: "path/to/FileB.cs")
+        });
+        comp.VerifyDiagnostics();
+
+        var c1 = comp.GetMember<NamedTypeSymbol>("C1");
+        var c2 = comp.GetMember<NamedTypeSymbol>("C2");
+        var format = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
+        Assert.Equal("C1@<file 0>", c1.ToDisplayString(format));
+        Assert.Equal("C2@FileB", c2.ToDisplayString(format));
+
+        Assert.Equal("void C1@<file 0>.M()", c1.GetMember("M").ToDisplayString(format));
+        Assert.Equal("void C2@FileB.M()", c2.GetMember("M").ToDisplayString(format));
+    }
+
+    [Fact]
+    public void Script_01()
+    {
+        var source1 = """
+            using System;
+
+            C1.M();
+
+            file class C1
+            {
+                public static void M() { }
+            }
+            """;
+
+        var comp = CreateSubmission(source1, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SystemVoid_01()
+    {
+        var source1 = """
+            using System;
+
+            void M(Void v) { }  // PROTOTYPE(ft): error here for explicit use of System.Void?
+
+            namespace System
+            {
+                file class Void { }
+            }
+            """;
+
+        var comp = CreateCompilation(source1);
+        comp.VerifyDiagnostics(
+                // (3,6): warning CS8321: The local function 'M' is declared but never used
+                // void M(Void v) { }  // PROTOTYPE(ft): error here for explicit use of System.Void?
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(3, 6));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var voidTypeSyntax = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single().Type!;
+        var typeInfo = model.GetTypeInfo(voidTypeSyntax);
+        Assert.Equal("System.Void@<file 0>", typeInfo.Type!.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes)));
     }
 
     // PROTOTYPE(ft): public API (INamedTypeSymbol.IsFile?)
