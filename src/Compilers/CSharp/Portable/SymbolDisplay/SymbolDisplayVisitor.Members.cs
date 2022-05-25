@@ -767,8 +767,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
+                if (symbol.IsRefScoped &&
+                    format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
                 AddParameterRefKindIfRequired(symbol.RefKind);
                 AddCustomModifiersIfRequired(symbol.RefCustomModifiers, leadingSpace: false, trailingSpace: true);
+
+                if (symbol.IsValueScoped &&
+                    format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
 
                 if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
                 {

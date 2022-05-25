@@ -6,6 +6,8 @@ using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    // PROTOTYPE: Remove and use separate IsRefScoped and IsValueScoped
+    // properties on LocalSymbol and ParameterSymbol, to match the public API.
     [Flags]
     internal enum DeclarationScope : byte
     {

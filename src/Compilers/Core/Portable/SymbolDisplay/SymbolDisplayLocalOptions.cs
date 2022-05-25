@@ -34,5 +34,10 @@ namespace Microsoft.CodeAnalysis
         /// Includes the <c>ref</c> keyword for ref-locals.
         /// </summary>
         IncludeRef = 1 << 2,
+
+        /// <summary>
+        /// Includes the <c>scoped</c> keyword.
+        /// </summary>
+        IncludeScoped = 1 << 3,
     }
 }

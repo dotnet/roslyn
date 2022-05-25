@@ -8,6 +8,8 @@ Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.
 Microsoft.CodeAnalysis.IImportScope.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
 Microsoft.CodeAnalysis.IImportScope.Imports.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ImportedNamespaceOrType>
 Microsoft.CodeAnalysis.IImportScope.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ImportedXmlNamespace>
+Microsoft.CodeAnalysis.ILocalSymbol.IsRefScoped.get -> bool
+Microsoft.CodeAnalysis.ILocalSymbol.IsValueScoped.get -> bool
 Microsoft.CodeAnalysis.ImportedNamespaceOrType
 Microsoft.CodeAnalysis.ImportedNamespaceOrType.DeclaringSyntaxReference.get -> Microsoft.CodeAnalysis.SyntaxReference?
 Microsoft.CodeAnalysis.ImportedNamespaceOrType.ImportedNamespaceOrType() -> void
@@ -41,8 +43,12 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.IParameterSymbol.IsRefScoped.get -> bool
+Microsoft.CodeAnalysis.IParameterSymbol.IsValueScoped.get -> bool
 Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IImportScope!>
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
+Microsoft.CodeAnalysis.SymbolDisplayLocalOptions.IncludeScoped = 8 -> Microsoft.CodeAnalysis.SymbolDisplayLocalOptions
+Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeScoped = 64 -> Microsoft.CodeAnalysis.SymbolDisplayParameterOptions
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.SymbolVisitor() -> void
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
@@ -82,5 +88,4 @@ virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitPointerTyp
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitProperty(Microsoft.CodeAnalysis.IPropertySymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitRangeVariable(Microsoft.CodeAnalysis.IRangeVariableSymbol! symbol, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.VisitTypeParameter(Microsoft.CodeAnalysis.ITypeParameterSymbol! symbol, TArgument argument) -> TResult
-
 Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift = 25 -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind

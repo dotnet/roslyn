@@ -54,5 +54,10 @@ namespace Microsoft.CodeAnalysis
         /// Includes square brackets around optional parameters.
         /// </summary>
         IncludeOptionalBrackets = 1 << 5,
+
+        /// <summary>
+        /// Includes the <c>scoped</c> keyword.
+        /// </summary>
+        IncludeScoped = 1 << 6,
     }
 }

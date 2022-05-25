@@ -63,6 +63,16 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<CustomModifier> RefCustomModifiers { get; }
 
         /// <summary>
+        /// Returns true if the ref parameter is scoped to the current method.
+        /// </summary>
+        bool IsRefScoped { get; }
+
+        /// <summary>
+        /// Returns true if the parameter value is scoped to the current method.
+        /// </summary>
+        bool IsValueScoped { get; }
+
+        /// <summary>
         /// Gets the ordinal position of the parameter. The first parameter has ordinal zero.
         /// The 'this' parameter ('Me' in Visual Basic) has ordinal -1.
         /// </summary>

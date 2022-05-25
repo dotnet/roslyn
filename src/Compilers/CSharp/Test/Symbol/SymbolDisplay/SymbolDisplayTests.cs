@@ -8034,5 +8034,163 @@ ref struct S<T>
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.FieldName);
         }
+
+        [Fact]
+        public void ScopedParameter()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void F(scoped R r1, in scoped R r2, scoped ref R r3) { }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var method = comp.GetMember<MethodSymbol>("Program.F");
+
+            var formatWithoutScoped = SymbolDisplayFormat.TestFormat;
+            var formatWithScoped = formatWithoutScoped.AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped);
+
+            Verify(method.ToDisplayParts(formatWithoutScoped),
+                "void Program.F(R r1, in R r2, ref R r3)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(method.ToDisplayParts(formatWithScoped),
+                "void Program.F(scoped R r1, in scoped R r2, scoped ref R r3)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void ScopedLocal()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        scoped R r1;
+        ref readonly scoped R r2 = ref r1;
+        scoped ref R r3 = ref r1;
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+            var locals = decls.Select(d => model.GetDeclaredSymbol(d)).ToArray();
+
+            var formatWithoutScoped = SymbolDisplayFormat.TestFormat.AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef);
+            var formatWithScoped = formatWithoutScoped.AddLocalOptions(SymbolDisplayLocalOptions.IncludeScoped);
+
+            Verify(locals[0].ToDisplayParts(formatWithoutScoped),
+                "R r1",
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName);
+
+            Verify(locals[0].ToDisplayParts(formatWithScoped),
+                "scoped R r1",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName);
+
+            Verify(locals[1].ToDisplayParts(formatWithoutScoped),
+                "ref readonly R r2",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName);
+
+            Verify(locals[1].ToDisplayParts(formatWithScoped),
+                "ref readonly scoped R r2",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName);
+
+            Verify(locals[2].ToDisplayParts(formatWithoutScoped),
+                "ref R r3",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName);
+
+            Verify(locals[2].ToDisplayParts(formatWithScoped),
+                "scoped ref R r3",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.LocalName);
+        }
     }
 }

@@ -190,6 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsRef &&
                 format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
             {
+                if (symbol.IsRefScoped &&
+                    format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeScoped))
+                {
+                    AddKeyword(SyntaxKind.ScopedKeyword);
+                    AddSpace();
+                }
+
                 AddKeyword(SyntaxKind.RefKeyword);
                 AddSpace();
 
@@ -198,6 +205,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddKeyword(SyntaxKind.ReadOnlyKeyword);
                     AddSpace();
                 }
+            }
+
+            if (symbol.IsValueScoped &&
+                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeScoped))
+            {
+                AddKeyword(SyntaxKind.ScopedKeyword);
+                AddSpace();
             }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
