@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override bool IsCaseSensitive => true;
+        public override bool IsCaseSensitive
+            => true;
 
         public override bool IsValidIdentifier(string name)
             => SyntaxFacts.IsValidIdentifier(name);
