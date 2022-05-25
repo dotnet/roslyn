@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
 
         private static unsafe Disposer CreateReader(string text, out DirectMemoryAccessStreamReader reader)
         {
-            var pointer = Marshal.AllocHGlobal(text.Length * sizeof(char));
-            text.AsSpan().CopyTo(new Span<char>((char*)pointer, text.Length));
+            var pointer = Marshal.StringToHGlobalUni(text);
             reader = new DirectMemoryAccessStreamReader((char*)pointer, text.Length);
             return new Disposer(pointer, reader);
         }
