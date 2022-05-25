@@ -35,6 +35,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -996,6 +997,28 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
                 new[] { FeatureAttribute.Workspace, FeatureAttribute.GoToImplementation },
                 cancellationToken);
+        }
+
+        public async Task<ImmutableArray<(bool Collapsed, TextSpan Span)>> GetOutliningSpansAsync(CancellationToken cancellationToken)
+        {
+            await TestServices.Workspace.WaitForAllAsyncOperationsAsync(
+                new[] { FeatureAttribute.Workspace, FeatureAttribute.Outlining },
+                cancellationToken);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var componentModelService = await GetRequiredGlobalServiceAsync<SComponentModel, IComponentModel>(cancellationToken);
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var manager = componentModelService.GetService<IOutliningManagerService>().GetOutliningManager(view);
+            var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
+            var regions = manager.GetAllRegions(span);
+            return regions
+                    .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
+                    .SelectAsArray(r =>
+                    {
+                        var span = r.Extent.GetSpan(view.TextSnapshot);
+                        return (r.IsCollapsed, TextSpan.FromBounds(span.Start.Position, span.End.Position));
+                    });
         }
 
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)

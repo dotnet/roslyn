@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
         protected abstract SyntaxNode ConvertForNode(
             TForStatementSyntax currentFor, TTypeNode? typeNode, SyntaxToken foreachIdentifier,
-            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType, OptionSet options);
+            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -350,12 +350,11 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
                 forStatement,
                 (currentFor, _) => ConvertForNode(
                     (TForStatementSyntax)currentFor, typeNode, foreachIdentifier,
-                    collectionExpression, iterationType, options));
+                    collectionExpression, iterationType));
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
 

@@ -1333,6 +1333,9 @@ Additional information: {1}</value>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
   </data>
+  <data name="Show_compiler_errors_and_warnings_for_colon" xml:space="preserve">
+    <value>Show compiler errors and warnings for:</value>
+  </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
   </data>
@@ -1953,10 +1956,13 @@ Additional information: {1}</value>
   <data name="Prefer_UTF8_string_literals" xml:space="preserve">
     <value>Prefer UTF-8 string literals</value>
   </data>
-  <data name="Collapse_metadata_on_file_open" xml:space="preserve">
-    <value>Collapse metadata implementations on file open</value>
-  </data>
   <data name="Collapse_regions_on_file_open" xml:space="preserve">
     <value>Collapse #regions on file open</value>
+  </data>
+  <data name="Collapse_metadata_signature_files_on_open" xml:space="preserve">
+    <value>Collapse metadata signature files to definitions on file open</value>
+  </data>
+  <data name="Collapse_sourcelink_embedded_decompiled_files_on_open" xml:space="preserve">
+    <value>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</value>
   </data>
 </root>

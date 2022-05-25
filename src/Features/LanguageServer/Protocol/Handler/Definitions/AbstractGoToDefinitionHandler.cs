@@ -13,11 +13,12 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    internal abstract class AbstractGoToDefinitionHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
+    internal abstract class AbstractGoToDefinitionHandler : IRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
@@ -28,10 +29,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+        public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
+
+        public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
         protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {

@@ -16,5 +16,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         public abstract bool IsCompleteSubmission(string text);
         public abstract string InteractiveResponseFileName { get; }
         public abstract Type ReplServiceProviderType { get; }
+        public abstract string Extension { get; }
     }
 }

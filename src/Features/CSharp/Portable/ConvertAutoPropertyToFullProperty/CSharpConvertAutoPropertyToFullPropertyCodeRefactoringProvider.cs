@@ -13,14 +13,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 {
@@ -33,12 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
         }
 
-        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
+        internal override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
-                new SymbolKindOrTypeKind(SymbolKind.Field),
+                new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
                 property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
                 Accessibility.Private,
+                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();

@@ -1293,7 +1293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var overrideParam = overrideParameters[i + overrideParameterOffset];
                         var baseParam = baseParameters[i];
-                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && NullableWalker.GetParameterState(baseParam.TypeWithAnnotations, baseParam.FlowAnalysisAnnotations, baseParam.IsNullChecked).IsNotNull)
+                        if (notNullIfParameterNotNull.Contains(overrideParam.Name) && NullableWalker.GetParameterState(baseParam.TypeWithAnnotations, baseParam.FlowAnalysisAnnotations).IsNotNull)
                         {
                             return outputType.AsNotAnnotated();
                         }
@@ -1651,7 +1651,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (implementingMethod.ContainingType != (object)this)
                 {
-                    if (implementingMethod.Equals(this.BaseTypeNoUseSiteDiagnostics?.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMethod).Symbol, TypeCompareKind.CLRSignatureCompareOptions))
+                    if (implementingMethod.ContainingType.IsInterface ||
+                        implementingMethod.Equals(this.BaseTypeNoUseSiteDiagnostics?.FindImplementationForInterfaceMemberInNonInterfaceWithDiagnostics(interfaceMethod).Symbol, TypeCompareKind.CLRSignatureCompareOptions))
                     {
                         return default;
                     }

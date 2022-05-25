@@ -11,6 +11,7 @@
              MinWidth="300"
              Cursor="Arrow"
              Focusable="True"
+             x:Name="dashboard"
              AutomationProperties.AutomationId="Microsoft.CodeAnalysis.EditorFeatures.InlineRenameDialog" 
              UseLayoutRounding="True">
     <!-- 
