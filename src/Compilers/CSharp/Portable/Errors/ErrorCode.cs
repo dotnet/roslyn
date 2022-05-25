@@ -2021,12 +2021,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
         ERR_ListPatternRequiresLength = 8985,
-        ERR_DiscardCannotBeNullChecked = 8990,
-        ERR_MustNullCheckInImplementation = 8991,
-        ERR_NonNullableValueTypeIsNullChecked = 8992,
-        WRN_NullCheckedHasDefaultNull = 8993,
-        ERR_NullCheckingOnOutParameter = 8994,
-        WRN_NullCheckingOnNullableType = 8995,
+
+        // param-nullchecking feature removed from C# 11
+        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_DiscardCannotBeNullChecked = 8990,
+        // ERR_MustNullCheckInImplementation = 8991,
+        // ERR_NonNullableValueTypeIsNullChecked = 8992,
+        // WRN_NullCheckedHasDefaultNull = 8993,
+        // ERR_NullCheckingOnOutParameter = 8994,
+        // WRN_NullCheckingOnNullableType = 8995,
 
         ERR_RawStringNotInDirectives = 8996,
         ERR_UnterminatedRawString = 8997,
@@ -2068,6 +2071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_CannotBeConvertedToUTF8 = 9026,
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
+        ERR_MisplacedUnchecked = 9028,
 
         #endregion
 

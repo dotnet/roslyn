@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -79,10 +80,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
             if (!GlobalOptions.GetOption(FeatureOnOffOptions.Outlining, openDocument.Project.Language))
                 return false;
 
+            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(GlobalOptions, openDocument.Project);
+
             // If we're a metadata-as-source doc, we need to compute the initial set of tags synchronously
             // so that we can collapse all the .IsImplementation tags to keep the UI clean and condensed.
-            if (openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource &&
-                GlobalOptions.GetOption(BlockStructureOptionsStorage.CollapseMetadataImplementationsWhenFirstOpened, openDocument.Project.Language))
+            if (openDocument.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace &&
+                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options))
             {
                 return true;
             }

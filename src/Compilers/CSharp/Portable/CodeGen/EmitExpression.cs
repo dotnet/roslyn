@@ -1531,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
             int stackBehavior = GetCallStackBehavior(method, arguments);
 
-            if (method.IsAbstract)
+            if (method.IsAbstract || method.IsVirtual)
             {
                 if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
                 {
@@ -3524,7 +3524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
-                if (load.TargetMethod.IsAbstract && load.TargetMethod.IsStatic)
+                if ((load.TargetMethod.IsAbstract || load.TargetMethod.IsVirtual) && load.TargetMethod.IsStatic)
                 {
                     if (load.ConstrainedToTypeOpt is not { TypeKind: TypeKind.TypeParameter })
                     {

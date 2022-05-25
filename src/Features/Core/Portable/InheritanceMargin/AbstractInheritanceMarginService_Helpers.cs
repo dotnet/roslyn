@@ -38,26 +38,24 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
                 SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
-        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemAsync(
-            Project project,
-            Document? documentForGlobalImports,
+        public async ValueTask<ImmutableArray<InheritanceMarginItem>> GetGlobalImportItemsAsync(
+            Document document,
             TextSpan spanToSearch,
-            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
-            var solution = project.Solution;
+            var solution = document.Project.Solution;
             var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
             {
-                // Here the line number is also passed to the remote process. It is done in this way because
-                // when a set of symbols is passed to remote process, those without inheritance targets would not be returned.
-                // To match the returned inheritance targets to the line number, we need set an 'Id' when calling the remote process,
-                // however, given the line number is just an int, setting up an int 'Id' for an int is quite useless, so just passed it to the remote process.
+                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
+                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
+                // accurate results in the future because taggers are set to recompute when compilations are fully
+                // available on the OOP side.
                 var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                     solution,
                     (service, solutionInfo, cancellationToken) =>
-                        service.GetInheritanceMarginItemsAsync(
-                            solutionInfo, project.Id, documentForGlobalImports?.Id, spanToSearch, symbolKeyAndLineNumbers, cancellationToken),
+                        service.GetGlobalImportItemsAsync(solutionInfo, document.Id, spanToSearch, frozenPartialSemantics, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -69,27 +67,70 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             }
             else
             {
-                return await GetInheritanceMemberItemInProcessAsync(
-                    project, documentForGlobalImports, spanToSearch, symbolKeyAndLineNumbers, cancellationToken).ConfigureAwait(false);
+                return await GetGlobalImportsItemsInProcessAsync(
+                    document, spanToSearch, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async ValueTask<ImmutableArray<InheritanceMarginItem>> GetInheritanceMemberItemInProcessAsync(
+        public static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsAsync(
             Project project,
-            Document? documentForGlobalImports,
-            TextSpan spanToSearch,
+            Document? document,
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
             var solution = project.Solution;
+            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            if (remoteClient != null)
+            {
+                // Here the line number is also passed to the remote process. It is done in this way because when a set
+                // of symbols is passed to remote process, those without inheritance targets would not be returned. To
+                // match the returned inheritance targets to the line number, we need set an 'Id' when calling the
+                // remote process, however, given the line number is just an int, setting up an int 'Id' for an int is
+                // quite useless, so just passed it to the remote process.
+                //
+                // Also, make it clear to the remote side that they should be using frozen semantics, just like we are.
+                // we want results quickly, without waiting for the entire source generator pass to run.  The user will still get
+                // accurate results in the future because taggers are set to recompute when compilations are fully
+                // available on the OOP side.
+                var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
+                    solution,
+                    (service, solutionInfo, cancellationToken) =>
+                        service.GetSymbolItemsAsync(solutionInfo, project.Id, document?.Id, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
+
+                if (!result.HasValue)
+                {
+                    return ImmutableArray<InheritanceMarginItem>.Empty;
+                }
+
+                return result.Value;
+            }
+            else
+            {
+                return await GetSymbolItemsInProcessAsync(
+                    project, document, symbolKeyAndLineNumbers, frozenPartialSemantics, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        private static async ValueTask<ImmutableArray<InheritanceMarginItem>> GetSymbolItemsInProcessAsync(
+            Project project,
+            Document? document,
+            ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
+            bool frozenPartialSemantics,
+            CancellationToken cancellationToken)
+        {
+            // If we're starting from a document, use it to go to a frozen partial version of it to lower the amount of
+            // work we need to do running source generators or producing skeleton references.
+            if (document != null && frozenPartialSemantics)
+            {
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+                project = document.Project;
+            }
+
+            var solution = project.Solution;
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
-
-            if (documentForGlobalImports != null)
-            {
-                await AddInheritedGlobalImportsAsync(
-                    documentForGlobalImports, spanToSearch, builder, cancellationToken).ConfigureAwait(false);
-            }
 
             foreach (var (symbolKey, lineNumber) in symbolKeyAndLineNumbers)
             {
@@ -109,12 +150,15 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             return builder.ToImmutable();
         }
 
-        private async Task AddInheritedGlobalImportsAsync(
+        private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsInProcessAsync(
             Document document,
             TextSpan spanToSearch,
-            ArrayBuilder<InheritanceMarginItem> items,
+            bool frozenPartialSemantics,
             CancellationToken cancellationToken)
         {
+            if (frozenPartialSemantics)
+                document = document.WithFrozenPartialSemantics(cancellationToken);
+
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -126,7 +170,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             // if that location doesn't intersect with the lines of interest, immediately bail out.
             if (!spanToSearch.IntersectsWith(spanStart))
-                return;
+                return ImmutableArray<InheritanceMarginItem>.Empty;
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var scopes = semanticModel.GetImportScopes(root.FullSpan.End, cancellationToken);
@@ -135,7 +179,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // correspond to inner scopes for either the compilation unit or namespace.
             var lastScope = scopes.LastOrDefault();
             if (lastScope == null)
-                return;
+                return ImmutableArray<InheritanceMarginItem>.Empty;
 
             // Pull in any project level imports, or imports from other files (e.g. global usings).
             var syntaxTree = semanticModel.SyntaxTree;
@@ -159,7 +203,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 });
 
             if (nonLocalImports.Length == 0)
-                return;
+                return ImmutableArray<InheritanceMarginItem>.Empty;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var lineNumber = text.Lines.GetLineFromPosition(spanStart).LineNumber;
@@ -173,12 +217,14 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                 _ => throw ExceptionUtilities.UnexpectedValue(document.Project.Language),
             };
 
+            using var _1 = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var items);
+
             foreach (var group in nonLocalImports.GroupBy(i => i.DeclaringSyntaxReference?.SyntaxTree))
             {
                 var groupSyntaxTree = group.Key;
                 if (groupSyntaxTree is null)
                 {
-                    using var _ = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
+                    using var _2 = ArrayBuilder<InheritanceTargetItem>.GetInstance(out var targetItems);
 
                     foreach (var import in group)
                     {
@@ -218,6 +264,8 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                         lineNumber, this.GlobalImportsTitle, ImmutableArray.Create(taggedText), Glyph.Namespace, targetItems.ToImmutable()));
                 }
             }
+
+            return items.ToImmutable();
         }
 
         private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(

@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
                 (syntax.AttributeLists.Count == 0) &&
-                !owner.IsPartialMethod() &&
-                syntax.ExclamationExclamationToken.Kind() == SyntaxKind.None)
+                !owner.IsPartialMethod())
             {
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, locations);
             }
