@@ -220,23 +220,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize_Small As String
-            Get
-                Return BasicVSResources.Small
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize_Small As String =
+            BasicVSResources.Small
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize_Regular As String
-            Get
-                Return BasicVSResources.Regular
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize_Regular As String =
+            BasicVSResources.Regular
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize_Large As String
-            Get
-                Return BasicVSResources.Large
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize_Large As String =
+            BasicVSResources.Large
 
         Public ReadOnly Property Option_Outlining As String = ServicesVSResources.Outlining
 
@@ -371,5 +362,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Navigate_asynchronously_exerimental As String =
             ServicesVSResources.Navigate_asynchronously_exerimental
+
+        Public ReadOnly Property Option_Rename As String =
+            ServicesVSResources.Rename
+
+        Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
+            ServicesVSResources.Rename_asynchronously_experimental
     End Module
 End Namespace
