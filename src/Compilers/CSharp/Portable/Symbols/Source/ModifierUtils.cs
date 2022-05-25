@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class ModifierUtils
     {
         internal static DeclarationModifiers MakeAndCheckNontypeMemberModifiers(
+            bool isForTypeDeclaration,
+            bool isForInterfaceMember,
             SyntaxTokenList modifiers,
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool modifierErrors)
         {
             var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag());
-            result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+            result = CheckModifiers(isForTypeDeclaration, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
             {
@@ -31,6 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal static DeclarationModifiers CheckModifiers(
+            bool isForTypeDeclaration,
+            bool isForInterfaceMember,
             DeclarationModifiers modifiers,
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
@@ -38,12 +42,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList? modifierTokens,
             out bool modifierErrors)
         {
+            Debug.Assert(!isForTypeDeclaration || !isForInterfaceMember);
+
             modifierErrors = false;
             DeclarationModifiers reportStaticNotVirtualForModifiers = DeclarationModifiers.None;
 
-            if ((modifiers & allowedModifiers & DeclarationModifiers.Static) != 0)
+            if (isForTypeDeclaration)
             {
-                reportStaticNotVirtualForModifiers = allowedModifiers & (DeclarationModifiers.Override | DeclarationModifiers.Virtual);
+                Debug.Assert((allowedModifiers & (DeclarationModifiers.Override | DeclarationModifiers.Virtual)) == 0);
+            }
+            else if ((modifiers & allowedModifiers & DeclarationModifiers.Static) != 0)
+            {
+                if (isForInterfaceMember)
+                {
+                    reportStaticNotVirtualForModifiers = allowedModifiers & DeclarationModifiers.Override;
+                }
+                else
+                {
+                    reportStaticNotVirtualForModifiers = allowedModifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Override | DeclarationModifiers.Virtual);
+                }
+
                 allowedModifiers &= ~reportStaticNotVirtualForModifiers;
             }
 
@@ -63,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportPartialError(errorLocation, diagnostics, modifierTokens);
                         break;
 
+                    case DeclarationModifiers.Abstract:
                     case DeclarationModifiers.Override:
                     case DeclarationModifiers.Virtual:
                         if ((reportStaticNotVirtualForModifiers & oneError) == 0)
@@ -118,10 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LanguageVersion requiredVersion;
 
                 if ((modifiers & defaultInterfaceImplementationModifiers & DeclarationModifiers.Static) != 0 &&
-                    (modifiers & defaultInterfaceImplementationModifiers & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract)) != 0)
+                    (modifiers & defaultInterfaceImplementationModifiers & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Virtual)) != 0)
                 {
-                    var reportModifiers = DeclarationModifiers.Sealed | DeclarationModifiers.Abstract;
-                    if ((modifiers & defaultInterfaceImplementationModifiers & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract))
+                    var reportModifiers = DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Virtual;
+                    if ((modifiers & defaultInterfaceImplementationModifiers & DeclarationModifiers.Sealed) != 0 &&
+                        (modifiers & defaultInterfaceImplementationModifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Virtual)) != 0)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(DeclarationModifiers.Sealed));
                         reportModifiers &= ~DeclarationModifiers.Sealed;

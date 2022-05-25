@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _previewChanges = value;
         }
 
-        private void Dismiss(bool rollbackTemporaryEdits)
+        private void DismissUIAndRollbackEdits()
         {
             _dismissed = true;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var isClosed = document == null;
 
                 var openBuffer = _openTextBuffers[textBuffer];
-                openBuffer.Disconnect(isClosed, rollbackTemporaryEdits);
+                openBuffer.DisconnectAndRollbackEdits(isClosed);
             }
 
             this.UndoManager.Disconnect();
@@ -660,15 +660,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Cancel()
-            => Cancel(rollbackTemporaryEdits: true);
-
-        private void Cancel(bool rollbackTemporaryEdits)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             VerifyNotDismissed();
 
             LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
-            Dismiss(rollbackTemporaryEdits);
+            DismissUIAndRollbackEdits();
             EndRenameSession();
         }
 
@@ -710,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (result == UIThreadOperationStatus.Canceled)
             {
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
-                Dismiss(rollbackTemporaryEdits: true);
+                DismissUIAndRollbackEdits();
                 EndRenameSession();
 
                 return false;
@@ -764,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 // rename!
                 using var _ = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
 
-                Dismiss(rollbackTemporaryEdits: true);
+                DismissUIAndRollbackEdits();
                 CancelAllOpenDocumentTrackingTasks();
 
                 _triggerView.Caret.PositionChanged += LogPositionChanged;

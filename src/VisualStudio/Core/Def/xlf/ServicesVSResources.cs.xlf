@@ -242,14 +242,19 @@
         <target state="translated">Analýza kódu pro řešení se ukončila dříve, než se dokončila.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Collapse_metadata_on_file_open">
-        <source>Collapse metadata implementations on file open</source>
-        <target state="new">Collapse metadata implementations on file open</target>
+      <trans-unit id="Collapse_metadata_signature_files_on_open">
+        <source>Collapse metadata signature files to definitions on file open</source>
+        <target state="new">Collapse metadata signature files to definitions on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_regions_on_file_open">
         <source>Collapse #regions on file open</source>
         <target state="new">Collapse #regions on file open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Collapse_sourcelink_embedded_decompiled_files_on_open">
+        <source>Collapse Source Link, Embedded, and Decompiled source to definitions on file open</source>
+        <target state="new">Collapse Source Link, Embedded, and Decompiled source to definitions on file open</target>
         <note />
       </trans-unit>
       <trans-unit id="Color_hints">
@@ -1290,6 +1295,11 @@
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
         <target state="translated">Zobrazit příkaz Odebrat nepoužívané odkazy v Průzkumníkovi řešení (experimentální)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list">

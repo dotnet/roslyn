@@ -7,6 +7,7 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Options
@@ -30,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         ''' name preceded by an underscore. We will use this as the field name so we don't mess up 
         ''' any existing references to this field.
         ''' </summary>
-        Friend Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, cancellationToken As CancellationToken) As Task(Of String)
+        Friend Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, fallbackOptions As NamingStylePreferencesProvider, cancellationToken As CancellationToken) As Task(Of String)
             Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 

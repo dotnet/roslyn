@@ -31,9 +31,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         <Extension>
         Public Function GetVisualBasicSyntaxFormattingOptions(globalOptions As IGlobalOptionService) As VisualBasicSyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(
-                lineFormatting:=globalOptions.GetLineFormattingOptions(LanguageNames.VisualBasic),
-                separateImportDirectiveGroups:=globalOptions.GetOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic))
+            Return New VisualBasicSyntaxFormattingOptions() With
+            {
+                .Common = globalOptions.GetCommonSyntaxFormattingOptions(LanguageNames.VisualBasic)
+            }
         End Function
     End Module
 End Namespace

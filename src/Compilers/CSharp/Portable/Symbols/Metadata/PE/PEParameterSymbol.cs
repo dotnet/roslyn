@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
-                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol);
+                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, containingSymbol.ContainingType);
                 typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
@@ -1060,7 +1060,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        public override bool IsNullChecked => false;
 
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

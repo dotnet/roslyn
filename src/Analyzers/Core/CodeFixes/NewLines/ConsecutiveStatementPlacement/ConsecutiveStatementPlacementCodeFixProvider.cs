@@ -36,28 +36,22 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(CodeAction.Create(
                 CodeFixesResources.Add_blank_line_after_block,
-                c => UpdateDocumentAsync(document, diagnostic, c),
+                c => UpdateDocumentAsync(document, diagnostic, context.GetOptionsProvider(), c),
                 nameof(CodeFixesResources.Add_blank_line_after_block)),
                 context.Diagnostics);
             return Task.CompletedTask;
         }
 
-        private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
-            => FixAllAsync(document, ImmutableArray.Create(diagnostic), cancellationToken);
+        private static Task<Document> UpdateDocumentAsync(Document document, Diagnostic diagnostic, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+            => FixAllAsync(document, ImmutableArray.Create(diagnostic), fallbackOptions, cancellationToken);
 
-        public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+        public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
-#else
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
-
-            var newLine = options.GetOption(FormattingOptions2.NewLine, document.Project.Language);
             var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var endOfLineTrivia = generator.EndOfLine(newLine);
+            var endOfLineTrivia = generator.EndOfLine(options.NewLine);
 
             var nextTokens = diagnostics.Select(d => d.AdditionalLocations[0].FindToken(cancellationToken));
             var newRoot = root.ReplaceTokens(
@@ -68,6 +62,6 @@ namespace Microsoft.CodeAnalysis.NewLines.ConsecutiveStatementPlacement
         }
 
         public override FixAllProvider GetFixAllProvider()
-            => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
+            => FixAllProvider.Create(async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
     }
 }

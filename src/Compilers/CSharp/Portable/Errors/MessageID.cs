@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureNewLinesInInterpolations = MessageBase + 12813,
         IDS_FeatureListPattern = MessageBase + 12814,
-        IDS_ParameterNullChecking = MessageBase + 12815,
+        // IDS_ParameterNullChecking = MessageBase + 12815, // feature removed from C# 11
 
         IDS_FeatureCacheStaticMethodGroupConversion = MessageBase + 12816,
         IDS_FeatureRawStringLiterals = MessageBase + 12817,
@@ -369,7 +369,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNewLinesInInterpolations: // semantic check
                 case MessageID.IDS_FeatureListPattern: // semantic check
                 case MessageID.IDS_FeatureCacheStaticMethodGroupConversion: // lowering check
-                case MessageID.IDS_ParameterNullChecking: // syntax check
                 case MessageID.IDS_FeatureSpanCharConstantPattern:
                 case MessageID.IDS_FeatureAutoDefaultStructs: // semantic check
                 case MessageID.IDS_FeatureCheckedUserDefinedOperators: // semantic check for declarations, parsing check for doc comments

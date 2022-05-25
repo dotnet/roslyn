@@ -138,8 +138,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
-        <source>A static abstract interface member can be accessed only on a type parameter.</source>
-        <target state="translated">Auf ein statisches abstraktes Schnittstellenelement kann nur auf einen Typparameter zugegriffen werden.</target>
+        <source>A static virtual or abstract interface member can be accessed only on a type parameter.</source>
+        <target state="needs-review-translation">Auf ein statisches abstraktes Schnittstellenelement kann nur auf einen Typparameter zugegriffen werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractUnaryOperatorSignature">
@@ -367,11 +367,6 @@
         <target state="translated">Eine Variable darf nicht innerhalb eines not- oder or-Musters deklariert werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DiscardCannotBeNullChecked">
-        <source>Discard parameter cannot be null-checked.</source>
-        <target state="translated">Der Discard-Parameter kann nicht auf NULL überprüft werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Das discard-Muster ist als case-Bezeichnung in einer switch-Anweisung unzulässig. Verwenden Sie "case var _:" für ein discard-Muster oder "case @_:" für eine Konstante namens "_".</target>
@@ -468,8 +463,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsAbstractStaticMemberAccess">
-        <source>An expression tree may not contain an access of static abstract interface member</source>
-        <target state="translated">Eine Ausdrucksbaumstruktur darf keinen Zugriff auf ein statisches abstraktes Schnittstellenelement enthalten</target>
+        <source>An expression tree may not contain an access of static virtual or abstract interface member</source>
+        <target state="needs-review-translation">Eine Ausdrucksbaumstruktur darf keinen Zugriff auf ein statisches abstraktes Schnittstellenelement enthalten</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -588,8 +583,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract members.</source>
-        <target state="translated">Die Schnittstelle „{3}“ kann nicht als Typparameter „{2}“ im generischen Typ oder in der Methode „{0}“ verwendet werden. Die Einschränkungsschnittstelle „{1}“ oder die Basisschnittstelle weist statische abstrakte Elemente auf.</target>
+        <source>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</source>
+        <target state="needs-review-translation">Die Schnittstelle „{3}“ kann nicht als Typparameter „{2}“ im generischen Typ oder in der Methode „{0}“ verwendet werden. Die Einschränkungsschnittstelle „{1}“ oder die Basisschnittstelle weist statische abstrakte Elemente auf.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalUsingInNamespace">
@@ -847,6 +842,11 @@
         <target state="translated">Segmentmuster dürfen nur einmal und direkt innerhalb eines Listenmusters verwendet werden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_MisplacedUnchecked">
+        <source>Unexpected keyword 'unchecked'</source>
+        <target state="new">Unexpected keyword 'unchecked'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
         <source>Cannot convert method group to function pointer (Are you missing a '&amp;'?)</source>
         <target state="translated">Die Methodengruppe kann nicht in den Funktionszeiger konvertiert werden (fehlt ein "&amp;"?)</target>
@@ -902,11 +902,6 @@
         <target state="translated">Nur eine partielle Deklaration eines einzelnen Datensatzes darf eine Parameterliste aufweisen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MustNullCheckInImplementation">
-        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="translated">Der Parameter „{0}“ kann nur eine Ausrufezeichen-NULL-Überprüfung in den Implementierungsmethoden aufweisen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Die new()-Einschränkung kann nicht mit der unmanaged-Einschränkung verwendet werden.</target>
@@ -957,11 +952,6 @@
         <target state="translated">Das Ausgabeverzeichnis konnte nicht bestimmt werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
-        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="translated">Der Parameter „{0}“ ist ein Non-Nullable-Werttyp und kann nicht auf NULL-Werte überprüft werden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">Der Datensatzmember "{0}" muss privat sein.</target>
@@ -1000,11 +990,6 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">"{0}" muss Überschreibungen zulassen, weil der enthaltende Datensatz nicht versiegelt ist.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnOutParameter">
-        <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">Der out-Parameter „{0}“ kann nicht auf NULL überprüft werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1060,6 +1045,11 @@
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
         <target state="translated">Die Methode "{0}" gibt eine struct-Einschränkung für den Typparameter "{1}" an, aber der zugehörige Typparameter "{2}" der außer Kraft gesetzten oder explizit implementierten Methode "{3}" ist kein Non-Nullable-Werttyp.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
+        <source>The 'parameter null-checking' feature is not supported.</source>
+        <target state="new">The 'parameter null-checking' feature is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1587,11 +1577,6 @@
         <target state="translated">"with" in Strukturen</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ParameterNullChecking">
-        <source>parameter null-checking</source>
-        <target state="translated">NULL-Überprüfung des Parameters</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
@@ -1727,26 +1712,6 @@
         <target state="translated">Die Methodengruppe wird in einen Nichtdelegattyp konvertiert.</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull">
-        <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="translated">Der Parameter „{0}“ wurde auf NULL-Werte überprüft, ist aber standardmäßig NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
-        <source>Parameter is null-checked but is null by default.</source>
-        <target state="translated">Der Parameter wurde auf NULL-Werte überprüft, ist aber standardmäßig NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType">
-        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="translated">Der Nullable-Typ „{0}“ wurde auf NULL-Werte überprüft und wird bei NULL ausgelöst.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
-        <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="translated">Der Nullable-Typ wurde auf NULL-Werte überprüft und wird bei NULL ausgelöst.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Der Parameter "{0}" muss beim Beenden einen Wert ungleich NULL aufweisen, weil Parameter "{1}" nicht NULL ist.</target>
@@ -1858,8 +1823,8 @@
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyRequiresStatic">
-        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract methods or static local functions.</source>
-        <target state="translated">"UnmanagedCallersOnly" kann nur auf gewöhnliche statische, nicht abstrakte Methoden oder statische lokale Funktionen angewendet werden.</target>
+        <source>'UnmanagedCallersOnly' can only be applied to ordinary static non-abstract, non-virtual methods or static local functions.</source>
+        <target state="needs-review-translation">"UnmanagedCallersOnly" kann nur auf gewöhnliche statische, nicht abstrakte Methoden oder statische lokale Funktionen angewendet werden.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">

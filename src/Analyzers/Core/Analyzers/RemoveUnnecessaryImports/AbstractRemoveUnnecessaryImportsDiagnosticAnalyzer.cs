@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
-                var fadeOut = context.Options.GetIdeOptions().FadeOutUnusedImports;
+                var fadeOut = context.GetIdeAnalyzerOptions().FadeOutUnusedImports;
 
                 DiagnosticDescriptor descriptor;
                 if (GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken))

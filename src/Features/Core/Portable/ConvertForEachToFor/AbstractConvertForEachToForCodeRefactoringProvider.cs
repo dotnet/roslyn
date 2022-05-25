@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.ConvertForEachToFor
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var semanticFact = document.GetRequiredLanguageService<ISemanticFactsService>();
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var foreachInfo = GetForeachInfo(semanticFact, model, foreachStatement, cancellationToken);
             if (foreachInfo == null || !ValidLocation(foreachInfo))
             {
