@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -19,12 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Provides the reason that can be displayed to the user if the entity at the selected 
         /// location cannot be renamed.
         /// </summary>
-        public string LocalizedErrorMessage { get; }
+        public string? LocalizedErrorMessage { get; }
 
         /// <summary>
         /// The session created if it was possible to rename the entity.
         /// </summary>
-        public IInlineRenameSession Session { get; }
+        public IInlineRenameSession? Session { get; }
 
         internal InlineRenameSessionInfo(string localizedErrorMessage)
         {
