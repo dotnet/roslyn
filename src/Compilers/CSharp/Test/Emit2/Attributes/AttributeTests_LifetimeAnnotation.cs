@@ -41,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source =
 @"class Program
 {
-    public static void Main(scoped string[] args) { }
+    public static void F(scoped ref int i) { }
 }";
             var comp = CreateCompilation(new[] { LifetimeAnnotationAttributeDefinition, source });
             var expected =
-@"void Program.Main(System.String[] args)
-    [LifetimeAnnotation(False, True)] System.String[] args
+@" void Program.F(ref System.Int32 i)
+    [LifetimeAnnotation(True, False)] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source =
 @"class Program
 {
-    public static void Main(scoped string[] args) { }
+    public static void F(scoped ref int i) { }
 }";
             comp = CreateCompilation(source, references: new[] { ref0 });
             var expected =
-@"void Program.Main(System.String[] args)
-    [LifetimeAnnotation(False, True)] System.String[] args
+@"void Program.F(ref System.Int32 i)
+    [LifetimeAnnotation(True, False)] ref System.Int32 i
 ";
             CompileAndVerify(comp, symbolValidator: module =>
             {
@@ -95,13 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var source2 =
 @"class Program
 {
-    public static void Main(scoped string[] args) { }
+    public static void F(scoped ref int i) { }
 }";
             var comp = CreateCompilation(new[] { source1, source2 });
             comp.VerifyEmitDiagnostics(
-                // (3,29): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute..ctor'
-                //     public static void Main(scoped string[] args) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "scoped string[] args").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", ".ctor").WithLocation(3, 29));
+                // (3,26): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.LifetimeAnnotationAttribute..ctor'
+                //     public static void F(scoped ref int i) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "scoped ref int i").WithArguments("System.Runtime.CompilerServices.LifetimeAnnotationAttribute", ".ctor").WithLocation(3, 26));
         }
 
         [Fact]

@@ -515,10 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.ScopedKeyword:
-                        if (MessageID.IDS_FeatureRefFields.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)parameter.SyntaxTree.Options) is { } diagnosticInfo)
-                        {
-                            diagnostics.Add(diagnosticInfo, modifier.GetLocation());
-                        }
                         // PROTOTYPE: Check for duplicate modifiers; check ordering.
                         break;
 

@@ -4316,6 +4316,7 @@ class Program
 {
     static void F1(scoped scoped R r) { }
     static void F2(ref scoped scoped R r) { }
+    static void F3(scoped scoped ref R r) { }
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should report duplicate modifiers.
@@ -4508,6 +4509,51 @@ class Program
             VerifyLocalSymbol(locals[1], RefKind.Ref, DeclarationScope.RefScoped);
             VerifyLocalSymbol(locals[2], RefKind.Ref, DeclarationScope.ValueScoped);
             VerifyLocalSymbol(locals[3], RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+        }
+
+        [Fact]
+        public void LocalScope_02()
+        {
+            var source =
+@"ref struct R { }
+class Program
+{
+    static void Main()
+    {
+        scoped scoped R x = default;
+        ref scoped scoped R y = ref x;
+        scoped scoped ref R z = ref x;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS1031: Type expected
+                //         scoped scoped R x = default;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithArguments("scoped").WithLocation(6, 16),
+                // (7,20): error CS0118: 'scoped' is a variable but is used like a type
+                //         ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(7, 20),
+                // (7,27): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(7, 27),
+                // (7,27): warning CS0168: The variable 'R' is declared but never used
+                //         ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(7, 27),
+                // (7,29): error CS1002: ; expected
+                //         ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "y").WithLocation(7, 29),
+                // (7,29): error CS0103: The name 'y' does not exist in the current context
+                //         ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(7, 29),
+                // (8,9): error CS0118: 'scoped' is a variable but is used like a type
+                //         scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(8, 9),
+                // (8,16): warning CS0168: The variable 'scoped' is declared but never used
+                //         scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(8, 16),
+                // (8,23): error CS1002: ; expected
+                //         scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(8, 23));
         }
 
         private static void VerifyLocalSymbol(LocalSymbol local, RefKind expectedRefKind, DeclarationScope scope)
