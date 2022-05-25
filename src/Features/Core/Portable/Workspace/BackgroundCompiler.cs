@@ -149,9 +149,6 @@ namespace Microsoft.CodeAnalysis.Host
                     return;
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                if (compilation is null)
-                    return;
-
                 compilations.AddIfNotNull(compilation);
             }
         }
