@@ -4,6 +4,9 @@
 
 #nullable disable
 
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Microsoft.CodeAnalysis.Editor
 {
     internal sealed class InlineRenameSessionInfo
@@ -48,5 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Dismisses the rename session, completing the rename operation across all files.
         /// </summary>
         void Commit(bool previewChanges = false);
+
+        /// <inheritdoc cref="Commit"/>
+        Task CommitAsync(bool previewChanges, CancellationToken cancellationToken);
     }
 }
