@@ -90,6 +90,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
             }
 
+            /// <summary>
+            /// Returns non-null error message if renaming fails.
+            /// </summary>
             private string TryApplyChangesToWorkspace(CancellationToken cancellationToken)
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
