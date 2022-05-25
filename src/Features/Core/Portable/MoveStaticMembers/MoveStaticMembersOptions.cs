@@ -38,11 +38,11 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             ImmutableArray<ISymbol> selectedMembers,
             bool isCancelled = false)
         {
-            var sourceLocation = destination.Locations.First(l => l.IsInSource);
-            RoslynDebug.AssertNotNull(sourceLocation.SourceTree);
+            var sourceLocation = destination.DeclaringSyntaxReferences.First();
+            RoslynDebug.AssertNotNull(sourceLocation.SyntaxTree);
 
             IsCancelled = isCancelled;
-            FileName = sourceLocation.SourceTree.FilePath;
+            FileName = sourceLocation.SyntaxTree.FilePath;
             IsNewType = false;
             Destination = destination;
             TypeName = null;
