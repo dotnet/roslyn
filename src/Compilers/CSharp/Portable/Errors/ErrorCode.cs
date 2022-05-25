@@ -2070,26 +2070,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
         ERR_MisplacedUnchecked = 9028,
 
+        ERR_RequiredNameDisallowed = 9029,
+        ERR_OverrideMustHaveRequired = 9030,
+        ERR_RequiredMemberCannotBeHidden = 9031,
+        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9032,
+        ERR_ExplicitRequiredMember = 9033,
+        ERR_RequiredMemberMustBeSettable = 9034,
+        ERR_RequiredMemberMustBeSet = 9035,
+        ERR_RequiredMembersMustBeAssignedValue = 9036,
+        ERR_RequiredMembersInvalid = 9037,
+        ERR_RequiredMembersBaseTypeInvalid = 9038,
+        ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9039,
+        ERR_NewConstraintCannotHaveRequiredMembers = 9040,
+        ERR_UnsupportedCompilerFeature = 9041,
+        WRN_ObsoleteMembersShouldNotBeRequired = 9042,
+        ERR_RefReturningPropertiesCannotBeRequired = 9043,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
-
-        // PROTOTYPE(req): Move above the comment and condense before merge
-
-        ERR_RequiredNameDisallowed = 9500,
-        ERR_OverrideMustHaveRequired = 9501,
-        ERR_RequiredMemberCannotBeHidden = 9502,
-        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9503,
-        ERR_ExplicitRequiredMember = 9504,
-        ERR_RequiredMemberMustBeSettable = 9505,
-        ERR_RequiredMemberMustBeSet = 9506,
-        ERR_RequiredMembersMustBeAssignedValue = 9507,
-        ERR_RequiredMembersInvalid = 9508,
-        ERR_RequiredMembersBaseTypeInvalid = 9509,
-        ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers = 9510,
-        ERR_NewConstraintCannotHaveRequiredMembers = 9511,
-        ERR_UnsupportedCompilerFeature = 9512,
-        WRN_ObsoleteMembersShouldNotBeRequired = 9513,
-        ERR_RefReturningPropertiesCannotBeRequired = 9514,
     }
 }

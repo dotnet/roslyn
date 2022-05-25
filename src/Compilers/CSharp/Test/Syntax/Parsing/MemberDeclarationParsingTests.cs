@@ -1331,6 +1331,55 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_06()
+        {
+            UsingDeclaration("required required Prop { get; }", options: RequiredMembersOptions,
+                // (1,1): error CS1073: Unexpected token '{'
+                // required required Prop { get; }
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop").WithArguments("{").WithLocation(1, 1),
+                // (1,24): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                // required required Prop { get; }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 24)
+                );
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Prop");
+                }
+            }
+            EOF();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.RequiredMembers)]
+        public void RequiredModifierProperty_07()
+        {
+            UsingDeclaration("required Type required { get; }", options: RequiredMembersOptions);
+            N(SyntaxKind.PropertyDeclaration);
+            {
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Type");
+                }
+                N(SyntaxKind.IdentifierToken, "required");
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
         [Theory, CompilerTrait(CompilerFeature.RequiredMembers)]
         [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
         public void RequiredModifierField_01(CSharpParseOptions parseOptions)
@@ -1809,6 +1858,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             N(SyntaxKind.IncompleteMember);
             {
                 N(SyntaxKind.RequiredKeyword);
+            }
+            EOF();
+        }
+
+        [Theory, CompilerTrait(CompilerFeature.RequiredMembers), WorkItem(61510, "https://github.com/dotnet/roslyn/issues/61510")]
+        [MemberData(nameof(Regular10AndScriptAndRequiredMembersMinimum))]
+        public void RequiredModifier_LocalNamedRequired_TopLevelStatements(CSharpParseOptions parseOptions)
+        {
+            bool isScript = parseOptions.Kind == SourceCodeKind.Script;
+
+            UsingTree("""
+                bool required;
+                required = true;
+                """, options: parseOptions);
+            N(SyntaxKind.CompilationUnit);
+            {
+                if (isScript)
+                {
+                    N(SyntaxKind.FieldDeclaration);
+                }
+                else
+                {
+                    N(SyntaxKind.GlobalStatement);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                }
+
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.BoolKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "required");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "required");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.TrueLiteralExpression);
+                            {
+                                N(SyntaxKind.TrueKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
             }
             EOF();
         }
