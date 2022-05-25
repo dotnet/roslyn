@@ -611,5 +611,106 @@ internal class C : I<C>
 
             await test.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(47448, "https://github.com/dotnet/roslyn/issues/47448")]
+        public async Task TestModifierOnInterfaceMethods_01()
+        {
+            var source = @"public interface I
+{
+    void M();
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options =
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.ForNonInterfaceMembers },
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(47448, "https://github.com/dotnet/roslyn/issues/47448")]
+        public async Task TestModifierOnInterfaceMethods_02()
+        {
+            var source = @"public interface I
+{
+    void [|M|]();
+}";
+            var expected = @"public interface I
+{
+    public void M();
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = expected,
+                Options =
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, AccessibilityModifiersRequired.Always },
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(47448, "https://github.com/dotnet/roslyn/issues/47448")]
+        [InlineData((int)AccessibilityModifiersRequired.ForNonInterfaceMembers)]
+        [InlineData((int)AccessibilityModifiersRequired.OmitIfDefault)]
+        public async Task TestModifierOnInterfaceMethods_03(int modifier)
+        {
+            var source = @"public interface I
+{
+    public void [|M|]();
+}";
+            var expected = @"public interface I
+{
+    void M();
+}";
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = expected,
+                Options =
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, (AccessibilityModifiersRequired)modifier },
+                }
+            };
+
+            await test.RunAsync();
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddAccessibilityModifiers)]
+        [WorkItem(47448, "https://github.com/dotnet/roslyn/issues/47448")]
+        [InlineData((int)AccessibilityModifiersRequired.Always)]
+        [InlineData((int)AccessibilityModifiersRequired.ForNonInterfaceMembers)]
+        [InlineData((int)AccessibilityModifiersRequired.OmitIfDefault)]
+        public async Task TestModifierOnInterfaceMethods_04(int modifier)
+        {
+            var source = @"public interface I
+{
+    protected void M();
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60,
+                Options =
+                {
+                    { CodeStyleOptions2.RequireAccessibilityModifiers, (AccessibilityModifiersRequired)modifier },
+                }
+            };
+
+            await test.RunAsync();
+        }
     }
 }

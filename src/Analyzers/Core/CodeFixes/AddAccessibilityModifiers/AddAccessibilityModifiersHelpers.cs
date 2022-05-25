@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.AddAccessibilityModifiers
             // that's not legal.  And these are reasonable default values for them.
             if (symbol is IMethodSymbol or IPropertySymbol or IEventSymbol)
             {
+                if (symbol.ContainingType.IsInterfaceType())
+                    return Accessibility.Public;
+
                 if (symbol.IsAbstract)
                     return Accessibility.Protected;
 
