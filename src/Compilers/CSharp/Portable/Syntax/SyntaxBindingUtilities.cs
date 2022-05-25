@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public static bool BindsToResumableStateMachineState(SyntaxNode node)
             => node.IsKind(SyntaxKind.YieldReturnStatement) ||
                node.IsKind(SyntaxKind.AwaitExpression) ||
-               node is CommonForEachStatementSyntax { AwaitKeyword.IsMissing: false }
-                    or VariableDeclaratorSyntax { Parent.Parent: UsingStatementSyntax { AwaitKeyword.IsMissing: false } or LocalDeclarationStatementSyntax { AwaitKeyword.IsMissing: false } }
-                    or UsingStatementSyntax { Expression: not null, AwaitKeyword.IsMissing: false };
+               node is CommonForEachStatementSyntax { AwaitKeyword.RawKind: not 0 }
+                    or VariableDeclaratorSyntax { Parent.Parent: UsingStatementSyntax { AwaitKeyword.RawKind: not 0 } or LocalDeclarationStatementSyntax { AwaitKeyword.RawKind: not 0 } }
+                    or UsingStatementSyntax { Expression: not null, AwaitKeyword.RawKind: not 0 };
 
         public static bool BindsToTryStatement(SyntaxNode node)
-            => node is VariableDeclaratorSyntax { Parent.Parent: UsingStatementSyntax { } or LocalDeclarationStatementSyntax { UsingKeyword.IsMissing: false } }
+            => node is VariableDeclaratorSyntax { Parent.Parent: UsingStatementSyntax { } or LocalDeclarationStatementSyntax { UsingKeyword.RawKind: not 0 } }
                     or UsingStatementSyntax { Expression: not null }
                     or CommonForEachStatementSyntax
                     or TryStatementSyntax
