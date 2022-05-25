@@ -110,7 +110,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     => _committer = committer;
 
                 public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-                    => _committer.Commit(cancellationToken);
+                {
+                    var error = _committer.TryCommit(cancellationToken);
+                    if (error != null)
+                    {
+                        var notificationService = workspace.Services.GetService<INotificationService>();
+                        notificationService.SendNotification(
+                            error, EditorFeaturesResources.Rename_Symbol, NotificationSeverity.Error);
+                    }
+                }
             }
         }
     }
