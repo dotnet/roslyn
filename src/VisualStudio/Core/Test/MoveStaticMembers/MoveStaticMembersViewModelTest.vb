@@ -22,15 +22,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         Private Shared Async Function GetViewModelAsync(xmlElement As XElement) As Task(Of MoveStaticMembersDialogViewModel)
             Dim workspaceXml = xmlElement.Value
             Using workspace = TestWorkspace.Create(workspaceXml)
-        Dim doc = workspace.Documents.ElementAt(0)
-        Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
-        If Not doc.CursorPosition.HasValue Then
-        Throw New ArgumentException("Missing caret location in document.")
-        End If
+                Dim doc = workspace.Documents.ElementAt(0)
+                Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
+                If Not doc.CursorPosition.HasValue Then
+                    Throw New ArgumentException("Missing caret location in document.")
+                End If
 
-        Dim tree = Await workspaceDoc.GetSyntaxTreeAsync().ConfigureAwait(False)
+                Dim tree = Await workspaceDoc.GetSyntaxTreeAsync().ConfigureAwait(False)
                 Dim syntaxFacts = workspaceDoc.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
-        Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, syntaxFacts, CancellationToken.None).ConfigureAwait(False)
+                Dim token = Await tree.GetTouchingWordAsync(doc.CursorPosition.Value, syntaxFacts, CancellationToken.None).ConfigureAwait(False)
                 Dim memberSymbol = (Await workspaceDoc.GetRequiredSemanticModelAsync(CancellationToken.None)).GetDeclaredSymbol(token.Parent)
                 Return VisualStudioMoveStaticMembersOptionsService.GetViewModel(
                     workspaceDoc,
@@ -39,7 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                     New LinkedList(Of INamedTypeSymbol),
                     Nothing,
                     workspace.GetService(Of IUIThreadOperationExecutor))
-        End Using
+            End Using
         End Function
 
         Private Shared Function Submit(viewModel As MoveStaticMembersDialogViewModel, cSharp As Boolean) As MoveStaticMembersOptions
@@ -110,7 +110,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
-        Public Async Function CSTestNameConflicts() As Task
+        Public Async Function CSTestInvalidNames() As Task
             Dim markUp = <Text><![CDATA[
 <Workspace>
     <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
@@ -186,11 +186,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
             Assert.True(viewModel.CanSubmit)
 
-            SetDestinationName(viewModel, "ConflictingClassName")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
-
             SetDestinationName(viewModel, "ValidName")
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
@@ -232,11 +227,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
-
-            SetDestinationName(viewModel, "ExtraNs.ConflictingNsClassName")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
         End Function
 
         Private Shared Sub SetDestinationName(viewModel As MoveStaticMembersDialogViewModel, destinationName As String)
@@ -244,11 +234,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
                                                                           Return availableType.TypeName = destinationName
                                                                       End Function)
 
-            If destination IsNot Nothing Then
-                viewModel.DestinationName = destination
-            Else
-                viewModel.DestinationName = New TypeNameItem(destinationName)
-            End If
+            destination = If(destination, New TypeNameItem(destinationName))
+            viewModel.DestinationName = destination
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -430,7 +417,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
-            Assert.Equal(0, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
+            Assert.Equal(1, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
 
             ' We can't really test searchtext or selected index behavior because it is
             ' handled by the combobox, and doesn't update in the same way

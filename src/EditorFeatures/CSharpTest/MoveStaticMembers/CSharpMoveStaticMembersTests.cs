@@ -2994,20 +2994,6 @@ namespace TestNs1
         }
         #endregion
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
-        public async Task NoOptionsService_NoAction()
-        {
-            var initialMarkup = @"
-namespace TestNs1
-{
-    public class Class1
-    {
-        public static int TestField = 1;[||]
-    }
-}";
-            await TestNoRefactoringAsync(initialMarkup).ConfigureAwait(false);
-        }
-
         private class Test : VerifyCS.Test
         {
             public Test(
@@ -3037,8 +3023,8 @@ namespace TestNs1
                 var workspace = new AdhocWorkspace(hostServices);
                 var testOptionsService = (TestMoveStaticMembersService)workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
                 testOptionsService.DestinationName = _destinationType;
-                    testOptionsService.SelectedMembers = _selection;
-                    testOptionsService.Filename = _destinationName;
+                testOptionsService.SelectedMembers = _selection;
+                testOptionsService.Filename = _destinationName;
                 testOptionsService.CreateNew = _createNew;
 
                 return workspace;

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -69,10 +70,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
                 // if the destination name contains extra namespaces, we want the last one as that is the real type name
                 var typeName = viewModel.DestinationName.TypeName.Split('.').Last();
                 var newFileName = Path.ChangeExtension(typeName, language == LanguageNames.CSharp ? ".cs" : ".vb");
+                var selectedMembers = viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol);
+
+                if (viewModel.DestinationName.IsNew)
+                {
+                    return new MoveStaticMembersOptions(
+                        newFileName,
+                        viewModel.PrependedNamespace + viewModel.DestinationName,
+                        selectedMembers);
+                }
+
+                RoslynDebug.AssertNotNull(viewModel.DestinationName.NamedType);
+
                 return new MoveStaticMembersOptions(
-                    newFileName,
-                    viewModel.PrependedNamespace + viewModel.DestinationName,
-                    viewModel.MemberSelectionViewModel.CheckedMembers.SelectAsArray(vm => vm.Symbol));
+                    viewModel.DestinationName.NamedType,
+                    selectedMembers);
             }
 
             return MoveStaticMembersOptions.Cancelled;

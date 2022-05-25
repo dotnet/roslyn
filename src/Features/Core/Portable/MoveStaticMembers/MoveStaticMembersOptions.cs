@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveStaticMembers
 {
@@ -33,13 +34,15 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
             isCancelled: true);
 
         public MoveStaticMembersOptions(
-            string fileName,
             INamedTypeSymbol destination,
             ImmutableArray<ISymbol> selectedMembers,
             bool isCancelled = false)
         {
+            var sourceLocation = destination.Locations.First(l => l.IsInSource);
+            RoslynDebug.AssertNotNull(sourceLocation.SourceTree);
+
             IsCancelled = isCancelled;
-            FileName = fileName;
+            FileName = sourceLocation.SourceTree.FilePath;
             IsNewType = false;
             Destination = destination;
             TypeName = null;

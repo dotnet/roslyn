@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.VisualStudio.Imaging;
@@ -53,7 +54,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembe
 
         public void OnDestinationUpdated()
         {
-            CanSubmit = _destinationName.IsNew && IsValidType(_destinationName.TypeName);
+            if (!_destinationName.IsNew)
+            {
+                CanSubmit = true;
+                ShowMessage = false;
+                return;
+            }
+
+            CanSubmit = IsValidType(_destinationName.TypeName);
 
             if (CanSubmit)
             {
