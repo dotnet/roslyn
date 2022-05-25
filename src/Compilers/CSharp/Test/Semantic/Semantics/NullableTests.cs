@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -207,7 +209,7 @@ class C
   }
 }";
 
-            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.Fails);
+            verifier = CompileAndVerify(source: source3, expectedOutput: "1", verify: Verification.FailsPEVerify);
             verifier = CompileAndVerify(source: source3, expectedOutput: "1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
         }
 
@@ -266,7 +268,7 @@ class C
 ";
             foreach (string type in new[] { "int", "ushort", "byte", "long", "float", "decimal" })
             {
-                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.Fails);
+                CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", verify: Verification.FailsPEVerify);
                 CompileAndVerify(source: source4.Replace("TYPE", type), expectedOutput: "0", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
             }
         }
@@ -1189,6 +1191,7 @@ class C
                 { "/", "divide" },
                 { "%", "remainder" },
                 { ">>", "rshift" },
+                { ">>>", "urshift" },
                 { "<<", "lshift" },
                 { "&", "and" },
                 { "|", "or" },
@@ -1278,6 +1281,7 @@ class C
                 // UNDONE: so this test is disabled:
                 // UNDONE: Tuple.Create("-", enumSubtraction),
                 Tuple.Create(">>", shift1),
+                Tuple.Create(">>>", shift1),
                 Tuple.Create("<<", shift2),
                 Tuple.Create("&", logical1),
                 Tuple.Create("|", logical2),
@@ -2108,5 +2112,34 @@ class Test
         }
 
         #endregion
+
+        [Fact]
+        public void UserDefinedConversion_01()
+        {
+            var source = @"
+
+
+_ = (bool?)new S();
+bool? z;
+z = new S();
+
+z.GetValueOrDefault();
+
+struct S
+{
+    [System.Obsolete()]
+    public static implicit operator bool(S s) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (4,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // _ = (bool?)new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "(bool?)new S()").WithArguments("S.implicit operator bool(S)").WithLocation(4, 5),
+                // (6,5): warning CS0612: 'S.implicit operator bool(S)' is obsolete
+                // z = new S();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new S()").WithArguments("S.implicit operator bool(S)").WithLocation(6, 5)
+                );
+        }
     }
 }

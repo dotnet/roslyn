@@ -4,6 +4,7 @@
 
 Imports System.Collections.Concurrent
 Imports System.Collections.Generic
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.RuntimeMembers
@@ -16,10 +17,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend Structure AliasAndImportsClausePosition
         Public ReadOnly [Alias] As AliasSymbol
         Public ReadOnly ImportsClausePosition As Integer
+        Public ReadOnly SyntaxReference As SyntaxReference
+        Public ReadOnly Dependencies As ImmutableArray(Of AssemblySymbol)
 
-        Public Sub New([alias] As AliasSymbol, importsClausePosition As Integer)
+        Public Sub New([alias] As AliasSymbol, importsClausePosition As Integer, syntaxReference As SyntaxReference, dependencies As ImmutableArray(Of AssemblySymbol))
             Me.Alias = [alias]
             Me.ImportsClausePosition = importsClausePosition
+            Me.SyntaxReference = syntaxReference
+            Me.Dependencies = dependencies
         End Sub
     End Structure
 End Namespace

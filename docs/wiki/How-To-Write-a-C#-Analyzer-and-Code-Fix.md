@@ -1,9 +1,9 @@
 ## Prerequisites
 * [Visual Studio 2015](https://www.visualstudio.com/downloads)
 * [.NET Compiler Platform SDK](https://aka.ms/roslynsdktemplates)
-* [Getting Started C# Syntax Analysis](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Syntax-Analysis.md)
-* [Getting Started C# Semantic Analysis](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Semantic-Analysis.md)
-* [Getting Started C# Syntax Transformation](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Getting-Started-C%23-Syntax-Transformation.md)
+* [Getting Started C# Syntax Analysis](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-C%23-Syntax-Analysis.md)
+* [Getting Started C# Semantic Analysis](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-C%23-Semantic-Analysis.md)
+* [Getting Started C# Syntax Transformation](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Getting-Started-C%23-Syntax-Transformation.md)
 
 ## Introduction
 In previous releases of Visual Studio, it has been difficult to create custom warnings that target C# or Visual Basic. With the Diagnostics API in the .NET Compiler Platform ("Roslyn"), this once difficult task has become easy! All that is needed is to perform a bit of analysis to identify an issue, and optionally provide a tree transformation as a code fix. The heavy lifting of running your analysis on a background thread, showing squiggly underlines in the editor, populating the Visual Studio Error List, creating "light bulb" suggestions and showing rich previews is all done for you automatically.

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 
     Public Class SyntaxUtilitiesTests
 
-        Private Sub VerifySyntaxMap(oldSource As String, newSource As String)
+        Private Shared Sub VerifySyntaxMap(oldSource As String, newSource As String)
 
             Dim oldRoot = SyntaxFactory.ParseSyntaxTree(oldSource).GetRoot()
             Dim newRoot = SyntaxFactory.ParseSyntaxTree(newSource).GetRoot()

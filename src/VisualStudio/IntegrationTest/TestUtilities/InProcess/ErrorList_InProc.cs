@@ -23,9 +23,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void ShowErrorList()
             => ExecuteCommand("View.ErrorList");
 
-        public int ErrorListErrorCount
-            => GetErrorCount();
-
         public void WaitForNoErrorsInErrorList(TimeSpan timeout)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -45,22 +42,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
                 Thread.Yield();
             }
-        }
-
-        public ErrorListItem NavigateToErrorListItem(int itemIndex, __VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
-        {
-            var errorItems = GetErrorItems()
-                .AsEnumerable()
-                .Where(e => ((IVsErrorItem)e).GetCategory() <= minimumSeverity)
-                .ToArray();
-            if (itemIndex > errorItems.Count())
-            {
-                throw new ArgumentException($"Cannot Navigate to Item '{itemIndex}', Total Items found '{errorItems.Count()}'.");
-            }
-
-            var item = errorItems.ElementAt(itemIndex);
-            ErrorHandler.ThrowOnFailure(item.NavigateTo());
-            return new ErrorListItem(item.GetSeverity(), item.GetDescription(), item.GetProject(), item.GetFileName(), item.GetLine(), item.GetColumn());
         }
 
         public int GetErrorCount(__VSERRORCATEGORY minimumSeverity = __VSERRORCATEGORY.EC_WARNING)
@@ -100,7 +81,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
-        private IVsEnumTaskItems GetErrorItems()
+        private static IVsEnumTaskItems GetErrorItems()
         {
             return InvokeOnUIThread(cancellationToken =>
             {
@@ -148,7 +129,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public static string GetProject(this IVsTaskItem item)
         {
-            var errorItem = item as IVsErrorItem;
+            var errorItem = (IVsErrorItem)item;
             ErrorHandler.ThrowOnFailure(errorItem.GetHierarchy(out var hierarchy));
             ErrorHandler.ThrowOnFailure(hierarchy.GetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_Name, out var name));
             return (string)name;

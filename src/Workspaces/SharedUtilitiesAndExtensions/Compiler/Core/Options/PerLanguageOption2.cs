@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 
@@ -52,21 +50,56 @@ namespace Microsoft.CodeAnalysis.Options
         public ImmutableArray<OptionStorageLocation2> StorageLocations { get; }
 
         public PerLanguageOption2(string feature, string name, T defaultValue)
-            : this(feature, name, defaultValue, storageLocations: Array.Empty<OptionStorageLocation2>())
+            : this(feature, name, defaultValue, storageLocations: ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
-        public PerLanguageOption2(string feature, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
+        public PerLanguageOption2(
+            string feature, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation)
+            : this(feature, group: OptionGroup.Default, name, defaultValue, ImmutableArray.Create(storageLocation))
+        {
+        }
+
+        public PerLanguageOption2(
+            string feature, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation1,
+            OptionStorageLocation2 storageLocation2,
+            OptionStorageLocation2 storageLocation3)
+            : this(feature, group: OptionGroup.Default, name, defaultValue,
+                  ImmutableArray.Create(storageLocation1, storageLocation2, storageLocation3))
+        {
+        }
+
+        public PerLanguageOption2(
+            string feature, string name, T defaultValue,
+            ImmutableArray<OptionStorageLocation2> storageLocations)
             : this(feature, group: OptionGroup.Default, name, defaultValue, storageLocations)
         {
         }
 
-        internal PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue, params OptionStorageLocation2[] storageLocations)
-            : this(feature, group, name, defaultValue, storageLocations.ToImmutableArray())
+        internal PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue)
+            : this(feature, group, name, defaultValue, ImmutableArray<OptionStorageLocation2>.Empty)
         {
         }
 
-        internal PerLanguageOption2(string feature, OptionGroup group, string name, T defaultValue, ImmutableArray<OptionStorageLocation2> storageLocations)
+        internal PerLanguageOption2(
+            string feature, OptionGroup group, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation)
+            : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation))
+        {
+        }
+
+        internal PerLanguageOption2(
+            string feature, OptionGroup group, string name, T defaultValue,
+            OptionStorageLocation2 storageLocation1, OptionStorageLocation2 storageLocation2)
+            : this(feature, group, name, defaultValue, ImmutableArray.Create(storageLocation1, storageLocation2))
+        {
+        }
+
+        internal PerLanguageOption2(
+            string feature, OptionGroup group, string name, T defaultValue,
+            ImmutableArray<OptionStorageLocation2> storageLocations)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {

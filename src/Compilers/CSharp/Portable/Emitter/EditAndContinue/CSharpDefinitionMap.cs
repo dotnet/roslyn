@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -30,12 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             IEnumerable<SemanticEdit> edits,
             MetadataDecoder metadataDecoder,
             CSharpSymbolMatcher mapToMetadata,
-            CSharpSymbolMatcher mapToPrevious)
+            CSharpSymbolMatcher? mapToPrevious)
             : base(edits)
         {
-            Debug.Assert(metadataDecoder != null);
-            Debug.Assert(mapToMetadata != null);
-
             _metadataDecoder = metadataDecoder;
             _mapToMetadata = mapToMetadata;
             _mapToPrevious = mapToPrevious ?? mapToMetadata;
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override SymbolMatcher MapToMetadataSymbolMatcher => _mapToMetadata;
         protected override SymbolMatcher MapToPreviousSymbolMatcher => _mapToPrevious;
 
-        protected override ISymbolInternal GetISymbolInternalOrNull(ISymbol symbol)
+        protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
             return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;
         }
@@ -55,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         protected override LambdaSyntaxFacts GetLambdaSyntaxFacts()
             => CSharpLambdaSyntaxFacts.Instance;
 
-        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, out string name, out int index)
+        internal bool TryGetAnonymousTypeName(AnonymousTypeManager.AnonymousTypeTemplateSymbol template, [NotNullWhen(true)] out string? name, out int index)
             => _mapToPrevious.TryGetAnonymousTypeName(template, out name, out index);
 
         internal override bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PENamedTypeSymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PENamedTypeSymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEEventSymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEEventSymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetFieldHandle(Cci.IFieldDefinition def, out FieldDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEFieldSymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEFieldSymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -96,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEMethodSymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEMethodSymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -108,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal override bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle)
         {
-            if (_mapToMetadata.MapDefinition(def) is PEPropertySymbol other)
+            if (_mapToMetadata.MapDefinition(def)?.GetInternalSymbol() is PEPropertySymbol other)
             {
                 handle = other.Handle;
                 return true;
@@ -129,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Debug.Assert(stateMachineType.ContainingAssembly is PEAssemblySymbol);
 
             var hoistedLocals = new Dictionary<EncHoistedLocalInfo, int>();
-            var awaiters = new Dictionary<Cci.ITypeReference, int>();
+            var awaiters = new Dictionary<Cci.ITypeReference, int>(Cci.SymbolEquivalentEqualityComparer.Instance);
             int maxAwaiterSlotIndex = -1;
 
             foreach (var member in ((TypeSymbol)stateMachineType).GetMembers())
@@ -139,15 +137,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     string name = member.Name;
                     int slotIndex;
 
-                    switch (GeneratedNames.GetKind(name))
+                    switch (GeneratedNameParser.GetKind(name))
                     {
                         case GeneratedNameKind.AwaiterField:
-                            if (GeneratedNames.TryParseSlotIndex(name, out slotIndex))
+                            if (GeneratedNameParser.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;
 
                                 // correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters[(Cci.ITypeReference)field.Type] = slotIndex;
+                                awaiters[(Cci.ITypeReference)field.Type.GetCciAdapter()] = slotIndex;
 
                                 if (slotIndex > maxAwaiterSlotIndex)
                                 {
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                         case GeneratedNameKind.HoistedLocalField:
                         case GeneratedNameKind.HoistedSynthesizedLocalField:
-                            if (GeneratedNames.TryParseSlotIndex(name, out slotIndex))
+                            if (GeneratedNameParser.TryParseSlotIndex(name, out slotIndex))
                             {
                                 var field = (FieldSymbol)member;
                                 if (slotIndex >= localSlotDebugInfo.Length)
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                     continue;
                                 }
 
-                                var key = new EncHoistedLocalInfo(localSlotDebugInfo[slotIndex], (Cci.ITypeReference)field.Type);
+                                var key = new EncHoistedLocalInfo(localSlotDebugInfo[slotIndex], (Cci.ITypeReference)field.Type.GetCciAdapter());
 
                                 // correct metadata won't contain duplicate ids, but malformed might, ignore the duplicate:
                                 hoistedLocals[key] = slotIndex;
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return result;
         }
 
-        protected override ITypeSymbolInternal TryGetStateMachineType(EntityHandle methodHandle)
+        protected override ITypeSymbolInternal? TryGetStateMachineType(EntityHandle methodHandle)
         {
             string typeName;
             if (_metadataDecoder.Module.HasStringValuedAttribute(methodHandle, AttributeDescription.AsyncStateMachineAttribute, out typeName) ||
@@ -237,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         // previous version of the local if it had custom modifiers.
                         if (metadata.CustomModifiers.IsDefaultOrEmpty)
                         {
-                            var local = new EncLocalInfo(slot, (Cci.ITypeReference)metadata.Type, metadata.Constraints, metadata.SignatureOpt);
+                            var local = new EncLocalInfo(slot, (Cci.ITypeReference)metadata.Type.GetCciAdapter(), metadata.Constraints, metadata.SignatureOpt);
                             map.Add(local, slotIndex);
                         }
                     }

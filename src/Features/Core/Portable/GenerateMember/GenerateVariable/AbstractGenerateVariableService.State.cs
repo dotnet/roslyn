@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -50,6 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             public bool IsInOutContext { get; private set; }
             public bool IsInMemberContext { get; private set; }
 
+            public bool IsInSourceGeneratedDocument { get; private set; }
             public bool IsInExecutableBlock { get; private set; }
             public bool IsInConditionalAccessExpression { get; private set; }
 
@@ -69,6 +72,29 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
 
                 return state;
+            }
+
+            public Accessibility DetermineMaximalAccessibility()
+            {
+                if (this.TypeToGenerateIn.TypeKind == TypeKind.Interface)
+                    return Accessibility.NotApplicable;
+
+                var accessibility = Accessibility.Public;
+
+                // Ensure that we're not overly exposing a type.
+                var containingTypeAccessibility = this.TypeToGenerateIn.DetermineMinimalAccessibility();
+                var effectiveAccessibility = AccessibilityUtilities.Minimum(
+                    containingTypeAccessibility, accessibility);
+
+                var returnTypeAccessibility = this.TypeMemberType.DetermineMinimalAccessibility();
+
+                if (AccessibilityUtilities.Minimum(effectiveAccessibility, returnTypeAccessibility) !=
+                    effectiveAccessibility)
+                {
+                    return returnTypeAccessibility;
+                }
+
+                return accessibility;
             }
 
             private async Task<bool> TryInitializeAsync(
@@ -122,8 +148,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                 TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateIn, document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
-                if (!service.ValidateTypeToGenerateIn(
-                        document.Project.Solution, TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
+                if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
                 {
                     return false;
                 }
@@ -133,16 +158,24 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return CanGenerateLocal() || CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken);
             }
 
+            internal bool CanGeneratePropertyOrField()
+            {
+                return ContainingType is { IsImplicitClass: false }
+                    && ContainingType.GetMembers(WellKnownMemberNames.TopLevelStatementsEntryPointMethodName).IsEmpty;
+            }
+
             internal bool CanGenerateLocal()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return !IsInMemberContext && IsInExecutableBlock;
+                return !IsInMemberContext && IsInExecutableBlock && !IsInSourceGeneratedDocument;
             }
 
             internal bool CanGenerateParameter()
             {
                 // !this.IsInMemberContext prevents us offering this fix for `x.goo` where `goo` does not exist
-                return ContainingMethod != null && !IsInMemberContext && !IsConstant;
+                // Workaround: The compiler returns IsImplicitlyDeclared = false for <Main>$.
+                return ContainingMethod is { IsImplicitlyDeclared: false, Name: not WellKnownMemberNames.TopLevelStatementsEntryPointMethodName }
+                    && !IsInMemberContext && !IsConstant && !IsInSourceGeneratedDocument;
             }
 
             private bool TryInitializeExplicitInterface(
@@ -248,7 +281,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!service.TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
+                if (!TryDetermineTypeToGenerateIn(semanticDocument, ContainingType, SimpleNameOrMemberAccessExpressionOpt, cancellationToken,
                     out var typeToGenerateIn, out var isStatic))
                 {
                     return false;
@@ -268,9 +301,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 IsInConstructor = DetermineIsInConstructor(semanticDocument, simpleName);
                 IsInMemberContext =
                     simpleName != SimpleNameOrMemberAccessExpressionOpt ||
-                    syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                    syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(SimpleNameOrMemberAccessExpressionOpt);
+                IsInSourceGeneratedDocument = semanticDocument.Document is SourceGeneratedDocument;
 
-                ContainingMethod = semanticModel.GetEnclosingSymbol<IMethodSymbol>(IdentifierToken.SpanStart, cancellationToken);
+                ContainingMethod = FindContainingMethodSymbol(IdentifierToken.SpanStart, semanticModel, cancellationToken);
 
                 CheckSurroundingContext(semanticDocument, SymbolKind.Field, cancellationToken);
                 CheckSurroundingContext(semanticDocument, SymbolKind.Property, cancellationToken);
@@ -312,8 +346,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 
                             if (symbolKind == SymbolKind.Field)
                             {
-                                OfferReadOnlyFieldFirst = FieldIsReadOnly(previousAssignedSymbol) ||
-                                                               FieldIsReadOnly(nextAssignedSymbol);
+                                OfferReadOnlyFieldFirst =
+                                    FieldIsReadOnly(previousAssignedSymbol) || FieldIsReadOnly(nextAssignedSymbol);
                             }
 
                             AfterThisLocation ??= previousAssignedSymbol?.Locations.FirstOrDefault();
@@ -338,7 +372,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         if (syntaxFacts.IsSimpleAssignmentStatement(siblingNode))
                         {
                             syntaxFacts.GetPartsOfAssignmentStatement(
-                                siblingNode, out var left, out var right);
+                                siblingNode, out var left, out _);
 
                             var symbol = semanticDocument.SemanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
                             if (symbol?.Kind == symbolKind &&
@@ -353,10 +387,26 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return null;
             }
 
-            private bool FieldIsReadOnly(ISymbol symbol)
+            private static IMethodSymbol FindContainingMethodSymbol(int position, SemanticModel semanticModel, CancellationToken cancellationToken)
+            {
+                var symbol = semanticModel.GetEnclosingSymbol(position, cancellationToken);
+                while (symbol != null)
+                {
+                    if (symbol is IMethodSymbol method && !method.IsAnonymousFunction())
+                    {
+                        return method;
+                    }
+
+                    symbol = symbol.ContainingSymbol;
+                }
+
+                return null;
+            }
+
+            private static bool FieldIsReadOnly(ISymbol symbol)
                 => symbol is IFieldSymbol field && field.IsReadOnly;
 
-            private int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
+            private static int GetStatementIndex(ChildSyntaxList children, SyntaxNode statement)
             {
                 var index = 0;
                 foreach (var child in children)
@@ -415,11 +465,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 var enclosingMethodSymbol = semanticDocument.SemanticModel.GetEnclosingSymbol<IMethodSymbol>(SimpleNameOrMemberAccessExpressionOpt.SpanStart, cancellationToken);
                 if (enclosingMethodSymbol != null && enclosingMethodSymbol.TypeParameters != null && enclosingMethodSymbol.TypeParameters.Length != 0)
                 {
-                    var combinedTypeParameters = new List<ITypeParameterSymbol>();
+                    using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var combinedTypeParameters);
                     combinedTypeParameters.AddRange(availableTypeParameters);
                     combinedTypeParameters.AddRange(enclosingMethodSymbol.TypeParameters);
-                    LocalType = inferredType.RemoveUnavailableTypeParameters(
-                    compilation, combinedTypeParameters);
+                    LocalType = inferredType.RemoveUnavailableTypeParameters(compilation, combinedTypeParameters);
                 }
                 else
                 {

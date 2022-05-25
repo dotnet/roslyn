@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -12,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
     {
         private const string InitializeObjectE = @"object e = new object();
 ";
-
-#if !CODE_STYLE
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterIsKeyword()
@@ -122,6 +123,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInMiddleofCompletePattern_EmptyListPattern()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
+@"if (e is ($$ []) and var x)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAtBeginningOfSwitchExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(InitializeObjectE +
@@ -219,6 +227,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInsideSubpattern_ExtendedProperty()
+        {
+            await VerifyKeywordAsync(
+@"class C
+{
+    public C P { get; }
+    public int P2 { get; }
+
+    void M(C test)
+    {
+        if (test is { P.P2: $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInsideSubpattern_AfterOpenParen()
         {
             await VerifyKeywordAsync(
@@ -271,6 +293,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyAbsenceAsync(AddInsideMethod(InitializeObjectE +
 @"if (e is >= 0 $$"));
         }
-#endif
+
+        [WorkItem(61184, "https://github.com/dotnet/roslyn/issues/61184")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [InlineData("and")]
+        [InlineData("or")]
+        public async Task TestAfterIdentifierPatternKeyword(string precedingKeyword)
+        {
+            await VerifyKeywordAsync(InitializeObjectE +
+$@"if (e is Test.TestValue {precedingKeyword} $$)
+
+enum Test {{ TestValue }}");
+        }
     }
 }

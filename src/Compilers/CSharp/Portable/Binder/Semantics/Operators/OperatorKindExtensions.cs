@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
@@ -328,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsShift(this BinaryOperatorKind kind)
         {
             BinaryOperatorKind type = kind.Operator();
-            return type == BinaryOperatorKind.LeftShift || type == BinaryOperatorKind.RightShift;
+            return type == BinaryOperatorKind.LeftShift || type == BinaryOperatorKind.RightShift || type == BinaryOperatorKind.UnsignedRightShift;
         }
 
         public static ExpressionType ToExpressionType(this BinaryOperatorKind kind, bool isCompoundAssignment)

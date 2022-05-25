@@ -40,11 +40,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Not IsInImplementsClause(node)
         End Function
 
-        Private Function IsInImplementsClause(node As SyntaxNode) As Boolean
+        Private Shared Function IsInImplementsClause(node As SyntaxNode) As Boolean
             Return node.AncestorsAndSelf.Where(Function(n) n.IsKind(SyntaxKind.ImplementsClause)).Where(Function(n) n.Span.Contains(node.Span)).Any
         End Function
 
-        Private Function IsInMemberAccessExpression(node As SyntaxNode) As Boolean
+        Private Shared Function IsInMemberAccessExpression(node As SyntaxNode) As Boolean
             Return node.AncestorsAndSelf.Where(Function(n) n.IsKind(SyntaxKind.SimpleMemberAccessExpression)).Where(Function(n) n.Span.Contains(node.Span)).Any
         End Function
 
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Return False
         End Function
 
-        Private Function TryGetConversionMethodAndTypeToGenerateIn(document As SemanticDocument, expression As SyntaxNode, classInterfaceModuleStructTypes As ISet(Of TypeKind), cancellationToken As CancellationToken, ByRef methodSymbol As IMethodSymbol, ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+        Private Shared Function TryGetConversionMethodAndTypeToGenerateIn(document As SemanticDocument, expression As SyntaxNode, classInterfaceModuleStructTypes As ISet(Of TypeKind), cancellationToken As CancellationToken, ByRef methodSymbol As IMethodSymbol, ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
             Dim castExpression = TryCast(expression.AncestorsAndSelf.Where(AddressOf IsCastExpression).Where(Function(n) n.Span.Contains(expression.Span)).FirstOrDefault, CastExpressionSyntax)
             If castExpression IsNot Nothing Then
                 Return TryGetExplicitConversionMethodAndTypeToGenerateIn(
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             Return TypeOf node Is DirectCastExpressionSyntax OrElse TypeOf node Is CTypeExpressionSyntax OrElse TypeOf node Is TryCastExpressionSyntax
         End Function
 
-        Private Function TryGetExplicitConversionMethodAndTypeToGenerateIn(document As SemanticDocument, castExpression As CastExpressionSyntax, classInterfaceModuleStructTypes As ISet(Of TypeKind), cancellationToken As CancellationToken, ByRef methodSymbol As IMethodSymbol, ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+        Private Shared Function TryGetExplicitConversionMethodAndTypeToGenerateIn(document As SemanticDocument, castExpression As CastExpressionSyntax, classInterfaceModuleStructTypes As ISet(Of TypeKind), cancellationToken As CancellationToken, ByRef methodSymbol As IMethodSymbol, ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
             methodSymbol = Nothing
             typeToGenerateIn = TryCast(document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type, INamedTypeSymbol)
             Dim parameterSymbol = TryCast(document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type, INamedTypeSymbol)
@@ -119,13 +119,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             End If
 
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol)
-            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
+            If Not ValidateTypeToGenerateIn(typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
+
             Return True
         End Function
 
-        Private Function TryGetImplicitConversionMethodAndTypeToGenerateIn(document As SemanticDocument, expression As SyntaxNode, classInterfaceModuleStructTypes As ISet(Of TypeKind), cancellationToken As CancellationToken, ByRef methodSymbol As IMethodSymbol, ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
+        Private Shared Function TryGetImplicitConversionMethodAndTypeToGenerateIn(document As SemanticDocument, expression As SyntaxNode, classInterfaceModuleStructTypes As ISet(Of TypeKind), cancellationToken As CancellationToken, ByRef methodSymbol As IMethodSymbol, ByRef typeToGenerateIn As INamedTypeSymbol) As Boolean
             methodSymbol = Nothing
             typeToGenerateIn = TryCast(document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType, INamedTypeSymbol)
             Dim parameterSymbol = TryCast(document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type, INamedTypeSymbol)
@@ -134,16 +135,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
             End If
 
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol)
-            If Not ValidateTypeToGenerateIn(document.Project.Solution, typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
+            If Not ValidateTypeToGenerateIn(typeToGenerateIn, True, classInterfaceModuleStructTypes) Then
                 typeToGenerateIn = parameterSymbol
             End If
+
             Return True
         End Function
 
-        Private Function GenerateMethodSymbol(typeToGenerateIn As INamedTypeSymbol, parameterSymbol As INamedTypeSymbol) As IMethodSymbol
+        Private Shared Function GenerateMethodSymbol(typeToGenerateIn As INamedTypeSymbol, parameterSymbol As INamedTypeSymbol) As IMethodSymbol
             If typeToGenerateIn.IsGenericType Then
                 typeToGenerateIn = typeToGenerateIn.ConstructUnboundGenericType.ConstructedFrom
             End If
+
             Return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Nothing,

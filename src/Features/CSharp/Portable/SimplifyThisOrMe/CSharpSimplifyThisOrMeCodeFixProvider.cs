@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
 
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly ISet<MemberAccessExpressionSyntax> memberAccessNodes;
+            private readonly ISet<MemberAccessExpressionSyntax> _memberAccessNodes;
 
             public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
-                => this.memberAccessNodes = memberAccessNodes;
+                => _memberAccessNodes = memberAccessNodes;
 
-            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-                => memberAccessNodes.Contains(node)
+            public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+                => _memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
         }

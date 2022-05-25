@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             Cci.ITypeReference Cci.ITypeDefinition.GetBaseClass(EmitContext context)
             {
-                return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+                return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, context.Diagnostics);
             }
 
             IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
@@ -531,7 +533,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNode, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {
@@ -554,6 +556,8 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 return this;
             }
+
+            CodeAnalysis.Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
             bool Cci.ITypeReference.IsEnum
             {
@@ -697,7 +701,19 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             /// </remarks>
             public override string ToString()
             {
-                return ((ISymbolInternal)UnderlyingNamedType).GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+                return UnderlyingNamedType.GetInternalSymbol().GetISymbol().ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            }
+
+            public sealed override int GetHashCode()
+            {
+                // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+                throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
             }
         }
     }

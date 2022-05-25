@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
             private CancellationToken _cancellationToken;
             private PooledDictionary<IAssignmentOperation, PooledHashSet<(ISymbol, IOperation)>> _pendingWritesMap;
 
-            private static readonly ObjectPool<Walker> s_visitorPool = new ObjectPool<Walker>(() => new Walker());
+            private static readonly ObjectPool<Walker> s_visitorPool = new(() => new Walker());
             private Walker() { }
 
             public static void AnalyzeOperationsAndUpdateData(
@@ -80,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         pendingWrites.Free();
                     }
+
                     _pendingWritesMap.Free();
                     _pendingWritesMap = null;
                 }
@@ -302,6 +305,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                         {
                             _currentAnalysisData.ResetState();
                         }
+
                         break;
 
                     case MethodKind.LocalFunction:
@@ -436,6 +440,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         case OperationKind.LocalReference:
@@ -453,6 +458,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                             {
                                 _currentAnalysisData.SetEmptyInvocationTargetsForDelegate(write);
                             }
+
                             return;
 
                         default:

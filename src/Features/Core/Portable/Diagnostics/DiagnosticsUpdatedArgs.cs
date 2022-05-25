@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public DiagnosticsUpdatedKind Kind { get; }
         public Solution? Solution { get; }
-        public ImmutableArray<DiagnosticData> Diagnostics { get; }
+
+        private readonly ImmutableArray<DiagnosticData> _diagnostics;
 
         private DiagnosticsUpdatedArgs(
             object id,
@@ -32,9 +32,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
 
             Solution = solution;
-            Diagnostics = diagnostics;
             Kind = kind;
+            _diagnostics = diagnostics;
         }
+
+        /// <summary>
+        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
+        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
+        /// and then forwarding on later on to other clients that will make this decision.
+        /// </summary>
+        /// <returns></returns>
+        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
+            => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -1887,13 +1889,13 @@ public class C
 [assembly:System.CLSCompliant(true)]
 
 public class A { }
-public class a { }
+public class @a { }
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3005: Identifier 'a' differing only in case is not CLS-compliant
-                // public class a { }
-                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "a").WithArguments("a"));
+                // public class @a { }
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "@a").WithArguments("a").WithLocation(5, 14));
         }
 
         [Fact]
@@ -1903,7 +1905,7 @@ public class a { }
 [assembly:System.CLSCompliant(true)]
 
 public class A { }
-public class a<T> { } //CS3005
+public class @a<T> { } //CS3005
 
 public class B { }
 public class B<T> { } //Fine (since identical name)
@@ -1911,8 +1913,8 @@ public class B<T> { } //Fine (since identical name)
 
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,14): warning CS3005: Identifier 'a<T>' differing only in case is not CLS-compliant
-                // public class a<T> { } //CS3005
-                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "a").WithArguments("a<T>"));
+                // public class @a<T> { } //CS3005
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, "@a").WithArguments("a<T>").WithLocation(5, 14));
         }
 
         [Fact]
@@ -2744,10 +2746,13 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,13): error CS0116: A namespace does not directly contain members such as fields or methods
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (5,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(5, 1),
+                // (5,13): warning CS8321: The local function 'M' is declared but never used
+                // public void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(5, 13));
         }
 
         [Fact]
@@ -2762,10 +2767,13 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (5,13): error CS0116: A namespace does not directly contain members such as fields or methods
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (7,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 1),
+                // (7,13): warning CS8321: The local function 'M' is declared but never used
+                // public void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(7, 13));
         }
 
         [Fact]
@@ -2780,10 +2788,13 @@ using System;
 public void M() { }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,13): error CS0116: A namespace does not directly contain members such as fields or methods
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (7,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void M() { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M"));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(7, 1),
+                // (7,13): warning CS8321: The local function 'M' is declared but never used
+                // public void M() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(7, 13));
         }
 
         [Fact]
@@ -2905,6 +2916,7 @@ public class C
                     case SpecialType.System_Void:
                     case SpecialType.System_Runtime_CompilerServices_IsVolatile: // static
                     case SpecialType.System_Runtime_CompilerServices_RuntimeFeature: // static and not available
+                    case SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute: // not available
                         continue;
                 }
 

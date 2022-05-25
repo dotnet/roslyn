@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     Location.Create(@"Relative Additional/Location.cs", span, position),
                 };
 
-                logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations));
+                logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations), null);
             }
 
             string actual = Encoding.UTF8.GetString(stream.ToArray());
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 {
                     foreach (var descriptor in descriptors)
                     {
-                        logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None));
+                        logger.LogDiagnostic(Diagnostic.Create(descriptor, Location.None), null);
                     }
                 }
             }
@@ -118,7 +120,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         DiagnosticSeverity.Warning,
                         isEnabledByDefault: true,
                         warningLevel: 3,
-                        location: location));
+                        location: location),
+                        null);
                 }
 
                 var buffer = stream.ToArray();

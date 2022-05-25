@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_ImplicitInvokeCalls()
         {
             var markup = @"
@@ -30,7 +32,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -48,7 +50,7 @@ class C
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_ExplicitInvokeCalls()
         {
             var markup = @"
@@ -64,7 +66,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -82,7 +84,7 @@ class C
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_BeginInvokeCalls()
         {
             var markup = @"
@@ -98,7 +100,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -116,7 +118,7 @@ class C
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_AnonymousMethods()
         {
             var markup = @"
@@ -133,7 +135,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -151,7 +153,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_Lambdas()
         {
             var markup = @"
@@ -167,7 +169,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -184,7 +186,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_Lambdas_RemovingOnlyParameterIntroducesParentheses()
         {
             var markup = @"
@@ -201,7 +203,7 @@ class C
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 delegate void MyDelegate(int newIntegerParameter);
@@ -219,7 +221,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_CascadeThroughMethodGroups_AssignedToVariable()
         {
             var markup = @"
@@ -240,7 +242,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -262,7 +264,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_CascadeThroughMethodGroups_DelegateConstructor()
         {
             var markup = @"
@@ -282,7 +284,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -303,7 +305,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_CascadeThroughMethodGroups_PassedAsArgument()
         {
             var markup = @"
@@ -325,7 +327,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -348,7 +350,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_CascadeThroughMethodGroups_ReturnValue()
         {
             var markup = @"
@@ -372,7 +374,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -397,7 +399,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_CascadeThroughMethodGroups_YieldReturnValue()
         {
             var markup = @"
@@ -422,7 +424,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -448,7 +450,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_ReferencingLambdas_MethodArgument()
         {
             var markup = @"
@@ -465,7 +467,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -483,7 +485,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_ReferencingLambdas_YieldReturn()
         {
             var markup = @"
@@ -499,7 +501,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -516,7 +518,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_Recursive()
         {
             var markup = @"
@@ -532,7 +534,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -549,7 +551,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_DocComments()
         {
             var markup = @"
@@ -580,7 +582,7 @@ class C
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -612,7 +614,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_CascadeThroughEventAdd()
         {
             var markup = @"
@@ -630,7 +632,7 @@ class Program
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"
@@ -649,7 +651,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_Generics1()
         {
             var markup = @"
@@ -671,7 +673,7 @@ public class DP16a
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 public class DP16a
@@ -694,7 +696,7 @@ public class DP16a
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_Generics2()
         {
             var markup = @"
@@ -708,7 +710,7 @@ public class D17Test
     internal void M17(string s) { }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 public class D17<T>
@@ -723,7 +725,7 @@ public class D17Test
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_GenericParams()
         {
             var markup = @"
@@ -749,7 +751,7 @@ public class DP20<T>
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
             };
             var expectedUpdatedCode = @"
 class DA
@@ -776,7 +778,7 @@ public class DP20<T>
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegates_Generic_RemoveArgumentAtReference()
         {
             var markup = @"public class CD<T>
@@ -791,7 +793,7 @@ class Test
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int")
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
             };
             var expectedUpdatedCode = @"public class CD<T>
 {
@@ -808,7 +810,7 @@ class Test
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task AddParameter_Delegate_Generics_RemoveStaticArgument()
         {
             var markup = @"
@@ -829,7 +831,7 @@ public class D2
     }
 }";
             var updatedSignature = new[] {
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int")
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int")
             };
             var expectedUpdatedCode = @"
 public class C2<T>
@@ -851,7 +853,7 @@ public class D2
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task TestAddParameter_Delegates_Relaxation_ParameterlessFunctionToFunction()
         {
             var markup = @"
@@ -874,7 +876,7 @@ class C0
 }";
             var updatedSignature = new[] {
                 new AddedParameterOrExistingIndex(2),
-                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", "12345"), "int"),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, "12345"), "int"),
                 new AddedParameterOrExistingIndex(1)
             };
             var expectedUpdatedCode = @"

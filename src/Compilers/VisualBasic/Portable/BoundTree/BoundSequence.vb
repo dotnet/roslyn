@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundSequence
+    Partial Friend Class BoundSequence
 
         Public Overrides ReadOnly Property IsLValue As Boolean
             Get

@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -52,6 +52,39 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return result.ToImmutableAndFree();
+        }
+
+        public static IPropertySymbol? GetAssociatedSynthesizedRecordProperty(this IParameterSymbol parameter, CancellationToken cancellationToken)
+        {
+            if (parameter is
+                {
+                    DeclaringSyntaxReferences.Length: > 0,
+                    ContainingSymbol: IMethodSymbol
+                    {
+                        MethodKind: MethodKind.Constructor,
+                        DeclaringSyntaxReferences.Length: > 0,
+                        ContainingType: { IsRecord: true } containingType,
+                    } constructor,
+                })
+            {
+                // ok, we have a record constructor.  This might be the primary constructor or not.
+                var parameterSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                if (containingType.DeclaringSyntaxReferences.Any(r => r.GetSyntax(cancellationToken) == constructorSyntax))
+                {
+                    // this was a primary constructor. see if we can map this parameter to a corresponding synthesized property 
+                    foreach (var member in containingType.GetMembers(parameter.Name))
+                    {
+                        if (member is IPropertySymbol { DeclaringSyntaxReferences.Length: > 0 } property &&
+                            property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) == parameterSyntax)
+                        {
+                            return property;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                              {
                                 TestResources.SymbolsTests.Fields.CSFields,
                                 TestResources.SymbolsTests.Fields.VBFields,
-                                TestResources.NetFX.v4_0_21006.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              }, importInternals:=True)
 
             Dim module1 = assemblies(0).Modules(0)
@@ -89,8 +89,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.False(f6.IsConst)
             Assert.False(f6.IsReadOnly)
             Assert.False(f6.IsShared)
-            Assert.Equal(0, f6.CustomModifiers.Length)
-            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(f6.Type)
+            Assert.False(f6.CustomModifiers.Single().IsOptional)
+            Assert.Equal("System.Runtime.CompilerServices.IsVolatile", f6.CustomModifiers.Single().Modifier.ToTestDisplayString())
+            Assert.True(f6.HasUnsupportedMetadata)
 
             Assert.Equal(3, csFields.GetMembers("FFF").Length())
             Assert.Equal(3, csFields.GetMembers("Fff").Length())
@@ -102,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                              {
                                 TestResources.SymbolsTests.Fields.ConstantFields,
-                                TestResources.NetFX.v4_0_21006.mscorlib
+                                TestMetadata.ResourcesNet40.mscorlib
                              })
 
             Dim module1 = assemblies(0).Modules(0)
@@ -137,42 +138,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(Int64Field.IsConst)
             Assert.True(Int64Field.HasConstantValue)
             Assert.Equal(Int64Field.ConstantValue, 634315546432909307)
-            Assert.Equal(ConstantValueTypeDiscriminator.Int64, Int64Field.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(634315546432909307, Int64Field.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Int64Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.Int64, Int64Field.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(634315546432909307, Int64Field.GetConstantValue(ConstantFieldsInProgress.Empty).Int64Value)
 
             Assert.True(DateTimeField.IsConst)
             Assert.True(DateTimeField.HasConstantValue)
             Assert.Equal(DateTimeField.ConstantValue, New DateTime(634315546432909307))
-            Assert.Equal(ConstantValueTypeDiscriminator.DateTime, DateTimeField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(New DateTime(634315546432909307), DateTimeField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).DateTimeValue)
+            Assert.Equal(ConstantValueTypeDiscriminator.DateTime, DateTimeField.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(New DateTime(634315546432909307), DateTimeField.GetConstantValue(ConstantFieldsInProgress.Empty).DateTimeValue)
 
             Assert.True(SingleField.IsConst)
             Assert.True(SingleField.HasConstantValue)
             Assert.Equal(SingleField.ConstantValue, 9.0F)
-            Assert.Equal(ConstantValueTypeDiscriminator.Single, SingleField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(9.0F, SingleField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).SingleValue)
+            Assert.Equal(ConstantValueTypeDiscriminator.Single, SingleField.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(9.0F, SingleField.GetConstantValue(ConstantFieldsInProgress.Empty).SingleValue)
 
             Assert.True(DoubleField.IsConst)
             Assert.True(DoubleField.HasConstantValue)
             Assert.Equal(DoubleField.ConstantValue, -10.0)
-            Assert.Equal(ConstantValueTypeDiscriminator.Double, DoubleField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(-10.0, DoubleField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).DoubleValue)
+            Assert.Equal(ConstantValueTypeDiscriminator.Double, DoubleField.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(-10.0, DoubleField.GetConstantValue(ConstantFieldsInProgress.Empty).DoubleValue)
 
             Assert.True(StringField.IsConst)
             Assert.True(StringField.HasConstantValue)
             Assert.Equal(StringField.ConstantValue, "11")
-            Assert.Equal(ConstantValueTypeDiscriminator.String, StringField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal("11", StringField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).StringValue)
+            Assert.Equal(ConstantValueTypeDiscriminator.String, StringField.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal("11", StringField.GetConstantValue(ConstantFieldsInProgress.Empty).StringValue)
 
             Assert.True(StringNullField.IsConst)
             Assert.True(StringNullField.HasConstantValue)
             Assert.Null(StringNullField.ConstantValue)
-            Assert.Equal(ConstantValueTypeDiscriminator.Nothing, StringNullField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
+            Assert.Equal(ConstantValueTypeDiscriminator.Nothing, StringNullField.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
 
             Assert.True(ObjectNullField.IsConst)
             Assert.True(ObjectNullField.HasConstantValue)
             Assert.Null(ObjectNullField.ConstantValue)
-            Assert.Equal(ConstantValueTypeDiscriminator.Nothing, ObjectNullField.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
+            Assert.Equal(ConstantValueTypeDiscriminator.Nothing, ObjectNullField.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
 
 
             'ByteValue = 1
@@ -196,50 +197,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(ByteValue.IsConst)
             Assert.True(ByteValue.HasConstantValue)
             Assert.Equal(ByteValue.ConstantValue, CByte(1))
-            Assert.Equal(ConstantValueTypeDiscriminator.Byte, ByteValue.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(CByte(1), ByteValue.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).ByteValue)
+            Assert.Equal(ConstantValueTypeDiscriminator.Byte, ByteValue.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(CByte(1), ByteValue.GetConstantValue(ConstantFieldsInProgress.Empty).ByteValue)
 
             Assert.True(SByteValue.IsConst)
             Assert.True(SByteValue.HasConstantValue)
             Assert.Equal(SByteValue.ConstantValue, CSByte(-2))
-            Assert.Equal(ConstantValueTypeDiscriminator.SByte, SByteValue.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(CSByte(-2), SByteValue.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).SByteValue)
+            Assert.Equal(ConstantValueTypeDiscriminator.SByte, SByteValue.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(CSByte(-2), SByteValue.GetConstantValue(ConstantFieldsInProgress.Empty).SByteValue)
 
             Assert.True(UInt16Value.IsConst)
             Assert.True(UInt16Value.HasConstantValue)
             Assert.Equal(UInt16Value.ConstantValue, 3US)
-            Assert.Equal(ConstantValueTypeDiscriminator.UInt16, UInt16Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(3US, UInt16Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).UInt16Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.UInt16, UInt16Value.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(3US, UInt16Value.GetConstantValue(ConstantFieldsInProgress.Empty).UInt16Value)
 
             Assert.True(Int16Value.IsConst)
             Assert.True(Int16Value.HasConstantValue)
             Assert.Equal(Int16Value.ConstantValue, -4S)
-            Assert.Equal(ConstantValueTypeDiscriminator.Int16, Int16Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(-4S, Int16Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Int16Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.Int16, Int16Value.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(-4S, Int16Value.GetConstantValue(ConstantFieldsInProgress.Empty).Int16Value)
 
             Assert.True(UInt32Value.IsConst)
             Assert.True(UInt32Value.HasConstantValue)
             Assert.Equal(UInt32Value.ConstantValue, 5UI)
-            Assert.Equal(ConstantValueTypeDiscriminator.UInt32, UInt32Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(5UI, UInt32Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).UInt32Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.UInt32, UInt32Value.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(5UI, UInt32Value.GetConstantValue(ConstantFieldsInProgress.Empty).UInt32Value)
 
             Assert.True(Int32Value.IsConst)
             Assert.True(Int32Value.HasConstantValue)
             Assert.Equal(Int32Value.ConstantValue, -6)
-            Assert.Equal(ConstantValueTypeDiscriminator.Int32, Int32Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(-6, Int32Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Int32Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.Int32, Int32Value.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(-6, Int32Value.GetConstantValue(ConstantFieldsInProgress.Empty).Int32Value)
 
             Assert.True(UInt64Value.IsConst)
             Assert.True(UInt64Value.HasConstantValue)
             Assert.Equal(UInt64Value.ConstantValue, 7UL)
-            Assert.Equal(ConstantValueTypeDiscriminator.UInt64, UInt64Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(7UL, UInt64Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).UInt64Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.UInt64, UInt64Value.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(7UL, UInt64Value.GetConstantValue(ConstantFieldsInProgress.Empty).UInt64Value)
 
             Assert.True(Int64Value.IsConst)
             Assert.True(Int64Value.HasConstantValue)
             Assert.Equal(Int64Value.ConstantValue, -8L)
-            Assert.Equal(ConstantValueTypeDiscriminator.Int64, Int64Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Discriminator)
-            Assert.Equal(-8L, Int64Value.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty).Int64Value)
+            Assert.Equal(ConstantValueTypeDiscriminator.Int64, Int64Value.GetConstantValue(ConstantFieldsInProgress.Empty).Discriminator)
+            Assert.Equal(-8L, Int64Value.GetConstantValue(ConstantFieldsInProgress.Empty).Int64Value)
         End Sub
 
         <Fact>

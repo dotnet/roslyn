@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpSelectionValidator
     {
-        public bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
+        public static bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => node switch
             {
                 ExpressionSyntax expression => CheckExpression(semanticModel, expression, cancellationToken),
@@ -20,24 +22,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 _ => false,
             };
 
-        private bool CheckGlobalStatement()
+        private static bool CheckGlobalStatement()
             => true;
 
-        private bool CheckBlock(BlockSyntax block)
+        private static bool CheckBlock(BlockSyntax block)
         {
             // TODO(cyrusn): Is it intentional that fixed statement is not in this list?
-            return block.Parent is BlockSyntax ||
-                   block.Parent is DoStatementSyntax ||
-                   block.Parent is ElseClauseSyntax ||
-                   block.Parent is CommonForEachStatementSyntax ||
-                   block.Parent is ForStatementSyntax ||
-                   block.Parent is IfStatementSyntax ||
-                   block.Parent is LockStatementSyntax ||
-                   block.Parent is UsingStatementSyntax ||
-                   block.Parent is WhileStatementSyntax;
+            return block.Parent is BlockSyntax or
+                   DoStatementSyntax or
+                   ElseClauseSyntax or
+                   CommonForEachStatementSyntax or
+                   ForStatementSyntax or
+                   IfStatementSyntax or
+                   LockStatementSyntax or
+                   UsingStatementSyntax or
+                   WhileStatementSyntax;
         }
 
-        private bool CheckExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+        private static bool CheckExpression(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -51,23 +53,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return expression.CanReplaceWithRValue(semanticModel, cancellationToken);
         }
 
-        private bool CheckStatement(StatementSyntax statement)
-            => statement is CheckedStatementSyntax ||
-               statement is DoStatementSyntax ||
-               statement is EmptyStatementSyntax ||
-               statement is ExpressionStatementSyntax ||
-               statement is FixedStatementSyntax ||
-               statement is CommonForEachStatementSyntax ||
-               statement is ForStatementSyntax ||
-               statement is IfStatementSyntax ||
-               statement is LocalDeclarationStatementSyntax ||
-               statement is LockStatementSyntax ||
-               statement is ReturnStatementSyntax ||
-               statement is SwitchStatementSyntax ||
-               statement is ThrowStatementSyntax ||
-               statement is TryStatementSyntax ||
-               statement is UnsafeStatementSyntax ||
-               statement is UsingStatementSyntax ||
-               statement is WhileStatementSyntax;
+        private static bool CheckStatement(StatementSyntax statement)
+            => statement is CheckedStatementSyntax or
+               DoStatementSyntax or
+               EmptyStatementSyntax or
+               ExpressionStatementSyntax or
+               FixedStatementSyntax or
+               CommonForEachStatementSyntax or
+               ForStatementSyntax or
+               IfStatementSyntax or
+               LocalDeclarationStatementSyntax or
+               LockStatementSyntax or
+               ReturnStatementSyntax or
+               SwitchStatementSyntax or
+               ThrowStatementSyntax or
+               TryStatementSyntax or
+               UnsafeStatementSyntax or
+               UsingStatementSyntax or
+               WhileStatementSyntax;
     }
 }

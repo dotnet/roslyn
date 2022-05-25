@@ -4,9 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
@@ -18,20 +16,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
         End Function
 
-        Private Function OptionOn() As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, True}}
-        End Function
-
-        Private Function OptionOff() As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {{ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, False}}
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function ParamsObjectArray() As Task
+        Public Async Function ObjectArray() As Task
             Await TestDiagnosticMissingAsync("
 Class C
      Sub Main 
-        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+        string.Format(""This {0} {1} {[||]2} works"", New Object() { ""test"", ""test2"", ""test3"" })
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(42764, "https://github.com/dotnet/roslyn/issues/42764")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function LiteralArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        string.Format(""This {0[||]} {1} {2} {3} works"", { ""test"", ""test2"", ""test3"", ""test4"" })
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function StringArray() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        Dim strings() = {""test"", ""test2""}
+        String.Format(""This {0} {[||]1} works"", strings)
     End Sub
 End Class")
         End Function
@@ -68,7 +80,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -82,7 +94,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -98,7 +110,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -122,7 +134,7 @@ Class C
 End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticSeverity:=DiagnosticSeverity.Info,
         diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
 
@@ -280,32 +292,49 @@ End Module")
         End Function
 
 #If CODE_STYLE Then
-        <InlineData(False, True)>   ' Option has no effect on CodeStyle layer CI execution as it is not an editorconfig option.
-        <InlineData(True, True)>
-        <Theory, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function TestOption(optionOn As Boolean, expectDiagnostic As Boolean) As Task
-#Else
-        <InlineData(False, False)>
-        <InlineData(True, True)>
-        <Theory, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
-        Public Async Function TestOption(optionOn As Boolean, expectDiagnostic As Boolean) As Task
-#End If
+        ' Option has no effect on CodeStyle layer CI execution as it is not an editorconfig option.
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function TestOption_Ignored() As Task
             Dim source = "
 Class C
-     Sub Main 
+    Sub Main 
         string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
     End Sub
 End Class"
-            Dim options = If(optionOn, Me.OptionOn(), OptionOff())
-            If Not expectDiagnostic Then
-                Await TestDiagnosticMissingAsync(source, New TestParameters(options:=options))
-            Else
-                Await TestDiagnosticInfoAsync(source,
-                    options,
-                    diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-                    diagnosticSeverity:=DiagnosticSeverity.Warning,
-                    diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
-            End If
+            Await TestDiagnosticInfoAsync(
+                source,
+                diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+                diagnosticSeverity:=DiagnosticSeverity.Info,
+                diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder)
         End Function
+#Else
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function TestOption_Enabled() As Task
+            Dim source = "
+Class C
+    Sub Main 
+        string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
+    End Sub
+End Class"
+            Await TestDiagnosticInfoAsync(
+                source,
+                diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+                diagnosticSeverity:=DiagnosticSeverity.Info,
+                diagnosticMessage:=AnalyzersResources.Format_string_contains_invalid_placeholder,
+                globalOptions:=[Option](IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, True))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function TestOption_Disabled() As Task
+            Dim source = "
+Class C
+    Sub Main 
+        string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
+    End Sub
+End Class"
+            Await TestDiagnosticMissingAsync(source, New TestParameters(globalOptions:=
+                [Option](IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, False)))
+        End Function
+#End If
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices;
@@ -16,9 +18,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.VisualStudio
     {
         public static IVsLanguageServiceBuildErrorReporter2 Create(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
             var workspace = (VisualStudioWorkspaceImpl)serviceProvider.GetMefService<VisualStudioWorkspace>();
-            workspace.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
             return new ProjectExternalErrorReporter(projectId, errorCodePrefix, LanguageNames.FSharp, workspace);
         }
     }

@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Xml.Serialization;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -29,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         ArgumentSyntax,
         CommonForEachStatementSyntax,
         ThrowStatementSyntax,
+        InvocationExpressionSyntax,
         Conversion>
     {
         /// <summary>
@@ -56,6 +61,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             : base(expression, newExpression, semanticModel, cancellationToken, skipVerificationForReplacedNode, failOnOverloadResolutionFailuresInOriginalCode)
         {
         }
+
+        protected override CodeAnalysis.LanguageServices.ISyntaxFacts SyntaxFactsService { get; } = CSharpSyntaxFacts.Instance;
+
+        protected override bool CanAccessInstanceMemberThrough(ExpressionSyntax expression)
+            => expression.Kind() is SyntaxKind.ThisExpression or SyntaxKind.BaseExpression;
 
         protected override SyntaxNode GetSemanticRootForSpeculation(ExpressionSyntax expression)
         {
@@ -236,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             var replacedIdentifierNodes = replacedLambdaBody.DescendantNodes().OfType<IdentifierNameSyntax>().Where(node => paramNames.Contains(node.Identifier.ValueText));
-            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody, replacedLambdaBody);
+            return ReplacementChangesSemanticsForNodes(originalIdentifierNodes, replacedIdentifierNodes, originalLambdaBody);
         }
 
         private bool HaveSameParameterType(ParameterSyntax originalParam, ParameterSyntax replacedParam)
@@ -249,8 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private bool ReplacementChangesSemanticsForNodes(
             IEnumerable<IdentifierNameSyntax> originalIdentifierNodes,
             IEnumerable<IdentifierNameSyntax> replacedIdentifierNodes,
-            SyntaxNode originalRoot,
-            SyntaxNode replacedRoot)
+            SyntaxNode originalRoot)
         {
             Debug.Assert(originalIdentifierNodes.Any());
             Debug.Assert(originalIdentifierNodes.Count() == replacedIdentifierNodes.Count());
@@ -303,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 // If replacing the node will result in a broken assignment expression, we won't remove it.
                 return ReplacementBreaksAssignmentExpression(assignment, (AssignmentExpressionSyntax)currentReplacedNode);
             }
-            else if (currentOriginalNode is SelectOrGroupClauseSyntax || currentOriginalNode is OrderingSyntax)
+            else if (currentOriginalNode is SelectOrGroupClauseSyntax or OrderingSyntax)
             {
                 return !SymbolsAreCompatible(currentOriginalNode, currentReplacedNode);
             }
@@ -363,6 +372,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                     var originalExpressionType = originalExpressionTypeInfo.Type;
                     var newExpressionType = newExpressionTypeInfo.Type;
+
+                    // A conditional expression may have no type of it's own, but can be converted to a type if there's target-typed
+                    // conditional expressions in play. For example:
+                    //
+                    //     int? x = conditional ? (int?)trueValue : null;
+                    //
+                    // Once you remove the cast, the conditional has no type itself, but is being converted to int? by a conditional
+                    // expression conversion.
+                    if (newExpressionType == null &&
+                        this.SpeculativeSemanticModel.GetConversion(newExpression, this.CancellationToken).IsConditionalExpression)
+                    {
+                        newExpressionType = newExpressionTypeInfo.ConvertedType;
+                    }
 
                     if (originalExpressionType == null || newExpressionType == null)
                     {
@@ -569,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
         }
 
@@ -702,8 +724,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 !SymbolInfosAreCompatible(originalClauseInfo.OperationInfo, newClauseInfo.OperationInfo);
         }
 
+        protected override bool ReplacementIntroducesErrorType(ExpressionSyntax originalExpression, ExpressionSyntax newExpression)
+        {
+            // The base implementation will see that the type of the new expression may potentially change to null,
+            // because the expression has no type but can be converted to a conditional expression type. In that case,
+            // we don't want to consider the null type to be an error type.
+            if (newExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                ConditionalExpressionConversionsAreAllowed(newExpression) &&
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsConditionalExpression)
+            {
+                return false;
+            }
+
+            return base.ReplacementIntroducesErrorType(originalExpression, newExpression);
+        }
+
         protected override bool ConversionsAreCompatible(SemanticModel originalModel, ExpressionSyntax originalExpression, SemanticModel newModel, ExpressionSyntax newExpression)
-            => ConversionsAreCompatible(originalModel.GetConversion(originalExpression), newModel.GetConversion(newExpression));
+        {
+            var originalConversion = originalModel.GetConversion(originalExpression);
+            var newConversion = newModel.GetConversion(newExpression);
+
+            if (originalExpression.IsKind(SyntaxKind.ConditionalExpression) &&
+                newExpression.IsKind(SyntaxKind.ConditionalExpression))
+            {
+                if (newConversion.IsConditionalExpression)
+                {
+                    // If we went from a non-conditional-conversion to a conditional-conversion (i.e. by removing a
+                    // cast), then that is always an error before CSharp9, and should not be allowed.
+                    if (!originalConversion.IsConditionalExpression && !ConditionalExpressionConversionsAreAllowed(originalExpression))
+                        return false;
+
+                    // If the only change to the conversion here is the introduction of a conditional expression conversion,
+                    // that means types didn't really change in a meaningful way.
+                    if (originalConversion.IsIdentity)
+                        return true;
+                }
+            }
+
+            return ConversionsAreCompatible(originalConversion, newConversion);
+        }
+
+        private static bool ConditionalExpressionConversionsAreAllowed(ExpressionSyntax originalExpression)
+            => originalExpression.GetLanguageVersion() >= LanguageVersion.CSharp9;
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {

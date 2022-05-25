@@ -45,7 +45,7 @@ end class",
 "class C
     Public Function GetProp() As Integer
         return _
-0
+                0
     End Function
 end class")
         End Function
@@ -64,7 +64,7 @@ end class",
 "class C
     Public Function GetProp() As Integer
         return _ ' Test
-0
+                0
     End Function
 end class")
         End Function
@@ -661,6 +661,46 @@ Class C
 
     Public Sub SetGoo(AutoPropertyValue As Integer) Implements IGoo.SetGoo
         _Goo = AutoPropertyValue
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestReferenceInObjectInitializer() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class Tweet
+    Public Property [||]Tweet As String
+End Class
+
+Class C 
+    Sub Main()
+        Dim t = New Tweet
+        Dim t1 = New Tweet With {
+            .Tweet = t.Tweet   
+        }
+
+    End Sub
+End Class",
+"Public Class Tweet
+    Private _Tweet As String
+
+    Public Function GetTweet() As String
+        Return _Tweet
+    End Function
+
+    Public Sub SetTweet(AutoPropertyValue As String)
+        _Tweet = AutoPropertyValue
+    End Sub
+End Class
+
+Class C 
+    Sub Main()
+        Dim t = New Tweet
+        Dim t1 = New Tweet With {
+            .{|Conflict:Tweet|} = t.GetTweet()
+        }
+
     End Sub
 End Class")
         End Function

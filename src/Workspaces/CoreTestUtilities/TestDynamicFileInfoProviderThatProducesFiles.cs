@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
         }
 
-        public event EventHandler<string> Updated;
+        event EventHandler<string> IDynamicFileInfoProvider.Updated { add { } remove { } }
 
         public Task<DynamicFileInfo> GetDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
         {
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 filePath + ".fromdynamicfile",
                 SourceCodeKind.Regular,
                 new TestTextLoader(GetDynamicFileText(filePath)),
+                designTimeOnly: false,
                 new TestDocumentServiceProvider()));
         }
 
@@ -48,8 +51,5 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string projectFilePath, string filePath, CancellationToken cancellationToken)
             => Task.CompletedTask;
-
-        private void OnUpdate()
-            => Updated?.Invoke(this, "test");
     }
 }

@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
@@ -21,13 +25,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     {
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddRemoveProjectAndMetadataReference_CPS()
+        public async Task AddRemoveProjectAndMetadataReference_CPS()
         {
             using var environment = new TestEnvironment();
-            var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
-            var project2 = CreateCSharpCPSProject(environment, "project2", commandLineArguments: @"/out:c:\project2.dll");
-            var project3 = CreateCSharpCPSProject(environment, "project3", commandLineArguments: @"/out:c:\project3.dll");
-            var project4 = CreateCSharpCPSProject(environment, "project4");
+            var project1 = await CreateCSharpCPSProjectAsync(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
+            var project2 = await CreateCSharpCPSProjectAsync(environment, "project2", commandLineArguments: @"/out:c:\project2.dll");
+            var project3 = await CreateCSharpCPSProjectAsync(environment, "project3", commandLineArguments: @"/out:c:\project3.dll");
+            var project4 = await CreateCSharpCPSProjectAsync(environment, "project4");
 
             // Add project reference
             project3.AddProjectReference(project1, new MetadataReferenceProperties());
@@ -85,14 +89,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             project3.Dispose();
         }
 
-
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void RemoveProjectConvertsProjectReferencesBack()
+        public async Task RemoveProjectConvertsProjectReferencesBack()
         {
             using var environment = new TestEnvironment();
-            var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
-            var project2 = CreateCSharpCPSProject(environment, "project2");
+            var project1 = await CreateCSharpCPSProjectAsync(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
+            var project2 = await CreateCSharpCPSProjectAsync(environment, "project2");
 
             // Add project reference as metadata reference: since this is known to be the output path of project1, the metadata reference is converted to a project reference
             project2.AddMetadataReference(@"c:\project1.dll", new MetadataReferenceProperties());
@@ -110,11 +113,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         [WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
         [WorkItem(727173, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/727173")]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
+        public async Task AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
         {
-            using var environment = new TestEnvironment();
-            var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
-            var project2 = CreateNonCompilableProject(environment, "project2", @"C:\project2.fsproj");
+            using var environment = new TestEnvironment(typeof(NoCompilationLanguageServiceFactory));
+            var project1 = await CreateCSharpCPSProjectAsync(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
+            var project2 = await CreateNonCompilableProjectAsync(environment, "project2", @"C:\project2.fsproj");
             project2.BinOutputPath = "c:\\project2.dll";
 
             project1.AddMetadataReference(project2.BinOutputPath, MetadataReferenceProperties.Assembly);
@@ -128,12 +131,13 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        public void AddRemoveAnalyzerReference_CPS()
+        public async Task AddRemoveAnalyzerReference_CPS()
         {
             using var environment = new TestEnvironment();
-            using var project = CreateCSharpCPSProject(environment, "project1");
+            using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
             // Add analyzer reference
-            var analyzerAssemblyFullPath = @"c:\someAssembly.dll";
+            using var tempRoot = new TempRoot();
+            var analyzerAssemblyFullPath = tempRoot.CreateFile().Path;
 
             bool AnalyzersContainsAnalyzer()
             {

@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -86,15 +85,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
-        public static void LogOptionChanged(int correlationId, bool value)
-        {
-            Logger.Log(FunctionId.WorkCoordinator_SolutionCrawlerOption, KeyValueLogMessage.Create(m =>
-            {
-                m[Id] = correlationId;
-                m[Enabled] = value;
-            }));
-        }
-
         public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
             if (onlyHighPriorityAnalyzer)
@@ -167,11 +157,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static void LogActiveFileEnqueue(LogAggregator logAggregator)
             => logAggregator.IncreaseCount(ActiveFileEnqueue);
 
-        public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId projectId)
+        public static void LogWorkItemEnqueue(LogAggregator logAggregator, ProjectId _)
             => logAggregator.IncreaseCount(ProjectEnqueue);
 
         public static void LogWorkItemEnqueue(
-            LogAggregator logAggregator, string language, DocumentId documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath activeMember, bool added)
+            LogAggregator logAggregator, string language, DocumentId? documentId, InvocationReasons reasons, bool lowPriority, SyntaxPath? activeMember, bool added)
         {
             logAggregator.IncreaseCount(language);
             logAggregator.IncreaseCount(added ? NewWorkItem : UpdateWorkItem);
@@ -236,9 +226,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     m[CreateProperty(propertyName, Max)] = result.Maximum;
                     m[CreateProperty(propertyName, Min)] = result.Minimum;
-                    m[CreateProperty(propertyName, Median)] = result.Median.Value;
+                    m[CreateProperty(propertyName, Median)] = result.Median!.Value;
                     m[CreateProperty(propertyName, Mean)] = result.Mean;
-                    m[CreateProperty(propertyName, Mode)] = result.Mode.Value;
+                    m[CreateProperty(propertyName, Mode)] = result.Mode!.Value;
                     m[CreateProperty(propertyName, Range)] = result.Range;
                     m[CreateProperty(propertyName, Count)] = result.Count;
                 }
@@ -246,11 +236,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             foreach (var analyzer in analyzers)
             {
-                if (analyzer is DiagnosticIncrementalAnalyzer diagIncrementalAnalyzer)
-                {
-                    diagIncrementalAnalyzer.LogAnalyzerCountSummary();
-                    break;
-                }
+                analyzer.LogAnalyzerCountSummary();
             }
         }
 
@@ -279,7 +265,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             logAggregator.IncreaseCount(ValueTuple.Create(OpenDocument, documentId));
         }
 
-        public static void LogProcessActiveFileDocument(LogAggregator logAggregator, Guid documentId, bool processed)
+        public static void LogProcessActiveFileDocument(LogAggregator logAggregator, Guid _, bool processed)
         {
             if (processed)
             {

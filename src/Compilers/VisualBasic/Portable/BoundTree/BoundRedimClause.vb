@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundRedimClause
+    Partial Friend Class BoundRedimClause
 
 #If DEBUG Then
         Private Sub Validate()

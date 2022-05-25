@@ -3,6 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+Imports Microsoft.CodeAnalysis.Test.Utilities.QuickInfo
 Imports Microsoft.VisualStudio.Core.Imaging
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -14,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("see")>
         <InlineData("a")>
-        Public Async Sub QuickInfoForPlainHyperlink(tag As String)
+        Public Async Function QuickInfoForPlainHyperlink(tag As String) As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -52,16 +54,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This contains a link to"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "https://github.com/dotnet/roslyn", navigationAction:=Sub() Return, "https://github.com/dotnet/roslyn"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "https://github.com/dotnet/roslyn", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://github.com/dotnet/roslyn", UriKind.Absolute)), "https://github.com/dotnet/roslyn"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         <InlineData("see")>
         <InlineData("a")>
-        Public Async Sub QuickInfoForHyperlinkWithText(tag As String)
+        Public Async Function QuickInfoForHyperlinkWithText(tag As String) As Task
             Dim workspace =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -99,10 +101,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     New ClassifiedTextElement(
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "This contains a link to"),
                         New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                        New ClassifiedTextRun(ClassificationTypeNames.Text, "dotnet/roslyn", navigationAction:=Sub() Return, "https://github.com/dotnet/roslyn"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "dotnet/roslyn", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(New Uri("https://github.com/dotnet/roslyn", UriKind.Absolute)), "https://github.com/dotnet/roslyn"),
                         New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
 
-            AssertEqualAdornments(expected, intellisenseQuickInfo.Item)
-        End Sub
+            ToolTipAssert.EqualContent(expected, intellisenseQuickInfo.Item)
+        End Function
     End Class
 End Namespace

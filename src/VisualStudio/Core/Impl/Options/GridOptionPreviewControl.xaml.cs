@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -57,7 +59,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal static IEnumerable<(string feature, ImmutableArray<IOption> options)> GetLanguageAgnosticEditorConfigOptions()
         {
-            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.AllOptions.As<IOption>());
+            yield return (WorkspacesResources.Core_EditorConfig_Options, FormattingOptions2.Options);
             yield return (WorkspacesResources.dot_NET_Coding_Conventions, GenerationOptions.AllOptions.AddRange(CodeStyleOptions2.AllOptions).As<IOption>());
         }
 
@@ -68,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 return;
             }
 
-            BrowserHelper.StartBrowser(e.Uri);
+            VisualStudioNavigateToLinkService.StartBrowser(e.Uri);
             e.Handled = true;
         }
 
@@ -133,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         File.WriteAllText(filePath, editorconfig.ToString());
                     });
                 }
-            };
+            }
         }
 
         private static string GetInitialDirectory()

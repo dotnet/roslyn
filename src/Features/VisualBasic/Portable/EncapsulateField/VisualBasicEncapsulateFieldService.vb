@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -21,11 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function RewriteFieldNameAndAccessibilityAsync(originalFieldName As String,
-                                                        makePrivate As Boolean,
-                                                        document As Document,
-                                                        declarationAnnotation As SyntaxAnnotation,
-                                                        cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Protected Overrides Async Function RewriteFieldNameAndAccessibilityAsync(
+                originalFieldName As String,
+                makePrivate As Boolean,
+                document As Document,
+                declarationAnnotation As SyntaxAnnotation,
+                fallbackOptions As CodeAndImportGenerationOptionsProvider,
+                cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
@@ -90,11 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                          ToImmutableArray()
         End Function
 
-        Private Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean
+        Private Shared Function CanEncapsulate(field As FieldDeclarationSyntax) As Boolean
             Return TypeOf field.Parent Is TypeBlockSyntax
         End Function
 
-        Protected Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String
+        Protected Shared Function MakeUnique(baseName As String, originalFieldName As String, containingType As INamedTypeSymbol, Optional willChangeFieldName As Boolean = True) As String
             If willChangeFieldName Then
                 Return NameGenerator.GenerateUniqueName(baseName, containingType.MemberNames.Where(Function(x) x <> originalFieldName).ToSet(), StringComparer.OrdinalIgnoreCase)
             Else
@@ -118,11 +121,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             End If
         End Function
 
-        Private Function IsShadows(field As IFieldSymbol) As Boolean
+        Private Shared Function IsShadows(field As IFieldSymbol) As Boolean
             Return field.DeclaringSyntaxReferences.Any(Function(d) d.GetSyntax().GetAncestor(Of FieldDeclarationSyntax)().Modifiers.Any(SyntaxKind.ShadowsKeyword))
         End Function
 
-        Private Function MakeUnique(propertyName As String, field As IFieldSymbol) As String
+        Private Shared Function MakeUnique(propertyName As String, field As IFieldSymbol) As String
             Dim containingTypeMemberNames = field.ContainingType.GetAccessibleMembersInThisAndBaseTypes(Of ISymbol)(field.ContainingType).Select(Function(s) s.Name)
             Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), StringComparer.OrdinalIgnoreCase)
         End Function

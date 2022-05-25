@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var type = (symbol as TypeSymbol) ?? symbol.GetTypeOrReturnType().Type;
             var attribute = GetNativeIntegerAttribute((symbol is MethodSymbol method) ? method.GetReturnTypeAttributes() : symbol.GetAttributes());
-            Debug.Assert((type?.ContainsNativeInteger() != true) || (attribute != null));
+            Debug.Assert((type?.ContainsNativeIntegerWrapperType() != true) || (attribute != null));
             if (attribute == null)
             {
                 return;
@@ -165,22 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             _builder.Append($"{ReportAttribute(attribute)} ");
             _builder.AppendLine(symbol.ToDisplayString(_displayFormat));
             _reported.Add(symbol);
-        }
-
-        private static Symbol GetAccessSymbol(Symbol symbol)
-        {
-            while (true)
-            {
-                switch (symbol.Kind)
-                {
-                    case SymbolKind.Parameter:
-                    case SymbolKind.TypeParameter:
-                        symbol = symbol.ContainingSymbol;
-                        break;
-                    default:
-                        return symbol;
-                }
-            }
         }
 
         private static string ReportAttribute(CSharpAttributeData attribute)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
@@ -28,11 +30,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
-            if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoSideEffects) == DkmEvaluationFlags.NoSideEffects)
-            {
-                return;
-            }
-
             if (InRange(startIndex, count, index))
             {
                 rows.Add(GetRow(inspectionContext, value, parent));

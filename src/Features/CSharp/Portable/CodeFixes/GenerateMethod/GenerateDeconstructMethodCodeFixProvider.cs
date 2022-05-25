@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -9,6 +11,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
@@ -40,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             // Not supported in REPL
-            if (context.Project.IsSubmission)
+            if (context.Document.Project.IsSubmission)
             {
                 return;
             }
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
             }
 
             var service = document.GetLanguageService<IGenerateDeconstructMemberService>();
-            var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, cancellationToken).ConfigureAwait(false);
+            var codeActions = await service.GenerateDeconstructMethodAsync(document, target, (INamedTypeSymbol)type, context.Options, cancellationToken).ConfigureAwait(false);
 
             Debug.Assert(!codeActions.IsDefault);
             context.RegisterFixes(codeActions, context.Diagnostics);

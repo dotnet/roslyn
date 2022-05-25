@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
                     value,
                     UsedNamespaceOrType.CreateType(ref1.Object, "alias"))
                 .WithNotEqualValues(
-                    UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>().Object),
+                    UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>(MockBehavior.Strict).Object),
                     UsedNamespaceOrType.CreateType(ref2.Object, "alias"),
                     UsedNamespaceOrType.CreateType(ref1.Object, "different alias"));
             RunAll(unit);
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
                     UsedNamespaceOrType.CreateType(type1.Object, "different alias"),
                     UsedNamespaceOrType.CreateType(type2.Object, "different alias"),
                     UsedNamespaceOrType.CreateType(type3.Object, "alias"),
-                    UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>().Object));
+                    UsedNamespaceOrType.CreateNamespace(new Mock<INamespace>(MockBehavior.Strict).Object));
             RunAll(unit);
         }
 
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
                     UsedNamespaceOrType.CreateNamespace(ns2.Object, assembly1.Object))
                 .WithNotEqualValues(
                     UsedNamespaceOrType.CreateExternAlias("alias"),
-                    UsedNamespaceOrType.CreateNamespace(ns1.Object, new Mock<IAssemblyReference>().Object),
+                    UsedNamespaceOrType.CreateNamespace(ns1.Object, new Mock<IAssemblyReference>(MockBehavior.Strict).Object),
                     UsedNamespaceOrType.CreateNamespace(ns3.Object));
             RunAll(unit);
         }

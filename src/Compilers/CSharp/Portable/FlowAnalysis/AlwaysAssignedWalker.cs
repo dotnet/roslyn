@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var i in _endOfRegionState.Assigned.TrueBits())
                 {
-                    if (i >= variableBySlot.Length)
+                    if (i >= variableBySlot.Count)
                     {
                         continue;
                     }
@@ -124,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _endOfRegionState = this.State.Clone();
             }
 
-            foreach (var branch in base.PendingBranches)
+            foreach (var branch in PendingBranches.AsEnumerable())
             {
                 if (branch.Branch != null && RegionContains(branch.Branch.Syntax.Span) && !_labelsInside.Contains(branch.Label))
                 {

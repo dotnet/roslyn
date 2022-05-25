@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -16,22 +18,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
     internal partial class CSharpParenthesizedPatternReducer : AbstractCSharpReducer
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new ObjectPool<IReductionRewriter>(
+        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
             () => new Rewriter(s_pool));
+
+        private static readonly Func<ParenthesizedPatternSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyParentheses = SimplifyParentheses;
 
         public CSharpParenthesizedPatternReducer() : base(s_pool)
         {
         }
 
-        private static readonly Func<ParenthesizedPatternSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyParentheses = SimplifyParentheses;
+        protected override bool IsApplicable(CSharpSimplifierOptions options)
+           => true;
 
         private static SyntaxNode SimplifyParentheses(
             ParenthesizedPatternSyntax node,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            SimplifierOptions options,
             CancellationToken cancellationToken)
         {
-            if (node.CanRemoveParentheses(semanticModel))
+            if (node.CanRemoveParentheses())
             {
                 var resultNode = CSharpSyntaxFacts.Instance.Unparenthesize(node);
                 return SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);

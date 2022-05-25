@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
+Imports Microsoft.CodeAnalysis.LineSeparators
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -194,7 +195,6 @@ End Class")
 End Class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.LineSeparators)>
         Public Async Function TestProperty() As Task
             Await AssertTagsAsync({New TextSpan(164, 9)},
@@ -275,7 +275,7 @@ End Class")
 End Class")
         End Function
 
-        Private Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), content As String) As Tasks.Task
+        Private Shared Async Function AssertTagsAsync(spans As IEnumerable(Of TextSpan), content As String) As Tasks.Task
             Dim tags = Await GetSpansForAsync(content)
             Assert.Equal(spans.Count(), tags.Count())
 
@@ -286,11 +286,12 @@ End Class")
             Next
         End Function
 
-        Private Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
+        Private Shared Async Function GetSpansForAsync(content As String) As Tasks.Task(Of IEnumerable(Of TextSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                Dim spans = Await New VisualBasicLineSeparatorService().GetLineSeparatorsAsync(document,
-                    (Await document.GetSyntaxRootAsync()).FullSpan)
+                Dim service = Assert.IsType(Of VisualBasicLineSeparatorService)(workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ILineSeparatorService)())
+                Dim spans = Await service.GetLineSeparatorsAsync(document,
+                    (Await document.GetSyntaxRootAsync()).FullSpan, Nothing)
                 Return spans.OrderBy(Function(span) span.Start)
             End Using
         End Function

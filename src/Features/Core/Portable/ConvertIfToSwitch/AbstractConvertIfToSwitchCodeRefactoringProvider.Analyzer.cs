@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -50,6 +49,7 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
         {
             public abstract bool CanConvert(IConditionalOperation operation);
             public abstract bool HasUnreachableEndPoint(IOperation operation);
+            public abstract bool CanImplicitlyConvert(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol targetType);
 
             /// <summary>
             /// Holds the expression determined to be used as the target expression of the switch
@@ -58,6 +58,10 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             /// Note that this is initially unset until we find a non-constant expression.
             /// </remarks>
             private SyntaxNode _switchTargetExpression = null!;
+            /// <summary>
+            /// Holds the type of the <see cref="_switchTargetExpression"/>
+            /// </summary>
+            private ITypeSymbol? _switchTargetType = null!;
             private readonly ISyntaxFacts _syntaxFacts;
 
             protected Analyzer(ISyntaxFacts syntaxFacts, Feature features)
@@ -106,11 +110,11 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
                         return false;
                     }
 
-                    if (!ParseIfStatementSequence(operations.Slice(1), sections, out defaultBodyOpt))
+                    if (!ParseIfStatementSequence(operations[1..], sections, out defaultBodyOpt))
                     {
                         var nextStatement = operations[1];
-                        if (nextStatement is IReturnOperation { ReturnedValue: { } } ||
-                            nextStatement is IThrowOperation { Exception: { } })
+                        if (nextStatement is IReturnOperation { ReturnedValue: { } } or
+                            IThrowOperation { Exception: { } })
                         {
                             defaultBodyOpt = nextStatement;
                         }
@@ -241,8 +245,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
             {
                 return (op.LeftOperand, op.RightOperand) switch
                 {
-                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Right,
-                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) => ConstantResult.Left,
+                    var (e, v) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Right,
+                    var (v, e) when IsConstant(v) && CheckTargetExpression(e) && CheckConstantType(v) => ConstantResult.Left,
                     _ => ConstantResult.None,
                 };
             }
@@ -360,7 +364,8 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private (SyntaxNode Lower, SyntaxNode Higher) GetRangeBounds(IBinaryOperation op)
             {
-                if (!(op is { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right }))
+                if (op is not
+                    { LeftOperand: IBinaryOperation left, RightOperand: IBinaryOperation right })
                 {
                     return default;
                 }
@@ -434,22 +439,29 @@ namespace Microsoft.CodeAnalysis.ConvertIfToSwitch
 
             private bool CheckTargetExpression(IOperation operation)
             {
-                if (operation is IConversionOperation { IsImplicit: false } op)
-                {
-                    // Unwrap explicit casts because switch will emit those anyways
-                    operation = op.Operand;
-                }
+                operation = operation.WalkDownConversion();
 
                 var expression = operation.Syntax;
                 // If we have not figured the switch expression yet,
                 // we will assume that the first expression is the one.
                 if (_switchTargetExpression is null)
                 {
+                    RoslynDebug.Assert(_switchTargetType is null);
+
                     _switchTargetExpression = expression;
+                    _switchTargetType = operation.Type;
                     return true;
                 }
 
                 return _syntaxFacts.AreEquivalent(expression, _switchTargetExpression);
+            }
+
+            private bool CheckConstantType(IOperation operation)
+            {
+                RoslynDebug.AssertNotNull(operation.SemanticModel);
+                RoslynDebug.AssertNotNull(_switchTargetType);
+
+                return CanImplicitlyConvert(operation.SemanticModel, operation.Syntax, _switchTargetType);
             }
         }
 

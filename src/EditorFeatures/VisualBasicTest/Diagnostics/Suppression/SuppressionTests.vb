@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Option Strict Off
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -17,9 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
     Public MustInherit Class VisualBasicSuppressionTests
         Inherits AbstractSuppressionDiagnosticTest
 
-        Private ReadOnly _compilationOptions As CompilationOptions =
-            New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionInfer(True)
-
         Protected Overrides Function GetScriptOptions() As ParseOptions
             Return TestOptions.Script
         End Function
@@ -28,11 +24,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
             Return actions(0).NestedCodeActions
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Overrides Function GetLanguage() As String
@@ -381,6 +374,101 @@ End Class]]>
                     Await TestMissingAsync(fixedSource.Value)
                 End Function
 
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestMultilineStatementPragmaWarningDirective8() As Task
+                    Dim source = <![CDATA[
+Imports System
+Class C
+    Sub Method()
+        [|Dim x _
+            As Integer|] _
+        : Return
+    End Sub
+End Class]]>
+                    Dim expected = $"
+Imports System
+Class C
+    Sub Method()
+#Disable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
+        Dim x _
+            As Integer _
+        : Return
+#Enable Warning BC42024 ' {VBResources.WRN_UnusedLocal_Title}
+    End Sub
+End Class"
+
+                    Await TestAsync(source.Value, expected)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+Class C
+    Sub Method()
+#Disable Warning BC42024 ' Unused local variable
+        [|Dim x _
+            As Integer|] _
+        : Return
+#Enable Warning BC42024 ' Unused local variable
+    End Sub
+End Class]]>
+
+                    Await TestMissingAsync(fixedSource.Value)
+                End Function
+
+                <WorkItem(56165, "https://github.com/dotnet/roslyn/issues/56165")>
+                <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
+                Public Async Function TestMultilineInterpolatedString() As Task
+                    Dim source = <![CDATA[
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+        Dim s = $"
+Hi {[|new C()|]}
+"
+    End Sub
+End Module]]>
+                    Dim expected = $"
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+#Disable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
+        Dim s = $""
+Hi {{new C()}}
+""
+#Enable Warning BC40008 ' {VBResources.WRN_UseOfObsoleteSymbolNoMessage1_Title}
+    End Sub
+End Module"
+
+                    Await TestAsync(source.Value, expected)
+
+                    ' Also verify that the added directive does indeed suppress the diagnostic.
+                    Dim fixedSource = <![CDATA[
+Imports System
+<Obsolete>
+Class C
+End Class
+
+Module Module1
+    Sub Main
+#Disable Warning BC40008 ' Type or member is obsolete
+        Dim s = $"
+Hi {[|new C()|]}
+"
+#Enable Warning BC40008 ' Type or member is obsolete
+    End Sub
+End Module]]>
+
+                    Await TestMissingAsync(fixedSource.Value)
+                End Function
+
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestPragmaWarningDirectiveWithExistingTrivia() As Task
@@ -622,7 +710,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -643,7 +731,6 @@ End Class]]>
                 Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)
                     Return New Tuple(Of DiagnosticAnalyzer, IConfigurationFixProvider)(New UserDiagnosticAnalyzer(), New VisualBasicSuppressionCodeFixProvider())
                 End Function
-
 
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
@@ -696,7 +783,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("#$DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("#$DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", "DiagnosticWithBadId", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -740,7 +827,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("REm", "REm Title", "REm", "REm", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("REm", "REm Title", "REm", "REm", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -804,7 +891,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", "ErrorDiagnostic", DiagnosticSeverity.[Error], isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -881,7 +968,6 @@ End Class]]>
                     Return Tuple.Create(Of DiagnosticAnalyzer, IConfigurationFixProvider)(Nothing, New VisualBasicSuppressionCodeFixProvider())
                 End Function
 
-
                 <WorkItem(730770, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/730770")>
                 <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)>
                 Public Async Function TestCompilerDiagnosticsCannotBeSuppressed() As Task
@@ -922,7 +1008,7 @@ End Class]]>
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get
@@ -1637,7 +1723,7 @@ Imports System.Diagnostics.CodeAnalysis
                 Private Class UserDiagnosticAnalyzer
                     Inherits DiagnosticAnalyzer
 
-                    Private _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
+                    Private ReadOnly _descriptor As New DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault:=True)
 
                     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
                         Get

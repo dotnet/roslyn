@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -12,18 +15,24 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 {
     public class UseAutoPropertyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseAutoPropertyTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseAutoPropertyAnalyzer(), GetCSharpUseAutoPropertyCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -40,6 +49,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 {
     int P { get; }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleGetterFromField_FileScopedNamespace()
+        {
+            await TestInRegularAndScript1Async(
+@"
+namespace N;
+
+class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"
+namespace N;
+
+class Class
+{
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestSingleGetterFromField_InRecord()
+        {
+            await TestInRegularAndScript1Async(
+@"record Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"record Class
+{
+    int P { get; }
+}", new TestParameters(TestOptions.RegularPreview));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
@@ -67,7 +126,7 @@ struct MutableInt { public int Value; }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly MutableInt? i|];
@@ -92,7 +151,7 @@ struct MutableInt { public int Value; }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int? i|];
@@ -115,7 +174,7 @@ struct MutableInt { public int Value; }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestNullable4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly int? i|];
@@ -180,7 +239,7 @@ struct MutableInt { public int Value; }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestMutableValueType2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly MutableInt i|];
@@ -244,7 +303,7 @@ struct MutableInt { public int Value { get; set; } }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly ErrorType i|];
@@ -286,7 +345,7 @@ struct MutableInt { public int Value { get; set; } }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly ErrorType? i|];
@@ -309,7 +368,7 @@ struct MutableInt { public int Value { get; set; } }");
         [WorkItem(28511, "https://github.com/dotnet/roslyn/issues/28511")]
         public async Task TestErrorType5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|ErrorType[] i|];
@@ -372,7 +431,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i = 1|];
@@ -412,7 +471,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterFromProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int i;
@@ -452,7 +511,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestGetterAndSetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -479,7 +538,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleGetterWithThis()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -519,7 +578,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestGetterAndSetterWithThis()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -791,7 +850,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestIfUnrelatedSymbolUsedInRefExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -885,7 +944,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|], j, k;
@@ -909,7 +968,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int i, [|j|], k;
@@ -933,7 +992,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int i, j, [|k|];
@@ -957,7 +1016,7 @@ struct MutableInt { public int Value { get; set; } }");
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldAndPropertyInDifferentParts()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"partial class Class
 {
     [|int i|];
@@ -1005,7 +1064,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUpdateReferences()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1037,7 +1096,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUpdateReferencesConflictResolution()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1069,7 +1128,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1101,7 +1160,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInNotInConstructor1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1133,7 +1192,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInNotInConstructor2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1166,7 +1225,7 @@ partial class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInSimpleExpressionLambdaInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1196,7 +1255,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInSimpleBlockLambdaInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1232,7 +1291,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInParenthesizedExpressionLambdaInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1262,7 +1321,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInParenthesizedBlockLambdaInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1298,7 +1357,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInAnonymousMethodInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System;
 
 class C
@@ -1334,7 +1393,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInLocalFunctionInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|int i|];
@@ -1366,7 +1425,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestWriteInExpressionBodiedLocalFunctionInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|int i|];
@@ -1391,7 +1450,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestReadInExpressionBodiedLocalFunctionInConstructor()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     [|int i|];
@@ -1436,7 +1495,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1451,7 +1510,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1469,7 +1528,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLine3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1488,7 +1547,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_SingleGetterFromField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly (int, string) i|];
@@ -1510,7 +1569,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TupleWithNames_SingleGetterFromField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly (int a, string b) i|];
@@ -1550,7 +1609,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TupleWithOneName_SingleGetterFromField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly (int a, string) i|];
@@ -1572,7 +1631,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task Tuple_Initializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|readonly (int, string) i = (1, ""hello"")|];
@@ -1619,7 +1678,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFixAllInDocument()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     {|FixAllInDocument:int i|};
@@ -1712,7 +1771,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetOnly()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|];
@@ -1730,7 +1789,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetOnlyWithInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|] = 1;
@@ -1748,7 +1807,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetOnlyWithInitializerAndNeedsSetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|] = 1;
@@ -1768,7 +1827,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetterAndSetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|];
@@ -1787,7 +1846,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|];
@@ -1802,7 +1861,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetterWithSetterNeeded()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|];
@@ -1819,7 +1878,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedMemberGetterWithInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|] = 1;
@@ -1834,7 +1893,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedGetterAndSetter()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|];
@@ -1852,7 +1911,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task ExpressionBodiedGetterAndSetterWithInitializer()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int [|i|] = 1;
@@ -1871,7 +1930,7 @@ namespace RoslynSandbox
         [WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
         public async Task TestGetterAccessibilityDiffers()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1899,7 +1958,7 @@ namespace RoslynSandbox
         [WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
         public async Task TestSetterAccessibilityDiffers()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -1927,7 +1986,7 @@ namespace RoslynSandbox
         [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestPreserveTrailingTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Goo
 {
     private readonly object [|bar|] = new object();
@@ -1946,7 +2005,7 @@ namespace RoslynSandbox
         [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestPreserveTrailingTrivia2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Goo
 {
     private readonly object [|bar|] = new object();
@@ -1965,7 +2024,7 @@ namespace RoslynSandbox
         [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestPreserveTrailingTrivia3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Goo
 {
     private readonly object [|bar|] = new object();
@@ -1986,7 +2045,7 @@ namespace RoslynSandbox
         [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
         public async Task TestKeepLeadingBlank()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Goo
 {
 
@@ -2008,7 +2067,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsAbove1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -2033,7 +2092,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsAbove2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int j;
@@ -2058,7 +2117,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsAbove3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     [|int i|];
@@ -2084,7 +2143,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsAbove4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int j;
@@ -2110,7 +2169,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsBelow1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int P
@@ -2135,7 +2194,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsBelow2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int P
@@ -2160,7 +2219,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsBelow3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int P
@@ -2186,7 +2245,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsBelow4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     int P
@@ -2213,7 +2272,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLineWithDirective()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     #region Test
@@ -2241,7 +2300,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestMultipleFieldsWithDirective()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Class
 {
     #region Test
@@ -2273,7 +2332,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestSingleLineWithDoubleDirectives()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class TestClass
 {
     #region Field
@@ -2302,7 +2361,7 @@ namespace RoslynSandbox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUseTabs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class Foo
 {
 	private readonly object o;
@@ -2312,14 +2371,14 @@ namespace RoslynSandbox
 @"public class Foo
 {
 	public object O { get; }
-}", options: Option(FormattingOptions2.UseTabs, true));
+}", new TestParameters(options: Option(FormattingOptions2.UseTabs, true)));
         }
 
         [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUseSpaces()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class Foo
 {
 	private readonly object o;
@@ -2329,14 +2388,14 @@ namespace RoslynSandbox
 @"public class Foo
 {
     public object O { get; }
-}", options: Option(FormattingOptions2.UseTabs, false));
+}", new TestParameters(options: Option(FormattingOptions2.UseTabs, false)));
         }
 
         [WorkItem(40622, "https://github.com/dotnet/roslyn/issues/40622")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUseTabs_Editorconfig()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"<Workspace>
     <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath = ""z:\\file.cs"">
@@ -2373,7 +2432,7 @@ indent_style = tab
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestUseSpaces_Editorconfig()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"<Workspace>
     <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document FilePath = ""z:\\file.cs"">
@@ -2424,6 +2483,73 @@ class Class
             return i;
         }
     }
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyAndSetterNeeded()
+        {
+            await TestInRegularAndScript1Async(
+@"struct S
+{
+    [|int i|];
+    public readonly int P => i;
+    public void SetP(int value) => i = value;
+}",
+@"struct S
+{
+    public int P { get; private set; }
+    public void SetP(int value) => P = value;
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyWithNoAccessModifierAndSetterNeeded()
+        {
+            await TestInRegularAndScript1Async(
+@"struct S
+{
+    [|int i|];
+    readonly int P => i;
+    public void SetP(int value) => i = value;
+}",
+@"struct S
+{
+    int P { get; set; }
+    public void SetP(int value) => P = value;
+}");
+        }
+
+        [WorkItem(47999, "https://github.com/dotnet/roslyn/issues/47999")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyIsReadOnlyAndSetterUnneeded()
+        {
+            await TestInRegularAndScript1Async(
+@"struct S
+{
+    [|int i|];
+    public readonly int P => i;
+}",
+@"struct S
+{
+    public readonly int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestPropertyInRecordStruct()
+        {
+            await TestInRegularAndScript1Async(
+@"record struct S
+{
+    [|int i|];
+    public readonly int P => i;
+}",
+@"record struct S
+{
+    public readonly int P { get; }
 }");
         }
     }

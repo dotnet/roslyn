@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
@@ -19,11 +19,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     {
         private readonly IMoveToNamespaceService _moveToNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
+        private readonly CodeCleanupOptionsProvider _cleanupOptions;
 
-        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService moveToNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService moveToNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
         {
             _moveToNamespaceService = moveToNamespaceService;
             _moveToNamespaceAnalysisResult = analysisResult;
+            _cleanupOptions = cleanupOptions;
         }
 
         public override object GetOptions(CancellationToken cancellationToken)
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                     _moveToNamespaceAnalysisResult,
                     moveToNamespaceOptions.Namespace,
+                    _cleanupOptions,
                     cancellationToken).ConfigureAwait(false);
 
                 if (moveToNamespaceResult.Succeeded)
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             Debug.Assert(moveToNamespaceResult.Succeeded);
 
-            var operations = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance();
+            using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
             operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
 
             var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
@@ -80,14 +83,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 }
             }
 
-            return operations.ToImmutableAndFree();
+            return operations.ToImmutable();
         }
 
-        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
             => analysisResult.Container switch
             {
-                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
-                MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
+                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
+                MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
                 _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
             };
     }

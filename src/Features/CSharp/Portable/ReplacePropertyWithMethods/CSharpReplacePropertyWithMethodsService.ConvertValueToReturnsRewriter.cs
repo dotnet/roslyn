@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
             }
 
-            private XmlNameSyntax ConvertToReturns(XmlNameSyntax name)
+            private static XmlNameSyntax ConvertToReturns(XmlNameSyntax name)
                 => name.ReplaceToken(name.LocalName, SyntaxFactory.Identifier("returns"));
 
             public override SyntaxNode VisitXmlElementStartTag(XmlElementStartTagSyntax node)

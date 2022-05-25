@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Organizing.Organizers
                 End If
             End Function
 
-            Private Function GetOuterOrdering(x As StatementSyntax) As OuterOrdering
+            Private Shared Function GetOuterOrdering(x As StatementSyntax) As OuterOrdering
                 Select Case x.Kind
                     Case SyntaxKind.FieldDeclaration
                         Return OuterOrdering.Fields

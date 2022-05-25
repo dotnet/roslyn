@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -30,10 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new CSharpIsAndCastCheckDiagnosticAnalyzer();
+        public static readonly CSharpIsAndCastCheckDiagnosticAnalyzer Instance = new();
 
         public CSharpIsAndCastCheckDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.InlineIsTypeCheckId,
+                   EnforceOnBuildValues.InlineIsType,
                    CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(
@@ -46,11 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            var options = syntaxContext.Options;
-            var syntaxTree = syntaxContext.Node.SyntaxTree;
-            var cancellationToken = syntaxContext.CancellationToken;
-
-            var styleOption = options.GetOption(CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck, syntaxTree, cancellationToken);
+            var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferPatternMatchingOverIsWithCastCheck;
             if (!styleOption.Value)
             {
                 // Bail immediately if the user has disabled this feature.
@@ -61,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
             // in projects targeting a lesser version.
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
+            var syntaxTree = syntaxContext.Node.SyntaxTree;
+            if (syntaxTree.Options.LanguageVersion() < LanguageVersion.CSharp7)
             {
                 return;
             }
@@ -98,8 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            var cancellationToken = syntaxContext.CancellationToken;
             var semanticModel = syntaxContext.SemanticModel;
-            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var localSymbol = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
             var isType = semanticModel.GetTypeInfo(castExpression.Type).Type;
 
             if (isType.IsNullable())
@@ -148,14 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 properties: null));
         }
 
-        public bool TryGetPatternPieces(
+        public static bool TryGetPatternPieces(
             BinaryExpressionSyntax isExpression,
-            out IfStatementSyntax ifStatement,
-            out LocalDeclarationStatementSyntax localDeclarationStatement,
-            out VariableDeclaratorSyntax declarator,
-            out CastExpressionSyntax castExpression)
+            [NotNullWhen(true)] out IfStatementSyntax? ifStatement,
+            [NotNullWhen(true)] out LocalDeclarationStatementSyntax? localDeclarationStatement,
+            [NotNullWhen(true)] out VariableDeclaratorSyntax? declarator,
+            [NotNullWhen(true)] out CastExpressionSyntax? castExpression)
         {
-            ifStatement = null;
             localDeclarationStatement = null;
             declarator = null;
             castExpression = null;
@@ -166,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return false;
             }
 
-            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax ifBlock))
+            if (!ifStatement.Statement.IsKind(SyntaxKind.Block, out BlockSyntax? ifBlock))
             {
                 return false;
             }
@@ -208,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             return true;
         }
 
-        private bool ContainsVariableDeclaration(
+        private static bool ContainsVariableDeclaration(
             SyntaxNode scope, VariableDeclaratorSyntax variable)
         {
             var variableName = variable.Identifier.ValueText;

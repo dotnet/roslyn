@@ -5,9 +5,11 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -19,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             status As OperationStatus,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            options As OptionSet,
+            options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstToken As SyntaxToken,
@@ -51,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             status As OperationStatus,
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            options As OptionSet,
+            options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
@@ -94,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return False
             End If
 
-            Dim node = CType(Me.GetContainingScope(), SyntaxNode)
+            Dim node = Me.GetContainingScope()
             If TypeOf node Is MethodBlockBaseSyntax Then
                 Dim methodBlock = DirectCast(node, MethodBlockBaseSyntax)
                 If methodBlock.BlockStatement IsNot Nothing Then
@@ -120,15 +122,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             If SelectionInExpression Then
                 Dim last = GetLastTokenInSelection()
 
-                Return first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
-            End If
+                Dim scope = first.GetCommonRoot(last).GetAncestorOrThis(Of ExpressionSyntax)()
+                Contract.ThrowIfNull(scope, "Should always find an expression given that SelectionInExpression was true")
 
-            ' it contains statements
-            Return first.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax)
+                Return VisualBasicSyntaxFacts.Instance.GetRootStandaloneExpression(scope)
+            Else
+                ' it contains statements
+                Return first.GetAncestors(Of SyntaxNode).FirstOrDefault(Function(n) TypeOf n Is MethodBlockBaseSyntax OrElse TypeOf n Is LambdaExpressionSyntax)
+            End If
         End Function
 
         Public Overrides Function GetContainingScopeType() As ITypeSymbol
-            Dim node = CType(Me.GetContainingScope(), SyntaxNode)
+            Dim node = Me.GetContainingScope()
             Dim semanticModel = Me.SemanticDocument.SemanticModel
 
             ' special case for collection initializer and explicit cast
@@ -139,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 End If
             End If
 
-            Dim expression As ExpressionSyntax = Nothing
+            Dim expression As ExpressionSyntax
             If TypeOf node Is CollectionInitializerSyntax Then
                 expression = node.GetUnparenthesizedExpression()
                 Return semanticModel.GetTypeInfo(expression).ConvertedType
@@ -190,8 +195,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             ' use FormattableString if conversion between String And FormattableString
-            If (info.Type?.SpecialType = SpecialType.System_String).GetValueOrDefault() AndAlso
-               info.ConvertedType?.IsFormattableString() Then
+            If If(info.Type?.SpecialType = SpecialType.System_String, False) AndAlso
+               info.ConvertedType?.IsFormattableStringOrIFormattable() Then
 
                 Return info.ConvertedType
             End If
@@ -286,11 +291,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             ' Contract.ThrowIfFalse(last.IsParentKind(SyntaxKind.GlobalStatement))
             ' Contract.ThrowIfFalse(last.Parent.IsParentKind(SyntaxKind.CompilationUnit))
             ' Return last.Parent.Parent
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Public Function IsUnderModuleBlock() As Boolean
-            Dim currentScope = CType(GetContainingScope(), SyntaxNode)
+            Dim currentScope = GetContainingScope()
             Dim types = currentScope.GetAncestors(Of TypeBlockSyntax)()
 
             Return types.Any(Function(t) t.BlockStatement.Kind = SyntaxKind.ModuleStatement)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,9 +53,10 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var nodeString = singleLineExpression.ToString();
 
             context.RegisterRefactoring(
-                new MyCodeAction(
+                CodeAction.Create(
                     string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                    c => IntroduceLocalAsync(document, expressionStatement, c)),
+                    c => IntroduceLocalAsync(document, expressionStatement, c),
+                    nameof(FeaturesResources.Introduce_local_for_0) + "_" + nodeString),
                 expressionStatement.Span);
         }
 
@@ -104,14 +107,6 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var uniqueName = semanticFacts.GenerateUniqueLocalName(semanticModel, expression, containerOpt: null, baseName, cancellationToken)
                                           .WithAdditionalAnnotations(RenameAnnotation.Create());
             return uniqueName;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
-            }
         }
     }
 }

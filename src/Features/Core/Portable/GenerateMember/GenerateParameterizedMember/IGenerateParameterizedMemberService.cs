@@ -6,12 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
     internal interface IGenerateParameterizedMemberService : ILanguageService
     {
-        Task<ImmutableArray<CodeAction>> GenerateMethodAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeAction>> GenerateMethodAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
     }
 }

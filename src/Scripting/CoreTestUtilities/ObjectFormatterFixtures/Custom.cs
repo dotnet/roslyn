@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 #pragma warning disable 169 // unused field
 #pragma warning disable 649 // field not set, will always be default value
 
@@ -73,7 +75,11 @@ namespace ObjectFormatterFixtures
         private class Proxy
         {
             public Proxy() { }
-            public Proxy(Node node) { x = node.value; y = node.next; }
+            public Proxy(Node node)
+            {
+                x = node.value;
+                y = node.next;
+            }
 
             public readonly int x;
             public readonly Node y;
@@ -145,7 +151,6 @@ namespace ObjectFormatterFixtures
 
         [DebuggerDisplay("*4")]
         internal int _05_internal_property_dd { get { return 1; } }
-
 
         [DebuggerDisplay("+1")]
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

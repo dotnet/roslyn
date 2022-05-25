@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
@@ -121,7 +124,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
         public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null)
         {
-            if (code == null) throw new ArgumentNullException(nameof(code));
+            if (code == null)
+                throw new ArgumentNullException(nameof(code));
             options = options ?? InheritOptions(Options);
             return new Script<TResult>(Compiler, Builder, SourceText.From(code, options.FileEncoding), options, GlobalsType, this);
         }
@@ -337,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             }
             catch (CompilationErrorException e)
             {
-                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error || d.Severity == DiagnosticSeverity.Warning));
+                return ImmutableArray.CreateRange(e.Diagnostics.Where(d => d.Severity is DiagnosticSeverity.Error or DiagnosticSeverity.Warning));
             }
         }
 

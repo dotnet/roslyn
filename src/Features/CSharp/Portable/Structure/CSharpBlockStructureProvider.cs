@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<EventDeclarationSyntax, EventDeclarationStructureProvider>();
             builder.Add<EventFieldDeclarationSyntax, EventFieldDeclarationStructureProvider>();
             builder.Add<FieldDeclarationSyntax, FieldDeclarationStructureProvider>();
+            builder.Add<FileScopedNamespaceDeclarationSyntax, FileScopedNamespaceDeclarationStructureProvider>();
             builder.Add<IndexerDeclarationSyntax, IndexerDeclarationStructureProvider>();
             builder.Add<InitializerExpressionSyntax, InitializerExpressionStructureProvider>();
             builder.Add<InterfaceDeclarationSyntax, TypeDeclarationStructureProvider>();
@@ -39,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             builder.Add<OperatorDeclarationSyntax, OperatorDeclarationStructureProvider>();
             builder.Add<ParenthesizedLambdaExpressionSyntax, ParenthesizedLambdaExpressionStructureProvider>();
             builder.Add<PropertyDeclarationSyntax, PropertyDeclarationStructureProvider>();
+            builder.Add<RecordDeclarationSyntax, TypeDeclarationStructureProvider>();
             builder.Add<RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider>();
             builder.Add<SimpleLambdaExpressionSyntax, SimpleLambdaExpressionStructureProvider>();
             builder.Add<StructDeclarationSyntax, TypeDeclarationStructureProvider>();

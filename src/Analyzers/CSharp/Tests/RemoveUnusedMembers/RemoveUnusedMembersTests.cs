@@ -2,9 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedMembers;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.RemoveUnusedMembers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -17,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers
 {
     public class RemoveUnusedMembersTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertSwitchStatementToExpression)]
-        public void TestStandardProperties()
-            => VerifyCS.VerifyStandardProperties();
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public void TestStandardProperty(AnalyzerProperty property)
+            => VerifyCS.VerifyStandardProperty(property);
 
         [Fact, WorkItem(31582, "https://github.com/dotnet/roslyn/issues/31582")]
         public async Task FieldReadViaSuppression()
@@ -354,6 +362,100 @@ class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_06()
+        {
+            var code = @"
+return 0;
+";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 10),
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_07()
+        {
+            var code = @"
+return 0;
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code, code },
+                },
+                FixedState =
+                {
+                    Sources = { code, code },
+                },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                    DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 10),
+                    // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
+                    DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 2, 1, 2, 7),
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_08()
+        {
+            var code = @"
+return 0;
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task EntryPointMethodNotFlagged_09()
+        {
+            var code = @"
+return 0;
+";
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { code, code },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedState =
+                {
+                    Sources = { code, code },
+                },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
+                    DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 2, 1, 2, 7),
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1147,7 +1249,7 @@ class C
             var source =
 @"class MyClass
 {
-    private int P { get; set; }
+    private int {|#0:P|} { get; set; }
     public void M()
     {
         P = 0;
@@ -1163,7 +1265,7 @@ class C
                 ExpectedDiagnostics =
                 {
                     // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
-                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithSpan(3, 17, 3, 18),
+                    VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithLocation(0),
                 },
                 FixedCode = source,
             }.RunAsync();
@@ -1395,6 +1497,36 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int P { get; set; }
+    public void M1() { ++P; }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 18)
+                .WithArguments("MyClass.P"));
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsIncrementedAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    private int P { get; set; }
+    public void M1() { ++P; }
+    public int M2() => P;
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsIncrementedAndValueUsed()
         {
@@ -1417,6 +1549,36 @@ class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x) => ++this[x];
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 21)
+                .WithArguments("MyClass.this[]"));
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsIncrementedAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x) => ++this[x];
+    public int M2(int x) => this[x];
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -1491,6 +1653,36 @@ class MyClass
             await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int P { get; set; }
+    public void M1(int x) { P += x; }
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 18)
+                .WithArguments("MyClass.P"));
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenPropertyIsReadSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    private int P { get; set; }
+    public void M1(int x) { P += x; }
+    public int M2() => P;
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
         public async Task IndexerIsTargetOfCompoundAssignmentAndValueUsed()
         {
@@ -1513,6 +1705,36 @@ class MyClass
 }";
 
             await VerifyCS.VerifyCodeFixAsync(code, code);
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x, int y) => this[x] += y;
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                .WithSpan(3, 17, 3, 21)
+                .WithArguments("MyClass.this[]"));
+        }
+
+        [WorkItem(43191, "https://github.com/dotnet/roslyn/issues/43191")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_NoDiagnosticWhenIndexerIsReadSomewhereElse()
+        {
+            var code = @"class MyClass
+{
+    private int this[int x] { get { return 0; } set { } }
+    public void M1(int x, int y) => this[x] += y;
+    public int M2(int x) => this[x];
+}";
+
+            await VerifyCS.VerifyAnalyzerAsync(code, Array.Empty<DiagnosticResult>());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
@@ -2433,7 +2655,6 @@ static class MyClass3
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { fixedSource1, fixedSource2 } },
-                NumberOfFixAllInDocumentIterations = 2,
             }.RunAsync();
         }
 
@@ -2462,6 +2683,34 @@ static partial class B
             {
                 TestState = { Sources = { source1, source2 } },
                 FixedState = { Sources = { source1, source2 } },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)]
+        public async Task UsedExtensionMethod_ReferencedFromExtendedPartialMethod()
+        {
+            var source1 = @"
+static partial class B
+{
+    public static void Entry() => PartialMethod();
+    public static partial void PartialMethod();
+}";
+            var source2 = @"
+static partial class B
+{
+    public static partial void PartialMethod()
+    {
+        UsedMethod();
+    }
+
+    private static void UsedMethod() { }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestState = { Sources = { source1, source2 } },
+                FixedState = { Sources = { source1, source2 } },
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module CallStatementSyntaxExtensions
 
         <Extension>
-        Public Function CanRemoveCallKeyword(callStatement As CallStatementSyntax, semanticModel As SemanticModel) As Boolean
+        Public Function CanRemoveCallKeyword(callStatement As CallStatementSyntax) As Boolean
             Dim nextToken = callStatement.CallKeyword.GetNextToken()
             If (nextToken.IsKindOrHasMatchingText(SyntaxKind.IdentifierToken) OrElse
                 nextToken.Parent.IsKind(SyntaxKind.PredefinedType)) AndAlso

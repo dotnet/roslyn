@@ -42,23 +42,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Public Overrides Function MapDefinition(definition As Cci.IDefinition) As Cci.IDefinition
-            Dim symbol As Symbol = TryCast(definition, Symbol)
+            Dim symbol As Symbol = TryCast(definition.GetInternalSymbol(), Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(_symbols.Visit(symbol), Cci.IDefinition)
+                Return DirectCast(_symbols.Visit(symbol)?.GetCciAdapter(), Cci.IDefinition)
             End If
 
+            ' TODO: this appears to be dead code, remove (https://github.com/dotnet/roslyn/issues/51595)
             Return _defs.VisitDef(definition)
         End Function
 
         Public Overrides Function MapNamespace([namespace] As Cci.INamespace) As Cci.INamespace
-            Debug.Assert(TypeOf [namespace] Is NamespaceSymbol)
-            Return DirectCast(_symbols.Visit(CType([namespace], NamespaceSymbol)), Cci.INamespace)
+            Debug.Assert(TypeOf [namespace].GetInternalSymbol() Is NamespaceSymbol)
+            Return DirectCast(_symbols.Visit(DirectCast([namespace]?.GetInternalSymbol(), NamespaceSymbol))?.GetCciAdapter(), Cci.INamespace)
         End Function
 
         Public Overrides Function MapReference(reference As Cci.ITypeReference) As Cci.ITypeReference
-            Dim symbol As Symbol = TryCast(reference, Symbol)
+            Dim symbol As Symbol = TryCast(reference.GetInternalSymbol(), Symbol)
             If symbol IsNot Nothing Then
-                Return DirectCast(_symbols.Visit(symbol), Cci.ITypeReference)
+                Return DirectCast(_symbols.Visit(symbol)?.GetCciAdapter(), Cci.ITypeReference)
             End If
             Return Nothing
         End Function
@@ -191,7 +192,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     If member.Kind = SymbolKind.Namespace Then
                         GetTopLevelTypes(builder, DirectCast(member, NamespaceSymbol))
                     Else
-                        builder.Add(DirectCast(member, Cci.INamespaceTypeDefinition))
+                        builder.Add(DirectCast(member.GetCciAdapter(), Cci.INamespaceTypeDefinition))
                     End If
                 Next
             End Sub
@@ -364,7 +365,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol
                 Dim otherContainer As Symbol = Visit([namespace].ContainingSymbol)
-                Debug.Assert(otherContainer IsNot Nothing)
+
+                ' Containing namespace will be missing from other assembly
+                ' if its was added in the (newer) source assembly.
+                If otherContainer Is Nothing Then
+                    Return Nothing
+                End If
 
                 Select Case otherContainer.Kind
                     Case SymbolKind.NetModule
@@ -435,7 +441,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             Debug.Assert(otherContainer Is _otherAssembly.GlobalNamespace)
                             Dim value As AnonymousTypeValue = Nothing
                             TryFindAnonymousType(template, value)
-                            Return DirectCast(value.Type, NamedTypeSymbol)
+                            Return DirectCast(value.Type?.GetInternalSymbol(), NamedTypeSymbol)
                         End If
 
                         If type.IsAnonymousType Then
@@ -587,7 +593,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Private Function AreParametersEqual(parameter As ParameterSymbol, other As ParameterSymbol) As Boolean
                 Debug.Assert(parameter.Ordinal = other.Ordinal)
-                Return s_nameComparer.Equals(parameter.Name, other.Name) AndAlso parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
+                Return parameter.IsByRef = other.IsByRef AndAlso Me._comparer.Equals(parameter.Type, other.Type)
             End Function
 
             Private Function ArePropertiesEqual([property] As PropertySymbol, other As PropertySymbol) As Boolean

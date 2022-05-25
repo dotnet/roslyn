@@ -11,55 +11,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using SymbolSet = HashSet<INamedTypeSymbol>;
-
     internal static partial class DependentTypeFinder
     {
-        public static async Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesAsync(
+        private static Task<ImmutableArray<INamedTypeSymbol>> FindDerivedInterfacesInCurrentProcessAsync(
             INamedTypeSymbol type,
             Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            var result = await TryFindAndCacheRemoteTypesAsync(
-                type, solution, projects, transitive,
-                FunctionId.DependentTypeFinder_FindAndCacheDerivedInterfacesAsync,
-                nameof(IRemoteDependentTypeFinder.FindAndCacheDerivedInterfacesAsync),
-                cancellationToken).ConfigureAwait(false);
-
-            if (result.HasValue)
-                return result.Value;
-
-            return await FindAndCacheDerivedInterfacesInCurrentProcessAsync(
-                type, solution, projects, transitive, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindAndCacheDerivedInterfacesInCurrentProcessAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects,
-                transitive ? s_typeToTransitivelyDerivedInterfacesMap : s_typeToImmediatelyDerivedInterfacesMap,
-                c => FindWithoutCachingDerivedInterfacesAsync(type, solution, projects, transitive, c),
-                cancellationToken);
-        }
-
-        private static Task<ImmutableArray<INamedTypeSymbol>> FindWithoutCachingDerivedInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
+            IImmutableSet<Project>? projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
             if (s_isInterface(type))
             {
-                static bool TypeMatches(INamedTypeSymbol type, SymbolSet set)
+                static bool TypeMatches(INamedTypeSymbol type, HashSet<INamedTypeSymbol> set)
                     => s_isInterface(type) && TypeHasInterfaceInSet(type, set);
 
                 return DescendInheritanceTreeAsync(type, solution, projects,

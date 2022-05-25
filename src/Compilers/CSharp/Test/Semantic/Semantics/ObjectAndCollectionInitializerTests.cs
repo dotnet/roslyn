@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1196,7 +1198,7 @@ class MemberInitializerTest
             Initializers(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         var i = /*<bind>*/new I() { }/*</bind>*/; // CS0144
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { }").WithArguments("I").WithLocation(7, 27)
             };
@@ -2852,7 +2854,7 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1003: Syntax error, ',' expected
                 //         var x = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(9, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(9, 13),
                 // CS1513: } expected
                 //         var x = 1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(9, 29),
@@ -2904,7 +2906,7 @@ IInvalidOperation (OperationKind.Invalid, Type: List<System.Int32>, IsInvalid) (
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(6, 39),
                 // CS1003: Syntax error, ',' expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(6, 39),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 39),
                 // CS1002: ; expected
                 //         /*<bind>*/new List<int>() { { { 1 } }/*</bind>*/ };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 58),
@@ -3161,7 +3163,7 @@ IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation,
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "{").WithLocation(9, 46),
                 // CS1003: Syntax error, ',' expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",", "{").WithLocation(9, 46),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 46),
                 // CS1001: Identifier expected
                 //         var a = /*<bind>*/new A { 5, { 1, 2, { 1, 2 } }/*</bind>*/, 3 };
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "3").WithLocation(9, 69),
@@ -3954,7 +3956,7 @@ interface I : IEnumerable<int>
 }";
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,15): error CS0144: Cannot create an instance of the abstract class or interface 'I'
+                // (8,15): error CS0144: Cannot create an instance of the abstract type or interface 'I'
                 //         I i = new I() { 1, 2 }
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I() { 1, 2 }").WithArguments("I").WithLocation(8, 15),
                 // (8,31): error CS1002: ; expected

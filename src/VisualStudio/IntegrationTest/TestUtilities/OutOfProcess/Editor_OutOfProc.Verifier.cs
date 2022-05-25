@@ -5,6 +5,8 @@
 using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -146,13 +148,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.Equal(expectedItem, currentItem);
             }
 
-            public void VerifyCurrentSignature(
-                Signature expectedSignature)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(expectedSignature, currentSignature);
-            }
-
             public void CurrentSignature(string content)
             {
                 var currentSignature = _textViewWindow.GetCurrentSignature();
@@ -164,6 +159,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 string documentation)
             {
                 var currentParameter = _textViewWindow.GetCurrentSignature().CurrentParameter;
+                Contract.ThrowIfNull(currentParameter);
+
                 Assert.Equal(name, currentParameter.Name);
                 Assert.Equal(documentation, currentParameter.Documentation);
             }
@@ -172,6 +169,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 params (string name, string documentation)[] parameters)
             {
                 var currentParameters = _textViewWindow.GetCurrentSignature().Parameters;
+                Contract.ThrowIfNull(currentParameters);
+
                 for (var i = 0; i < parameters.Length; i++)
                 {
                     var (expectedName, expectedDocumentation) = parameters[i];
@@ -196,12 +195,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     FeatureAttribute.DiagnosticService,
                     FeatureAttribute.ErrorSquiggles);
                 var actualTags = _textViewWindow.GetErrorTags();
-                Assert.Equal(expectedTags, actualTags);
-            }
-
-            public void IsProjectItemDirty(bool expectedValue)
-            {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
+                AssertEx.EqualOrDiff(
+                    string.Join(Environment.NewLine, expectedTags),
+                    string.Join(Environment.NewLine, actualTags));
             }
         }
     }

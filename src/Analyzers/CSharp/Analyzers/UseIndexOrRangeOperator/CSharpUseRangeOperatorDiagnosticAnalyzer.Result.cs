@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     {
         public enum ResultKind
         {
-            // like s.Substring(expr, s.Length - expr).  'expr' has to match on both sides.
+            // like s.Substring(expr, s.Length - expr) or s.Substring(expr).  'expr' has to match on both sides.
             Computed,
 
             // like s.Substring(constant1, s.Length - constant2).  the constants don't have to match.
@@ -22,22 +22,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         public readonly struct Result
         {
             public readonly ResultKind Kind;
-            public readonly CodeStyleOption2<bool> Option;
             public readonly IInvocationOperation InvocationOperation;
             public readonly InvocationExpressionSyntax Invocation;
             public readonly IMethodSymbol SliceLikeMethod;
             public readonly MemberInfo MemberInfo;
             public readonly IOperation Op1;
-            public readonly IOperation Op2;
+
+            /// <summary>
+            /// Can be null, if we are dealing with one-argument call to a slice-like method.
+            /// </summary>
+            public readonly IOperation? Op2;
 
             public Result(
-                ResultKind kind, CodeStyleOption2<bool> option,
-                IInvocationOperation invocationOperation, InvocationExpressionSyntax invocation,
-                IMethodSymbol sliceLikeMethod, MemberInfo memberInfo,
-                IOperation op1, IOperation op2)
+                ResultKind kind,
+                IInvocationOperation invocationOperation,
+                InvocationExpressionSyntax invocation,
+                IMethodSymbol sliceLikeMethod,
+                MemberInfo memberInfo,
+                IOperation op1,
+                IOperation? op2)
             {
                 Kind = kind;
-                Option = option;
                 InvocationOperation = invocationOperation;
                 Invocation = invocation;
                 SliceLikeMethod = sliceLikeMethod;

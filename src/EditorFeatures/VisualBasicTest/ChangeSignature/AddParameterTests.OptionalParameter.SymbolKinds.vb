@@ -33,9 +33,9 @@ End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
                 New AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", isRequired:=False, defaultValue:="10", callSiteValue:="100"),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", isRequired:=False, defaultValue:="11", isCallsiteOmitted:=True),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", isRequired:=False, defaultValue:="12", callSiteValue:="102")}
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue:="100", isRequired:=False, defaultValue:="10"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", CallSiteKind.Omitted, isRequired:=False, defaultValue:="11"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "z", CallSiteKind.Value, callSiteValue:="102", isRequired:=False, defaultValue:="12")}
 
             Dim updatedCode = <Text><![CDATA[
 Class B
@@ -71,8 +71,8 @@ End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
                 New AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", callSiteValue:="10"),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", callSiteValue:="11")}
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue:="10"),
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "y", CallSiteKind.Value, callSiteValue:="11")}
 
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -99,7 +99,7 @@ End Class]]></Text>.NormalizedValue()
 
             Dim updatedSignature As AddedParameterOrExistingIndex() = {
                 New AddedParameterOrExistingIndex(0),
-                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", isRequired:=False, defaultValue:="10", callSiteValue:="100")}
+                AddedParameterOrExistingIndex.CreateAdded("System.Int32", "x", CallSiteKind.Value, callSiteValue:="100", isRequired:=False, defaultValue:="10")}
 
             Dim updatedCode = <Text><![CDATA[
 <Some(1, 100)>

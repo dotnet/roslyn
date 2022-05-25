@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         End Function
 
-        Private Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
+        Private Shared Function MakeFieldModifiers(expressions As IEnumerable(Of ExpressionSyntax),
                                             isConstant As Boolean,
                                             inScript As Boolean,
                                             inModule As Boolean) As SyntaxTokenList

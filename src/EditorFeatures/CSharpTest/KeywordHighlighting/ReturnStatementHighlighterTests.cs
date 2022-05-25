@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting.KeywordHighlighters;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -11,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     public class ReturnStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
-        internal override IHighlighter CreateHighlighter()
-            => new ReturnStatementHighlighter();
+        internal override Type GetHighlighterType()
+            => typeof(ReturnStatementHighlighter);
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestInLambda()
@@ -319,6 +322,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestInInit()
+        {
+            await TestAsync(
+@"class C
+{
+    int P
+    {
+        get
+        {
+            return 0;
+            return 0;
+        }
+        init
+        {
+            {|Cursor:[|return|]|};
+            [|return|];
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestInAdder()
         {
             await TestAsync(
@@ -436,6 +461,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         return;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+        public async Task TestInTopLevelStatements()
+        {
+            await TestAsync(
+@"if (args.Length > 0) [|return|] 0;
+{|Cursor:[|return|]|} 1;");
         }
     }
 }

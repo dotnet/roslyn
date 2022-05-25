@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Resets numbering in anonymous type names and compiles the
         ''' anonymous type methods. Also seals the collection of templates.
         ''' </summary>
-        Public Sub AssignTemplatesNamesAndCompile(compiler As MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As DiagnosticBag)
+        Public Sub AssignTemplatesNamesAndCompile(compiler As MethodCompiler, moduleBeingBuilt As Emit.PEModuleBuilder, diagnostics As BindingDiagnosticBag)
 
             ' Ensure all previous anonymous type templates are included so the
             ' types are available for subsequent edit and continue generations.
@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each template In builder
                 Dim nameAndIndex = template.NameAndIndex
                 Dim key = template.GetAnonymousTypeKey()
-                Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template)
+                Dim value = New Microsoft.CodeAnalysis.Emit.AnonymousTypeValue(nameAndIndex.Name, nameAndIndex.Index, template.GetCciAdapter())
                 result.Add(key, value)
             Next
             builder.Free()

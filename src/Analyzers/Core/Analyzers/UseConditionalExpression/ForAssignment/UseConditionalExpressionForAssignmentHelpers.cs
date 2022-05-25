@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -16,11 +14,10 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ISyntaxFacts syntaxFacts,
             IConditionalOperation ifOperation,
             [NotNullWhen(true)] out IOperation trueStatement,
-            [NotNullWhen(true)] out IOperation falseStatement,
+            [NotNullWhen(true)] out IOperation? falseStatement,
             out ISimpleAssignmentOperation? trueAssignment,
             out ISimpleAssignmentOperation? falseAssignment)
         {
-            trueAssignment = null;
             falseAssignment = null;
 
             trueStatement = ifOperation.WhenTrue;
@@ -55,7 +52,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         private static bool TryGetAssignmentOrThrow(
-            IOperation statement,
+            [NotNullWhen(true)] IOperation? statement,
             out ISimpleAssignmentOperation? assignment,
             out IThrowOperation? throwOperation)
         {

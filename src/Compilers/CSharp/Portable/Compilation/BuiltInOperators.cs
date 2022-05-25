@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -317,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create<BinaryOperatorSignature>(GetSignature(BinaryOperatorKind.LogicalBoolAnd)), //and
                     ImmutableArray<BinaryOperatorSignature>.Empty, //xor
                     ImmutableArray.Create<BinaryOperatorSignature>(GetSignature(BinaryOperatorKind.LogicalBoolOr)), //or
+                    ImmutableArray<BinaryOperatorSignature>.Empty, //unsigned right shift
                 };
 
                 var nonLogicalOperators = new ImmutableArray<BinaryOperatorSignature>[]
@@ -644,6 +647,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (int)BinaryOperatorKind.LiftedNUIntOr,
                         (int)BinaryOperatorKind.LiftedBoolOr,
                     }),
+                    GetSignaturesFromBinaryOperatorKinds(new []
+                    {
+                        (int)BinaryOperatorKind.IntUnsignedRightShift,
+                        (int)BinaryOperatorKind.UIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LongUnsignedRightShift,
+                        (int)BinaryOperatorKind.ULongUnsignedRightShift,
+                        (int)BinaryOperatorKind.NIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.NUIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedUIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedLongUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedULongUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedNIntUnsignedRightShift,
+                        (int)BinaryOperatorKind.LiftedNUIntUnsignedRightShift,
+                    }),
                 };
 
                 var allOperators = new[] { nonLogicalOperators, logicalOperators };
@@ -683,6 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BinaryOperatorSignature(kind, left, RightType(kind), ReturnType(kind));
                 case BinaryOperatorKind.LeftShift:
                 case BinaryOperatorKind.RightShift:
+                case BinaryOperatorKind.UnsignedRightShift:
                     TypeSymbol rightType = _compilation.GetSpecialType(SpecialType.System_Int32);
                     if (kind.IsLifted())
                     {
@@ -819,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        internal static bool IsValidObjectEquality(Conversions Conversions, TypeSymbol leftType, bool leftIsNull, bool leftIsDefault, TypeSymbol rightType, bool rightIsNull, bool rightIsDefault, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // SPEC: The predefined reference type equality operators require one of the following:
 
@@ -849,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                leftType = ((TypeParameterSymbol)leftType).EffectiveBaseClass(ref useSiteDiagnostics);
+                leftType = ((TypeParameterSymbol)leftType).EffectiveBaseClass(ref useSiteInfo);
                 Debug.Assert((object)leftType != null);
             }
 
@@ -860,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                rightType = ((TypeParameterSymbol)rightType).EffectiveBaseClass(ref useSiteDiagnostics);
+                rightType = ((TypeParameterSymbol)rightType).EffectiveBaseClass(ref useSiteInfo);
                 Debug.Assert((object)rightType != null);
             }
 
@@ -897,13 +916,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
+            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, isChecked: false, ref useSiteInfo);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
+            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, isChecked: false, ref useSiteInfo);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

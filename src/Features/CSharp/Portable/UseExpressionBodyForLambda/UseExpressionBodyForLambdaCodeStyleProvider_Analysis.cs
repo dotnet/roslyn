@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -36,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             SemanticModel semanticModel, CodeStyleOption2<ExpressionBodyPreference> option,
             LambdaExpressionSyntax declaration, CancellationToken cancellationToken)
         {
-            if (CanOfferUseExpressionBody(option.Value, declaration))
+            if (CanOfferUseExpressionBody(option.Value, declaration, declaration.GetLanguageVersion()))
             {
                 var location = GetDiagnosticLocation(declaration);
 

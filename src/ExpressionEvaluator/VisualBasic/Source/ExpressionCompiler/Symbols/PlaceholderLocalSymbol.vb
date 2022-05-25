@@ -123,17 +123,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim conversionKind As ConversionKind
             If type.IsErrorType() Then
-                diagnostics.Add(type.GetUseSiteErrorInfo(), syntax.GetLocation())
+                diagnostics.Add(type.GetUseSiteInfo().DiagnosticInfo, syntax.GetLocation())
                 conversionKind = Nothing
             ElseIf exprType.IsErrorType() Then
-                diagnostics.Add(exprType.GetUseSiteErrorInfo(), syntax.GetLocation())
+                diagnostics.Add(exprType.GetUseSiteInfo().DiagnosticInfo, syntax.GetLocation())
                 conversionKind = Nothing
             Else
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim pair = Conversions.ClassifyConversion(exprType, type, useSiteDiagnostics)
-                Debug.Assert(useSiteDiagnostics Is Nothing, "If this happens, please add a test")
+                Dim useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol) = Nothing
+                Dim pair = Conversions.ClassifyConversion(exprType, type, useSiteInfo)
+                Debug.Assert(useSiteInfo.Diagnostics Is Nothing, "If this happens, please add a test")
 
-                diagnostics.Add(syntax, useSiteDiagnostics)
+                diagnostics.Add(syntax, useSiteInfo.Diagnostics)
 
                 Debug.Assert(pair.Value Is Nothing) ' Conversion method.
                 conversionKind = pair.Key

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -168,6 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Organizing.Organizers
                     case SyntaxKind.StructDeclaration:
                     case SyntaxKind.EnumDeclaration:
                     case SyntaxKind.DelegateDeclaration:
+                    case SyntaxKind.RecordDeclaration:
+                    case SyntaxKind.RecordStructDeclaration:
                         return OuterOrdering.Types;
                     default:
                         return OuterOrdering.Remaining;

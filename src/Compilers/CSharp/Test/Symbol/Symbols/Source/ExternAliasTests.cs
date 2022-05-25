@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -95,7 +97,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Goo d = new Bar::NS.Goo();
 ";
-            var comp = CreateCompilationWithMscorlib45(src, options: new CSharpCompilationOptions(OutputKind.ConsoleApplication), parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib45(src, options: TestOptions.DebugExe, parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics();
         }
@@ -486,6 +488,8 @@ class Test
             var externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
             Assert.Equal("A", externAliasSymbol.Name);
             Assert.Equal(aliasedGlobalNamespace, externAliasSymbol.Target);
+            Assert.Equal(1, externAliasSymbol.DeclaringSyntaxReferences.Length);
+            Assert.Same(externAliasSyntax, externAliasSymbol.DeclaringSyntaxReferences.Single().GetSyntax());
 
             var usingAliasSymbol = model.GetDeclaredSymbol(usingSyntax);
             Assert.Equal("C", usingAliasSymbol.Name);

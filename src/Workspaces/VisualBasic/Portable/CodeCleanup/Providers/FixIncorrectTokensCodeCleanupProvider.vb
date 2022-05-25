@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Protected Overrides Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+        Protected Overrides Function GetRewriterAsync(document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
             Return FixIncorrectTokensRewriter.CreateAsync(document, spans, cancellationToken)
         End Function
 
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim modifiedSpan = spans.Collapse()
                 Dim semanticModel = If(document Is Nothing,
                     Nothing,
-                    Await document.GetSemanticModelForSpanAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
+                    Await document.ReuseExistingSpeculativeModelAsync(modifiedSpan, cancellationToken).ConfigureAwait(False))
 
                 Return New FixIncorrectTokensRewriter(semanticModel, spans, cancellationToken)
             End Function

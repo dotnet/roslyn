@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function IsBlockSyntax(node As SyntaxNode) As Boolean
+        Private Shared Function IsBlockSyntax(node As SyntaxNode) As Boolean
             Dim pair = GetFirstAndLastMembers(node)
             If pair.Equals(Nothing) Then
                 Return False
@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         '    	Return
         '    Next
 
-        Private Function GetOuterBlockWithDifferentStartTokenUsingXmlElement(firstTokenOfInnerBlock As SyntaxToken) As SyntaxNode
+        Private Shared Function GetOuterBlockWithDifferentStartTokenUsingXmlElement(firstTokenOfInnerBlock As SyntaxToken) As SyntaxNode
             Dim outerBlock = firstTokenOfInnerBlock.Parent
             Dim outerBlockGetFirstToken = outerBlock.GetFirstToken()
             While outerBlock IsNot Nothing AndAlso
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return outerBlock
         End Function
 
-        Private Sub AddXmlEmptyElement(operations As List(Of IndentBlockOperation),
+        Private Shared Sub AddXmlEmptyElement(operations As List(Of IndentBlockOperation),
                                        node As XmlNodeSyntax,
                                        baseToken As SyntaxToken,
                                        startToken As SyntaxToken,
@@ -234,7 +234,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             AddIndentBlockOperation(operations, startToken, token)
         End Sub
 
-        Private Sub AddXmlElementIndentBlockOperation(operations As List(Of IndentBlockOperation),
+        Private Shared Sub AddXmlElementIndentBlockOperation(operations As List(Of IndentBlockOperation),
                                                       xmlNode As XmlNodeSyntax,
                                                       baseToken As SyntaxToken,
                                                       alignmentStartToken As SyntaxToken,
@@ -282,6 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     foundXmlElement = True
                     Exit While
                 End If
+
                 previousToken = previousToken.GetPreviousToken(includeZeroWidth:=True)
             End While
 
@@ -292,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
         End Sub
 
-        Private Function IsFirstXmlElementTokenOnLine(xmlToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlElementTokenOnLine(xmlToken As SyntaxToken) As Boolean
             If xmlToken.LeadingTrivia.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia) Then
                 Return True
             End If
@@ -306,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return previousToken.TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function GetFirstAndLastMembers(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
+        Private Shared Function GetFirstAndLastMembers(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)
             Dim [namespace] = TryCast(node, NamespaceBlockSyntax)
             If [namespace] IsNot Nothing Then
                 Return ValueTuple.Create(
@@ -481,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function GetEndTokenForForBlock(node As ForOrForEachBlockSyntax) As SyntaxToken
+        Private Shared Function GetEndTokenForForBlock(node As ForOrForEachBlockSyntax) As SyntaxToken
             If node.NextStatement IsNot Nothing Then
                 Return node.NextStatement.GetFirstToken(includeZeroWidth:=True).GetPreviousToken(includeZeroWidth:=True)
             End If
@@ -509,14 +510,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return node.GetLastToken(includeZeroWidth:=True)
         End Function
 
-        Private Function GetForBlockCount(node As ForOrForEachBlockSyntax, forBlocks As IEnumerable(Of ForOrForEachBlockSyntax)) As Integer
+        Private Shared Function GetForBlockCount(node As ForOrForEachBlockSyntax, forBlocks As IEnumerable(Of ForOrForEachBlockSyntax)) As Integer
             Dim count As Integer = 0
             For Each forBlock In forBlocks
                 If forBlock Is node Then
                     Return count + 1
                 End If
+
                 count = count + 1
             Next
+
             Return count
         End Function
     End Class

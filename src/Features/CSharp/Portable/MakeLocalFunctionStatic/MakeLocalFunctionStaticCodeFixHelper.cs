@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -27,11 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             Document document,
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
-            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
-            await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, cancellationToken).ConfigureAwait(false);
+            var syntaxEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
+            await MakeLocalFunctionStaticAsync(document, localFunction, captures, syntaxEditor, fallbackOptions, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(syntaxEditor.GetChangedRoot());
         }
 
@@ -40,11 +39,13 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             LocalFunctionStatementSyntax localFunction,
             ImmutableArray<ISymbol> captures,
             SyntaxEditor syntaxEditor,
+            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var root = (await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!;
             var semanticModel = (await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false))!;
             var localFunctionSymbol = semanticModel.GetDeclaredSymbol(localFunction, cancellationToken);
+            Contract.ThrowIfNull(localFunctionSymbol, "We should have gotten a method symbol for a local function.");
             var documentImmutableSet = ImmutableHashSet.Create(document);
 
             // Finds all the call sites of the local function
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                     // We limited the search scope to the single document, 
                     // so all reference should be in the same tree.
                     var referenceNode = root.FindNode(location.Location.SourceSpan);
-                    if (!(referenceNode is IdentifierNameSyntax identifierNode))
+                    if (referenceNode is not IdentifierNameSyntax identifierNode)
                     {
                         // Unexpected scenario, skip and warn.
                         shouldWarn = true;
@@ -139,15 +140,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
                 }
             }
 
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = options.GetInfo(CodeGenerationContext.Default, document.Project);
+
             // Updates the local function declaration with variables passed in as parameters
             syntaxEditor.ReplaceNode(
                 localFunction,
                 (node, generator) =>
                 {
-                    var localFunctionWithNewParameters = CodeGenerator.AddParameterDeclarations(
+                    var localFunctionWithNewParameters = codeGenerator.AddParameters(
                         node,
                         parameterAndCapturedSymbols.SelectAsArray(p => p.symbol),
-                        document.Project.Solution.Workspace);
+                        info,
+                        cancellationToken);
 
                     if (shouldWarn)
                     {
@@ -168,20 +174,16 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         /// Creates a new parameter symbol paired with the original captured symbol for each captured variables.
         /// </summary>
         private static ImmutableArray<(IParameterSymbol symbol, ISymbol capture)> CreateParameterSymbols(ImmutableArray<ISymbol> captures)
-        {
-            var parameters = ArrayBuilder<(IParameterSymbol, ISymbol)>.GetInstance(captures.Length);
-
-            foreach (var symbol in captures)
+            => captures.SelectAsArray(static c =>
             {
-                parameters.Add((CodeGenerationSymbolFactory.CreateParameterSymbol(
+                var symbolType = c.GetSymbolType();
+                Contract.ThrowIfNull(symbolType);
+                return (CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
-                    type: symbol.GetSymbolType(),
-                    name: symbol.Name.ToCamelCase()), symbol));
-            }
-
-            return parameters.ToImmutableAndFree();
-        }
+                    type: symbolType,
+                    name: c.Name.ToCamelCase()), c);
+            });
     }
 }

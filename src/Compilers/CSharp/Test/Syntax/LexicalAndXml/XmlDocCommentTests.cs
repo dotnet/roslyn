@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -57,7 +59,7 @@ public class C
                     comp,
                     null,
                     badStream,
-                    diags,
+                    new BindingDiagnosticBag(diags),
                     default(CancellationToken));
 
                 diags.Verify(
@@ -3190,7 +3192,7 @@ public class Program
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                diags,
+                new BindingDiagnosticBag(diags),
                 default(CancellationToken),
                 filterTree: comp.SyntaxTrees[0]);
 
@@ -3206,7 +3208,7 @@ public class Program
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                diags,
+                new BindingDiagnosticBag(diags),
                 default(CancellationToken),
                 filterTree: comp.SyntaxTrees[0],
                 filterSpanWithinTree: new TextSpan(0, 0));
@@ -3219,7 +3221,7 @@ public class Program
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                diags,
+                new BindingDiagnosticBag(diags),
                 default(CancellationToken),
                 filterTree: comp.SyntaxTrees[1]);
 
@@ -3235,7 +3237,7 @@ public class Program
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                diags,
+                new BindingDiagnosticBag(diags),
                 default(CancellationToken),
                 filterTree: null);
 
@@ -3254,7 +3256,7 @@ public class Program
                 comp,
                 assemblyName: null,
                 xmlDocStream: null,
-                diags,
+                new BindingDiagnosticBag(diags),
                 default(CancellationToken),
                 filterTree: null,
                 filterSpanWithinTree: new TextSpan(0, 0));

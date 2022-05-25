@@ -3,19 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module InvocationExpressionExtensions
 
         <Extension>
-        Public Function CanRemoveEmptyArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Public Function CanRemoveEmptyArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Return invocationExpression.ArgumentList IsNot Nothing AndAlso invocationExpression.ArgumentList.Arguments.Count = 0 AndAlso
-                CanHaveOmittedArgumentList(invocationExpression, semanticModel, cancellationToken)
+                CanHaveOmittedArgumentList(invocationExpression, semanticModel)
         End Function
 
-        Private Function CanHaveOmittedArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+        Private Function CanHaveOmittedArgumentList(invocationExpression As InvocationExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim nextToken = invocationExpression.GetLastToken().GetNextToken()
 
             If nextToken.IsKindOrHasMatchingText(SyntaxKind.OpenParenToken) Then
@@ -38,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     .SkipWhile(Function(t) t.IsKind(SyntaxKind.WhitespaceTrivia)) _
                     .FirstOrDefault()
 
-                If nextTrivia.IsKind(SyntaxKind.ColonTrivia) AndAlso invocationExpression.GetFirstToken().IsFirstTokenOnLine(cancellationToken) Then
+                If nextTrivia.IsKind(SyntaxKind.ColonTrivia) AndAlso invocationExpression.GetFirstToken().IsFirstTokenOnLine() Then
                     Return False
                 End If
             End If

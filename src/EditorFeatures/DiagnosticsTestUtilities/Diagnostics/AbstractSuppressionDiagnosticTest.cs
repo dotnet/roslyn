@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,11 +18,17 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract class AbstractSuppressionDiagnosticTest : AbstractUserDiagnosticTest
     {
+        protected AbstractSuppressionDiagnosticTest(ITestOutputHelper logger = null)
+            : base(logger)
+        {
+        }
+
         protected abstract int CodeActionIndex { get; }
         protected virtual bool IncludeSuppressedDiagnostics => false;
         protected virtual bool IncludeUnsuppressedDiagnostics => true;
@@ -65,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
             var document = GetDocumentAndSelectSpan(workspace, out var span);
-            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, span);
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
             return FilterDiagnostics(diagnostics);
         }
 
@@ -75,13 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
             AddAnalyzerToWorkspace(workspace, analyzer, parameters);
 
-            string annotation = null;
-            if (!TryGetDocumentAndSelectSpan(workspace, out var document, out var span))
-            {
-                document = GetDocumentAndAnnotatedSpan(workspace, out annotation, out span);
-            }
+            GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
 
-            var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
+            var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
             var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))
                 .Where(d => fixer.IsFixableDiagnostic(d));
 

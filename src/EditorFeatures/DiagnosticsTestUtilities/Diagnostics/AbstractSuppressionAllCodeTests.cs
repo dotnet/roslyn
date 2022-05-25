@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
                 analyzer.AllNodes = descendants;
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(document, root.FullSpan);
+                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan);
 
                 foreach (var diagnostic in diagnostics)
                 {
@@ -85,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         continue;
                     }
 
-                    var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CancellationToken.None).GetAwaiter().GetResult();
+                    var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, SpecializedCollections.SingletonEnumerable(diagnostic), CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult();
                     if (fixes == null || fixes.Count() <= 0)
                     {
                         continue;
@@ -118,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        private CodeAction GetFix(IEnumerable<CodeAction> fixes, bool pragma)
+        private static CodeAction GetFix(IEnumerable<CodeAction> fixes, bool pragma)
         {
             if (pragma)
             {
@@ -137,9 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal class Analyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
         {
             private readonly DiagnosticDescriptor _descriptor =
-                    new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+                new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
-            public bool OpenFileOnly(CodeAnalysis.Options.OptionSet options) => false;
+            public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+
+            public bool OpenFileOnly(SimplifierOptions options) => false;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

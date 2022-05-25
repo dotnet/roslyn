@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -13,39 +14,9 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     internal partial class SQLitePersistentStorage
     {
-        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new ConcurrentDictionary<string, int>();
+        private readonly ConcurrentDictionary<string, int> _stringToIdMap = new();
 
-        private bool TryFetchStringTable(SqlConnection connection)
-        {
-            try
-            {
-                using (var resettableStatement = connection.GetResettableStatement(_select_star_from_string_table))
-                {
-                    var statement = resettableStatement.Statement;
-                    while (statement.Step() == Result.ROW)
-                    {
-                        var id = statement.GetInt32At(columnIndex: 0);
-                        var value = statement.GetStringAt(columnIndex: 1);
-
-                        // Note that TryAdd won't overwrite an existing string->id pair.  That's what
-                        // we want.  we don't want the strings we've allocated from the DB to be what
-                        // we hold onto.  We'd rather hold onto the strings we get from sources like
-                        // the workspaces.  This helps avoid unnecessary string instance duplication.
-                        _stringToIdMap.TryAdd(value, id);
-                    }
-                }
-
-                return true;
-            }
-            catch (SqlException e) when (e.Result == Result.BUSY || e.Result == Result.LOCKED)
-            {
-                // Couldn't get access to sql database to fetch the string table.  
-                // Try again later.
-                return false;
-            }
-        }
-
-        private int? TryGetStringId(SqlConnection connection, string value)
+        private int? TryGetStringId(SqlConnection connection, string? value, bool allowWrite)
         {
             // Null strings are not supported at all.  Just ignore these. Any read/writes 
             // to null values will fail and will return 'false/null' to indicate failure
@@ -63,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             }
 
             // Otherwise, try to get or add the string to the string table in the database.
-            var id = TryGetStringIdFromDatabase(connection, value);
+            var id = TryGetStringIdFromDatabase(connection, value, allowWrite);
             if (id != null)
             {
                 _stringToIdMap[value] = id.Value;
@@ -72,8 +43,13 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             return id;
         }
 
-        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
+        private int? TryGetStringIdFromDatabase(SqlConnection connection, string value, bool allowWrite)
         {
+            // We're reading or writing.  This can be under either of our schedulers.
+            Contract.ThrowIfFalse(
+                TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler ||
+                TaskScheduler.Current == _connectionPoolService.Scheduler.ConcurrentScheduler);
+
             // First, check if we can find that string in the string table.
             var stringId = TryGetStringIdFromDatabaseWorker(connection, value, canReturnNull: true);
             if (stringId != null)
@@ -83,12 +59,22 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return stringId;
             }
 
+            // If we're in a context where our caller doesn't have the write lock, give up now.  They will
+            // call back in with the write lock to allow safe adding of this db ID after this.
+            if (!allowWrite)
+                return null;
+
+            // We're writing.  This better always be under the exclusive scheduler.
+            Contract.ThrowIfFalse(TaskScheduler.Current == _connectionPoolService.Scheduler.ExclusiveScheduler);
+
             // The string wasn't in the db string table.  Add it.  Note: this may fail if some
             // other thread/process beats us there as this table has a 'unique' constraint on the
             // values.
             try
             {
-                stringId = connection.RunInTransaction(s_insertStringIntoDataBase, (self: this, connection, value));
+                stringId = connection.RunInTransaction(
+                    static t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value),
+                    (self: this, connection, value));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;
@@ -108,9 +94,6 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             return null;
         }
-
-        private static readonly Func<(SQLitePersistentStorage self, SqlConnection connection, string value), int> s_insertStringIntoDataBase =
-            t => t.self.InsertStringIntoDatabase_MustRunInTransaction(t.connection, t.value);
 
         private int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
         {

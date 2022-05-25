@@ -2,19 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 {
     public class UseCompoundCoalesceAssignmentTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseCompoundCoalesceAssignmentTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer(), new CSharpUseCompoundCoalesceAssignmentCodeFixProvider());
 
@@ -33,6 +42,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     private static string s_goo;
     private static string Goo => s_goo ??= new string('c', 42);
 }");
+        }
+
+        [WorkItem(44793, "https://github.com/dotnet/roslyn/issues/44793")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestMissingBeforeCSharp8()
+        {
+            await TestMissingAsync(
+@"class Program
+{
+    private static string s_goo;
+    private static string Goo => s_goo [||]?? (s_goo = new string('c', 42));
+}", new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3)));
         }
 
         [WorkItem(38059, "https://github.com/dotnet/roslyn/issues/38059")]

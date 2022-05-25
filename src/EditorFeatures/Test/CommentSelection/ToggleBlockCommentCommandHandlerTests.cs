@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
@@ -1503,7 +1505,7 @@ class C
                 .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
 
-        internal override TestWorkspace GetWorkspace(string markup, ExportProvider exportProvider)
-            => TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider);
+        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
+            => TestWorkspace.CreateCSharp(markup, composition: composition);
     }
 }

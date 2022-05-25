@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class SelectBlockContext
         Inherits ExecutableStatementContext
 
-        Private _caseBlocks As SyntaxListBuilder(Of CaseBlockSyntax)
+        Private ReadOnly _caseBlocks As SyntaxListBuilder(Of CaseBlockSyntax)
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)
             MyBase.New(SyntaxKind.SelectBlock, statement, prevContext)

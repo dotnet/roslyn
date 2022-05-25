@@ -39,12 +39,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Friend Sub New(projectSystemName As String,
                        compilerHost As IVbCompilerHost,
                        hierarchy As IVsHierarchy,
+                       isIntellisenseProject As Boolean,
                        serviceProvider As IServiceProvider,
-                       threadingContext As IThreadingContext,
-                       Optional hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource = Nothing,
-                       Optional commandLineParserServiceOpt As ICommandLineParserService = Nothing)
-            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic,
-                       serviceProvider, threadingContext, "VB", hostDiagnosticUpdateSourceOpt, commandLineParserServiceOpt)
+                       threadingContext As IThreadingContext)
+            MyBase.New(projectSystemName, hierarchy, LanguageNames.VisualBasic, isIntellisenseProject, serviceProvider, threadingContext, "VB")
 
             _compilerHost = compilerHost
 
@@ -146,8 +144,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 End If
 
                 Return VSConstants.S_OK
-            Catch e As Exception When FatalError.Report(e)
-                Return VSConstants.S_OK
+            Catch e As Exception When FatalError.ReportAndPropagate(e)
+                Throw ExceptionUtilities.Unreachable
             End Try
         End Function
 
@@ -212,8 +210,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                                                ByVal pcActualItems As IntPtr,
                                                findFormsOnly As Boolean)
 
+            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.SourceModule.GlobalNamespace, findFormsOnly:=findFormsOnly)
+
             ' If called with cItems = 0 and pcActualItems != NULL, GetEntryPointsList returns in pcActualItems the number of items available.
-            Dim entryPoints = EntryPointFinder.FindEntryPoints(compilation.Assembly.GlobalNamespace, findFormsOnly:=findFormsOnly)
             If cItems = 0 AndAlso pcActualItems <> Nothing Then
                 Marshal.WriteInt32(pcActualItems, entryPoints.Count())
                 Exit Sub

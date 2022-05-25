@@ -13,7 +13,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Protected Overrides Function CreateOptionPage(serviceProvider As IServiceProvider, optionStore As OptionStore) As AbstractOptionPageControl
             Dim componentModel = DirectCast(Me.Site.GetService(GetType(SComponentModel)), IComponentModel)
-
             Return New AdvancedOptionPageControl(optionStore, componentModel)
         End Function
     End Class

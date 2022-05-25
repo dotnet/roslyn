@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -14,16 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
     internal class UseExpressionBodyForIndexersHelper :
         UseExpressionBodyHelper<IndexerDeclarationSyntax>
     {
-        public static readonly UseExpressionBodyForIndexersHelper Instance = new UseExpressionBodyForIndexersHelper();
+        public static readonly UseExpressionBodyForIndexersHelper Instance = new();
 
         private UseExpressionBodyForIndexersHelper()
             : base(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForIndexers,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_expression_body_for_indexers), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Use_block_body_for_indexers), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
                    CSharpCodeStyleOptions.PreferExpressionBodiedIndexers,
                    ImmutableArray.Create(SyntaxKind.IndexerDeclaration))
         {
         }
+
+        public override CodeStyleOption2<ExpressionBodyPreference> GetExpressionBodyPreference(CSharpCodeGenerationOptions options)
+            => options.PreferExpressionBodiedIndexers;
 
         protected override BlockSyntax GetBody(IndexerDeclarationSyntax declaration)
             => GetBodyFromSingleGetAccessor(declaration.AccessorList);
@@ -59,14 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, IndexerDeclarationSyntax declaration) => true;
 
         protected override bool TryConvertToExpressionBody(
-            IndexerDeclarationSyntax declaration, ParseOptions options,
+            IndexerDeclarationSyntax declaration,
             ExpressionBodyPreference conversionPreference,
             out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
-            return TryConvertToExpressionBodyForBaseProperty(
-                declaration, options, conversionPreference,
-                out arrowExpression, out semicolonToken);
+            return TryConvertToExpressionBodyForBaseProperty(declaration, conversionPreference, out arrowExpression, out semicolonToken);
         }
 
         protected override Location GetDiagnosticLocation(IndexerDeclarationSyntax declaration)
@@ -74,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             var body = GetBody(declaration);
             if (body != null)
             {
-                return base.GetDiagnosticLocation(declaration);
+                return body.Statements[0].GetLocation();
             }
 
             var getAccessor = GetSingleGetAccessor(declaration.AccessorList);

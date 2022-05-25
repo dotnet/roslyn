@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,9 +36,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         var document = documentGroup.Key;
                         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                        AddSymbols(document, semanticModel, documentGroup, result);
+                        AddSymbols(semanticModel, documentGroup, result);
                     }
 
+                    // Keep compilation alive so that GetSemanticModelAsync remains cheap
                     GC.KeepAlive(compilation);
                 }
             }
@@ -45,7 +48,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static void AddSymbols(
-            Document document,
             SemanticModel semanticModel,
             IEnumerable<ReferenceLocation> references,
             Dictionary<ISymbol, List<Location>> result)

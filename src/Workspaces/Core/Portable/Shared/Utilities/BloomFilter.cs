@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private int ComputeHash(long key, int seed)
+        private static int ComputeHash(long key, int seed)
         {
             // This is a duplicate of ComputeHash(string key, int seed).  However, because
             // we only have 64bits to encode we just unroll that function here.  See
@@ -231,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return _isCaseSensitive ? c : char.ToLowerInvariant(c);
         }
 
-        private char GetCharacter(long key, int index)
+        private static char GetCharacter(long key, int index)
         {
             Debug.Assert(index <= 3);
             return (char)(key >> (16 * index));
@@ -378,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 && _isCaseSensitive == filter._isCaseSensitive;
         }
 
-        private bool IsEquivalent(BitArray array1, BitArray array2)
+        private static bool IsEquivalent(BitArray array1, BitArray array2)
         {
             if (array1.Length != array2.Length)
             {

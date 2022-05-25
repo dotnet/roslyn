@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
@@ -42,5 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MethodKind.ExplicitInterfaceImplementation;
             }
         }
+
+        public override bool IsStatic => _implementingMethod.IsStatic;
+
+        internal override bool HasSpecialName => false;
+
+        internal sealed override bool HasRuntimeSpecialName => false;
     }
 }

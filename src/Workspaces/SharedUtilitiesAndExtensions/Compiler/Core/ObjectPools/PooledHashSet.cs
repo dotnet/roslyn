@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-    internal partial class PooledHashSet<T> : IPooled
+    internal partial class PooledHashSet<T> : IPooled, IReadOnlySet<T>
     {
         public static PooledDisposer<PooledHashSet<T>> GetInstance(out PooledHashSet<T> instance)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -145,7 +147,7 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
 
         private async Task<string> GetMSBuildVersionStringAsync(CancellationToken cancellationToken)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dte = (DTE)await GetServiceAsync(typeof(SDTE)).ConfigureAwait(true);
             var parts = dte.Version.Split('.');

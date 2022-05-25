@@ -3,28 +3,39 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
 
-#nullable enable
 namespace Microsoft.CodeAnalysis
 {
     internal readonly struct GeneratorDriverState
     {
         internal GeneratorDriverState(ParseOptions parseOptions,
-                                      ImmutableArray<ISourceGenerator> generators,
+                                      AnalyzerConfigOptionsProvider optionsProvider,
+                                      ImmutableArray<ISourceGenerator> sourceGenerators,
+                                      ImmutableArray<IIncrementalGenerator> incrementalGenerators,
                                       ImmutableArray<AdditionalText> additionalTexts,
-                                      ImmutableDictionary<ISourceGenerator, GeneratorState> generatorStates,
-                                      ImmutableArray<PendingEdit> edits,
-                                      bool editsFailed)
+                                      ImmutableArray<GeneratorState> generatorStates,
+                                      DriverStateTable stateTable,
+                                      SyntaxStore syntaxStore,
+                                      IncrementalGeneratorOutputKind disabledOutputs,
+                                      TimeSpan runtime,
+                                      bool trackIncrementalGeneratorSteps)
         {
-            Generators = generators;
+            Generators = sourceGenerators;
+            IncrementalGenerators = incrementalGenerators;
             GeneratorStates = generatorStates;
             AdditionalTexts = additionalTexts;
-            Edits = edits;
             ParseOptions = parseOptions;
-            EditsFailed = editsFailed;
+            OptionsProvider = optionsProvider;
+            StateTable = stateTable;
+            SyntaxStore = syntaxStore;
+            DisabledOutputs = disabledOutputs;
+            RunTime = runtime;
+            TrackIncrementalSteps = trackIncrementalGeneratorSteps;
+            Debug.Assert(Generators.Length == GeneratorStates.Length);
+            Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
 
         /// <summary>
@@ -37,13 +48,22 @@ namespace Microsoft.CodeAnalysis
         internal readonly ImmutableArray<ISourceGenerator> Generators;
 
         /// <summary>
+        /// The set of <see cref="IIncrementalGenerator"/>s associated with this state.
+        /// </summary>
+        /// <remarks>
+        /// This is the 'internal' representation of the <see cref="Generators"/> collection. There is a 1-to-1 mapping
+        /// where each entry is either the unwrapped incremental generator or a wrapped <see cref="ISourceGenerator"/>
+        /// </remarks>
+        internal readonly ImmutableArray<IIncrementalGenerator> IncrementalGenerators;
+
+        /// <summary>
         /// The last run state of each generator, by the generator that created it
         /// </summary>
         /// <remarks>
-        /// If the driver this state belongs to has yet to perform generation, this will be empty.
-        /// After generation there *should* be a 1-to-1 mapping for each generator, unless that generator failed to initialize.
+        /// There will be a 1-to-1 mapping for each generator. If a generator has yet to
+        /// be initialized or failed during initialization it's state will be <c>default(GeneratorState)</c>
         /// </remarks>
-        internal readonly ImmutableDictionary<ISourceGenerator, GeneratorState> GeneratorStates;
+        internal readonly ImmutableArray<GeneratorState> GeneratorStates;
 
         /// <summary>
         /// The set of <see cref="AdditionalText"/>s available to source generators during a run
@@ -51,35 +71,52 @@ namespace Microsoft.CodeAnalysis
         internal readonly ImmutableArray<AdditionalText> AdditionalTexts;
 
         /// <summary>
-        /// An ordered list of <see cref="PendingEdit"/>s that are waiting to be applied to the compilation.
+        /// Gets a provider for analyzer options
         /// </summary>
-        internal readonly ImmutableArray<PendingEdit> Edits;
-
-        /// <summary>
-        /// Tracks if previous edits have failed to apply. A generator driver will not try and apply any edits when this flag is set.
-        /// </summary>
-        internal readonly bool EditsFailed;
+        internal readonly AnalyzerConfigOptionsProvider OptionsProvider;
 
         /// <summary>
         /// ParseOptions to use when parsing generator provided source.
         /// </summary>
         internal readonly ParseOptions ParseOptions;
 
+        internal readonly DriverStateTable StateTable;
+
+        internal readonly SyntaxStore SyntaxStore;
+
+        /// <summary>
+        /// A bit field containing the output kinds that should not be produced by this generator driver.
+        /// </summary>
+        internal readonly IncrementalGeneratorOutputKind DisabledOutputs;
+
+        internal readonly TimeSpan RunTime;
+
+        internal readonly bool TrackIncrementalSteps;
+
         internal GeneratorDriverState With(
-            ParseOptions? parseOptions = null,
-            ImmutableArray<ISourceGenerator>? generators = null,
-            ImmutableDictionary<ISourceGenerator, GeneratorState>? generatorStates = null,
+            ImmutableArray<ISourceGenerator>? sourceGenerators = null,
+            ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
+            ImmutableArray<GeneratorState>? generatorStates = null,
             ImmutableArray<AdditionalText>? additionalTexts = null,
-            ImmutableArray<PendingEdit>? edits = null,
-            bool? editsFailed = null)
+            DriverStateTable? stateTable = null,
+            SyntaxStore? syntaxStore = null,
+            ParseOptions? parseOptions = null,
+            AnalyzerConfigOptionsProvider? optionsProvider = null,
+            IncrementalGeneratorOutputKind? disabledOutputs = null,
+            TimeSpan? runTime = null)
         {
             return new GeneratorDriverState(
                 parseOptions ?? this.ParseOptions,
-                generators ?? this.Generators,
+                optionsProvider ?? this.OptionsProvider,
+                sourceGenerators ?? this.Generators,
+                incrementalGenerators ?? this.IncrementalGenerators,
                 additionalTexts ?? this.AdditionalTexts,
                 generatorStates ?? this.GeneratorStates,
-                edits ?? this.Edits,
-                editsFailed ?? this.EditsFailed
+                stateTable ?? this.StateTable,
+                syntaxStore ?? this.SyntaxStore,
+                disabledOutputs ?? this.DisabledOutputs,
+                runTime ?? this.RunTime,
+                this.TrackIncrementalSteps
                 );
         }
     }

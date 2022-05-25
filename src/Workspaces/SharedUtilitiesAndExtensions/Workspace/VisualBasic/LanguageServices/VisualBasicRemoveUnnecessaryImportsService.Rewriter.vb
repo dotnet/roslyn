@@ -14,14 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Private ReadOnly _unnecessaryImports As ISet(Of ImportsClauseSyntax)
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _annotation As New SyntaxAnnotation()
-            Private ReadOnly _importsService As VisualBasicRemoveUnnecessaryImportsService
             Private ReadOnly _document As Document
 
-            Public Sub New(importsService As VisualBasicRemoveUnnecessaryImportsService,
-                           document As Document,
+            Public Sub New(document As Document,
                            unnecessaryImports As ISet(Of ImportsClauseSyntax),
                            cancellationToken As CancellationToken)
-                _importsService = importsService
                 _document = document
                 _unnecessaryImports = unnecessaryImports
                 _cancellationToken = cancellationToken
@@ -42,6 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
 
             Private Function ProcessImports(compilationUnit As CompilationUnitSyntax) As CompilationUnitSyntax
                 Dim oldImports = compilationUnit.Imports.ToList()
+                Dim firstImportNotBeingRemoved = True
+                Dim passedLeadingTrivia = False
 
                 Dim remainingTrivia As SyntaxTriviaList = Nothing
                 For i = 0 To oldImports.Count - 1
@@ -68,6 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                                     ' want to preserve.
                                     oldImports(nextIndex) = nextImport.WithLeadingTrivia(leadingTrivia)
                                 End If
+
+                                passedLeadingTrivia = True
                             Else
                                 remainingTrivia = leadingTrivia
                             End If
@@ -88,20 +89,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                                 oldImports(index) = previousImport.WithTrailingTrivia(trailingTrivia)
                             End If
                         End If
+                    ElseIf firstImportNotBeingRemoved Then
+                        ' 1) We only apply this logic for Not first using, that is saved:
+                        ' ===================
+                        ' #Const A = 1
+                        '
+                        ' Imports System <- if we save this import, we don't need to cut leading lines
+                        ' ===================
+                        ' 2) If leading trivia was saved from the previous import, that was removed,
+                        ' we don't bother cutting blank lines as well:
+                        ' ===================
+                        ' #Const A = 1
+                        '
+                        ' Imports System <- need to delete this import
+                        ' Imports System.Collections.Generic <- this import is saved, no need to eat the line,
+                        ' otherwise https://github.com/dotnet/roslyn/issues/58972 will happen
+                        If i > 0 AndAlso Not passedLeadingTrivia Then
+                            Dim currentImport = oldImports(i)
+                            Dim currentImportLeadingTrivia = currentImport.GetLeadingTrivia()
+                            oldImports(i) = currentImport.WithLeadingTrivia(currentImportLeadingTrivia.WithoutLeadingWhitespaceOrEndOfLine())
+                        End If
+
+                        firstImportNotBeingRemoved = False
                     End If
                 Next
 
                 Dim newImports = SyntaxFactory.List(oldImports.WhereNotNull())
 
                 If remainingTrivia.Count > 0 Then
-                    Dim nextToken = compilationUnit.Imports.Last().GetLastToken().GetNextToken()
+                    Dim nextToken = compilationUnit.Imports.Last().GetLastToken().GetNextTokenOrEndOfFile()
                     compilationUnit = compilationUnit.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(remainingTrivia))
                 End If
 
                 Return compilationUnit.WithImports(newImports)
             End Function
 
-            Private Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
+            Private Shared Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
                 Return trivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine())
             End Function
 
@@ -117,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 If newCompilationUnit.Imports.Count = 0 AndAlso newCompilationUnit.Options.Count = 0 Then
                     If newCompilationUnit.Attributes.Count > 0 OrElse newCompilationUnit.Members.Count > 0 Then
                         Dim firstToken = newCompilationUnit.GetFirstToken()
-                        Dim newFirstToken = _importsService.StripNewLines(_document, firstToken)
+                        Dim newFirstToken = StripNewLines(_document, firstToken)
                         newCompilationUnit = newCompilationUnit.ReplaceToken(firstToken, newFirstToken)
                     End If
                 End If

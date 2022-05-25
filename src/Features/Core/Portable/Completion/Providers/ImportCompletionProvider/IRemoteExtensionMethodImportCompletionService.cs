@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -13,13 +11,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface IRemoteExtensionMethodImportCompletionService
     {
-        Task<(IList<SerializableImportCompletionItem>, StatisticCounter)> GetUnimportedExtensionMethodsAsync(
-            PinnedSolutionInfo solutionInfo,
+        ValueTask<SerializableUnimportedExtensionMethods?> GetUnimportedExtensionMethodsAsync(
+            Checksum solutionChecksum,
             DocumentId documentId,
             int position,
             string receiverTypeSymbolKeyData,
-            string[] namespaceInScope,
-            bool forceIndexCreation,
+            ImmutableArray<string> namespaceInScope,
+            ImmutableArray<string> targetTypesSymbolKeyData,
+            bool forceCacheCreation,
+            bool hideAdvancedMembers,
             CancellationToken cancellationToken);
+
+        ValueTask WarmUpCacheAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
     }
 }

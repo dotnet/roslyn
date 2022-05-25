@@ -2,18 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.OrderModifiers
 {
     public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public OrderModifiersTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpOrderModifiersDiagnosticAnalyzer(), new CSharpOrderModifiersCodeFixProvider());
 
@@ -366,6 +375,60 @@ internal static class C
 @"partial class C
 {
     unsafe partial void M();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        [WorkItem(52297, "https://github.com/dotnet/roslyn/pull/52297")]
+        public async Task TestInLocalFunction()
+        {
+            // Not handled for performance reason.
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    public static async void M()
+    {
+        [|async|] static void Local() { }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingMember_NotApplicable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"{|FixAllInContainingMember:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsOrderModifiers)]
+        public async Task TestFixAllInContainingType()
+        {
+            await TestInRegularAndScript1Async(
+@"{|FixAllInContainingType:static|} internal class C
+{
+    static internal class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
+}",
+@"internal static class C
+{
+    internal static class Nested { }
+}
+
+static internal class C2
+{
+    static internal class Nested { }
 }");
         }
     }

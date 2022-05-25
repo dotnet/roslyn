@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -33,6 +35,32 @@ namespace [||]{declaredNamespace}
     class Class1
     {{
     }}
+}}  
+        </Document>
+    </Project>
+</Workspace>";
+            await TestMoveFileToMatchNamespace(code, expectedFolders);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task MoveFile_DeclarationNotContainedInDefaultNamespace_FileScopedNamespace()
+        {
+            // No "move file" action because default namespace is not container of declared namespace
+            var defaultNamespace = "A";
+            var declaredNamespace = "Foo.Bar";
+
+            var expectedFolders = new List<string[]>();
+
+            var (folder, filePath) = CreateDocumentFilePath(Array.Empty<string>(), "File1.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+namespace [||]{declaredNamespace};
+
+class Class1
+{{
 }}  
         </Document>
     </Project>
@@ -308,6 +336,41 @@ namespace Foo
     class Class2
     {{
     }}
+}}  
+        </Document>  
+    </Project>
+</Workspace>";
+            await TestMoveFileToMatchNamespace(code, expectedFolders);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task MoveFile_FromOneFolderToAnother2_FileScopedNamespace()
+        {
+            var defaultNamespace = "A";
+            var declaredNamespace = "A.B.C.D.E";
+
+            var expectedFolders = new List<string[]>();
+            expectedFolders.Add(new[] { "B", "C", "D", "E" });
+
+            var (folder, filePath) = CreateDocumentFilePath(new[] { "Foo.Bar", "Baz" }, "File1.cs");  // file1 is in <root>\Foo.Bar\Baz\
+            var documentPath2 = CreateDocumentFilePath(new[] { "B", "Foo" }, "File2.cs");   // file2 is in <root>\B\Foo\
+
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{folder}"" FilePath=""{filePath}""> 
+namespace [||]{declaredNamespace};
+
+class Class1
+{{
+}}  
+        </Document>        
+        <Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}""> 
+namespace Foo;
+
+class Class2
+{{
 }}  
         </Document>  
     </Project>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Threading;
 
@@ -65,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitLocal(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocal(this, argument);
         }
 
         #endregion

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Linq;
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 !methodDeclaration.ParameterList.CloseParenToken.IsMissing)
             {
                 var semanticModel = document.SemanticModel;
-                methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol;
+                methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken);
                 if (methodSymbol != null && !methodSymbol.ExplicitInterfaceImplementations.Any())
                 {
                     var semanticInfo = semanticModel.GetTypeInfo(methodDeclaration.ExplicitInterfaceSpecifier.Name, cancellationToken);

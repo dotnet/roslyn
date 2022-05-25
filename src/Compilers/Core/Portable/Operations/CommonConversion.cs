@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private readonly ConversionKind _conversionKind;
 
-        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, bool isNullable, IMethodSymbol methodSymbol)
+        internal CommonConversion(bool exists, bool isIdentity, bool isNumeric, bool isReference, bool isImplicit, bool isNullable, IMethodSymbol? methodSymbol)
         {
             _conversionKind = (exists ? ConversionKind.Exists : ConversionKind.None) |
                               (isIdentity ? ConversionKind.IsIdentity : ConversionKind.None) |
@@ -70,11 +71,12 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Returns true if the conversion is a user-defined conversion.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(MethodSymbol))]
         public bool IsUserDefined => MethodSymbol != null;
         /// <summary>
         /// Returns the method used to perform the conversion for a user-defined conversion if <see cref="IsUserDefined"/> is true.
         /// Otherwise, returns null.
         /// </summary>
-        public IMethodSymbol MethodSymbol { get; }
+        public IMethodSymbol? MethodSymbol { get; }
     }
 }

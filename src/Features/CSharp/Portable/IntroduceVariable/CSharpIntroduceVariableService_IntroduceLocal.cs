@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
+                s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 case ArrowExpressionClauseSyntax arrowExpression:
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
-                    var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent) as IMethodSymbol;
+                    var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
                     var createReturnStatement = !method?.ReturnsVoid ?? true;
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
@@ -201,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
         }
 
-        private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
+        private static TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
             return typeSymbol.GenerateTypeSyntax();
@@ -348,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        private IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
+        private static IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
         {
             foreach (var statement in expr.GetAncestorsOrThis<StatementSyntax>())
             {
@@ -365,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
         }
 
-        private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
+        private static int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
         {
             // If a local function is involved, we have to make sure the new declaration is placed:
             //     1. Before all calls to local functions that use the variable.
@@ -419,8 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var nextStatementLeading = nextStatement.GetLeadingTrivia();
             var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
             if (precedingEndOfLine == default)
+            {
                 return oldStatements.ReplaceRange(
                     nextStatement, new[] { newStatement, nextStatement });
+            }
 
             var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
 
@@ -432,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 });
         }
 
-        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
 
         private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
             => blockLike switch

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Classification;
 
@@ -37,7 +39,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             public static FormattedClassification GreaterThan { get; } = New(">");
             public static FormattedClassification GreaterThanEquals { get; } = New(">=");
             public static FormattedClassification GreaterThanGreaterThan { get; } = New(">>");
+            public static FormattedClassification GreaterThanGreaterThanGreaterThan { get; } = New(">>>");
             public static FormattedClassification GreaterThanGreaterThanEquals { get; } = New(">>=");
+            public static FormattedClassification GreaterThanGreaterThanGreaterThanEquals { get; } = New(">>>=");
             public static FormattedClassification LessThan { get; } = New("<");
             public static FormattedClassification LessThanEquals { get; } = New("<=");
             public static FormattedClassification LessThanGreaterThan { get; } = New("<>");
@@ -53,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             public static FormattedClassification PlusEquals { get; } = New("+=");
             public static FormattedClassification PlusPlus { get; } = New("++");
             public static FormattedClassification QuestionMark { get; } = New("?");
+            public static FormattedClassification QuestionQuestionEquals { get; } = New("??=");
             public static FormattedClassification Slash { get; } = New("/");
             public static FormattedClassification SlashEquals { get; } = New("/=");
             public static FormattedClassification Tilde { get; } = New("~");

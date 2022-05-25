@@ -8,24 +8,25 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
     public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        public ValidateRegexStringTests(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
+        internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpRegexDiagnosticAnalyzer(), null);
 
         private OptionsCollection OptionOn()
-        {
-            var optionsSet = new OptionsCollection(LanguageNames.CSharp);
-            optionsSet.Add(RegularExpressionsOptions.ReportInvalidRegexPatterns, true);
-            return optionsSet;
-        }
+            => Option(IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, true);
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
         public async Task TestWarning1()
@@ -40,7 +41,7 @@ class Program
         var r = new Regex(@""[|)|]"");
     }     
 }",
-                options: OptionOn(),
+                globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
@@ -59,7 +60,7 @@ class Program
         var r = new Regex(""[|\u0029|]"");
     }     
 }",
-                options: OptionOn(),
+                globalOptions: OptionOn(),
                 diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Warning,
                 diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));

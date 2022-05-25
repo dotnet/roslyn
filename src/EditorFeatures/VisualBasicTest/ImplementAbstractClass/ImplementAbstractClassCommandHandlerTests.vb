@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
@@ -192,13 +193,13 @@ End Class</text>
                  Sub(x, y) AssertEx.AssertEqualToleratingWhitespaceDifferences(x, y))
         End Sub
 
-        Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
+        Private Shared Sub Test(code As XElement, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Using workspace = GetWorkspace(code)
                 Test(workspace, expectedText, nextHandler, assertion)
             End Using
         End Sub
 
-        Private Sub Test(workspace As TestWorkspace, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
+        Private Shared Sub Test(workspace As TestWorkspace, expectedText As XElement, nextHandler As Action, assertion As Action(Of String, String))
             Dim document = workspace.Documents.Single()
             Dim view = document.GetTextView()
             Dim cursorPosition = document.CursorPosition.Value
@@ -207,7 +208,7 @@ End Class</text>
             view.Caret.MoveTo(New SnapshotPoint(snapshot, cursorPosition))
 
             Dim commandHandler As ICommandHandler(Of ReturnKeyCommandArgs) =
-                New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService))
+                New ImplementAbstractClassCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService), workspace.GetService(Of IGlobalOptionService))
             commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), nextHandler, TestCommandExecutionContext.Create())
 
             Dim text = view.TextBuffer.CurrentSnapshot.AsText().ToString()
@@ -215,7 +216,7 @@ End Class</text>
             assertion(expectedText.NormalizedValue, text)
         End Sub
 
-        Private Function GetWorkspace(code As XElement) As TestWorkspace
+        Private Shared Function GetWorkspace(code As XElement) As TestWorkspace
             Return TestWorkspace.Create(
 <Workspace>
     <Project Language="Visual Basic" AssemblyName="Assembly" CommonReferences="true">
@@ -224,7 +225,7 @@ End Class</text>
         </Document>
     </Project>
 </Workspace>,
-exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
+            composition:=EditorTestCompositions.EditorFeatures.AddExcludedPartTypes(GetType(CommitConnectionListener)))
         End Function
     End Class
 End Namespace

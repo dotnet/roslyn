@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -45,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (falseStatement == null)
             {
-                if (!(ifOperation.Parent is IBlockOperation parentBlock))
+                if (ifOperation.Parent is not IBlockOperation parentBlock)
                     return false;
 
                 var ifIndex = parentBlock.Operations.IndexOf(ifOperation);

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConflictMarkerResolution
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.ConflictMarkerResolution), [Shared]>
     Friend Class VisualBasicResolveConflictMarkerCodeFixProvider
         Inherits AbstractResolveConflictMarkerCodeFixProvider
 

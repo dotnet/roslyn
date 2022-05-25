@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis
         public const string EnumMember = nameof(EnumMember);
         public const string ExtensionMethod = nameof(ExtensionMethod);
         public const string Constant = nameof(Constant);
+        public const string Record = nameof(Record);
+        public const string RecordStruct = nameof(RecordStruct);
 
         /// <summary>
         /// Indicates the start of a text container. The elements after <see cref="ContainerStart"/> through (but not
@@ -55,5 +59,13 @@ namespace Microsoft.CodeAnalysis
         /// Indicates the end of a text container. See <see cref="ContainerStart"/>.
         /// </summary>
         internal const string ContainerEnd = nameof(ContainerEnd);
+
+        /// <summary>
+        /// Indicates the start of a code block.  The elements after <see cref="CodeBlockStart"/>
+        /// through (but not including) the matching <see cref="CodeBlockEnd"/> are rendered as
+        /// a codeblock in LSP markup.
+        /// </summary>
+        internal const string CodeBlockStart = nameof(CodeBlockStart);
+        internal const string CodeBlockEnd = nameof(CodeBlockEnd);
     }
 }

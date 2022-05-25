@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Cached value for empty <see cref="DiagnosticOptions"/>.
         /// </summary>
-        internal protected static readonly ImmutableDictionary<string, ReportDiagnostic> EmptyDiagnosticOptions =
+        protected internal static readonly ImmutableDictionary<string, ReportDiagnostic> EmptyDiagnosticOptions =
             ImmutableDictionary.Create<string, ReportDiagnostic>(CaseInsensitiveComparison.Comparer);
 
         private ImmutableArray<byte> _lazyChecksum;
@@ -81,8 +79,8 @@ namespace Microsoft.CodeAnalysis
         /// A map from diagnostic ID to diagnostic reporting level. The diagnostic
         /// ID string may be case insensitive depending on the language.
         /// </returns>
-        public virtual ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions
-            => EmptyDiagnosticOptions;
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public virtual ImmutableDictionary<string, ReportDiagnostic> DiagnosticOptions => EmptyDiagnosticOptions;
 
         /// <summary>
         /// The length of the text of the syntax tree.
@@ -102,7 +100,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The text encoding of the source document.
         /// </summary>
-        public abstract Encoding Encoding { get; }
+        public abstract Encoding? Encoding { get; }
 
         /// <summary>
         /// Gets the text of the source document asynchronously.
@@ -222,12 +220,24 @@ namespace Microsoft.CodeAnalysis
         /// A valid <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// 
         /// If the location path is mapped the resulting path is the path specified in the corresponding <c>#line</c>,
-        /// otherwise it's <see cref="SyntaxTree.FilePath"/>.
+        /// otherwise it's <see cref="FilePath"/>.
         /// 
-        /// A location path is considered mapped if the first <c>#line</c> directive that precedes it and that 
-        /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
+        /// A location path is considered mapped if it is preceded by a line mapping directive that
+        /// either specifies an explicit file path or is <c>#line default</c>.
         /// </returns>
         public abstract FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns empty sequence if there are no line mapping directives in the tree.
+        /// Otherwise, returns a sequence of pairs of spans: each describing a mapping of a span of the tree between two consecutive #line directives.
+        /// If the first directive is not on the first line the first pair describes mapping of the span preceding the first directive.
+        /// The last pair of the sequence describes mapping of the span following the last #line directive.
+        /// </summary>
+        /// <returns>
+        /// Empty sequence if the tree does not contain a line mapping directive.
+        /// Otherwise a non-empty sequence of <see cref="LineMapping"/>.
+        /// </returns>
+        public abstract IEnumerable<LineMapping> GetLineMappings(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Returns the visibility for the line at the given position.
@@ -371,6 +381,7 @@ namespace Microsoft.CodeAnalysis
         /// A mapping from diagnostic id to diagnostic reporting level. The diagnostic ID may be case-sensitive depending
         /// on the language.
         /// </param>
+        [Obsolete("Obsolete due to performance problems, use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public virtual SyntaxTree WithDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> options)
         {
             throw new NotImplementedException();

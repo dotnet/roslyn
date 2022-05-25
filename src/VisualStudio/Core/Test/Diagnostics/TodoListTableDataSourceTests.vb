@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Common
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.TodoComments
@@ -21,16 +22,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestCreation()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
                 Assert.Equal(manager.Identifier, StandardTables.TasksTable)
                 Assert.Equal(1, manager.Sources.Count())
 
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 AssertEx.SetEqual(table.Columns, manager.GetColumnsForSources(SpecializedCollections.SingletonEnumerable(source)))
 
                 Assert.Equal(ServicesVSResources.CSharp_VB_Todo_List_Table_Data_Source, source.DisplayName)
@@ -53,15 +55,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestInitialEntries()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTodoListProvider(CreateItem(documentId))
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -72,14 +75,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestEntryChanged()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
 
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -97,17 +101,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -138,23 +143,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestSnapshotEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim subscription = sinkAndSubscription.Value
 
-                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem))
+                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 factory.OnRefreshed()
@@ -186,23 +192,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestSnapshotTranslateTo()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim subscription = sinkAndSubscription.Value
 
-                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem))
+                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 factory.OnRefreshed()
@@ -216,28 +223,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestSnapshotTranslateTo2()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim subscription = sinkAndSubscription.Value
 
-                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem))
+                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoCommentData() {
-                    New TodoCommentData With {.Priority = 1, .Message = "test2", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test2"},
-                    New TodoCommentData With {.Priority = 0, .Message = "test", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test1"}
+                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TodoCommentData(priority:=0, message:="test", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test1")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -250,28 +258,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestSnapshotTranslateTo3()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
                 Dim subscription = sinkAndSubscription.Value
 
-                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem))
+                Dim factory = TryCast(sink.Entries.First(), TableEntriesFactory(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim snapshot1 = factory.GetCurrentSnapshot()
 
                 provider.Items = New TodoCommentData() {
-                    New TodoCommentData With {.Priority = 1, .Message = "test2", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test2"},
-                    New TodoCommentData With {.Priority = 0, .Message = "test3", .DocumentId = documentId, .MappedLine = 11, .OriginalLine = 11, .MappedColumn = 21, .OriginalColumn = 21, .MappedFilePath = Nothing, .OriginalFilePath = "test3"}
+                    New TodoCommentData(priority:=1, message:="test2", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test2"),
+                    New TodoCommentData(priority:=0, message:="test3", documentId:=documentId, mappedLine:=11, originalLine:=11, mappedColumn:=21, originalColumn:=21, mappedFilePath:=Nothing, originalFilePath:="test3")
                 }
 
                 provider.RaiseTodoListUpdated(workspace)
@@ -284,17 +293,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Sub TestInvalidEntry()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
 
                 Dim item = CreateItem(documentId)
                 Dim provider = New TestTodoListProvider(item)
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -321,6 +331,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                          </Workspace>
 
             Using workspace = TestWorkspace.Create(markup)
+                Dim threadingContext = workspace.GetService(Of IThreadingContext)()
                 Dim projects = workspace.CurrentSolution.Projects.ToArray()
 
                 Dim item1 = CreateItem(projects(0).DocumentIds.First())
@@ -329,13 +340,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim provider = New TestTodoListProvider()
                 Dim tableManagerProvider = New TestTableManagerProvider()
 
-                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, provider, tableManagerProvider)
+                Dim table = New VisualStudioTodoListTableWorkspaceEventListener.VisualStudioTodoListTable(workspace, threadingContext, provider, tableManagerProvider)
 
                 provider.Items = New TodoCommentData() {item1, item2}
                 provider.RaiseTodoListUpdated(workspace)
 
                 Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem))
+                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of TodoTableItem, TodoItemsUpdatedArgs))
                 Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
 
                 Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
@@ -359,18 +370,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        Private Function CreateItem(documentId As DocumentId) As TodoCommentData
-            Return New TodoCommentData With {
-                .Priority = 0,
-                .Message = "test",
-                .DocumentId = documentId,
-                .MappedLine = 10,
-                .OriginalLine = 10,
-                .MappedColumn = 20,
-                .OriginalColumn = 20,
-                .MappedFilePath = Nothing,
-                .OriginalFilePath = "test1"
-                }
+        Private Shared Function CreateItem(documentId As DocumentId) As TodoCommentData
+            Return New TodoCommentData(
+                priority:=0,
+                message:="test",
+                documentId:=documentId,
+                mappedLine:=10,
+                originalLine:=10,
+                mappedColumn:=20,
+                originalColumn:=20,
+                mappedFilePath:=Nothing,
+                originalFilePath:="test1")
         End Function
 
         Private Class TestTodoListProvider
@@ -391,22 +401,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
             End Function
 
-            Public Function GetTodoItemsUpdatedEventArgs(workspace As Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
-                Return Items.Select(Function(t) New UpdatedEventArgs(Tuple.Create(Me, t.DocumentId), workspace, t.DocumentId.ProjectId, t.DocumentId)).ToImmutableArray()
-            End Function
-
             Public Sub RaiseTodoListUpdated(workspace As Workspace)
                 Dim map = Items.ToLookup(Function(t) t.DocumentId)
 
                 For Each group In map
                     RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(
-                        Tuple.Create(Me, group.Key), workspace, workspace.CurrentSolution, group.Key.ProjectId, group.Key, group.ToImmutableArrayOrEmpty()))
+                        Me, workspace.CurrentSolution, group.Key, group.ToImmutableArrayOrEmpty()))
                 Next
             End Sub
 
             Public Sub RaiseClearTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId)
                 RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(
-                    Tuple.Create(Me, documentId), workspace, workspace.CurrentSolution, documentId.ProjectId, documentId, ImmutableArray(Of TodoCommentData).Empty))
+                    Me, workspace.CurrentSolution, documentId, ImmutableArray(Of TodoCommentData).Empty))
             End Sub
         End Class
     End Class

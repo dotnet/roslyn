@@ -35,8 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override int CurrentGenerationOrdinal => 0;
+        public override EmitBaseline? PreviousGeneration => null;
+        public override SymbolChanges? EncSymbolChanges => null;
+
         public override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.IFileReference>();
-        public override ISourceAssemblySymbolInternal SourceAssemblyOpt => null;
+        public override ISourceAssemblySymbolInternal? SourceAssemblyOpt => null;
     }
 }

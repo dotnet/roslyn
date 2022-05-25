@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Classification;
@@ -32,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public void ClassificationTypeExported(string fieldName, object constantValue)
         {
             var classificationTypeName = Assert.IsType<string>(constantValue);
-            var exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+            var exportProvider = EditorTestCompositions.EditorFeatures.ExportProviderFactory.CreateExportProvider();
             var classificationTypeRegistryService = exportProvider.GetExport<IClassificationTypeRegistryService>().Value;
             var classificationType = classificationTypeRegistryService.GetClassificationType(classificationTypeName);
             Assert.True(classificationType != null, $"{nameof(ClassificationTypeNames)}.{fieldName} has value \"{classificationTypeName}\", but no matching {nameof(ClassificationTypeDefinition)} was exported.");

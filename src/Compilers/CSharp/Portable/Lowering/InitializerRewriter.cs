@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!submissionResultType.IsVoidType());
 
                 // Note: The trailing expression was already converted to the submission result type in Binder.BindGlobalStatement.
-                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, RefKind.None, trailingExpression));
+                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, RefKind.None, trailingExpression, @checked: false));
                 hasTrailingExpression = true;
             }
             else

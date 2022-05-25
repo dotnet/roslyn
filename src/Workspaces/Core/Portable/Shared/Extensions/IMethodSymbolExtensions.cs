@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,27 +53,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Returns the methodSymbol and any partial parts.
-        /// </summary>
-        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
-        {
-            if (method.PartialDefinitionPart != null)
-            {
-                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
-                return ImmutableArray.Create(method, method.PartialDefinitionPart);
-            }
-            else if (method.PartialImplementationPart != null)
-            {
-                Debug.Assert(!Equals(method.PartialImplementationPart, method));
-                return ImmutableArray.Create(method.PartialImplementationPart, method);
-            }
-            else
-            {
-                return ImmutableArray.Create(method);
-            }
         }
 
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, ImmutableArray<string> newNames)

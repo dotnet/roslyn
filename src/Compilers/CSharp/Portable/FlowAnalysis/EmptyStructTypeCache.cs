@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// When set, we ignore private reference fields of structs loaded from metadata.
         /// </summary>
-        private readonly bool _dev12CompilerCompatibility;
+        internal readonly bool _dev12CompilerCompatibility;
 
         private readonly SourceAssemblySymbol _sourceAssembly;
 

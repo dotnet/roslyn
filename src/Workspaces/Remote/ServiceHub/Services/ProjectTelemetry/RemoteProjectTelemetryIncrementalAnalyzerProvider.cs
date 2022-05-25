@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using Microsoft.CodeAnalysis.ProjectTelemetry;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -15,14 +14,16 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </remarks>
     internal class RemoteProjectTelemetryIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        private readonly RemoteEndPoint _endPoint;
+        private readonly RemoteCallback<IRemoteProjectTelemetryService.ICallback> _callback;
+        private readonly RemoteServiceCallbackId _callbackId;
 
-        public RemoteProjectTelemetryIncrementalAnalyzerProvider(RemoteEndPoint endPoint)
+        public RemoteProjectTelemetryIncrementalAnalyzerProvider(RemoteCallback<IRemoteProjectTelemetryService.ICallback> callback, RemoteServiceCallbackId callbackId)
         {
-            _endPoint = endPoint;
+            _callback = callback;
+            _callbackId = callbackId;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-            => new RemoteProjectTelemetryIncrementalAnalyzer(_endPoint);
+            => new RemoteProjectTelemetryIncrementalAnalyzer(_callback, _callbackId);
     }
 }

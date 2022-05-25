@@ -54,7 +54,7 @@ class C
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
-                Dim result = testState.ChangeSignature()
+                Dim result = Await testState.ChangeSignatureAsync().ConfigureAwait(False)
 
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
                 Dim csdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly").Documents.Single()
@@ -107,7 +107,7 @@ class C
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
-                Dim result = testState.ChangeSignature()
+                Dim result = Await testState.ChangeSignatureAsync().ConfigureAwait(False)
 
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
                 Dim csdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly").Documents.Single()

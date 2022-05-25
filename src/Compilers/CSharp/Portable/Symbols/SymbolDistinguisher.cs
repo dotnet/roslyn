@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System;
@@ -66,8 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.PointerType:
                 case SymbolKind.Parameter:
                     break; // Can sensibly append location, after unwrapping.
-                case SymbolKind.DynamicType:
-                    break; // Can't sensibly append location, but it should never be ambiguous.
+                case SymbolKind.DynamicType: // Can't sensibly append location, but it should never be ambiguous.
+                case SymbolKind.FunctionPointerType: // Can't sensibly append location
+                    break;
                 case SymbolKind.Namespace:
                 case SymbolKind.Alias:
                 case SymbolKind.Assembly:
@@ -190,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return containingAssembly.Identity.ToString();
             }
 
-            Debug.Assert(unwrappedSymbol.Kind == SymbolKind.DynamicType || unwrappedSymbol.Kind == SymbolKind.ErrorType);
+            Debug.Assert(unwrappedSymbol.Kind == SymbolKind.DynamicType || unwrappedSymbol.Kind == SymbolKind.ErrorType || unwrappedSymbol.Kind == SymbolKind.FunctionPointerType);
             return null;
         }
 

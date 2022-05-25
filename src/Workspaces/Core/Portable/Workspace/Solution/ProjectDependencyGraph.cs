@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
         // guards lazy computed data
-        private readonly NonReentrantLock _dataLock = new NonReentrantLock();
+        private readonly NonReentrantLock _dataLock = new();
 
         /// <summary>
         /// The lazily-initialized map of projects to projects which reference them. This field is either null, or
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _transitiveReferencesMap;
         private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _reverseTransitiveReferencesMap;
 
-        internal static readonly ProjectDependencyGraph Empty = new ProjectDependencyGraph(
+        internal static readonly ProjectDependencyGraph Empty = new(
             ImmutableHashSet<ProjectId>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>.Empty,
@@ -198,13 +196,10 @@ namespace Microsoft.CodeAnalysis
         {
             var reverseReferencesMap = new Dictionary<ProjectId, HashSet<ProjectId>>();
 
-            foreach (var kvp in _referencesMap)
+            foreach (var (projectId, references) in _referencesMap)
             {
-                var references = kvp.Value;
                 foreach (var referencedId in references)
-                {
-                    reverseReferencesMap.MultiAdd(referencedId, kvp.Key);
-                }
+                    reverseReferencesMap.MultiAdd(referencedId, projectId);
             }
 
             return reverseReferencesMap
@@ -386,7 +381,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a sequence of sets, where each set contains items with shared interdependency,
-        /// and there is no dependency between sets.
+        /// and there is no dependency between sets.  Each set returned will sorted in topological order.
         /// </summary>
         public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default)
         {
@@ -504,7 +499,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
@@ -527,6 +522,25 @@ namespace Microsoft.CodeAnalysis
                 _instance._reverseTransitiveReferencesMap.TryGetValue(projectId, out var projects);
                 return projects;
             }
+        }
+
+        /// <summary>
+        /// Checks whether <paramref name="id"/> depends on <paramref name="potentialDependency"/>.
+        /// </summary>
+        internal bool DoesProjectTransitivelyDependOnProject(ProjectId id, ProjectId potentialDependency)
+        {
+            // Check the dependency graph to see if project 'id' directly or transitively depends on 'projectId'.
+            // If the information is not available, do not compute it.
+            var forwardDependencies = TryGetProjectsThatThisProjectTransitivelyDependsOn(id);
+            if (forwardDependencies is object && forwardDependencies.Contains(potentialDependency))
+            {
+                return true;
+            }
+
+            // Compute the set of all projects that depend on 'potentialDependency'. This information answers the same
+            // question as the previous check, but involves at most one transitive computation within the
+            // dependency graph when you are checking multiple projects against the same potentialDependency.
+            return GetProjectsThatTransitivelyDependOnThisProject(potentialDependency).Contains(id);
         }
     }
 }

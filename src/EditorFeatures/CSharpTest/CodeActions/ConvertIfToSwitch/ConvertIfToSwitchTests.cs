@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -322,7 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -448,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
         [CombinatorialData]
         public async Task TestIsExpression(
-            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersionExtensions.CSharp9)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp8, LanguageVersion.CSharp9)] LanguageVersion languageVersion)
         {
             var source =
 @"class C
@@ -475,7 +476,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
     }
 }",
-                LanguageVersionExtensions.CSharp9 =>
+                LanguageVersion.CSharp9 =>
 @"class C
 {
     void M(object o)
@@ -690,6 +691,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         {
             case string s when s.Length > 5 && s.Length < 10:
                 M(o: 0);
+
                 break;
             case int i:
                 M(o: 0);
@@ -831,7 +833,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                 {
                     break;
                 }
-
                 break;
             case 2:
                 break;
@@ -1455,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -1541,7 +1542,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -1627,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -1713,7 +1714,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2274,7 +2275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -2335,7 +2336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
             }.RunAsync();
         }
 
@@ -2383,7 +2384,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8510").WithLocation(0),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionIndex = 1,
                 CodeActionEquivalenceKey = "SwitchExpression",
             }.RunAsync();
@@ -2458,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
                         DiagnosticResult.CompilerError("CS8120").WithLocation(1),
                     },
                 },
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2496,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }
@@ -2516,7 +2517,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
     }
 }";
 
-
             var fixedSource =
  @"class C
 {
@@ -2535,7 +2535,239 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
             {
                 TestCode = source,
                 FixedCode = fixedSource,
-                LanguageVersion = LanguageVersionExtensions.CSharp9,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [WorkItem(44278, "https://github.com/dotnet/roslyn/issues/44278")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestTopLevelStatement()
+        {
+            var source = @"
+var e = new ET1();
+
+[||]if (e == ET1.A)
+{
+}
+else if (e == ET1.C)
+{
+}
+
+enum ET1
+{
+    A,
+    B,
+    C,
+}";
+
+            var fixedSource = @"
+var e = new ET1();
+
+switch (e)
+{
+    case ET1.A:
+        break;
+    case ET1.C:
+        break;
+}
+
+enum ET1
+{
+    A,
+    B,
+    C,
+}";
+
+            var test = new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp9,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            };
+
+            test.ExpectedDiagnostics.Add(
+                // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
+                DiagnosticResult.CompilerError("CS8805").WithSpan(2, 1, 2, 19));
+
+            await test.RunAsync();
+        }
+
+        [WorkItem(46863, "https://github.com/dotnet/roslyn/issues/46863")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task CommentsAtTheEndOfBlocksShouldBePlacedBeforeBreakStatements()
+        {
+            var source = @"
+class C
+{
+    void M(int p)
+    {
+        [||]if (p == 1)
+        {
+            DoA();
+            // Comment about why A doesn't need something here
+        }
+        else if (p == 2)
+        {
+            DoB();
+            // Comment about why B doesn't need something here
+        }
+    }
+
+    void DoA() { }
+    void DoB() { }
+}";
+
+            var fixedSource = @"
+class C
+{
+    void M(int p)
+    {
+        switch (p)
+        {
+            case 1:
+                DoA();
+                // Comment about why A doesn't need something here
+                break;
+            case 2:
+                DoB();
+                // Comment about why B doesn't need something here
+                break;
+        }
+    }
+
+    void DoA() { }
+    void DoB() { }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                CodeActionValidationMode = CodeActionValidationMode.None,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnImplicitCastInRelationalPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c >= 128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingExpressionOnImplicitCastInRelationalPattern()
+        {
+            var source =
+@"class C
+{
+    int M(char c)
+    {
+        $$if (c >= 128 || c == 'a')
+            return 1;
+        else
+            return 2;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnImplicitCastInRangePattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (7 >= c && 6 <= c || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestMissingOnImplicitCastInConstantPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c == 128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertIfToSwitch)]
+        public async Task TestExplicitCastInConstantPattern()
+        {
+            var source =
+@"class C
+{
+    void M(char c)
+    {
+        $$if (c == (char)128 || c == 'a')
+            System.Console.WriteLine(c);
+    }
+}";
+
+            var fixedSource =
+                @"class C
+{
+    void M(char c)
+    {
+        switch (c)
+        {
+            case (char)128:
+            case 'a':
+                System.Console.WriteLine(c);
+                break;
+        }
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.CSharp9,
                 CodeActionValidationMode = CodeActionValidationMode.None,
             }.RunAsync();
         }

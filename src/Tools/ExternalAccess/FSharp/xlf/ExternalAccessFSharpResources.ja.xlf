@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ImplementInterface">
         <source>Implement interface</source>
-        <target state="translated">インターフェイスを実装します。</target>
+        <target state="translated">インターフェイスを実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="ImplementInterfaceWithoutTypeAnnotation">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="NameCanBeSimplified">
         <source>Name can be simplified.</source>
-        <target state="translated">名前を簡略化できます。</target>
+        <target state="translated">名前を簡素化できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="NavigateToFailed">

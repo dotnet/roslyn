@@ -2,10 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.ImplementType
+Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
@@ -539,8 +541,6 @@ End Class
 </File>
             Await TestAsync(source, expected, index:=1)
         End Function
-
-
 
         <WorkItem(540355, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540355")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -1183,7 +1183,6 @@ Class B
 End Class",
 index:=1)
         End Function
-
 
         <WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4263,7 +4262,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
 $"Imports System
 Imports System.Collections.Generic
@@ -4318,7 +4317,7 @@ Class _
 End Class
 
 Partial Class C
-    Implements IDisposable
+    Implements System.IDisposable
 End Class",
  index:=1)
         End Function
@@ -4332,7 +4331,7 @@ End Class
 
 Partial Class C
     Implements [|I(Of System.Exception, System.AggregateException)|]
-    Implements IDisposable
+    Implements System.IDisposable
 End Class
 
 Interface I(Of T, U As T) : Inherits System.IDisposable, System.IEquatable(Of Integer)
@@ -4347,7 +4346,7 @@ End Class
 
 Partial Class C
     Implements I(Of System.Exception, System.AggregateException)
-    Implements IDisposable
+    Implements System.IDisposable
 
     Private disposedValue As Boolean
 
@@ -4475,7 +4474,6 @@ Public Class Holder
 	End Class
 End Class")
         End Function
-
 
         <WorkItem(2785, "https://github.com/dotnet/roslyn/issues/2785")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
@@ -4650,9 +4648,7 @@ class Class
             Throw New System.NotImplementedException()
         End Set
     End Property
-end class", parameters:=New TestParameters(options:=[Option](
-    ImplementTypeOptions.PropertyGenerationBehavior,
-    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
+end class", parameters:=New TestParameters(globalOptions:=[Option](ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

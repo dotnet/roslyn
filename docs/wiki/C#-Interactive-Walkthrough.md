@@ -1,4 +1,4 @@
-This walkthrough is a beginner's guide to learning basic interactive concepts and how to navigate the C# Interactive Window. To learn more about the Interactive window, watch [this video](channel9.msdn.com/Events/Visual-Studio/Connect-event-2015/103) or check out [our documentation](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Interactive-Window.md).
+This walkthrough is a beginner's guide to learning basic interactive concepts and how to navigate the C# Interactive Window. To learn more about the Interactive window, watch [this video](https://channel9.msdn.com/Events/Visual-Studio/Connect-event-2015/103) or check out [our documentation](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Interactive-Window.md).
 
 *Note*: This walkthrough is adapted from [Bill Chiles](https://github.com/billchi-ms)' original. Thanks, Bill!
 
@@ -173,4 +173,4 @@ foreach (var u in users)
      Console.WriteLine(u);
 ```
 
-You're done. Enjoy using the REPL and please provide feedback! If you are interested in learning more about the C# Interactive window, watch [this video](https://channel9.msdn.com/Events/Visual-Studio/Connect-event-2015/103) or check out [our documentation](https://github.com/dotnet/roslyn/blob/master/docs/wiki/Interactive-Window.md).
+You're done. Enjoy using the REPL and please provide feedback! If you are interested in learning more about the C# Interactive window, watch [this video](https://channel9.msdn.com/Events/Visual-Studio/Connect-event-2015/103) or check out [our documentation](https://github.com/dotnet/roslyn/blob/main/docs/wiki/Interactive-Window.md).

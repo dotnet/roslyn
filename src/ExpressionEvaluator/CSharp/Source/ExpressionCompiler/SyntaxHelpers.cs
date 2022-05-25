@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal static class SyntaxHelpers
     {
-        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CurrentVersion);
+        internal static readonly CSharpParseOptions ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionFacts.CSharpNext); // Used to be LanguageVersionFacts.CurrentVersion
 
         /// <summary>
         /// Parse expression. Returns null if there are any errors.
@@ -209,7 +207,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, lexerMode: InternalSyntax.LexerMode.DebuggerSyntax);
 
             var node = parser.ParseExpression();
-            if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
+            if (consumeFullText)
+                node = parser.ConsumeUnexpectedTokens(node);
             return node;
         }
 

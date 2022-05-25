@@ -7,10 +7,13 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Roslyn.Hosting.Diagnostics.Waiters;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -27,9 +30,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
-        private static JoinableTaskFactory _joinableTaskFactory;
+        private static JoinableTaskFactory? _joinableTaskFactory;
 
-        protected InProcComponent() { }
+        protected InProcComponent()
+        {
+            // Make sure SVsExtensionManager loads before trying to execute any test commands
+            JoinableTaskFactory.Run(async () =>
+            {
+                // Workaround for deadlock loading ExtensionManagerPackage prior to
+                // https://devdiv.visualstudio.com/DevDiv/_git/VSExtensibility/pullrequest/381506
+                await AsyncServiceProvider.GlobalProvider.GetServiceAsync(typeof(SVsExtensionManager));
+            });
+        }
 
         private static Dispatcher CurrentApplicationDispatcher
             => Application.Current.Dispatcher;
@@ -40,7 +52,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             {
                 if (_joinableTaskFactory is null)
                 {
+#pragma warning disable RS0030 // Do not used banned APIs (this code only runs in integration tests)
                     Interlocked.CompareExchange(ref _joinableTaskFactory, ThreadHelper.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
+#pragma warning restore RS0030 // Do not used banned APIs
                 }
 
                 return _joinableTaskFactory;
@@ -53,7 +67,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 action(cancellationTokenSource.Token);
             });
@@ -67,7 +80,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var operation = JoinableTaskFactory.RunAsync(async () =>
             {
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationTokenSource.Token);
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                 return action(cancellationTokenSource.Token);
             });
@@ -84,6 +96,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         protected static TService GetComponentModelService<TService>()
             where TService : class
          => InvokeOnUIThread(cancellationToken => GetComponentModel().GetService<TService>());
+
+        protected static TestWaitingService GetWaitingService()
+            => new(GetComponentModel().DefaultExportProvider.GetExport<AsynchronousOperationListenerProvider>().Value);
 
         protected static DTE GetDTE()
             => GetGlobalService<SDTE, DTE>();
@@ -114,6 +129,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 #pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
 
         // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService() => null;
+        public override object? InitializeLifetimeService() => null;
     }
 }

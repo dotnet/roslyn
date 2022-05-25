@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -379,17 +381,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Fact]
-        public void DangerousCreateFromUnderlyingArray()
-        {
-            var array = new[] { 1, 2, 3, 4 };
-            var copy = array;
-            var immutable = ImmutableArrayExtensions.DangerousCreateFromUnderlyingArray(ref copy);
-            Assert.Null(copy);
-            AssertEx.Equal(array, immutable);
-            Assert.Same(array, ImmutableArrayExtensions.DangerousGetUnderlyingArray(immutable));
-        }
-
-        [Fact]
         public void ZipAsArray()
         {
             var empty = ImmutableArray.Create<object>();
@@ -419,6 +410,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var quin2 = ImmutableArray.Create(10, 11, 12, 13, 14);
             var quin3 = ImmutableArray.Create(11, 13, 15, 17, 19);
             Assert.True(quin3.SequenceEqual(quin1.ZipAsArray(quin2, (item1, item2) => item1 + item2)));
+        }
+
+        [Fact]
+        public void ZipAsArrayWithIndex()
+        {
+            var empty = ImmutableArray.Create<object>();
+            Assert.True(empty.SequenceEqual(empty.ZipAsArray(empty, (item1, item2) => item1)));
+
+            var single1 = ImmutableArray.Create(1);
+            var single2 = ImmutableArray.Create(10);
+            var single3 = ImmutableArray.Create(13);
+            Assert.True(single3.SequenceEqual(single1.ZipAsArray(single2, 2, (item1, item2, i, arg) => item1 + item2 + i + arg)));
+
+            var pair1 = ImmutableArray.Create(1, 2);
+            var pair2 = ImmutableArray.Create(10, 11);
+            var pair3 = ImmutableArray.Create(13, 16);
+            Assert.True(pair3.SequenceEqual(pair1.ZipAsArray(pair2, 2, (item1, item2, i, arg) => item1 + item2 + i + arg)));
+
+            var triple1 = ImmutableArray.Create(1, 2, 3);
+            var triple2 = ImmutableArray.Create(10, 11, 12);
+            var triple3 = ImmutableArray.Create(13, 16, 19);
+            Assert.True(triple3.SequenceEqual(triple1.ZipAsArray(triple2, 2, (item1, item2, i, arg) => item1 + item2 + i + arg)));
+
+            var quad1 = ImmutableArray.Create(1, 2, 3, 4);
+            var quad2 = ImmutableArray.Create(10, 11, 12, 13);
+            var quad3 = ImmutableArray.Create(13, 16, 19, 22);
+            Assert.True(quad3.SequenceEqual(quad1.ZipAsArray(quad2, 2, (item1, item2, i, arg) => item1 + item2 + i + arg)));
+
+            var quin1 = ImmutableArray.Create(1, 2, 3, 4, 5);
+            var quin2 = ImmutableArray.Create(10, 11, 12, 13, 14);
+            var quin3 = ImmutableArray.Create(13, 16, 19, 22, 25);
+            Assert.True(quin3.SequenceEqual(quin1.ZipAsArray(quin2, 2, (item1, item2, i, arg) => item1 + item2 + i + arg)));
         }
 
         [Fact]

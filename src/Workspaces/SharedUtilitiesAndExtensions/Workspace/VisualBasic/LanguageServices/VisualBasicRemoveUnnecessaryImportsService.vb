@@ -30,7 +30,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Public Overrides Async Function RemoveUnnecessaryImportsAsync(
                 document As Document,
                 predicate As Func(Of SyntaxNode, Boolean),
+                formattingOptions As SyntaxFormattingOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
+
+            Contract.ThrowIfNull(formattingOptions)
 
             predicate = If(predicate, Functions(Of SyntaxNode).True)
             Using Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_VisualBasic, cancellationToken)
@@ -44,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim oldRoot = DirectCast(root, CompilationUnitSyntax)
-                Dim newRoot = New Rewriter(Me, document, unnecessaryImports, cancellationToken).Visit(oldRoot)
+                Dim newRoot = New Rewriter(document, unnecessaryImports, cancellationToken).Visit(oldRoot)
                 newRoot = newRoot.WithAdditionalAnnotations(Formatter.Annotation)
 
                 cancellationToken.ThrowIfCancellationRequested()
