@@ -25,13 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        public AbstractLanguageService(IGlobalOptionService globalOptions)
-        {
-            _globalOptions = globalOptions;
-        }
-
         public int Format(IVsTextLayer textLayer, TextSpan[] selections)
         {
             var result = VSConstants.S_OK;

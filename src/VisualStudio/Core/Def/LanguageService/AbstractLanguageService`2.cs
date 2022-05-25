@@ -34,6 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
+        private readonly IGlobalOptionService _globalOptions;
+        
         internal TPackage Package { get; }
         internal VsLanguageDebugInfo LanguageDebugInfo { get; private set; }
 
@@ -70,19 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         /// </remarks>
         private bool _isSetUp;
 
-        protected AbstractLanguageService(
-            TPackage package)
+        protected AbstractLanguageService(TPackage package)
         {
-            this.Package = package;
+            _globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
+            Package = package;
         }
 
         public override IServiceProvider SystemServiceProvider
-        {
-            get
-            {
-                return this.Package;
-            }
-        }
+            => Package;
 
         /// <summary>
         /// Setup and TearDown go in reverse order.
