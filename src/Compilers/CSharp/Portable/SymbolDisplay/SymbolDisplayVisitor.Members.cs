@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AddAccessibilityIfNeeded(symbol);
             AddMemberModifiersIfNeeded(symbol);
-            AddFieldModifiersIfRequired(symbol);
+            AddFieldModifiersIfNeeded(symbol);
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType) &&
                 this.isFirstSymbolVisited &&
@@ -812,7 +812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return value.GetType().GetTypeInfo().IsPrimitive || value is string || value is decimal;
         }
 
-        private void AddFieldModifiersIfRequired(IFieldSymbol symbol)
+        private void AddFieldModifiersIfNeeded(IFieldSymbol symbol)
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers) &&
                 !IsEnumMember(symbol))
