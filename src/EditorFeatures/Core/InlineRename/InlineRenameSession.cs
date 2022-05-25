@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     .ToList();
 
                 if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
-                    return (NotificationSeverity.Warning, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
+                    return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
                 return null;
             }
