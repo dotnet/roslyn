@@ -2448,6 +2448,84 @@ public class FileModifierParsingTests : ParsingTests
     }
 
     [Fact]
+    public void TopLevelVariable_04()
+    {
+        // PROTOTYPE(ft): this should parse and compile without errors
+        // we will share a common solution with 'required' and 'scoped' here.
+        UsingNode("""
+            bool file;
+            file = true;
+            """,
+            expectedParsingDiagnostics: new[]
+            {
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file = true;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(2, 1),
+                // (2,6): error CS1525: Invalid expression term '='
+                // file = true;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 6)
+            },
+            expectedBindingDiagnostics: new[]
+            {
+                // (1,6): warning CS0168: The variable 'file' is declared but never used
+                // bool file;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 6),
+                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // file = true;
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(2, 1),
+                // (2,6): error CS1525: Invalid expression term '='
+                // file = true;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(2, 6)
+            });
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.LocalDeclarationStatement);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.BoolKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "file");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.FileKeyword);
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TrueLiteralExpression);
+                        {
+                            N(SyntaxKind.TrueKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void LambdaReturn()
     {
         UsingNode("""

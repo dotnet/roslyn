@@ -440,6 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (type.Type.IsFileTypeOrUsesFileTypes() && !ContainingType.IsFileTypeOrUsesFileTypes())
             {
+                // PROTOTYPE(ft): should explicit interface implementations be allowed to use file types in signatures?
                 diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, Location, type.Type, ContainingType);
             }
 
