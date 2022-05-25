@@ -198,22 +198,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 new StandaloneCommandFilter(
                     v, Package.ComponentModel).AttachToVsTextView());
 
-            var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            var isMetadataAsSource = false;
+            var collapseAllImplementations = false;
 
-            // If the file is metadata as source, and the user has the preference set to collapse them, then
-            // always collapse all metadata as source
-            var globalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
-            var masWorkspace = openDocument?.Project.Solution.Workspace as MetadataAsSourceWorkspace;
-            var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: masWorkspace is not null);
-            var collapseAllImplementations = masWorkspace is not null &&
-                masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options);
+            var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
+            if (openDocument?.Project.Solution.Workspace is MetadataAsSourceWorkspace masWorkspace)
+            {
+                isMetadataAsSource = true;
+
+                // If the file is metadata as source, and the user has the preference set to collapse them, then
+                // always collapse all metadata as source
+                var globalOptions = this.Package.ComponentModel.GetService<IGlobalOptionService>();
+                var options = BlockStructureOptionsStorage.GetBlockStructureOptions(globalOptions, openDocument.Project.Language, isMetadataAsSource: masWorkspace is not null);
+                collapseAllImplementations = masWorkspace.FileService.ShouldCollapseOnOpen(openDocument.FilePath, options);
+            }
 
             ConditionallyCollapseOutliningRegions(textView, wpfTextView, collapseAllImplementations);
 
             // If this is a metadata-to-source view, we want to consider the file read-only and prevent
             // it from being re-opened when VS is opened
-            if (masWorkspace is not null && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
+            if (isMetadataAsSource && ErrorHandler.Succeeded(textView.GetBuffer(out var vsTextLines)))
             {
+                Contract.ThrowIfNull(openDocument);
+
                 ErrorHandler.ThrowOnFailure(vsTextLines.GetStateFlags(out var flags));
                 flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
                 ErrorHandler.ThrowOnFailure(vsTextLines.SetStateFlags(flags));

@@ -35,7 +35,6 @@ internal static class CSharpSimplifierOptionsStorage
             VarWhenTypeIsApparent = globalOptions.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent),
             VarElsewhere = globalOptions.GetOption(CSharpCodeStyleOptions.VarElsewhere),
             PreferSimpleDefaultExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression),
-            PreferParameterNullChecking = globalOptions.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking),
             AllowEmbeddedStatementsOnSameLine = globalOptions.GetOption(CSharpCodeStyleOptions.AllowEmbeddedStatementsOnSameLine),
             PreferBraces = globalOptions.GetOption(CSharpCodeStyleOptions.PreferBraces),
             PreferThrowExpression = globalOptions.GetOption(CSharpCodeStyleOptions.PreferThrowExpression),
