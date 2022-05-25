@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory;
@@ -126,31 +125,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
 
         private static unsafe Disposer CreateReader(string text, out DirectMemoryAccessStreamReader reader)
         {
-            var handle = GCHandle.Alloc(text.ToCharArray(), GCHandleType.Pinned);
-            reader = new DirectMemoryAccessStreamReader((char*)handle.AddrOfPinnedObject(), text.Length);
-
-#pragma warning disable RS0042 // Do not copy value
-            return new Disposer(handle, reader);
-#pragma warning restore RS0042 // Do not copy value
+            var pointer = Marshal.AllocHGlobal(text.Length * sizeof(char));
+            text.AsSpan().CopyTo(new Span<char>((char*)pointer, text.Length));
+            reader = new DirectMemoryAccessStreamReader((char*)pointer, text.Length);
+            return new Disposer(pointer, reader);
         }
 
         private sealed class Disposer : IDisposable
         {
-            private GCHandle _handle;
+            private readonly IntPtr _pointer;
             private readonly TextReader _textReader;
 
-            public Disposer(GCHandle handle, TextReader textReader)
+            public Disposer(IntPtr pointer, TextReader textReader)
             {
-#pragma warning disable RS0042 // Do not copy value
-                _handle = handle;
-#pragma warning restore RS0042 // Do not copy value
+                _pointer = pointer;
                 _textReader = textReader;
             }
 
             public void Dispose()
             {
                 _textReader.Dispose();
-                _handle.Free();
+                Marshal.FreeHGlobal(_pointer);
             }
         }
 
