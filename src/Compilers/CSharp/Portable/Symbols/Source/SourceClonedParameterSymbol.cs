@@ -72,8 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-        public override bool IsNullChecked => _originalParam.IsNullChecked;
-
         #region Forwarded
 
         public override TypeWithAnnotations TypeWithAnnotations

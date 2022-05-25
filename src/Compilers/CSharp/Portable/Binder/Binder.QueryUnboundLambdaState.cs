@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override string ParameterName(int index) { return _parameters[index].Name; }
             public override bool ParameterIsDiscard(int index) { return false; }
-            public override bool ParameterIsNullChecked(int index) { return false; }
             public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index) => default;
             public override bool HasSignature { get { return true; } }
 
