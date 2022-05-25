@@ -3809,8 +3809,9 @@ namespace HelloWorld
         {
             var text = "(string s!!)";
             var parameter = SyntaxFactory.ParseParameterList(text).Parameters[0];
-            var newParameter = parameter.Update(parameter.AttributeLists, parameter.Modifiers, parameter.Type, parameter.Identifier, parameter.Default).ToString();
-            Assert.Equal("string s!!", newParameter);
+            var newParameter = parameter.Update(parameter.AttributeLists, parameter.Modifiers, parameter.Type, parameter.Identifier, parameter.Default);
+            Assert.Equal("string s!!", newParameter.ToFullString());
+            Assert.Equal("string s", newParameter.ToString());
         }
     }
 }

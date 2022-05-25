@@ -4471,7 +4471,7 @@ tryAgain:
                     // We store an __arglist parameter as a parameter with null type and whose 
                     // .Identifier has the kind ArgListKeyword.
                     return _syntaxFactory.Parameter(
-                        attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), exclamationExclamationToken: null, @default: null);
+                        attributes, modifiers.ToList(), type: null, this.EatToken(SyntaxKind.ArgListKeyword), @default: null);
                 }
 
                 var type = this.ParseType(mode: ParseTypeMode.Parameter);
@@ -4485,7 +4485,7 @@ tryAgain:
                         this.EatToken()));
                 }
 
-                ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
+                ParseParameterNullCheck(ref identifier, out var equalsToken);
 
                 // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
                 equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
@@ -4494,7 +4494,7 @@ tryAgain:
                     ? null
                     : CheckFeatureAvailability(_syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()), MessageID.IDS_FeatureOptionalParameter);
 
-                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, exclamationExclamationToken, equalsValueClause);
+                return _syntaxFactory.Parameter(attributes, modifiers.ToList(), type, identifier, equalsValueClause);
             }
             finally
             {
@@ -4503,15 +4503,14 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses the <c>!!</c> following a parameter type and identifier.  If the token
+        /// Parses the <c>!!</c> as skipped tokens following a parameter name token.  If the parameter name
         /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned through <paramref
         /// name="equalsToken"/>.
         /// </summary>
         private void ParseParameterNullCheck(
-            out SyntaxToken? exclamationExclamationToken,
+            ref SyntaxToken identifier,
             out SyntaxToken? equalsToken)
         {
-            exclamationExclamationToken = null;
             equalsToken = null;
 
             if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
@@ -4519,48 +4518,34 @@ tryAgain:
                 // split != into two tokens.
                 var exclamationEquals = this.EatToken();
 
-                // Report that the ! should have been !!
-                exclamationExclamationToken = WithAdditionalDiagnostics(
-                    SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, "!", "!", trailing: null),
-                    this.GetExpectedTokenError(expected: SyntaxKind.ExclamationExclamationToken, actual: SyntaxKind.ExclamationToken));
+                // treat the '!' as '!!' and give the feature unsupported error
+                identifier = AddTrailingSkippedSyntax(
+                    identifier,
+                    this.AddError(SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, "!", "!", trailing: null), ErrorCode.ERR_ParameterNullCheckingNotSupported));
 
                 // Return the split out `=` for the consumer to handle.
                 equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
             }
             else if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
             {
-                // We have seen at least !
-                //
-                // We can potentially merge that with an immediately following !! or an immediately following !=
-                // All other cases are in error.
-                var firstExclamation = this.EatToken();
+                // We have seen at least '!'
+                // We check for a following '!' or '!=' to see if the user is trying to use '!!' (so we can give an appropriate error).
+                identifier = AddTrailingSkippedSyntax(identifier, this.AddError(this.EatToken(), ErrorCode.ERR_ParameterNullCheckingNotSupported));
                 if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
                 {
-                    // have two !'s in a row.  Merge them (reporting any errors if they cannot merge properly).
-                    exclamationExclamationToken = MergeAdjacent(firstExclamation, this.EatToken(), SyntaxKind.ExclamationExclamationToken);
+                    identifier = AddTrailingSkippedSyntax(identifier, this.EatToken());
                 }
                 else if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
                 {
                     // split != into two tokens.
                     var exclamationEquals = this.EatToken();
 
-                    exclamationExclamationToken = MergeAdjacent(
-                        firstExclamation,
-                        SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null),
-                        SyntaxKind.ExclamationExclamationToken);
+                    identifier = AddTrailingSkippedSyntax(
+                        identifier,
+                        SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null));
                     equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
                 }
-                else
-                {
-                    // Report that the ! should have been !!
-                    exclamationExclamationToken = WithAdditionalDiagnostics(
-                        SyntaxFactory.Token(firstExclamation.GetLeadingTrivia(), SyntaxKind.ExclamationExclamationToken, "!", "!", trailing: firstExclamation.GetTrailingTrivia()),
-                        this.GetExpectedTokenError(expected: SyntaxKind.ExclamationExclamationToken, actual: firstExclamation.Kind));
-                }
             }
-
-            if (exclamationExclamationToken != null)
-                exclamationExclamationToken = CheckFeatureAvailability(exclamationExclamationToken, MessageID.IDS_ParameterNullChecking);
         }
 
         /// <summary>
@@ -11800,13 +11785,10 @@ tryAgain:
                     }
 
                     // eat the parameter name.
-                    if (this.IsTrueIdentifier())
-                    {
-                        this.EatToken();
-                    }
+                    var identifier = this.IsTrueIdentifier() ? this.EatToken() : CreateMissingIdentifierToken();
 
                     // eat a !! if present.
-                    this.ParseParameterNullCheck(out _, out var equalsToken);
+                    this.ParseParameterNullCheck(ref identifier, out var equalsToken);
                     equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
 
                     // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
@@ -13093,7 +13075,7 @@ tryAgain:
                         this.EatTokenAsKind(SyntaxKind.IdentifierToken) :
                         this.ParseIdentifierToken();
 
-                    ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
+                    ParseParameterNullCheck(ref identifier, out var equalsToken);
 
                     SyntaxToken arrow;
                     if (equalsToken != null)
@@ -13117,7 +13099,7 @@ tryAgain:
                     }
 
                     var parameter = _syntaxFactory.Parameter(
-                        attributeLists: default, modifiers: default, type: null, identifier, exclamationExclamationToken, @default: null);
+                        attributeLists: default, modifiers: default, type: null, identifier, @default: null);
                     var (block, expression) = ParseLambdaBody();
                     return _syntaxFactory.SimpleLambdaExpression(
                         attributes, modifiers, parameter, arrow, block, expression);
@@ -13241,7 +13223,7 @@ tryAgain:
             }
 
             var identifier = this.ParseIdentifierToken();
-            ParseParameterNullCheck(out var exclamationExclamationToken, out var equalsToken);
+            ParseParameterNullCheck(ref identifier, out var equalsToken);
 
             // If we didn't already consume an equals sign as part of !!=, then try to scan one out now. Note: this is
             // not legal code.  But we detect it so that we can give the user a good message, and so we don't go
@@ -13257,11 +13239,10 @@ tryAgain:
             {
                 equalsToken = AddError(equalsToken, ErrorCode.ERR_DefaultValueNotAllowed);
 
-                ref var nodeToAttachTo = ref exclamationExclamationToken != null ? ref exclamationExclamationToken : ref identifier;
-                nodeToAttachTo = AddTrailingSkippedSyntax(nodeToAttachTo, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
+                identifier = AddTrailingSkippedSyntax(identifier, _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
             }
 
-            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, exclamationExclamationToken, @default: null);
+            var parameter = _syntaxFactory.Parameter(attributes, modifiers.ToList(), paramType, identifier, @default: null);
             _pool.Free(modifiers);
             return parameter;
         }

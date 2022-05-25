@@ -740,12 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var factory = new SyntheticBoundNodeFactory(method, methodWithBody.Body.Syntax, compilationState, diagnosticsThisMethod);
-                        var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(method.Parameters, factory);
-                        if (!nullCheckStatements.IsEmpty)
-                        {
-                            loweredBody = factory.StatementList(nullCheckStatements.Concat(loweredBody));
-                        }
-                        SetGlobalErrorIfTrue(nullCheckStatements.HasErrors() || diagnosticsThisMethod.HasAnyErrors());
+                        SetGlobalErrorIfTrue(diagnosticsThisMethod.HasAnyErrors());
 
                         if (_emitMethodBodies && !diagnosticsThisMethod.HasAnyErrors() && !_globalHasErrors)
                         {
@@ -1302,9 +1297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             var factory = new SyntheticBoundNodeFactory(methodSymbol, syntax, compilationState, diagsForCurrentMethod);
 
-                            var nullCheckStatements = LocalRewriter.ConstructNullCheckedStatementList(methodSymbol.Parameters, factory);
-                            boundStatements = nullCheckStatements.Concat(boundStatements);
-                            hasErrors = nullCheckStatements.HasErrors() || diagsForCurrentMethod.HasAnyErrors();
+                            hasErrors = diagsForCurrentMethod.HasAnyErrors();
                             SetGlobalErrorIfTrue(hasErrors);
                             if (hasErrors)
                             {
