@@ -273,7 +273,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
-        [ConditionalFact(typeof(WindowsOrLinuxOnly))]
+        [ConditionalFact(typeof(WindowsOrLinuxOnly), Skip = "https://github.com/dotnet/roslyn/issues/45815")]
         public void Constraints()
         {
             int n = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
