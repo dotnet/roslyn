@@ -682,18 +682,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public void Commit(bool previewChanges = false)
-            => CommitWorker(previewChanges);
+            => _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges));
+
+        public Task CommitAsync(bool previewChanges)
+            => CommitWorkerAsync(previewChanges);
 
         /// <returns><see langword="true"/> if the rename operation was commited, <see
         /// langword="false"/> otherwise</returns>
-        private bool CommitWorker(bool previewChanges)
-        {
-            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges));
-        }
-
-        public Task CommitAsync(bool previewChanges = false)
-            => CommitWorkerAsync(previewChanges);
-
         private async Task<bool> CommitWorkerAsync(bool previewChanges)
         {
             _threadingContext.ThrowIfNotOnUIThread();
@@ -946,8 +941,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public TestAccessor(InlineRenameSession inlineRenameSession)
                 => _inlineRenameSession = inlineRenameSession;
 
-            public bool CommitWorker(bool previewChanges)
-                => _inlineRenameSession.CommitWorker(previewChanges);
+            public Task<bool> CommitWorkerAsync(bool previewChanges)
+                => _inlineRenameSession.CommitWorkerAsync(previewChanges);
         }
     }
 }
