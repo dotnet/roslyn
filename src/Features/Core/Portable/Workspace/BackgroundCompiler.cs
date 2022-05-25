@@ -83,12 +83,29 @@ namespace Microsoft.CodeAnalysis.Host
 
         private void Rebuild()
         {
+            // Stop any work on the current batch and create a token for the next batch.
             var nextToken = _cancellationSeries.CreateNext();
             _workQueue.AddWork(nextToken);
         }
 
         private async ValueTask BuildCompilationsForVisibleDocumentsAsync(
             ImmutableSegmentedList<CancellationToken> cancellationTokens, CancellationToken disposalToken)
+        {
+            using var _ = ArrayBuilder<Compilation>.GetInstance(out var compilations);
+
+            await AddCompilationsForVisibleDocumentsAsync(cancellationTokens, compilations, disposalToken).ConfigureAwait(false);
+
+            lock (_gate)
+            {
+                _mostRecentCompilations.Clear();
+                _mostRecentCompilations.AddRange(compilations);
+            }
+        }
+
+        private async ValueTask AddCompilationsForVisibleDocumentsAsync(
+            ImmutableSegmentedList<CancellationToken> cancellationTokens,
+            ArrayBuilder<Compilation> compilations,
+            CancellationToken disposalToken)
         {
             var workspace = _workspace;
             if (workspace is null)
@@ -104,17 +121,18 @@ namespace Microsoft.CodeAnalysis.Host
                 return;
 
             using var source = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, disposalToken);
-            await BuildCompilationsForVisibleDocumentsAsync(workspace.CurrentSolution, source.Token).ConfigureAwait(false);
+            await AddCompilationsForVisibleDocumentsAsync(
+                workspace.CurrentSolution, compilations, source.Token).ConfigureAwait(false);
         }
 
-        private async ValueTask BuildCompilationsForVisibleDocumentsAsync(
-            Solution solution, CancellationToken cancellationToken)
+        private static async ValueTask AddCompilationsForVisibleDocumentsAsync(
+            Solution solution,
+            ArrayBuilder<Compilation> compilations,
+            CancellationToken cancellationToken)
         {
             var trackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var visibleProjectIds = trackingService.GetVisibleDocuments().Select(d => d.ProjectId).ToSet();
             var activeProjectId = trackingService.TryGetActiveDocument()?.ProjectId;
-
-            using var _ = ArrayBuilder<Compilation>.GetInstance(out var compilations);
 
             await GetCompilationAsync(activeProjectId).ConfigureAwait(false);
 
@@ -124,12 +142,6 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     await GetCompilationAsync(projectId).ConfigureAwait(false);
                 }
-            }
-
-            lock (_gate)
-            {
-                _mostRecentCompilations.Clear();
-                _mostRecentCompilations.AddRange(compilations);
             }
 
             return;
