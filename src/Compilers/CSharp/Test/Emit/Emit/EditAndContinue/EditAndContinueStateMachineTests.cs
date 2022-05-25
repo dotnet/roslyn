@@ -4268,8 +4268,8 @@ class C
 {
     static IEnumerable<int> F() 
     {
-        <N:0>using var <N:1>x = M1()</N:1>;</N:0>
-        <N:2>yield return M2();</N:2>
+        using var <N:0>x = M1()</N:0>;
+        <N:1>yield return M2();</N:1>
         End();
     }
 
@@ -4286,8 +4286,8 @@ class C
 {
     static IEnumerable<int> F() 
     {
-        <N:0>using var <N:1>x = M1()</N:1>;</N:0>
-        <N:2>yield return M2();</N:2>
+        using var <N:0>x = M1()</N:0>;
+        <N:1>yield return M2();</N:1>
         yield return M3();
         End();
     }
@@ -4324,11 +4324,11 @@ class C
       <customDebugInfo>
         <forwardIterator name=""&lt;F&gt;d__0"" />
         <encLocalSlotMap>
-          <slot kind=""0"" offset=""31"" />
+          <slot kind=""0"" offset=""26"" />
         </encLocalSlotMap>
         <encStateMachineStateMap>
-          <state number=""-3"" offset=""16"" />
-          <state number=""1"" offset=""67"" />
+          <state number=""-3"" offset=""26"" />
+          <state number=""1"" offset=""56"" />
         </encStateMachineStateMap>
       </customDebugInfo>
     </method>
