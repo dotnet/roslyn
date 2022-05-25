@@ -130,6 +130,8 @@ namespace Microsoft.CodeAnalysis.Host
             ArrayBuilder<Compilation> compilations,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var trackingService = solution.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
             var visibleProjectIds = trackingService.GetVisibleDocuments().Select(d => d.ProjectId).ToSet();
             var activeProjectId = trackingService.TryGetActiveDocument()?.ProjectId;
