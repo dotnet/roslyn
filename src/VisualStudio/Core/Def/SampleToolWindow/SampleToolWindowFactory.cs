@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken = default)
         {
-            if (!_initialized)
+            if (!_initialized || ThreadingContext is null)
             {
                 throw new NotSupportedException("Tool window not initialized");
             }
@@ -72,13 +72,18 @@ namespace Microsoft.VisualStudio.LanguageServices
                 // Get the instance number 0 of this tool window. This window is single instance so this instance
                 // is actually the only one.
                 // The last flag is set to true so that if the tool window does not exists it will be created.
+                if (Package is null)
+                {
+                    throw new NotSupportedException("Cannot create tool window");
+                }
+
                 var window = Package.FindToolWindow(typeof(SampleToolWindow), 0, true) as SampleToolWindow;
                 if (window is not { Frame: not null })
                 {
                     throw new NotSupportedException("Cannot create tool window");
                 }
 
-                window.InitializeIfNeeded(Package);
+                window.InitializeIfNeeded();
 
                 return window;
             }

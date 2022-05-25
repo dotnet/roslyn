@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             Content = SampleUserControl;
         }
 
-        internal void InitializeIfNeeded(RoslynPackage package)
+        internal void InitializeIfNeeded()
         {
             if (_initialized)
             {
