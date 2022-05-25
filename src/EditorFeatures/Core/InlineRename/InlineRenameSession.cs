@@ -727,18 +727,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             previewChanges = previewChanges || _previewChanges;
 
-            var canceled = false;
-
             try
             {
                 await CommitCoreAsync(context, previewChanges).ConfigureAwait(false);
+                context.UserCancellationToken.ThrowIfCancellationRequested();
+                return true;
             }
             catch (OperationCanceledException)
-            {
-                canceled = true;
-            }
-
-            if (canceled || context.UserCancellationToken.IsCancellationRequested)
             {
                 LogRenameSession(RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
                 await DismissAsync(rollbackTemporaryEdits: true, cancellationToken).ConfigureAwait(false);
@@ -746,8 +741,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 return false;
             }
-
-            return true;
         }
 
         private async Task EndRenameSessionAsync(CancellationToken cancellationToken)
