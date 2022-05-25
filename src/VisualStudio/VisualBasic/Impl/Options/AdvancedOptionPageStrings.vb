@@ -62,7 +62,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             CompilerDiagnosticsScope.None
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files_Tag As CompilerDiagnosticsScope =
-            CompilerDiagnosticsScope.VisibleFiles
+            CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files_Tag As CompilerDiagnosticsScope =
             CompilerDiagnosticsScope.OpenFiles

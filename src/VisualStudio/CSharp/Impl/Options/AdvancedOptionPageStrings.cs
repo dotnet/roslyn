@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CompilerDiagnosticsScope.None;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Visible_Files_Tag
-            => CompilerDiagnosticsScope.VisibleFiles;
+            => CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics;
 
         public static CompilerDiagnosticsScope Option_Compiler_Diagnostics_Scope_Open_Files_Tag
             => CompilerDiagnosticsScope.OpenFiles;

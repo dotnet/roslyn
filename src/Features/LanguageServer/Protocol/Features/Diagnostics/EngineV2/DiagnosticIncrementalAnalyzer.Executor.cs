@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         CompilerDiagnosticsScope.None => false,
 
                         // Compiler diagnostics are enabled for visible documents and open documents which had errors/warnings in prior snapshot.
-                        CompilerDiagnosticsScope.VisibleFiles => isVisibleDocument || (isOpenDocument && !previousData.Items.IsEmpty),
+                        CompilerDiagnosticsScope.VisibleFilesAndFilesWithPreviouslyReportedDiagnostics => isVisibleDocument || (isOpenDocument && !previousData.Items.IsEmpty),
 
                         // Compiler diagnostics are enabled for all open documents.
                         CompilerDiagnosticsScope.OpenFiles => isOpenDocument,
