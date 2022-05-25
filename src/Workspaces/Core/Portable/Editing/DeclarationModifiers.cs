@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editing
                     isVolatile: field?.IsVolatile == true,
                     isExtern: symbol.IsExtern,
                     isAsync: method?.IsAsync == true,
-                    isRequired: field?.IsRequired == true || property?.IsRequired == true);
+                    isRequired: symbol.IsRequired());
             }
 
             // Only named types, members of named types, and local functions have modifiers.
