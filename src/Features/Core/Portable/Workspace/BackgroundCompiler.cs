@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.Host
         private Workspace? _workspace;
         private readonly AsyncBatchingWorkQueue<CancellationToken> _workQueue;
 
-        private readonly object _gate = new();
         [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
-        private readonly List<Compilation> _mostRecentCompilations = new();
+        private readonly ConcurrentSet<Compilation> _mostRecentCompilations = new();
 
         /// <summary>
         /// Cancellation series controlling the individual pieces of work added to <see cref="_workQueue"/>.  Every time
@@ -57,18 +56,14 @@ namespace Microsoft.CodeAnalysis.Host
             _disposalCancellationSource.Cancel();
             _cancellationSeries.Dispose();
 
-            lock (_gate)
-            {
-                _mostRecentCompilations.Clear();
-            }
+            _mostRecentCompilations.Clear();
 
-            if (_workspace != null)
+            var workspace = Interlocked.Exchange(ref _workspace, null);
+            if (workspace != null)
             {
-                _workspace.DocumentClosed -= OnDocumentClosed;
-                _workspace.DocumentOpened -= OnDocumentOpened;
-                _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-
-                _workspace = null;
+                workspace.DocumentClosed -= OnDocumentClosed;
+                workspace.DocumentOpened -= OnDocumentOpened;
+                workspace.WorkspaceChanged -= OnWorkspaceChanged;
             }
         }
 
@@ -95,11 +90,8 @@ namespace Microsoft.CodeAnalysis.Host
 
             await AddCompilationsForVisibleDocumentsAsync(cancellationTokens, compilations, disposalToken).ConfigureAwait(false);
 
-            lock (_gate)
-            {
-                _mostRecentCompilations.Clear();
-                _mostRecentCompilations.AddRange(compilations);
-            }
+            _mostRecentCompilations.Clear();
+            _mostRecentCompilations.AddRange(compilations);
         }
 
         private async ValueTask AddCompilationsForVisibleDocumentsAsync(
