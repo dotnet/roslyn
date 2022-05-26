@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -2735,10 +2736,26 @@ int bar;
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CommitRequiredKeywordPreserved()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("required override")]
+        [InlineData("override required")]
+        public async Task CommitRequiredKeywordPreserved(string ordering)
         {
-            var markupBeforeCommit = """
+            var markupBeforeCommit = $@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+        <Document>class Base
+{{
+    public virtual required int Prop {{ get; }}
+}}
+
+class Derived : Base
+{{
+    {ordering} $$
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedCodeAfterCommit = """
                 class Base
                 {
                     public virtual required int Prop { get; }
@@ -2746,14 +2763,41 @@ int bar;
 
                 class Derived : Base
                 {
-                    required override $$
+                    public override required int Prop
+                    {
+                        get
+                        {
+                            return base.Prop;$$
+                        }
+                    }
                 }
                 """;
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Prop", expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("required override")]
+        [InlineData("override required")]
+        public async Task CommitRequiredKeywordPreservedWhenBaseIsNotRequired(string ordering)
+        {
+            var markupBeforeCommit = $@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""{TestOptions.RegularNext.LanguageVersion}"">
+        <Document>class Base
+{{
+    public virtual int Prop {{ get; }}
+}}
+
+class Derived : Base
+{{
+    {ordering} $$
+}}</Document>
+    </Project>
+</Workspace>";
 
             var expectedCodeAfterCommit = """
                 class Base
                 {
-                    public virtual required int Prop { get; }
+                    public virtual int Prop { get; }
                 }
 
                 class Derived : Base

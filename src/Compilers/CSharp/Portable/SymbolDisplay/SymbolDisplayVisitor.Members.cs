@@ -125,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddAccessibilityIfNeeded(symbol);
             AddMemberModifiersIfNeeded(symbol);
 
-
             if (ShouldPropertyDisplayReadOnly(symbol))
             {
                 AddReadOnlyIfNeeded();

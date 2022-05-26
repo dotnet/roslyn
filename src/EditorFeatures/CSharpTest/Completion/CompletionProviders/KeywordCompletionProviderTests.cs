@@ -643,20 +643,26 @@ $@"class C
             await VerifyItemIsAbsentAsync(markup, "required");
         }
 
-        [Fact]
-        public async Task DoNotSuggestRequiredOnStaticMembers()
+        [Theory]
+        [InlineData("static")]
+        [InlineData("const")]
+        [InlineData("readonly")]
+        public async Task DoNotSuggestRequiredOnFilteredKeywordMembers(string keyword)
         {
             var markup = $$"""
                 class C 
                 {
-                    static $$
+                    {{keyword}} $$
                 """;
 
             await VerifyItemIsAbsentAsync(markup, "required");
         }
 
-        [Fact]
-        public async Task DoNotSuggestStaticOnRequiredMembers()
+        [Theory]
+        [InlineData("static")]
+        [InlineData("const")]
+        [InlineData("readonly")]
+        public async Task DoNotSuggestFilteredKeywordsOnRequiredMembers(string keyword)
         {
             var markup = $$"""
                 class C 
@@ -664,7 +670,7 @@ $@"class C
                     required $$
                 """;
 
-            await VerifyItemIsAbsentAsync(markup, "static");
+            await VerifyItemIsAbsentAsync(markup, keyword);
         }
 
         [Fact]

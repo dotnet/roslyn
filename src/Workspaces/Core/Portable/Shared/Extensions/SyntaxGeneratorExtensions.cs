@@ -409,7 +409,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     codeFactory.IdentifierName("value")));
             }
 
-            modifiers = modifiers.WithRequired(overriddenProperty.IsRequired);
+            // The user can add required if they want, but if the property being overridden is required, this one needs to be as well.
+            modifiers = modifiers.WithRequired(modifiers.IsRequired || overriddenProperty.IsRequired);
 
             // Only generate a getter if the base getter is accessible.
             IMethodSymbol? accessorGet = null;
@@ -509,7 +510,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Document newDocument,
             CancellationToken cancellationToken)
         {
-
             // Required is not a valid modifier for methods, so clear it if the user typed it
             modifiers = modifiers.WithRequired(false);
 

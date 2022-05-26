@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         bool IsVolatile { get; }
 
         /// <summary>
-        /// True if this property is required to be set in an object initializer during construction.
+        /// True if this field is required to be set in an object initializer during construction.
         /// </summary>
         bool IsRequired { get; }
 
