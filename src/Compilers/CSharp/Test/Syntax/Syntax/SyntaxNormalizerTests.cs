@@ -1306,5 +1306,21 @@ class Derived : Base
             const string Text = @"/// Prefix <b    b=""y""a=""x""	>S_OK</b> suffix";
             TestNormalizeDeclaration(Text, Expected);
         }
+
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedUsingStatements1()
+        {
+            TestNormalizeStatement("using(a)using(b)c;", "using (a)\r\nusing (b)\r\n  c;");
+            TestNormalizeStatement("using(a)using(b){c;}", "using (a)\r\nusing (b)\r\n{\r\n  c;\r\n}");
+            TestNormalizeStatement("using(a)using(b)using(c)d;", "using (a)\r\nusing (b)\r\nusing (c)\r\n  d;");
+            TestNormalizeStatement("using(a)using(b)using(c){d;}", "using (a)\r\nusing (b)\r\nusing (c)\r\n{\r\n  d;\r\n}");
+
+            TestNormalizeStatement("using(a){using(b)c;}", "using (a)\r\n{\r\n  using (b)\r\n    c;\r\n}");
+            TestNormalizeStatement("using(a){using(b)using(c)d;}", "using (a)\r\n{\r\n  using (b)\r\n  using (c)\r\n    d;\r\n}");
+            TestNormalizeStatement("using(a)using(b){using(c)d;}", "using (a)\r\nusing (b)\r\n{\r\n  using (c)\r\n    d;\r\n}");
+            TestNormalizeStatement("using(a){using(b){using(c)d;}}", "using (a)\r\n{\r\n  using (b)\r\n  {\r\n    using (c)\r\n      d;\r\n  }\r\n}");
+        }
     }
 }
