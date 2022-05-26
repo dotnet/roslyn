@@ -60,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Peek
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"String [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
+                Assert.Equal($"String [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"String [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Title)
                 Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("String", StringComparison.Ordinal))
             End Using
         End Sub
@@ -98,9 +98,8 @@ End Class
                 Dim result = GetPeekResultCollection(workspace)
 
                 Assert.Equal(1, result.Items.Count)
-                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Label)
-                Assert.Equal($"SerializableAttribute [{FeaturesResources.from_metadata}]", result(0).DisplayInfo.Title)
-                Assert.True(result.GetRemainingIdentifierLineTextOnDisk(index:=0).StartsWith("New()", StringComparison.Ordinal)) ' Navigates to constructor
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Label)
+                Assert.Equal($"SerializableAttribute [{FeaturesResources.Decompiled}]", result(0).DisplayInfo.Title)
             End Using
         End Sub
 
@@ -385,6 +384,14 @@ public class Component
 
             Private Function Remove(item As IPeekResult) As Boolean Implements IPeekResultCollection.Remove
                 Throw New NotImplementedException()
+            End Function
+
+            Friend Function GetText() As String
+                Dim documentResult = DirectCast(Items(0), IDocumentPeekResult)
+                Dim textBufferService = _workspace.GetService(Of ITextBufferFactoryService)
+                Dim buffer = textBufferService.CreateTextBuffer(New StreamReader(documentResult.FilePath), textBufferService.InertContentType)
+
+                Return buffer.CurrentSnapshot.GetText()
             End Function
 
             ''' <summary>

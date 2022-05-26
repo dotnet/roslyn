@@ -60,7 +60,11 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
             }
 
-            public void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken)
+            public void VisitTree(
+                Lazy<SyntaxNode> root,
+                EntryState state,
+                Lazy<SemanticModel>? model,
+                CancellationToken cancellationToken)
             {
                 if (_walker is not null && state != EntryState.Removed)
                 {

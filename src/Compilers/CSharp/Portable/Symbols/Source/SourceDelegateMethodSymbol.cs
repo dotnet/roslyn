@@ -106,11 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
                 }
-                var parameterSyntax = syntax.ParameterList.Parameters[i];
-                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
-                {
-                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
-                }
             }
 
             diagnostics.Add(delegateType.Locations[0], useSiteInfo);
