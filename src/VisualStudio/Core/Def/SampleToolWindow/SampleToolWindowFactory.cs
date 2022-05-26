@@ -33,6 +33,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         private RoslynPackage? Package { get; set; }
         private IThreadingContext ThreadingContext { get; }
 
+        private bool FirstPass { get; set; } = true;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SampleToolWindowFactory(IThreadingContext threadingContext)
@@ -51,11 +53,17 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public void TextViewCreated(IWpfTextView textView)
         {
-            ThreadingContext.JoinableTaskFactory.RunAsync(() => ShowSampleToolWindowAsync(default)).FileAndForget("Opening Sample Tool Window");
+            ThreadingContext.JoinableTaskFactory.RunAsync(() => ShowSampleToolWindowAsync(CancellationToken.None)).FileAndForget("Opening Sample Tool Window");
         }
 
         public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken)
         {
+            if (FirstPass)
+            {
+                FirstPass = false;
+                return;
+            }
+
             if (!Initialized)
             {
                 throw new NotSupportedException("Tool window not initialized");

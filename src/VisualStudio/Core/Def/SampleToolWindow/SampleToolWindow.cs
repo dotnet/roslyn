@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         private bool _initialized;
 
         [MemberNotNullWhen(true, nameof(_initialized))]
-        public SampleToolboxUserControl? SampleUserControl { get; private set; }
+        public SampleToolboxUserControl SampleUserControl { get; }
 
         public SampleToolWindow() : base(null)
         {
