@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     return true;
                 }
             }
+
             return false;
         }
 
