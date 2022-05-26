@@ -107,22 +107,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void ReadToEnd()
+        public void ReadToEnd1()
         {
-            using (CreateReaders("text", out var referenceReader, out var reader))
-            {
-                AssertAllEqual("text", referenceReader.ReadToEnd(), reader.ReadToEnd());
-                AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
-                AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
-            }
+            using var _ = CreateReaders("text", out var referenceReader, out var reader);
+            AssertAllEqual("text", referenceReader.ReadToEnd(), reader.ReadToEnd());
+            AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
+            AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
+        }
 
-            using (CreateReaders("text", out var referenceReader, out var reader))
-            {
-                AssertAllEqual('t', referenceReader.Read(), reader.Read());
-                AssertAllEqual("ext", referenceReader.ReadToEnd(), reader.ReadToEnd());
-                AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
-                AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
-            }
+        [Fact]
+        public void ReadToEnd2()
+        {
+            using var _ = CreateReaders("text", out var referenceReader, out var reader);
+            AssertAllEqual('t', referenceReader.Read(), reader.Read());
+            AssertAllEqual("ext", referenceReader.ReadToEnd(), reader.ReadToEnd());
+            AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
+            AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
         }
 
         private static void AssertAllEqual<T>(T expected1, T expected2, T actual)
