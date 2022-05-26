@@ -699,14 +699,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Report redundant 'scoped' modifiers.
                 if (modifier.Kind() == SyntaxKind.ScopedKeyword)
                 {
-                    VerifyScopeFeatureAvailability(node, modifier, diagnostics);
+                    ModifierUtils.CheckScopeModifierAvailability(node, modifier, diagnostics);
                 }
             }
 
             if (node.Declaration.Type is RefTypeSyntax { ScopedKeyword: var scopedKeyword } &&
                 scopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
             {
-                VerifyScopeFeatureAvailability(typeSyntax, scopedKeyword, diagnostics);
+                ModifierUtils.CheckScopeModifierAvailability(typeSyntax, scopedKeyword, diagnostics);
             }
 
             bool isVar;
@@ -730,16 +730,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics, includeBoundType);
                 }
                 return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
-            }
-        }
-
-        internal static void VerifyScopeFeatureAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, BindingDiagnosticBag diagnostics)
-        {
-            Debug.Assert(modifier.Kind() == SyntaxKind.ScopedKeyword);
-
-            if (MessageID.IDS_FeatureRefFields.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntax.SyntaxTree.Options) is { } diagnosticInfo)
-            {
-                diagnostics.Add(diagnosticInfo, modifier.GetLocation());
             }
         }
 

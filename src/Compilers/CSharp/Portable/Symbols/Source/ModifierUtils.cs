@@ -89,6 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
+        internal static void CheckScopeModifierAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(modifier.Kind() == SyntaxKind.ScopedKeyword);
+
+            if (MessageID.IDS_FeatureRefFields.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntax.SyntaxTree.Options) is { } diagnosticInfo)
+            {
+                diagnostics.Add(diagnosticInfo, modifier.GetLocation());
+            }
+        }
+
         private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
         {
             // If we can find the 'partial' token, report it on that.

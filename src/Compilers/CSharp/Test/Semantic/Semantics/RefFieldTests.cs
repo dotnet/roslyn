@@ -4241,7 +4241,7 @@ struct B<T>
             verify(comp);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -4289,7 +4289,7 @@ class Program
             verify(comp);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -4343,7 +4343,7 @@ class Program
             verify(comp);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -4384,7 +4384,7 @@ delegate void D3(object o, ref scoped R r3);
             verify(comp);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -4411,7 +4411,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -4436,7 +4436,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should report duplicate modifiers.
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4453,7 +4453,7 @@ class Program
 }";
             var comp = CreateCompilation(source);
             // PROTOTYPE: Should report duplicate modifiers.
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4507,7 +4507,7 @@ class Program
     static void F1(scoped scoped x, ref scoped y, ref scoped scoped z, scoped ref scoped w) { }
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
+            comp.VerifyEmitDiagnostics(
                 // (1,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // ref struct scoped { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 12));
@@ -4527,8 +4527,10 @@ class Program
 
         // PROTOTYPE: Test distinct 'scoped' annotations in partial method parts.
 
-        [Fact]
-        public void ReturnTypeScope()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void ReturnTypeScope(LanguageVersion langVersion)
         {
             var source =
 @"ref struct R { }
@@ -4545,21 +4547,61 @@ class Program
         static ref readonly scoped R L3<T>() => throw null;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             // PROTOTYPE: Should report errors for 'ref scoped' and 'ref readonly scoped' return types as well.
             comp.VerifyDiagnostics(
-                // (4,21): error CS0106: The modifier 'scoped' is not valid for this item
-                //     static scoped R F1<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(4, 21),
-                // (5,25): error CS0106: The modifier 'scoped' is not valid for this item
-                //     static scoped ref R F2<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("scoped").WithLocation(5, 25),
-                // (10,16): error CS0106: The modifier 'scoped' is not valid for this item
-                //         static scoped R L1<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(10, 16),
-                // (11,16): error CS0106: The modifier 'scoped' is not valid for this item
-                //         static scoped ref readonly R L1<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(11, 16));
+                    // (4,21): error CS0106: The modifier 'scoped' is not valid for this item
+                    //     static scoped R F1<T>() => throw null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(4, 21),
+                    // (5,25): error CS0106: The modifier 'scoped' is not valid for this item
+                    //     static scoped ref R F2<T>() => throw null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("scoped").WithLocation(5, 25),
+                    // (10,16): error CS0106: The modifier 'scoped' is not valid for this item
+                    //         static scoped R L1<T>() => throw null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(10, 16),
+                    // (11,16): error CS0106: The modifier 'scoped' is not valid for this item
+                    //         static scoped ref readonly R L2<T>() => throw null;
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(11, 16));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void PropertyValueScope(LanguageVersion langVersion)
+        {
+            // PROTOTYPE: Test ref returning properties as well.
+            var source =
+@"ref struct R1 { }
+ref struct R2
+{
+    scoped R1 P1 { get; }
+    scoped R1 P2 { get; set; }
+    scoped R1 P3 { set { } }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped R1 P1 { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("scoped").WithLocation(4, 15),
+                // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped R1 P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("scoped").WithLocation(5, 15),
+                // (6,15): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped R1 P3 { set { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("scoped").WithLocation(6, 15));
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                verifyValueParameter(comp.GetMember<PropertySymbol>("R2.P2"), "R1 value", RefKind.None, DeclarationScope.Unscoped);
+                verifyValueParameter(comp.GetMember<PropertySymbol>("R2.P3"), "R1 value", RefKind.None, DeclarationScope.Unscoped);
+            }
+
+            static void verifyValueParameter(PropertySymbol property, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
+            {
+                Assert.Equal(expectedRefKind, property.RefKind);
+                VerifyParameterSymbol(property.SetMethod.Parameters[0], expectedDisplayString, expectedRefKind, expectedScope);
+            }
         }
 
         [Fact]
@@ -4575,7 +4617,7 @@ class B : A<int>
 {
 }";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
 
             var method = (MethodSymbol)comp.GetMember<NamedTypeSymbol>("B").BaseTypeNoUseSiteDiagnostics.GetMember("F");
             VerifyParameterSymbol(method.Parameters[0], "scoped R<System.Int32> x", RefKind.None, DeclarationScope.ValueScoped);
@@ -4672,7 +4714,7 @@ class Program
             verify(comp);
 
             comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
             verify(comp);
 
             static void verify(CSharpCompilation comp)

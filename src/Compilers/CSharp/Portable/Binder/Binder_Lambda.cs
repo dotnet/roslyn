@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
 
                                 case SyntaxKind.ScopedKeyword:
-                                    VerifyScopeFeatureAvailability(p, modifier, diagnostics);
+                                    ModifierUtils.CheckScopeModifierAvailability(p, modifier, diagnostics);
                                     if (refKind == RefKind.None)
                                     {
                                         scopedBeforeRef = true;
