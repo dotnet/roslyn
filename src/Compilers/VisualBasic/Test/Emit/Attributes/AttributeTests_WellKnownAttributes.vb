@@ -1093,6 +1093,37 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub DllImport_InvalidArgs2()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class DllImportAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional dllName As String = Nothing)
+        End Sub
+    End Class
+End Namespace
+
+Class C
+    <DllImport>
+    Public Shared Sub F1()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+            CreateCompilationWithMscorlib40AndVBRuntime(source).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'DllImportAttribute' is not valid: Incorrect argument value.
+    <DllImport>
+     ~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
         Public Sub DllImport_SpecialCharactersInName()
             Dim source =
     <compilation>
@@ -3763,13 +3794,84 @@ end class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "FileIOPermission").WithArguments("action", "Public Overloads Sub New(action As System.Security.Permissions.SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("MySecurityAttribute", "DirectCast(0, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("MySecurityAttribute", "DirectCast(11, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("MySecurityAttribute", "DirectCast(-1, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("FileIOPermission", "DirectCast(0, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("FileIOPermission", "DirectCast(11, SecurityAction)"),
-                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("FileIOPermission", "DirectCast(-1, SecurityAction)"),
+                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("DirectCast(0, SecurityAction)"),
+                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("DirectCast(11, SecurityAction)"),
+                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("DirectCast(-1, SecurityAction)"),
+                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(0, SecurityAction)").WithArguments("DirectCast(0, SecurityAction)"),
+                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(11, SecurityAction)").WithArguments("DirectCast(11, SecurityAction)"),
+                                Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, "DirectCast(-1, SecurityAction)").WithArguments("DirectCast(-1, SecurityAction)"),
                                 Diagnostic(ERRID.ERR_InvalidAttributeUsage2, "FileIOPermission").WithArguments("FileIOPermissionAttribute", "Field"))
+        End Sub
+
+        <Fact()>
+        Public Sub TestInvalidSecurityActionErrors_UserDefinedWithOptionalParameterInCtor_PermissionsRequestAction()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security.Permissions
+
+Public Class MySecurityAttribute
+    Inherits SecurityAttribute
+
+    Public Sub New(Optional action As SecurityAction = SecurityAction.RequestMinimum)
+        MyBase.New(action)
+    End Sub
+
+    Public Overrides Function CreatePermission() As System.Security.IPermission
+        Return Nothing
+    End Function
+End Class
+
+<MySecurityAttribute>
+Class A
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC40000: 'RequestMinimum' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'.
+    Public Sub New(Optional action As SecurityAction = SecurityAction.RequestMinimum)
+                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31214: SecurityAction value '8' is invalid for security attributes applied to a type or a method.
+<MySecurityAttribute>
+ ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact()>
+        Public Sub TestInvalidSecurityActionErrors_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security.Permissions
+
+Public Class MySecurityAttribute
+	Inherits SecurityAttribute
+
+	Public Sub New(Optional action As SecurityAction = 0)
+		MyBase.New(action)
+	End Sub
+
+	Public Overrides Function CreatePermission() As System.Security.IPermission
+		Return Nothing
+	End Function
+End Class
+
+<MySecurityAttribute>
+Class A
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC31214: SecurityAction value '0' is invalid for security attributes applied to a type or a method.
+<MySecurityAttribute>
+ ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -3812,12 +3914,12 @@ end class
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
             comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute"),
-                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute").WithArguments("MySecurityAttribute")
+                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
+                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
+                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
+                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
+                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute"),
+                Diagnostic(ERRID.ERR_SecurityAttributeMissingAction, "MySecurityAttribute")
                 )
         End Sub
 
@@ -3893,6 +3995,40 @@ end class
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.InheritanceDemand").WithArguments("SecurityAction.InheritanceDemand"),
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"),
                 Diagnostic(ERRID.ERR_SecurityAttributeInvalidActionAssembly, "SecurityAction.PermitOnly").WithArguments("SecurityAction.PermitOnly"))
+        End Sub
+
+        <Fact()>
+        Public Sub TestInvalidSecurityActionsForAssemblyErrors_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security
+Imports System.Security.Permissions
+
+<assembly: MySecurityAttribute>
+
+Class MySecurityAttribute 
+    Inherits SecurityAttribute
+
+    Public Sub New (Optional a As SecurityAction = 1)
+        MyBase.New(a)
+    End Sub
+
+    Public Overrides Function CreatePermission() As IPermission 
+        Return Nothing
+    End Function
+End Class
+
+]]>
+                             </file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+BC31213: SecurityAction value '1' is invalid for security attributes applied to an assembly.
+<assembly: MySecurityAttribute>
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <Fact()>
@@ -4040,6 +4176,46 @@ End Class
             CreateCompilationWithMscorlib40(source).VerifyDiagnostics(Diagnostic(ERRID.WRN_UseOfObsoleteSymbol2, "SecurityAction.Deny").WithArguments("Deny", "Deny is obsolete and will be removed in a future release of the .NET Framework. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information."),
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.InheritanceDemand").WithArguments("SecurityAction.InheritanceDemand"),
                                                                     Diagnostic(ERRID.ERR_PrincipalPermissionInvalidAction, "SecurityAction.LinkDemand").WithArguments("SecurityAction.LinkDemand"))
+        End Sub
+
+        <WorkItem(544929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544929")>
+        <Fact>
+        Public Sub PrincipalPermissionAttribute_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Security.Permissions
+
+Namespace System.Security.Permissions
+    Public Class PrincipalPermissionAttribute
+        Inherits SecurityAttribute
+        Public Sub New(Optional action As SecurityAction = SecurityAction.InheritanceDemand)
+        End Sub
+    End Class
+End Namespace
+
+Class Program
+    <PrincipalPermission>
+    Public Shared Sub Main()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30610: Class 'PrincipalPermissionAttribute' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    SecurityAttribute: Public MustOverride Overloads Function CreatePermission() As IPermission.
+    Public Class PrincipalPermissionAttribute
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30148: First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class 'SecurityAttribute' of 'PrincipalPermissionAttribute' does not have an accessible 'Sub New' that can be called with no arguments.
+        Public Sub New(Optional action As SecurityAction = SecurityAction.InheritanceDemand)
+                   ~~~
+BC31215: SecurityAction value '7' is invalid for PrincipalPermission attribute.
+    <PrincipalPermission>
+     ~~~~~~~~~~~~~~~~~~~
+]]></errors>)
         End Sub
 
         <WorkItem(544956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544956")>
@@ -4268,6 +4444,36 @@ BC30662: Attribute 'ClassInterfaceAttribute' cannot be applied to 'InvalidTarget
 ]]></expected>)
         End Sub
 
+        <Fact>
+        Public Sub TestClassInterfaceAttribute_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class ClassInterfaceAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional classInterfaceType As ClassInterfaceType = -1)
+        End Sub
+    End Class
+End Namespace
+
+<ClassInterface>
+Public Class InvalidClass
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'ClassInterfaceAttribute' is not valid: Incorrect argument value.
+<ClassInterface>
+ ~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
 #End Region
 
 #Region "InterfaceTypeAttribute, TypeLibTypeAttribute"
@@ -4366,6 +4572,37 @@ BC30519: Overload resolution failed because no accessible 'New' can be called wi
  ~~~~~~~~~~~~~
 BC30662: Attribute 'InterfaceTypeAttribute' cannot be applied to 'InvalidTarget' because the attribute is not valid on this declaration type.
 <InterfaceType(ComInterfaceType.InterfaceIsDual)>
+ ~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestInterfaceTypeAttribute_UserDefinedWithOptionalParameterInCtor()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class InterfaceTypeAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional interfaceType As ComInterfaceType = -1)
+        End Sub
+    End Class
+End Namespace
+
+<InterfaceType>
+Public Interface InvalidInterface1
+End Interface
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'InterfaceTypeAttribute' is not valid: Incorrect argument value.
+<InterfaceType>
  ~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
@@ -6675,6 +6912,37 @@ BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument valu
                                      ~~~~~~~~~~
 ]]></expected>
             )
+        End Sub
+
+        <Fact()>
+        Public Sub TestGuidAttribute()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+Namespace System.Runtime.InteropServices
+    Public Class GuidAttribute
+        Inherits Attribute
+
+    Public Sub New(Optional guid As String = Nothing)
+    End Sub
+    End Class
+End Namespace
+
+<Guid>
+Public Class AClass
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+BC32500: 'GuidAttribute' cannot be applied because the format of the GUID 'Nothing' is not correct.
+<Guid>
+ ~~~~
+]]></errors>)
         End Sub
     End Class
 End Namespace

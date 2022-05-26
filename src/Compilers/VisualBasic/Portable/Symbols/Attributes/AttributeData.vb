@@ -243,14 +243,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 diagnostics.Add(If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton), useSiteInfo)
             End If
 
-            ' BC31205: First argument to a security attribute must be a valid SecurityAction
-            diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_SecurityAttributeMissingAction,
-                                                   Me.AttributeClass),
+            ' BC31211: First argument to a security attribute must be a valid SecurityAction
+            diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_SecurityAttributeMissingAction),
                             If(nodeOpt IsNot Nothing, nodeOpt.Name.GetLocation, NoLocation.Singleton))
 
             hasErrors = True
 
             Return Nothing
+        End Function
+
+        Private Function GetArgumentAndLocation(nodeOpt As AttributeSyntax, value As Integer) As (Argument As String, Location As Location)
+            If nodeOpt IsNot Nothing Then
+                If nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0 Then
+                    Dim arg = nodeOpt.ArgumentList.Arguments(0)
+                    Return (arg.ToString(), arg.GetLocation())
+                Else
+                    Return (value.ToString(), nodeOpt.GetLocation())
+                End If
+            Else
+                Return ("", NoLocation.Singleton)
+            End If
         End Function
 
         Private Function ValidateSecurityAction(
@@ -271,10 +283,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                      DeclarativeSecurityAction.LinkDemand
 
                     If Me.IsTargetAttribute(targetSymbol, AttributeDescription.PrincipalPermissionAttribute) Then
-                        ' BC31209: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
-                        diagnostics.Add(ERRID.ERR_PrincipalPermissionInvalidAction,
-                                        If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
-                                        If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                        ' BC31215: SecurityAction value '{0}' is invalid for PrincipalPermission attribute
+                        Dim valueLocation = GetArgumentAndLocation(nodeOpt, securityAction)
+                        diagnostics.Add(ERRID.ERR_PrincipalPermissionInvalidAction, valueLocation.Location, valueLocation.Argument)
 
                         hasErrors = True
                         Return DeclarativeSecurityAction.None
@@ -301,11 +312,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     isPermissionRequestAction = True
 
                 Case Else
-                    ' BC31206: Security attribute '{0}' has an invalid SecurityAction value '{1}'
-                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod,
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
-                                    If(nodeOpt IsNot Nothing, nodeOpt.Name.ToString, ""),
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                    ' BC31214: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method.
+                    Dim valueLocation = GetArgumentAndLocation(nodeOpt, securityAction)
+                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, valueLocation.Location, valueLocation.Argument)
 
                     hasErrors = True
                     Return DeclarativeSecurityAction.None
@@ -315,10 +324,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If targetSymbol.Kind = SymbolKind.NamedType OrElse targetSymbol.Kind = SymbolKind.Method Then
                     ' Types and methods cannot take permission requests.
 
-                    ' BC31208: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method
-                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod,
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation, NoLocation.Singleton),
-                                    If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                    ' BC31214: SecurityAction value '{0}' is invalid for security attributes applied to a type or a method.
+                    Dim valueLocation = GetArgumentAndLocation(nodeOpt, securityAction)
+                    diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionTypeOrMethod, valueLocation.Location, valueLocation.Argument)
 
                     hasErrors = True
                     Return DeclarativeSecurityAction.None
@@ -327,10 +335,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ElseIf targetSymbol.Kind = SymbolKind.Assembly Then
                 ' Assemblies cannot take declarative security.
 
-                ' BC31207: SecurityAction value '{0}' is invalid for security attributes applied to an assembly
-                diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionAssembly,
-                                If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation, NoLocation.Singleton),
-                                If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).ToString(), ""))
+                ' BC31213: SecurityAction value '{0}' is invalid for security attributes applied to an assembly.
+                Dim valueLocation = GetArgumentAndLocation(nodeOpt, securityAction)
+                diagnostics.Add(ERRID.ERR_SecurityAttributeInvalidActionAssembly, valueLocation.Location, valueLocation.Argument)
 
                 hasErrors = True
                 Return DeclarativeSecurityAction.None
@@ -376,7 +383,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If resolvedFilePath Is Nothing Then
 
-                        ' BC31210: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute
+                        ' BC31216: Unable to resolve file path '{0}' specified for the named argument '{1}' for PermissionSet attribute.
                         Dim argSyntaxLocation As Location = If(arguments.AttributeSyntaxOpt IsNot Nothing,
                                                                arguments.AttributeSyntaxOpt.ArgumentList.Arguments(1).GetLocation(),
                                                                NoLocation.Singleton)
@@ -429,14 +436,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case ClassInterfaceType.None, Cci.Constants.ClassInterfaceType_AutoDispatch, Cci.Constants.ClassInterfaceType_AutoDual
                     Exit Select
                 Case Else
-                    diagnostics.Add(ERRID.ERR_BadAttribute1, If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton), Me.AttributeClass)
+                    diagnostics.Add(ERRID.ERR_BadAttribute1,
+                    If(nodeOpt IsNot Nothing, If(nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0, nodeOpt.ArgumentList.Arguments(0).GetLocation(), nodeOpt.GetLocation()), NoLocation.Singleton),
+                    Me.AttributeClass)
             End Select
         End Sub
 
         Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Dim discarded As ComInterfaceType = Nothing
             If Not DecodeInterfaceTypeAttribute(discarded) Then
-                diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(0).GetLocation(), Me.AttributeClass)
+                diagnostics.Add(ERRID.ERR_BadAttribute1,
+                                If(node IsNot Nothing, If(node.ArgumentList IsNot Nothing AndAlso node.ArgumentList.Arguments.Count > 0, node.ArgumentList.Arguments(0).GetLocation(), node.GetLocation()), NoLocation.Singleton),
+                                Me.AttributeClass)
             End If
         End Sub
 
@@ -478,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim guidVal As Guid
             If Not Guid.TryParseExact(guidString, "D", guidVal) Then
                 diagnostics.Add(ERRID.ERR_BadAttributeUuid2,
-                                If(nodeOpt IsNot Nothing, nodeOpt.ArgumentList.Arguments(0).GetLocation(), NoLocation.Singleton),
+                                If(nodeOpt IsNot Nothing, If(nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0, nodeOpt.ArgumentList.Arguments(0).GetLocation(), nodeOpt.GetLocation()), NoLocation.Singleton),
                                 Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
             End If
         End Sub
