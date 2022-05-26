@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -13,14 +15,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void PeakRead()
         {
-            using var _ = CreateReader("text", out var reader);
-            Assert.Equal('t', reader.Read());
-            Assert.Equal('e', reader.Peek());
-            Assert.Equal('e', reader.Read());
-            Assert.Equal('x', reader.Read());
-            Assert.Equal('t', reader.Read());
-            Assert.Equal(-1, reader.Peek());
-            Assert.Equal(-1, reader.Read());
+            using var _ = CreateReaders("text", out var referenceReader, out var reader);
+            AssertAllEqual('t', referenceReader.Read(), reader.Read());
+            AssertAllEqual('e', referenceReader.Peek(), reader.Peek());
+            AssertAllEqual('e', referenceReader.Read(), reader.Read());
+            AssertAllEqual('x', referenceReader.Read(), reader.Read());
+            AssertAllEqual('t', referenceReader.Read(), reader.Read());
+            AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
+            AssertAllEqual(-1, referenceReader.Read(), reader.Read());
         }
 
         [Theory]
@@ -40,16 +42,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             void TestWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
             {
-                using var _ = CreateReader("abcdefgh", out var reader);
+                using var _ = CreateReaders("abcdefgh", out var referenceReader, out var reader);
+                var referenceReadMethod = readMethodAccessor(referenceReader);
                 var readMethod = readMethodAccessor(reader);
 
-                Assert.Equal('a', reader.Read());
+                AssertAllEqual('a', referenceReader.Read(), reader.Read());
 
+                var referenceBuffer = new char[bufferLength];
                 var buffer = new char[bufferLength];
-                Assert.Equal(expectedResult, readMethod(buffer, index, count));
-                Assert.Equal(expected, new string(buffer));
+                AssertAllEqual(expectedResult, referenceReadMethod(referenceBuffer, index, count), readMethod(buffer, index, count));
+                AssertAllEqual(expected, new string(referenceBuffer), new string(buffer));
 
-                Assert.Equal(expectedPeek, reader.Peek());
+                AssertAllEqual(expectedPeek, referenceReader.Peek(), reader.Peek());
             }
         }
 
@@ -66,16 +70,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             void TestWithMethod(Func<TextReader, ReadToSpanDelegate> readMethodAccessor)
             {
-                using var _ = CreateReader("abcdefgh", out var reader);
+                using var _ = CreateReaders("abcdefgh", out var referenceReader, out var reader);
+                var referenceReadMethod = readMethodAccessor(referenceReader);
                 var readMethod = readMethodAccessor(reader);
 
-                Assert.Equal('a', reader.Read());
+                AssertAllEqual('a', referenceReader.Read(), reader.Read());
 
+                var referenceBuffer = new char[bufferLength];
                 var buffer = new char[bufferLength];
-                Assert.Equal(expectedResult, readMethod(buffer));
-                Assert.Equal(expected, new string(buffer));
+                AssertAllEqual(expectedResult, referenceReadMethod(referenceBuffer), readMethod(buffer));
+                AssertAllEqual(expected, new string(referenceBuffer), new string(buffer));
 
-                Assert.Equal(expectedPeek, reader.Peek());
+                AssertAllEqual(expectedPeek, referenceReader.Peek(), reader.Peek());
             }
         }
 #endif
@@ -88,7 +94,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             void TestWithMethod(Func<TextReader, ReadToArrayDelegate> readMethodAccessor)
             {
-                using var _ = CreateReader("abcdefgh", out var reader);
+                using var _ = CreateReaders("abcdefgh", out var _, out var reader);
                 var readMethod = readMethodAccessor(reader);
 
                 var buffer = new char[3];
@@ -103,23 +109,55 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ReadToEnd()
         {
-            using (CreateReader("text", out var reader1))
+            using (CreateReaders("text", out var referenceReader, out var reader))
             {
-                Assert.Equal("text", reader1.ReadToEnd());
-                Assert.Equal(-1, reader1.Peek());
-                Assert.Equal("", reader1.ReadToEnd());
+                AssertAllEqual("text", referenceReader.ReadToEnd(), reader.ReadToEnd());
+                AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
+                AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
             }
 
-            using (CreateReader("text", out var reader2))
+            using (CreateReaders("text", out var referenceReader, out var reader))
             {
-                Assert.Equal('t', reader2.Read());
-                Assert.Equal("ext", reader2.ReadToEnd());
-                Assert.Equal(-1, reader2.Peek());
-                Assert.Equal("", reader2.ReadToEnd());
+                AssertAllEqual('t', referenceReader.Read(), reader.Read());
+                AssertAllEqual("ext", referenceReader.ReadToEnd(), reader.ReadToEnd());
+                AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
+                AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
             }
         }
 
-        protected abstract IDisposable CreateReader(string text, out TextReader reader);
+        private static void AssertAllEqual<T>(T expected1, T expected2, T actual)
+        {
+            Assert.Equal(expected1, actual);
+            Assert.Equal(expected2, actual);
+        }
+
+        private IDisposable CreateReaders(string text, out TextReader referenceReader, out TextReader reader)
+        {
+            referenceReader = new StringReader(text);
+            (var disposer, reader) = CreateReader(text);
+
+            return new CombinedDisposable(referenceReader, disposer, reader);
+        }
+
+        protected abstract (IDisposable? disposer, TextReader reader) CreateReader(string text);
+
+        private sealed class CombinedDisposable : IDisposable
+        {
+            private ImmutableArray<IDisposable?> _values;
+
+            public CombinedDisposable(params IDisposable?[] values)
+            {
+                _values = values.ToImmutableArray();
+            }
+
+            public void Dispose()
+            {
+                for (var i = _values.Length - 1; i >= 0; --i)
+                    _values[i]?.Dispose();
+
+                _values = _values.Clear();
+            }
+        }
 
         private delegate int ReadToArrayDelegate(char[] buffer, int index, int count);
         private delegate int ReadToSpanDelegate(Span<char> buffer);

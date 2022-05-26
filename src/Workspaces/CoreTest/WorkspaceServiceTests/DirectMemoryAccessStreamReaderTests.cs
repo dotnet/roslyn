@@ -14,27 +14,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServiceTests
     [Trait(Traits.Feature, Traits.Features.Workspace)]
     public sealed class DirectMemoryAccessStreamReaderTests : TextReaderTestBase
     {
-        protected override unsafe IDisposable CreateReader(string text, out TextReader reader)
+        protected override unsafe (IDisposable? disposer, TextReader reader) CreateReader(string text)
         {
             var pointer = Marshal.StringToHGlobalUni(text);
-            reader = new DirectMemoryAccessStreamReader((char*)pointer, text.Length);
-            return new Disposer(pointer, reader);
+            return (new Disposer(pointer), new DirectMemoryAccessStreamReader((char*)pointer, text.Length));
         }
 
         private sealed class Disposer : IDisposable
         {
             private readonly IntPtr _pointer;
-            private readonly TextReader _textReader;
 
-            public Disposer(IntPtr pointer, TextReader textReader)
+            public Disposer(IntPtr pointer)
             {
                 _pointer = pointer;
-                _textReader = textReader;
             }
 
             public void Dispose()
             {
-                _textReader.Dispose();
                 Marshal.FreeHGlobal(_pointer);
             }
         }
