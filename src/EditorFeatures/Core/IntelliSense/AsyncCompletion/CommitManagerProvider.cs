@@ -8,9 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServer.Client.Snippets;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly IThreadingContext _threadingContext;
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IThreadingContext threadingContext,
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
-            LanguageServerSnippetExpander languageServerSnippetExpander)
+            [Import(AllowDefault = true)] ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _threadingContext = threadingContext;
             _recentItemsManager = recentItemsManager;

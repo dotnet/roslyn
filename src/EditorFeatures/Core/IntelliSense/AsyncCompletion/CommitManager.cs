@@ -16,11 +16,9 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
-using Microsoft.VisualStudio.LanguageServer.Client.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly ITextView _textView;
         private readonly IGlobalOptionService _globalOptions;
         private readonly IThreadingContext _threadingContext;
-        private readonly LanguageServerSnippetExpander _languageServerSnippetExpander;
+        private readonly ILanguageServerSnippetExpander? _languageServerSnippetExpander;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             RecentItemsManager recentItemsManager,
             IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
-            LanguageServerSnippetExpander languageServerSnippetExpander)
+            ILanguageServerSnippetExpander? languageServerSnippetExpander)
         {
             _globalOptions = globalOptions;
             _threadingContext = threadingContext;
@@ -250,6 +248,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // and if so, we call upon the LanguageServerSnippetExpander's TryExpand to insert the snippet.
             if (SnippetCompletionItem.IsSnippet(roslynItem))
             {
+                Contract.ThrowIfNull(_languageServerSnippetExpander);
+
                 var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
 
                 if (!_languageServerSnippetExpander.TryExpand(lspSnippetText!, triggerSnapshotSpan, _textView))
