@@ -27,6 +27,11 @@
         <target state="translated">Kod temizleme yapılandırılmadı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Computing_Encapsulate_Field_information">
+        <source>Computing 'Encapsulate Field' information</source>
+        <target state="new">Computing 'Encapsulate Field' information</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">Hemen yapılandırın</target>
