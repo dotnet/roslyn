@@ -374,6 +374,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool TryEmitReadonlySpanAsBlobWrapper(NamedTypeSymbol spanType, BoundExpression wrappedExpression, bool used, bool inPlace, BoundExpression? start = null, BoundExpression? length = null)
         {
+            Debug.Assert(start is null == length is null);
+
             ImmutableArray<byte> data = default;
             int elementCount = -1;
 

@@ -3062,6 +3062,8 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
 
+            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
 	extends [System.Runtime]System.Object
@@ -3070,8 +3072,8 @@ class C
 		01 00 00 00
 	)
 	// Fields
-	.field assembly static initonly int32 F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57 at I_000025B8
-	.data cil I_000025B8 = bytearray (
+	.field assembly static initonly int32 F3D4280708A6C4BEA1BAEB5AD5A4B659E705A90BDD448840276EA20CB151BE57 at " + blobId + @"
+	.data cil " + blobId + @" = bytearray (
 		63 61 74 00
 	)
 } // end of class <PrivateImplementationDetails>
@@ -3101,6 +3103,8 @@ class C
   IL_000b:  ret
 }
 ");
+            string blobId = ExecutionConditionUtil.IsWindows ? "I_000025B8" : "I_00002600";
+
             verifier.VerifyTypeIL("<PrivateImplementationDetails>", @"
 .class private auto ansi sealed '<PrivateImplementationDetails>'
 	extends [System.Runtime]System.Object
@@ -3109,8 +3113,8 @@ class C
 		01 00 00 00
 	)
 	// Fields
-	.field assembly static initonly uint8 '6E340B9CFFB37A989CA544E6BB780A2C78901D3FB33738768511A30617AFA01D' at I_000025B8
-	.data cil I_000025B8 = bytearray ( 00
+	.field assembly static initonly uint8 '6E340B9CFFB37A989CA544E6BB780A2C78901D3FB33738768511A30617AFA01D' at " + blobId + @"
+	.data cil " + blobId + @" = bytearray ( 00
 	)
 } // end of class <PrivateImplementationDetails>
 ");
