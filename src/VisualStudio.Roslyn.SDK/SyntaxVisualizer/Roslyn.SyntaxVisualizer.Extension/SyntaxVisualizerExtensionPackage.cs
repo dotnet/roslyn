@@ -21,7 +21,6 @@ namespace Roslyn.SyntaxVisualizer.Extension
     /// register itself and its components with the shell.
     /// </summary>
     [PackageRegistration(UseManagedResourcesOnly = true)] // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is a package.
-    [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // This attribute is used to register the information needed to show this package in the Help / About dialog of Visual Studio.
     [ProvideMenuResource("Menus.ctmenu", 1)] // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))] // This attribute registers a tool window exposed by this package.
     [Guid(GuidList.GuidSyntaxVisualizerExtensionPkgString)]
