@@ -8,9 +8,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Packaging;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,24 +27,23 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(SampleToolWindowFactory))]
     internal class SampleToolWindowFactory : IWpfTextViewCreationListener
     {
-        private bool _initialized;
+        [MemberNotNullWhen(true, nameof(Package))]
+        private bool Initialized { get; set; }
 
-        [MemberNotNullWhen(true, nameof(_initialized))]
         private RoslynPackage? Package { get; set; }
-        [MemberNotNullWhen(true, nameof(_initialized))]
-        private IThreadingContext? ThreadingContext { get; set; }
+        private IThreadingContext ThreadingContext { get; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SampleToolWindowFactory()
+        public SampleToolWindowFactory(IThreadingContext threadingContext)
         {
+            ThreadingContext = threadingContext;
         }
 
         public void Initialize(RoslynPackage package)
         {
             Package = package;
-            ThreadingContext = package.ComponentModel.GetService<IThreadingContext>();
-            _initialized = true;
+            Initialized = true;
         }
 
         /// <summary>
@@ -50,12 +51,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// </summary>
         public void TextViewCreated(IWpfTextView textView)
         {
-            _ = ShowSampleToolWindowAsync();
+            ThreadingContext.JoinableTaskFactory.RunAsync(() => ShowSampleToolWindowAsync(default)).FileAndForget("Opening Sample Tool Window");
         }
 
-        public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken = default)
+        public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken)
         {
-            if (!_initialized || ThreadingContext is null)
+            if (!Initialized)
             {
                 throw new NotSupportedException("Tool window not initialized");
             }
@@ -72,11 +73,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                 // Get the instance number 0 of this tool window. This window is single instance so this instance
                 // is actually the only one.
                 // The last flag is set to true so that if the tool window does not exists it will be created.
-                if (Package is null)
-                {
-                    throw new NotSupportedException("Cannot create tool window");
-                }
-
                 var window = Package.FindToolWindow(typeof(SampleToolWindow), 0, true) as SampleToolWindow;
                 if (window is not { Frame: not null })
                 {
