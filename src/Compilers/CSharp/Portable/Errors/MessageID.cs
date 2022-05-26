@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureUnsignedRightShift: // semantic check for declarations and consumption, parsing check for doc comments
                 case MessageID.IDS_FeatureExtendedNameofScope: // semantic check
                 case MessageID.IDS_FeatureRelaxedShiftOperator: // semantic check
-                case MessageID.IDS_FeatureRefFields: // syntax and semantic check
+                case MessageID.IDS_FeatureRefFields: // semantic check
                     return LanguageVersion.Preview;
 
                 // C# 10.0 features.

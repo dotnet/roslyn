@@ -1115,12 +1115,10 @@ tryAgain:
                 nameEquals, nameColon, this.ParseExpressionCore());
         }
 
-        private bool AllowScopedModifier() => IsFeatureEnabled(MessageID.IDS_FeatureRefFields);
-
-        private DeclarationModifiers GetModifier(SyntaxToken token)
+        private static DeclarationModifiers GetModifier(SyntaxToken token)
             => GetModifier(token.Kind, token.ContextualKind);
 
-        internal DeclarationModifiers GetModifier(SyntaxKind kind, SyntaxKind contextualKind)
+        internal static DeclarationModifiers GetModifier(SyntaxKind kind, SyntaxKind contextualKind)
         {
             switch (kind)
             {
@@ -1166,7 +1164,7 @@ tryAgain:
                         case SyntaxKind.AsyncKeyword:
                             return DeclarationModifiers.Async;
                         case SyntaxKind.ScopedKeyword:
-                            return AllowScopedModifier() ? DeclarationModifiers.Scoped : DeclarationModifiers.None;
+                            return DeclarationModifiers.Scoped;
                     }
 
                     goto default;
@@ -1258,7 +1256,6 @@ tryAgain:
                         break;
 
                     case DeclarationModifiers.Scoped:
-                        Debug.Assert(AllowScopedModifier());
                         if (!ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: false))
                         {
                             return;
@@ -1415,7 +1412,7 @@ tryAgain:
             return false;
         }
 
-        private bool IsNonContextualModifier(SyntaxToken nextToken)
+        private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
             return GetModifier(nextToken) != DeclarationModifiers.None && !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind);
         }
@@ -4593,7 +4590,7 @@ tryAgain:
 
 #nullable disable
 
-        private bool IsParameterModifier(SyntaxToken token, bool isFunctionPointerParameter = false)
+        private static bool IsParameterModifier(SyntaxToken token, bool isFunctionPointerParameter = false)
         {
             switch (token.Kind)
             {
@@ -4603,9 +4600,8 @@ tryAgain:
                 case SyntaxKind.InKeyword:
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ReadOnlyKeyword when isFunctionPointerParameter:
-                    return true;
                 case SyntaxKind.IdentifierToken when token.ContextualKind == SyntaxKind.ScopedKeyword:
-                    return AllowScopedModifier();
+                    return true;
             }
 
             return false;
@@ -7221,7 +7217,7 @@ done:
                 }
 
                 SyntaxToken scopedKeyword = null;
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && AllowScopedModifier())
+                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
                     var resetPoint = this.GetResetPoint();
 
@@ -7247,7 +7243,7 @@ done:
 
         private SyntaxToken EatScopedKeywordIfAny()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword && AllowScopedModifier())
+            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
             {
                 return this.EatContextualToken(SyntaxKind.ScopedKeyword);
             }
@@ -8036,7 +8032,6 @@ done:;
             tk = this.CurrentToken.ContextualKind;
 
             if (tk == SyntaxKind.ScopedKeyword &&
-                AllowScopedModifier() &&
                 ShouldAsyncBeTreatedAsModifier(parsingStatementNotDeclaration: true))
             {
                 return true;
@@ -10057,7 +10052,7 @@ tryAgain:
             }
         }
 
-        private bool IsDeclarationModifier(SyntaxKind kind)
+        private static bool IsDeclarationModifier(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -10065,9 +10060,8 @@ tryAgain:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.VolatileKeyword:
-                    return true;
                 case SyntaxKind.ScopedKeyword:
-                    return AllowScopedModifier();
+                    return true;
                 default:
                     return false;
             }

@@ -694,7 +694,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isConst = node.IsConst;
 
-            // PROTOTYPE: Report redundant 'scoped' modifiers.
+            foreach (var modifier in node.Modifiers)
+            {
+                // PROTOTYPE: Report redundant 'scoped' modifiers.
+                if (modifier.Kind() == SyntaxKind.ScopedKeyword)
+                {
+                    VerifyScopeFeatureAvailability(node, modifier, diagnostics);
+                }
+            }
+
+            if (node.Declaration.Type is RefTypeSyntax { ScopedKeyword: var scopedKeyword } &&
+                scopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
+            {
+                VerifyScopeFeatureAvailability(typeSyntax, scopedKeyword, diagnostics);
+            }
 
             bool isVar;
             AliasSymbol alias;
@@ -717,6 +730,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics, includeBoundType);
                 }
                 return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
+            }
+        }
+
+        internal static void VerifyScopeFeatureAvailability(CSharpSyntaxNode syntax, SyntaxToken modifier, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(modifier.Kind() == SyntaxKind.ScopedKeyword);
+
+            if (MessageID.IDS_FeatureRefFields.GetFeatureAvailabilityDiagnosticInfo((CSharpParseOptions)syntax.SyntaxTree.Options) is { } diagnosticInfo)
+            {
+                diagnostics.Add(diagnosticInfo, modifier.GetLocation());
             }
         }
 

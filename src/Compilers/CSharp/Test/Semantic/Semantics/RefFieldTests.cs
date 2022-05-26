@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [CombinatorialData]
         [Theory]
-        public void LanguageVersion(bool useCompilationReference)
+        public void LanguageVersionDiagnostics(bool useCompilationReference)
         {
             var sourceA =
 @"public ref struct S<T>
@@ -4135,13 +4135,12 @@ class Program
             var sourceA =
 @"public ref struct R
 {
-    public ref int F;
-    public R(ref int i) { F = ref i; }
+    public R(ref int i) { }
 }
 public static class A
 {
     public static void F1(scoped R r1) { }
-    public static ref int F2(ref R x2, ref scoped R y2) => ref x2.F;
+    public static void F2(ref R x2, ref scoped R y2) { }
     public static void F3(scoped in R r3) { }
     public static void F4(scoped out R r4) { r4 = default; }
     public static void F5(object o, ref scoped R r5) { }
@@ -4149,7 +4148,39 @@ public static class A
     public static void F7(out scoped R r7) { r7 = default; }
     public static void F8(scoped ref scoped R r8) { }
 }";
-            var comp = CreateCompilation(sourceA);
+            var comp = CreateCompilation(sourceA, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F1(scoped R r1) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 27),
+                // (8,41): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F2(ref R x2, ref scoped R y2) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 41),
+                // (9,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F3(scoped in R r3) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 27),
+                // (10,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F4(scoped out R r4) { r4 = default; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 27),
+                // (11,41): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F5(object o, ref scoped R r5) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 41),
+                // (12,30): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F6(in scoped R r6) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(12, 30),
+                // (13,31): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F7(out scoped R r7) { r7 = default; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(13, 31),
+                // (14,27): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F8(scoped ref scoped R r8) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(14, 27),
+                // (14,38): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static void F8(scoped ref scoped R r8) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(14, 38));
+
+            verify(comp);
+
+            comp = CreateCompilation(sourceA);
             comp.VerifyEmitDiagnostics();
             var refA = AsReference(comp, useCompilationReference);
 
@@ -4167,15 +4198,20 @@ public static class A
             comp = CreateCompilation(sourceB, references: new[] { refA });
             comp.VerifyEmitDiagnostics();
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F1").Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.None);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[1], "ref scoped R y2", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "scoped in R r3", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "scoped out R r4", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[1], "ref scoped R r5", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F6").Parameters[0], "in scoped R r6", RefKind.In, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F7").Parameters[0], "out scoped R r7", RefKind.Out, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F8").Parameters[0], "scoped ref scoped R r8", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F1").Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.None);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[1], "ref scoped R y2", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "scoped in R r3", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "scoped out R r4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[1], "ref scoped R r5", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F6").Parameters[0], "in scoped R r6", RefKind.In, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F7").Parameters[0], "out scoped R r7", RefKind.Out, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F8").Parameters[0], "scoped ref scoped R r8", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+            }
         }
 
         [Fact]
@@ -4191,12 +4227,29 @@ public static class A
 struct B<T>
 {
 }";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (3,7): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     A(scoped ref T t) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 7),
+                // (4,12): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     T this[scoped in object o] => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 12),
+                // (5,45): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public static implicit operator B<T>(in scoped A<T> a) => default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(5, 45));
+            verify(comp);
 
-            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("A").Constructors.Single(c => !c.IsImplicitlyDeclared).Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("A.this[]").GetMethod.Parameters[0], "scoped in System.Object o", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.op_Implicit").Parameters[0], "in scoped A<T> a", RefKind.In, DeclarationScope.ValueScoped);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("A").Constructors.Single(c => !c.IsImplicitlyDeclared).Parameters[0], "scoped ref T t", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<PropertySymbol>("A.this[]").GetMethod.Parameters[0], "scoped in System.Object o", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.op_Implicit").Parameters[0], "in scoped A<T> a", RefKind.In, DeclarationScope.ValueScoped);
+            }
         }
 
         [Fact]
@@ -4216,19 +4269,42 @@ class Program
         static void L5(object o, ref scoped R x5) { }
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (7,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void L1(scoped R x1) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 24),
+                // (8,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void L2(scoped ref int x2) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 24),
+                // (9,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void L3(scoped in int x3) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 24),
+                // (10,24): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void L4(scoped out int x4) { x4 = 0; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 24),
+                // (11,38): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         static void L5(object o, ref scoped R x5) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(11, 38));
+            verify(comp);
+
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+            verify(comp);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var decls = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
-            var localFunctions = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalFunctionSymbol>()).ToArray();
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+                var localFunctions = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalFunctionSymbol>()).ToArray();
 
-            VerifyParameterSymbol(localFunctions[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(localFunctions[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(localFunctions[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(localFunctions[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(localFunctions[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(localFunctions[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(localFunctions[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(localFunctions[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+            }
         }
 
         [Fact]
@@ -4247,19 +4323,42 @@ class Program
         var f5 = (object o, ref scoped R x5) => { };
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var f1 = (scoped R x1) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(6, 19),
+                // (7,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var f2 = (scoped ref int x2) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 19),
+                // (8,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var f3 = (scoped in int x3) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 19),
+                // (9,19): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var f4 = (scoped out int x4) => { x4 = 0; };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 19),
+                // (10,33): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var f5 = (object o, ref scoped R x5) => { };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(10, 33));
+            verify(comp);
+
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+            verify(comp);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var decls = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
-            var lambdas = decls.Select(d => model.GetSymbolInfo(d).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().ToArray();
+                var lambdas = decls.Select(d => model.GetSymbolInfo(d).Symbol.GetSymbol<LambdaSymbol>()).ToArray();
 
-            VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(lambdas[0].Parameters[0], "scoped R x1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(lambdas[1].Parameters[0], "scoped ref System.Int32 x2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(lambdas[2].Parameters[0], "scoped in System.Int32 x3", RefKind.In, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(lambdas[3].Parameters[0], "scoped out System.Int32 x4", RefKind.Out, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(lambdas[4].Parameters[1], "ref scoped R x5", RefKind.Ref, DeclarationScope.ValueScoped);
+            }
         }
 
         [Fact]
@@ -4271,12 +4370,29 @@ delegate void D1(scoped R r1);
 delegate void D2(scoped ref R r2);
 delegate void D3(object o, ref scoped R r3);
 ";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (2,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate void D1(scoped R r1);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(2, 18),
+                // (3,18): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate void D2(scoped ref R r2);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 18),
+                // (4,32): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // delegate void D3(object o, ref scoped R r3);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 32));
+            verify(comp);
 
-            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D1").DelegateInvokeMethod.Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D3").DelegateInvokeMethod.Parameters[1], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+            comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            verify(comp);
+
+            static void verify(CSharpCompilation comp)
+            {
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D1").DelegateInvokeMethod.Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D2").DelegateInvokeMethod.Parameters[0], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyParameterSymbol(comp.GetMember<NamedTypeSymbol>("D3").DelegateInvokeMethod.Parameters[1], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+            }
         }
 
         [Fact]
@@ -4536,18 +4652,41 @@ class Program
         scoped ref scoped R r4 = ref r1;
     }
 }";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped R r1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(6, 9),
+                // (7,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref R r2 = ref r1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(7, 9),
+                // (8,13): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         ref scoped R r3 = ref r1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(8, 13),
+                // (9,9): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref scoped R r4 = ref r1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 9),
+                // (9,20): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         scoped ref scoped R r4 = ref r1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(9, 20));
+            verify(comp);
+
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+            verify(comp);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
-            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
-            VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[3], "scoped ref scoped R r4", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[3], "scoped ref scoped R r4", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+            }
         }
 
         [Fact]
@@ -4605,7 +4744,23 @@ scoped scoped s3 = default;
 scoped ref scoped s4 = ref s1;
 ref struct scoped { }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (3,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // scoped scoped s3 = default;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(3, 1),
+                // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
+                // scoped scoped s3 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s3").WithArguments("s3").WithLocation(3, 15),
+                // (4,1): error CS8652: The feature 'ref fields' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // scoped ref scoped s4 = ref s1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "scoped").WithArguments("ref fields").WithLocation(4, 1),
+                // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // ref struct scoped { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+            verify(comp);
+
+            comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (3,15): warning CS0219: The variable 's3' is assigned but its value is never used
                 // scoped scoped s3 = default;
@@ -4613,26 +4768,32 @@ ref struct scoped { }
                 // (5,12): warning CS8981: The type name 'scoped' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // ref struct scoped { }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(5, 12));
+            verify(comp);
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
-            var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
+            static void verify(CSharpCompilation comp)
+            {
+                var tree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(tree);
+                var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
+                var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.None);
-            VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.None);
-            VerifyLocalSymbol(locals[2], "scoped scoped s3", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyLocalSymbol(locals[3], "scoped ref scoped s4", RefKind.Ref, DeclarationScope.RefScoped);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.None);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.None);
+                VerifyLocalSymbol(locals[2], "scoped scoped s3", RefKind.None, DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[3], "scoped ref scoped s4", RefKind.Ref, DeclarationScope.RefScoped);
+            }
         }
 
-        [Fact]
-        public void LocalScope_04()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersionFacts.CSharpNext)]
+        public void LocalScope_04(LanguageVersion langVersion)
         {
             var source =
 @"bool scoped;
 scoped = true;
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
                 // (1,6): warning CS0219: The variable 'scoped' is assigned but its value is never used
                 // bool scoped;
