@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertAllEqual('t', referenceReader.Read(), reader.Read());
             AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
             AssertAllEqual(-1, referenceReader.Read(), reader.Read());
+            AssertAllEqual(-1, referenceReader.Read(), reader.Read());
         }
 
         [Theory]
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertAllEqual('t', referenceReader.Read(), reader.Read());
             AssertAllEqual("ext", referenceReader.ReadToEnd(), reader.ReadToEnd());
             AssertAllEqual(-1, referenceReader.Peek(), reader.Peek());
+            AssertAllEqual(-1, referenceReader.Read(), reader.Read());
             AssertAllEqual("", referenceReader.ReadToEnd(), reader.ReadToEnd());
         }
 
