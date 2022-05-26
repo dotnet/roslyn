@@ -1,4 +1,6 @@
-﻿REM Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿REM Licensed to the .NET Foundation under one or more agreements.
+REM The .NET Foundation licenses this file to you under the MIT license.
+REM See the LICENSE file in the project root for more information.
 
 vbc /t:library /out:V1\C.dll /keyfile:Key.snk /vbruntime- Version1.vb
 vbc /t:library /out:V2\C.dll /keyfile:Key.snk /vbruntime- Version2.vb

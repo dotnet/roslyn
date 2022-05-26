@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -1667,7 +1669,7 @@ End Class
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub I1.goo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
@@ -2667,15 +2669,15 @@ End Module
             Assert.Equal(SymbolKind.Method, sortedCandidates(11).Kind)
 
             Assert.Equal(19, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.Console.WriteLine()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char(), index As System.Int32, count As System.Int32)", sortedMethodGroup(2).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object)", sortedMethodGroup(3).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)", sortedMethodGroup(4).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object)", sortedMethodGroup(5).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object, arg3 As System.Object)", sortedMethodGroup(6).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, ParamArray arg As System.Object())", sortedMethodGroup(7).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, ParamArray arg As System.Object())", sortedMethodGroup(3).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object)", sortedMethodGroup(4).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)", sortedMethodGroup(5).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object)", sortedMethodGroup(6).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object, arg3 As System.Object)", sortedMethodGroup(7).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(value As System.Boolean)", sortedMethodGroup(8).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(value As System.Char)", sortedMethodGroup(9).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(value As System.Decimal)", sortedMethodGroup(10).ToTestDisplayString())
@@ -3805,7 +3807,7 @@ Imports System
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(3, semanticSummary.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedCandidates(1).ToTestDisplayString())
@@ -3816,7 +3818,7 @@ Imports System
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(3, semanticSummary.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -3843,7 +3845,7 @@ Imports System
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(3, semanticSummary.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedCandidates(1).ToTestDisplayString())
@@ -3854,7 +3856,7 @@ Imports System
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(3, semanticSummary.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -4721,7 +4723,7 @@ End Class
             Assert.Null(semanticInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Property C1.P1(x As System.Int32) As System.String", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Property, sortedCandidates(0).Kind)
             Assert.Equal("Property C1.P1(x As System.Int32, y As System.Int32) As System.String", sortedCandidates(1).ToTestDisplayString())
@@ -5774,7 +5776,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, {ExtensionAssemblyRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7528,7 +7530,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
+</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7754,7 +7756,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
+</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of GenericNameSyntax)(compilation, "a.vb")
 
@@ -9687,7 +9689,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -9723,7 +9725,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -9759,7 +9761,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -9794,7 +9796,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())

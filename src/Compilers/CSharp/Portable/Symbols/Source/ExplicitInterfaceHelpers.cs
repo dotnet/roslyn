@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
@@ -19,11 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name)
         {
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
             TypeSymbol discardedExplicitInterfaceType;
             string discardedAliasOpt;
-            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, discardedDiagnostics, out discardedExplicitInterfaceType, out discardedAliasOpt);
-            discardedDiagnostics.Free();
+            string methodName = GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifierOpt, name, BindingDiagnosticBag.Discarded, out discardedExplicitInterfaceType, out discardedAliasOpt);
 
             return methodName;
         }
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Binder binder,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierOpt,
             string name,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out TypeSymbol explicitInterfaceTypeOpt,
             out string aliasQualifierOpt)
         {
@@ -106,41 +109,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (idx > 0) ? fullName.Substring(idx + 1) : fullName; //don't consider leading dots
         }
 
+#nullable enable
         public static ImmutableArray<T> SubstituteExplicitInterfaceImplementations<T>(ImmutableArray<T> unsubstitutedExplicitInterfaceImplementations, TypeMap map) where T : Symbol
         {
             var builder = ArrayBuilder<T>.GetInstance();
             foreach (var unsubstitutedPropertyImplemented in unsubstitutedExplicitInterfaceImplementations)
             {
-                var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
-                Debug.Assert((object)unsubstitutedInterfaceType != null);
-                var explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
-                Debug.Assert((object)explicitInterfaceType != null);
-                var name = unsubstitutedPropertyImplemented.Name; //should already be unqualified
-
-                T substitutedMemberImplemented = null;
-                foreach (var candidateMember in explicitInterfaceType.GetMembers(name))
-                {
-                    if (candidateMember.OriginalDefinition == unsubstitutedPropertyImplemented.OriginalDefinition)
-                    {
-                        substitutedMemberImplemented = (T)candidateMember;
-                        break;
-                    }
-                }
-                Debug.Assert((object)substitutedMemberImplemented != null); //if it was an explicit implementation before the substitution, it should still be after
-                builder.Add(substitutedMemberImplemented);
+                builder.Add(SubstituteExplicitInterfaceImplementation(unsubstitutedPropertyImplemented, map));
             }
 
             return builder.ToImmutableAndFree();
         }
 
+        public static T SubstituteExplicitInterfaceImplementation<T>(T unsubstitutedPropertyImplemented, TypeMap map) where T : Symbol
+        {
+            var unsubstitutedInterfaceType = unsubstitutedPropertyImplemented.ContainingType;
+            Debug.Assert((object)unsubstitutedInterfaceType != null);
+            var explicitInterfaceType = map.SubstituteNamedType(unsubstitutedInterfaceType);
+            Debug.Assert((object)explicitInterfaceType != null);
+            var name = unsubstitutedPropertyImplemented.Name; //should already be unqualified
+
+            foreach (var candidateMember in explicitInterfaceType.GetMembers(name))
+            {
+                if (candidateMember.OriginalDefinition == unsubstitutedPropertyImplemented.OriginalDefinition)
+                {
+                    return (T)candidateMember;
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+#nullable disable
+
         internal static MethodSymbol FindExplicitlyImplementedMethod(
             this MethodSymbol implementingMethod,
+            bool isOperator,
             TypeSymbol explicitInterfaceType,
             string interfaceMethodName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            return (MethodSymbol)FindExplicitlyImplementedMember(implementingMethod, explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifierSyntax, diagnostics);
+            return (MethodSymbol)FindExplicitlyImplementedMember(implementingMethod, isOperator, explicitInterfaceType, interfaceMethodName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
 
         internal static PropertySymbol FindExplicitlyImplementedProperty(
@@ -148,9 +157,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfacePropertyName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            return (PropertySymbol)FindExplicitlyImplementedMember(implementingProperty, explicitInterfaceType, interfacePropertyName, explicitInterfaceSpecifierSyntax, diagnostics);
+            return (PropertySymbol)FindExplicitlyImplementedMember(implementingProperty, isOperator: false, explicitInterfaceType, interfacePropertyName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
 
         internal static EventSymbol FindExplicitlyImplementedEvent(
@@ -158,17 +167,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol explicitInterfaceType,
             string interfaceEventName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            return (EventSymbol)FindExplicitlyImplementedMember(implementingEvent, explicitInterfaceType, interfaceEventName, explicitInterfaceSpecifierSyntax, diagnostics);
+            return (EventSymbol)FindExplicitlyImplementedMember(implementingEvent, isOperator: false, explicitInterfaceType, interfaceEventName, explicitInterfaceSpecifierSyntax, diagnostics);
         }
 
         private static Symbol FindExplicitlyImplementedMember(
             Symbol implementingMember,
+            bool isOperator,
             TypeSymbol explicitInterfaceType,
             string interfaceMemberName,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if ((object)explicitInterfaceType == null)
             {
@@ -177,12 +187,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var memberLocation = implementingMember.Locations[0];
             var containingType = implementingMember.ContainingType;
-            var containingTypeKind = containingType.TypeKind;
 
-            if (containingTypeKind != TypeKind.Class && containingTypeKind != TypeKind.Struct)
+            switch (containingType.TypeKind)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
-                return null;
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                case TypeKind.Interface:
+                    break;
+
+                default:
+                    diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
+                    return null;
             }
 
             if (!explicitInterfaceType.IsInterfaceType())
@@ -201,13 +216,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // interface in its base class list that contains a member ..."
             MultiDictionary<NamedTypeSymbol, NamedTypeSymbol>.ValueSet set = containingType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics[explicitInterfaceNamedType];
             int setCount = set.Count;
-            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType))
+            if (setCount == 0 || !set.Contains(explicitInterfaceNamedType, Symbols.SymbolEqualityComparer.ObliviousNullableModifierMatchesAny))
             {
                 //we'd like to highlight just the type part of the name
                 var explicitInterfaceSyntax = explicitInterfaceSpecifierSyntax.Name;
                 var location = new SourceLocation(explicitInterfaceSyntax);
 
-                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, TypeSymbol.EqualsIgnoringNullableComparer))
+                if (setCount > 0 && set.Contains(explicitInterfaceNamedType, Symbols.SymbolEqualityComparer.IgnoringNullable))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, location);
                 }
@@ -219,25 +234,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //do a lookup anyway
             }
 
-            var hasParamsParam = implementingMember.HasParamsParameter();
-
             // Setting this flag to true does not imply that an interface member has been successfully implemented.
             // It just indicates that a corresponding interface member has been found (there may still be errors).
             var foundMatchingMember = false;
 
             Symbol implementedMember = null;
 
+            // Do not look in itself
+            if (containingType == (object)explicitInterfaceNamedType.OriginalDefinition)
+            {
+                // An error will be reported elsewhere.
+                // Either the interface is not implemented, or it causes a cycle in the interface hierarchy.
+                return null;
+            }
+
+            var hasParamsParam = implementingMember.HasParamsParameter();
+
             foreach (Symbol interfaceMember in explicitInterfaceNamedType.GetMembers(interfaceMemberName))
             {
-                // At this point, we know that explicitInterfaceNamedType is an interface, so candidate must be public
-                // and, therefore, accessible.  So we don't need to check that.
+                // At this point, we know that explicitInterfaceNamedType is an interface.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
-                if (interfaceMember.Kind != implementingMember.Kind || interfaceMember.IsStatic)
+                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
                     continue;
                 }
 
-                if (MemberSignatureComparer.ExplicitImplementationLookupComparer.Equals(implementingMember, interfaceMember))
+                if (interfaceMember is MethodSymbol interfaceMethod &&
+                    (interfaceMethod.MethodKind is MethodKind.UserDefinedOperator or MethodKind.Conversion) != isOperator)
+                {
+                    continue;
+                }
+
+                if (MemberSignatureComparer.ExplicitImplementationComparer.Equals(implementingMember, interfaceMember))
                 {
                     foundMatchingMember = true;
                     // Cannot implement accessor directly unless
@@ -272,13 +300,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
             }
 
+            // Make sure implemented member is accessible
+            if ((object)implementedMember != null)
+            {
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, implementingMember.ContainingAssembly);
+
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
+                }
+                else
+                {
+                    switch (implementedMember.Kind)
+                    {
+                        case SymbolKind.Property:
+                            var propertySymbol = (PropertySymbol)implementedMember;
+                            checkAccessorIsAccessibleIfImplementable(propertySymbol.GetMethod);
+                            checkAccessorIsAccessibleIfImplementable(propertySymbol.SetMethod);
+                            break;
+
+                        case SymbolKind.Event:
+                            var eventSymbol = (EventSymbol)implementedMember;
+                            checkAccessorIsAccessibleIfImplementable(eventSymbol.AddMethod);
+                            checkAccessorIsAccessibleIfImplementable(eventSymbol.RemoveMethod);
+                            break;
+                    }
+
+                    void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
+                    {
+                        if (accessor.IsImplementable() &&
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteInfo, throughTypeOpt: null))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
+                        }
+                    }
+                }
+
+                diagnostics.Add(memberLocation, useSiteInfo);
+            }
+
             return implementedMember;
         }
 
         internal static void FindExplicitlyImplementedMemberVerification(
             this Symbol implementingMember,
             Symbol implementedMember,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             if ((object)implementedMember == null)
             {
@@ -297,13 +364,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // tried to implement the ambiguous interface implicitly, we would separately raise an error about
             // the implicit implementation methods differing by only ref/out.
             FindExplicitImplementationCollisions(implementingMember, implementedMember, diagnostics);
+
+            if (implementedMember.IsStatic && !implementingMember.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+            {
+                diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, implementingMember.Locations[0]);
+            }
         }
 
         /// <summary>
         /// Given a member, look for other members contained in the same type with signatures that will
         /// not be distinguishable by the runtime.
         /// </summary>
-        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, DiagnosticBag diagnostics)
+        private static void FindExplicitImplementationCollisions(Symbol implementingMember, Symbol implementedMember, BindingDiagnosticBag diagnostics)
         {
             if ((object)implementedMember == null)
             {

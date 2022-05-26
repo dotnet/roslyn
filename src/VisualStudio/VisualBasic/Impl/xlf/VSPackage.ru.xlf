@@ -8,18 +8,43 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Редактор кодовых страниц Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">Редактор Visual Basic с кодировкой</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Редактор Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Редактор Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Автоматическая вставка завершающих конструкций;Изменение параметров форматирования кода;Изменение режима отображения структуры;Автоматическая вставка членов Interface и MustOverride;Отображение и скрытие разделительных линий процедур;Включение и отключение предложений по исправлению ошибок;Включение и отключение выделения ссылок и ключевых слов;Регулярные выражения;Выделять регулярные выражения цветом;Выделять цветом соответствующие компоненты под курсором;Сообщать о недопустимых регулярных выражениях</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменять параметры автоматического форматирования;Изменять режим структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;
+Регулярные выражения;
+регулярные выражения;
+связанные компоненты под курсором
+Сообщить о недопустимых регулярных выражениях;
+регулярное выражение;
+регулярное выражение;
+JSON;
+Выделить строки JSON цветом;
+Сообщить о недопустимых строках JSON;
+Найти и предложить функции редактора для строк JSON;
+Использовать расширенный набор цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -101,6 +126,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Инструменты Visual Basic</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">Пустой файл сценария Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Сценарий Visual Basic</target>
+        <note />
       </trans-unit>
     </body>
   </file>

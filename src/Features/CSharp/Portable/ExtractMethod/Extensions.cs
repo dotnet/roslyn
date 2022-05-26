@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,46 +18,40 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal static class Extensions
     {
-        public static ExpressionSyntax GetUnparenthesizedExpression(this SyntaxNode node)
+        [return: NotNullIfNotNull("node")]
+        public static ExpressionSyntax? GetUnparenthesizedExpression(this ExpressionSyntax? node)
         {
-            var parenthesizedExpression = node as ParenthesizedExpressionSyntax;
-            if (parenthesizedExpression == null)
+            if (node is not ParenthesizedExpressionSyntax parenthesizedExpression)
             {
-                return node as ExpressionSyntax;
+                return node;
             }
 
             return GetUnparenthesizedExpression(parenthesizedExpression.Expression);
         }
 
-        public static StatementSyntax GetStatementUnderContainer(this SyntaxNode node)
+        public static StatementSyntax? GetStatementUnderContainer(this SyntaxNode node)
         {
             Contract.ThrowIfNull(node);
 
-            while (node != null)
+            for (var current = node; current is object; current = current.Parent)
             {
-                if (node.Parent != null &&
-                    node.Parent.IsStatementContainerNode())
+                if (current.Parent != null &&
+                    current.Parent.IsStatementContainerNode())
                 {
-                    return node as StatementSyntax;
+                    return current as StatementSyntax;
                 }
-
-                node = node.Parent;
             }
 
             return null;
         }
 
         public static StatementSyntax GetParentLabeledStatementIfPossible(this SyntaxNode node)
-        {
-            return (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
-        }
+            => (StatementSyntax)((node.Parent is LabeledStatementSyntax) ? node.Parent : node);
 
-        public static bool IsStatementContainerNode(this SyntaxNode node)
-        {
-            return node is BlockSyntax || node is SwitchSectionSyntax;
-        }
+        public static bool IsStatementContainerNode([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+            => node is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax;
 
-        public static BlockSyntax GetBlockBody(this SyntaxNode node)
+        public static BlockSyntax? GetBlockBody(this SyntaxNode? node)
         {
             switch (node)
             {
@@ -72,12 +68,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
             Contract.ThrowIfNull(node);
 
+            if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
+            {
+                return false;
+            }
+
+            return true;
+
             bool predicate(SyntaxNode n)
             {
-                if (n is BaseMethodDeclarationSyntax ||
-                    n is AccessorDeclarationSyntax ||
-                    n is BlockSyntax ||
-                    n is GlobalStatementSyntax)
+                if (n is BaseMethodDeclarationSyntax or
+                    AccessorDeclarationSyntax or
+                    BlockSyntax or
+                    GlobalStatementSyntax or
+                    CompilationUnitSyntax)
                 {
                     return true;
                 }
@@ -89,24 +93,29 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 return false;
             }
+        }
 
-            if (!node.GetAncestorsOrThis<SyntaxNode>().Any(predicate))
+        public static bool ContainedInValidType(this SyntaxNode node)
+        {
+            Contract.ThrowIfNull(node);
+            foreach (var ancestor in node.AncestorsAndSelf())
             {
-                return false;
+                if (ancestor is TypeDeclarationSyntax)
+                {
+                    return true;
+                }
+
+                if (ancestor is NamespaceDeclarationSyntax)
+                {
+                    return false;
+                }
             }
 
-            if (node.FromScript() || node.GetAncestor<TypeDeclarationSyntax>() != null)
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         public static bool UnderValidContext(this SyntaxToken token)
-        {
-            return token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
-        }
+            => token.GetAncestors<SyntaxNode>().Any(n => n.CheckTopLevel(token.Span));
 
         public static bool PartOfConstantInitializerExpression(this SyntaxNode node)
         {
@@ -146,8 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     continue;
                 }
 
-                var throwStatement = token.Parent as ThrowStatementSyntax;
-                if (throwStatement == null || throwStatement.Expression != null)
+                if (token.Parent is not ThrowStatementSyntax throwStatement || throwStatement.Expression != null)
                 {
                     continue;
                 }
@@ -164,8 +172,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
         public static bool ContainPreprocessorCrossOver(this IEnumerable<SyntaxToken> tokens, TextSpan textSpan)
         {
-            int activeRegions = 0;
-            int activeIfs = 0;
+            var activeRegions = 0;
+            var activeIfs = 0;
 
             foreach (var trivia in tokens.GetAllTrivia())
             {
@@ -229,9 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         public static bool HasSyntaxAnnotation(this HashSet<SyntaxAnnotation> set, SyntaxNode node)
-        {
-            return set.Any(a => node.GetAnnotatedNodesAndTokens(a).Any());
-        }
+            => set.Any(a => node.GetAnnotatedNodesAndTokens(a).Any());
 
         public static bool HasHybridTriviaBetween(this SyntaxToken token1, SyntaxToken token2)
         {
@@ -248,25 +254,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return false;
         }
 
-        public static bool IsArrayInitializer(this SyntaxNode node)
-        {
-            return node is InitializerExpressionSyntax && node.Parent is EqualsValueClauseSyntax;
-        }
+        public static bool IsArrayInitializer([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+            => node is InitializerExpressionSyntax && node.Parent is EqualsValueClauseSyntax;
 
-        public static bool IsExpressionInCast(this SyntaxNode node)
-        {
-            return node is ExpressionSyntax && node.Parent is CastExpressionSyntax;
-        }
+        public static bool IsExpressionInCast([NotNullWhen(returnValue: true)] this SyntaxNode? node)
+            => node is ExpressionSyntax && node.Parent is CastExpressionSyntax;
 
-        public static bool IsExpression(this SyntaxNode node)
-        {
-            return node is ExpressionSyntax;
-        }
-
-        public static bool IsObjectType(this ITypeSymbol type)
-        {
-            return type == null || type.SpecialType == SpecialType.System_Object;
-        }
+        public static bool IsObjectType(this ITypeSymbol? type)
+            => type == null || type.SpecialType == SpecialType.System_Object;
 
         public static bool BetweenFieldAndNonFieldMember(this SyntaxToken token1, SyntaxToken token2)
         {

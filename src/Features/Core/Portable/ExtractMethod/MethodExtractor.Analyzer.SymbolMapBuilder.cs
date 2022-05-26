@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Threading;
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 private readonly SemanticModel _semanticModel;
                 private readonly ISyntaxFactsService _service;
                 private readonly TextSpan _span;
-                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap;
+                private readonly Dictionary<ISymbol, List<SyntaxToken>> _symbolMap = new();
                 private readonly CancellationToken _cancellationToken;
 
                 public static Dictionary<ISymbol, List<SyntaxToken>> Build(
@@ -48,7 +52,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     _semanticModel = semanticModel;
                     _service = service;
                     _span = span;
-                    _symbolMap = new Dictionary<ISymbol, List<SyntaxToken>>();
                     _cancellationToken = cancellationToken;
                 }
 
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         token.Width() <= 0 ||
                         !_service.IsIdentifier(token) ||
                         !_span.Contains(token.Span) ||
-                        _service.IsNamedParameter(token.Parent))
+                        _service.IsNameOfNamedArgument(token.Parent))
                     {
                         return;
                     }

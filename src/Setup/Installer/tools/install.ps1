@@ -9,11 +9,6 @@ $ErrorActionPreference="Stop"
 try {
   . (Join-Path $PSScriptRoot "utils.ps1")
 
-  if (Test-Process "devenv") {
-      Write-Host "Please shut down all instances of Visual Studio before running" -ForegroundColor Red
-      exit 1
-  }
-
   # Welcome Message
   Write-Host "Installing Roslyn Preview Build" -ForegroundColor Green
 
@@ -48,6 +43,9 @@ try {
   $vsDir = $vsInstance.installationPath.Trim("\")
   $vsId = $vsInstance.instanceId
   $vsMajorVersion = $vsInstance.installationVersion.Split(".")[0]
+  $vsLocalDir = Get-VisualStudioLocalDir -vsMajorVersion $vsMajorVersion -vsId $vsId -rootSuffix $rootSuffix
+
+  Stop-Processes $vsDir $vsLocalDir
 
   # Install VSIX
   $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
@@ -58,7 +56,7 @@ try {
 
   # Clear MEF Cache
   Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
-  $mefCacheFolder = Get-MefCacheDir -vsMajorVersion $vsMajorVersion -vsId $vsId -rootSuffix $rootSuffix
+  $mefCacheFolder = Get-MefCacheDir $vsLocalDir
   if (Test-Path $mefCacheFolder) {
     Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_ }
   }

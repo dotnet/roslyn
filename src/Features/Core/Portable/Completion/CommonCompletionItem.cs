@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Tags;
@@ -10,34 +11,22 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CommonCompletionItem
     {
-        [Obsolete("This is a compatibility shim for FSharp; please do not use it.", error: true)]
-        public static CompletionItem Create(
-            string displayText,
-            CompletionItemRules rules,
-            Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
-            bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
-        {
-            return Create(
-                displayText, displayTextSuffix: string.Empty, rules,
-                glyph, description, sortText, filterText, showsWarningIcon, properties, tags);
-        }
+        public const string DescriptionProperty = nameof(DescriptionProperty);
 
         public static CompletionItem Create(
             string displayText,
-            string displayTextSuffix,
+            string? displayTextSuffix,
             CompletionItemRules rules,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default,
-            string sortText = null,
-            string filterText = null,
+            string? sortText = null,
+            string? filterText = null,
             bool showsWarningIcon = false,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableDictionary<string, string>? properties = null,
+            ImmutableArray<string> tags = default,
+            string? inlineDescription = null,
+            string? displayTextPrefix = null,
+            bool isComplexTextEdit = false)
         {
             tags = tags.NullToEmpty();
 
@@ -52,30 +41,31 @@ namespace Microsoft.CodeAnalysis.Completion
                 tags = tags.Add(WellKnownTags.Warning);
             }
 
-            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties ??= ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
-                properties = properties.Add("Description", EncodeDescription(description));
+                properties = properties.Add(DescriptionProperty, EncodeDescription(description.ToTaggedText()));
             }
 
             return CompletionItem.Create(
                 displayText: displayText,
                 displayTextSuffix: displayTextSuffix,
+                displayTextPrefix: displayTextPrefix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
-                rules: rules);
+                rules: rules,
+                inlineDescription: inlineDescription,
+                isComplexTextEdit: isComplexTextEdit);
         }
 
         public static bool HasDescription(CompletionItem item)
-        {
-            return item.Properties.ContainsKey("Description");
-        }
+            => item.Properties.ContainsKey(DescriptionProperty);
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("Description", out var encodedDescription))
+            if (item.Properties.TryGetValue(DescriptionProperty, out var encodedDescription))
             {
                 return DecodeDescription(encodedDescription);
             }
@@ -85,34 +75,17 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private static char[] s_descriptionSeparators = new char[] { '|' };
-
-        private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
-        {
-            return EncodeDescription(description.ToTaggedText());
-        }
+        private static readonly char[] s_descriptionSeparators = new char[] { '|' };
 
         private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        {
-            if (description.Length > 0)
-            {
-                return string.Join("|",
-                    description
-                        .SelectMany(d => new string[] { d.Tag, d.Text })
-                        .Select(t => t.Escape('\\', s_descriptionSeparators)));
-            }
-            else
-            {
-                return null;
-            }
-        }
+            => string.Join("|", description.SelectMany(d => new[] { d.Tag, d.Text }).Select(t => t.Escape('\\', s_descriptionSeparators)));
 
         private static CompletionDescription DecodeDescription(string encoded)
         {
             var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
 
             var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
-            for (int i = 0; i < parts.Length; i += 2)
+            for (var i = 0; i < parts.Length; i += 2)
             {
                 builder.Add(new TaggedText(parts[i], parts[i + 1]));
             }

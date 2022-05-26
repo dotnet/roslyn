@@ -19,7 +19,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
   try {
     if (-not $useConsole) {
       # The OutputDataReceived event doesn't fire as events are sent by the
-      # process in powershell.  Possibly due to subtlties of how Powershell
+      # process in powershell.  Possibly due to subtleties of how Powershell
       # manages the thread pool that I'm not aware of.  Using blocking
       # reading here as an alternative which is fine since this blocks
       # on completion already.
@@ -40,7 +40,7 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
     }
   }
   finally {
-    # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+    # If we didn't finish then an error occurred or the user hit ctrl-c.  Either
     # way kill the process
     if (-not $finished) {
       $process.Kill()
@@ -93,8 +93,12 @@ function Test-Process([string]$processName) {
   return $all -ne $null
 }
 
-function Get-MefCacheDir([string]$vsMajorVersion, [string]$vsId, [string]$rootSuffix) {
-  return Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\$vsMajorVersion.0_$vsId$rootSuffix\ComponentModelCache"
+function Get-VisualStudioLocalDir([string]$vsMajorVersion, [string]$vsId, [string]$rootSuffix) {
+  return Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\$vsMajorVersion.0_$vsId$rootSuffix"
+}
+
+function Get-MefCacheDir([string]$vsLocalDir) {
+  return Join-Path $vsLocalDir "ComponentModelCache"
 }
 
 function Install-VsixViaTool([string]$vsDir, [string]$vsId, [string]$rootSuffix) {
@@ -133,5 +137,36 @@ function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$rootSuffix, [strin
   foreach ($vsixFileName in $vsixFileNames) {
     $vsixPath = Resolve-Path (Join-Path $PSScriptRoot "..\vsix\$vsixFileName")
     Exec-Console "`"$installerExe`"" "`"$vsixPath`" /vsInstallDir:`"$vsDir`" $rootSuffixArg $additionalArgs"
+  }
+}
+
+function Stop-Processes([string]$vsDir, [string]$extensionDir) {
+  $stopProcesses = @()
+  foreach ($process in Get-Process) {
+    if ($process.Path) {
+      $dir = Split-Path $process.Path
+      if ($dir.StartsWith($vsDir) -or $dir.StartsWith($extensionDir)) {
+        $stopProcesses += $process
+      }
+    }
+  }
+
+  if ($stopProcesses.Length -eq 0) {
+    return
+  }
+
+  Write-Host "The following processes need to be stopped before installation can continue. Proceed? [Y/N]"
+  foreach ($process in $stopProcesses) {
+    Write-Host "> $($process.Path)"
+  }
+
+  $input = Read-Host
+  if ($input -ne "y" -and $input -ne "yes") {
+    Write-Host "Installation cancelled" -ForegroundColor Yellow
+    exit 1
+  }
+
+  foreach ($process in $stopProcesses) {
+    Stop-Process $process.Id -Force -ErrorAction SilentlyContinue
   }
 }

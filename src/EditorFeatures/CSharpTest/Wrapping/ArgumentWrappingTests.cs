@@ -1,9 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.CSharp.Wrapping;
+using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
@@ -833,6 +838,34 @@ GetIndentionColumn(30),
                         c);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        [WorkItem(50104, "https://github.com/dotnet/roslyn/issues/50104")]
+        public async Task TestInImplicitObjectCreation()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Program p1 = new([||]1, 2);
+    }
+
+    public Program(object o1, object o2) { }
+}
+",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        Program p1 = new(1,
+                         2);
+    }
+
+    public Program(object o1, object o2) { }
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Windows;
@@ -19,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// get <see cref="DisposableToolTip"/> /> from the given <paramref name="textBuffer"/>'s <paramref name="contentSpan"/>
         /// based on given <paramref name="baseDocument"/>
         /// 
-        /// tooltip will show embeded textview which shows code from the content span of the text buffer with the context of the
+        /// tooltip will show embedded textview which shows code from the content span of the text buffer with the context of the
         /// base document
         /// </summary>
         /// <param name="baseDocument">document to be used as a context for the code</param>
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         /// <summary>
         /// get <see cref="DisposableToolTip"/> /> from the given <paramref name="textBuffer"/>
         /// 
-        /// tooltip will show embeded textview with whole content from the buffer. if the buffer has associated tags
+        /// tooltip will show embedded textview with whole content from the buffer. if the buffer has associated tags
         /// in its property bag, it will be picked up by taggers associated with the tooltip
         /// </summary>
         DisposableToolTip CreateDisposableToolTip(ITextBuffer textBuffer, object backgroundResourceKey);

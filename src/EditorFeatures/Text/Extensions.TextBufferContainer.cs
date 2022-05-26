@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -18,9 +20,9 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
             private readonly object _gate = new object();
-            private readonly ITextBufferCloneService _textBufferCloneServiceOpt;
+            private readonly ITextBufferCloneService? _textBufferCloneService;
 
-            private event EventHandler<TextChangeEventArgs> EtextChanged;
+            private event EventHandler<TextChangeEventArgs>? EtextChanged;
             private SourceText _currentText;
 
             private TextBufferContainer(ITextBuffer editorBuffer)
@@ -28,15 +30,14 @@ namespace Microsoft.CodeAnalysis.Text
                 Contract.ThrowIfNull(editorBuffer);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                editorBuffer.Properties.TryGetProperty(typeof(ITextBufferCloneService), out _textBufferCloneServiceOpt);
-                _currentText = SnapshotSourceText.From(_textBufferCloneServiceOpt, editorBuffer.CurrentSnapshot, this);
+                editorBuffer.Properties.TryGetProperty(typeof(ITextBufferCloneService), out _textBufferCloneService);
+                _currentText = SnapshotSourceText.From(_textBufferCloneService, editorBuffer.CurrentSnapshot, this);
             }
 
             /// <summary>
             /// A weak map of all Editor ITextBuffers and their associated SourceTextContainer
             /// </summary>
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer> s_textContainerMap = new ConditionalWeakTable<ITextBuffer, TextBufferContainer>();
-            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer>.CreateValueCallback s_createContainerCallback = CreateContainer;
+            private static readonly ConditionalWeakTable<ITextBuffer, TextBufferContainer> s_textContainerMap = new();
 
             public static TextBufferContainer From(ITextBuffer buffer)
             {
@@ -45,15 +46,10 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentNullException(nameof(buffer));
                 }
 
-                return s_textContainerMap.GetValue(buffer, s_createContainerCallback);
+                return s_textContainerMap.GetValue(buffer, static buffer => new TextBufferContainer(buffer));
             }
 
-            private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
-            {
-                return new TextBufferContainer(editorBuffer);
-            }
-
-            public ITextBuffer TryFindEditorTextBuffer()
+            public ITextBuffer? TryFindEditorTextBuffer()
                 => _weakEditorBuffer.GetTarget();
 
             public override SourceText CurrentText
@@ -98,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            private void OnTextContentChanged(object sender, TextContentChangedEventArgs args)
+            private void OnTextContentChanged(object? sender, TextContentChangedEventArgs args)
             {
                 var changed = this.EtextChanged;
                 if (changed == null)
@@ -111,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 // this should convert given editor snapshots to roslyn forked snapshots
                 var oldText = (SnapshotSourceText)args.Before.AsText();
-                var newText = SnapshotSourceText.From(_textBufferCloneServiceOpt, args.After);
+                var newText = SnapshotSourceText.From(_textBufferCloneService, args.After);
                 _currentText = newText;
 
                 var changes = ImmutableArray.CreateRange(args.Changes.Select(c => new TextChangeRange(new TextSpan(c.OldSpan.Start, c.OldSpan.Length), c.NewLength)));
@@ -123,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             // These are the event args that were last sent from this text container when the text
             // content may have changed.
-            public TextChangeEventArgs LastEventArgs { get; private set; }
+            public TextChangeEventArgs? LastEventArgs { get; private set; }
         }
     }
 }

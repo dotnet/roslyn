@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -12,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 
 #Region "GetStartPoint() tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
@@ -42,7 +44,7 @@ Namespace $$N : End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=27)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint2()
             Dim code =
 <Code>
@@ -73,7 +75,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=13)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint3()
             Dim code =
 <Code>
@@ -104,7 +106,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=15)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint4()
             Dim code =
 <Code>
@@ -135,7 +137,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint5()
             Dim code =
 <Code>
@@ -169,7 +171,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint6()
             Dim code =
 <Code>
@@ -202,7 +204,7 @@ End Namespace
                      TextPoint(line:=1, lineOffset:=1, absoluteOffset:=1, lineLength:=11)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetStartPoint7()
             Dim code =
 <Code>
@@ -243,7 +245,7 @@ End Namespace
 
 #Region "GetEndPoint() tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
@@ -273,7 +275,7 @@ Namespace $$N : End Namespace
                      TextPoint(line:=1, lineOffset:=28, absoluteOffset:=28, lineLength:=27)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint2()
             Dim code =
 <Code>
@@ -304,7 +306,7 @@ End Namespace
                      TextPoint(line:=2, lineOffset:=14, absoluteOffset:=26, lineLength:=13)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint3()
             Dim code =
 <Code>
@@ -336,7 +338,7 @@ End Namespace
                      TextPoint(line:=3, lineOffset:=14, absoluteOffset:=27, lineLength:=13)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint4()
             Dim code =
 <Code>
@@ -369,7 +371,7 @@ End Namespace
                      TextPoint(line:=4, lineOffset:=14, absoluteOffset:=52, lineLength:=13)))
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestGetEndPoint5()
             Dim code =
 <Code>
@@ -408,7 +410,7 @@ End Namespace
 
 #Region "Comment tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment1()
             Dim code =
 <Code>
@@ -422,7 +424,7 @@ End Namespace
             TestComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment2()
             Dim code =
 <Code>
@@ -438,7 +440,7 @@ End Namespace
             TestComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment3()
             Dim code =
 <Code>
@@ -454,7 +456,7 @@ End Namespace
             TestComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment4()
             Dim code =
 <Code>
@@ -471,7 +473,7 @@ End Namespace
             TestComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestComment5()
             Dim code =
 <Code>
@@ -490,7 +492,7 @@ End Namespace
 
 #Region "DocComment tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestDocComment1()
             Dim code =
 <Code>
@@ -511,7 +513,7 @@ End Namespace
             TestDocComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestDocComment2()
             Dim code =
 <Code>
@@ -530,7 +532,7 @@ End Namespace
             TestDocComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestDocComment3()
             Dim code =
 <Code>
@@ -549,7 +551,7 @@ End Namespace
             TestDocComment(code, result)
         End Sub
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestDocComment4()
             Dim code =
 <Code>
@@ -576,7 +578,7 @@ End Namespace
 
 #Region "Set Comment tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetComment1() As Task
             Dim code =
 <Code>
@@ -598,7 +600,7 @@ End Namespace
             Await TestSetComment(code, expected, Nothing)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetComment2() As Task
             Dim code =
 <Code>
@@ -620,7 +622,7 @@ End Namespace
             Await TestSetComment(code, expected, "Bar")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetComment3() As Task
             Dim code =
 <Code>
@@ -647,7 +649,7 @@ End Namespace
 
 #Region "Set DocComment tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment_Nothing1() As Task
             Dim code =
 <Code>
@@ -664,7 +666,7 @@ End Namespace
             Await TestSetDocComment(code, expected, Nothing)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment_Nothing2() As Task
             Dim code =
 <Code>
@@ -684,7 +686,7 @@ End Namespace
             Await TestSetDocComment(code, expected, Nothing)
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment_InvalidXml1() As Task
             Dim code =
 <Code>
@@ -702,7 +704,7 @@ End Namespace
             Await TestSetDocComment(code, expected, "<doc><summary>Blah</doc>")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment_InvalidXml2() As Task
             Dim code =
 <Code>
@@ -720,7 +722,7 @@ End Namespace
             Await TestSetDocComment(code, expected, "<doc___><summary>Blah</summary></doc___>")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment1() As Task
             Dim code =
 <Code>
@@ -738,7 +740,7 @@ End Namespace
             Await TestSetDocComment(code, expected, "<summary>Hello World</summary>")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment2() As Task
             Dim code =
 <Code>
@@ -757,7 +759,7 @@ End Namespace
             Await TestSetDocComment(code, expected, "<summary>Blah</summary>")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment3() As Task
             Dim code =
 <Code>
@@ -777,7 +779,7 @@ End Namespace
             Await TestSetDocComment(code, expected, "<summary>Blah</summary>")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment4() As Task
             Dim code =
 <Code>
@@ -798,7 +800,7 @@ End Namespace
             Await TestSetDocComment(code, expected, "<summary>Blah</summary>")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetDocComment5() As Task
             Dim code =
 <Code>
@@ -824,7 +826,7 @@ End Namespace
 
 #Region "Set Name tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_SameName() As Task
             Dim code =
 <Code>
@@ -845,7 +847,7 @@ End Namespace
             Await TestSetName(code, expected, "N", NoThrow(Of String)())
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_NewName() As Task
             Dim code =
 <Code>
@@ -866,7 +868,7 @@ End Namespace
             Await TestSetName(code, expected, "N2", NoThrow(Of String)())
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_SimpleNameToDottedName() As Task
             Dim code =
 <Code>
@@ -887,7 +889,7 @@ End Namespace
             Await TestSetName(code, expected, "N2.N3", NoThrow(Of String)())
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_DottedNameToDottedName() As Task
             Dim code =
 <Code>
@@ -912,7 +914,7 @@ End Namespace
 
 #Region "Remove tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemove1() As Task
             Dim code =
 <Code>
@@ -934,7 +936,7 @@ End Namespace
 #End Region
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestChildren1()
             Dim code =
 <Code>
@@ -957,7 +959,7 @@ End Namespace
         End Sub
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub NoChildrenForInvalidMembers()
             Dim code =
 <Code>

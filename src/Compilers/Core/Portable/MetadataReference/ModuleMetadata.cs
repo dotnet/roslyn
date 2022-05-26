@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
         public static ModuleMetadata CreateFromFile(string path)
         {
-            return CreateFromStream(FileUtilities.OpenFileStream(path));
+            return CreateFromStream(StandardFileSystem.Instance.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         /// <summary>
@@ -304,7 +306,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="filePath">Path describing the location of the metadata, or null if the metadata have no location.</param>
         /// <param name="display">Display string used in error messages to identity the reference.</param>
         /// <returns>A reference to the module metadata.</returns>
-        public PortableExecutableReference GetReference(DocumentationProvider documentation = null, string filePath = null, string display = null)
+        public PortableExecutableReference GetReference(DocumentationProvider? documentation = null, string? filePath = null, string? display = null)
         {
             return new MetadataImageReference(this, MetadataReferenceProperties.Module, documentation, filePath, display);
         }

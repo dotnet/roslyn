@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -571,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             ' Merge methodGroup.AdditionalExtensionMethods into the result.
-            For Each method In methodGroup.AdditionalExtensionMethods(useSiteDiagnostics:=Nothing)
+            For Each method In methodGroup.AdditionalExtensionMethods(useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
                 ' This is a quick fix for the fact that binder lookup in VB does not perform arity check for 
                 '       method symbols leaving it to overload resolution code. Here we filter wrong arity methods
                 If targetArity = 0 Then

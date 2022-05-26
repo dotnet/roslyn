@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
         /// <param name="symbolId">The id of the symbol to map</param>
         /// <param name="cancellationToken">To cancel symbol resolution</param>
         /// <returns>The matching symbol from the correct solution or null</returns>
-        Task<SymbolMappingResult> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken = default);
+        Task<SymbolMappingResult?> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Given an <cref see="ISymbol"/> and the document whence the corresponding <cref see="ISymbol"/>
@@ -28,6 +30,6 @@ namespace Microsoft.CodeAnalysis.SymbolMapping
         /// <param name="symbol">The symbol to map</param>
         /// <param name="cancellationToken">To cancel symbol resolution</param>
         /// <returns>The matching symbol from the correct solution or null</returns>
-        Task<SymbolMappingResult> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default);
+        Task<SymbolMappingResult?> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken = default);
     }
 }

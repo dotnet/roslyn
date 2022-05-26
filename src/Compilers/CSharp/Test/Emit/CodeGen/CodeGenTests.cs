@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -8,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -16,6 +21,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenTests : CSharpTestBase
     {
+        [Fact]
+        public void EmitWithSuppressedWarnAsError()
+        {
+            var src = @"
+#pragma warning disable 1591
+
+public class P {
+    public static void Main() {}
+}";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll
+                .WithXmlReferenceResolver(XmlFileResolver.Default)
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+
+            var comp = CreateCompilation(src, parseOptions: parseOptions, options: options);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp);
+        }
+
         [Fact()]
         [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642a()
@@ -53,7 +77,8 @@ class Program
         Console.WriteLine((((DoubleAndStruct)args[0]).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 59, Found = readonly address of '[...]DoubleAndStruct', Expected = address of '[...]DoubleAndStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -140,7 +165,8 @@ class Program
         Console.WriteLine(((((OuterStruct)args[0]).z).y).x);
     }
 }";
-            var result = CompileAndVerify(source, options: TestOptions.DebugDll);
+            // ILVerify: Unexpected type on the stack. { Offset = 34, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -606,6 +632,14 @@ class C
         [Fact, WorkItem(540019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540019")]
         public void TestBug6156()
         {
+            // Note: this test originally required a mismatch between the compile-time view of what the
+            // program should do and the runtime view.  The runtime considers `ref` and `out` to be the
+            // same, so it had a different view of what one method was overriding than C# did.  However,
+            // in the context of implementing the covariant return types feature, we added code in the compiler to
+            // cause the compiler to emit methodimpl records whenever there is a mismatch.  As a consequence
+            // of that, we updated this test to now require that the runtime behavior and the compile-time behavior
+            // of this program match, so that at runtime it obeys the behavior specified by the C#
+            // language specification.
             var source = @"
 class Ref1 
 { public virtual void M(ref int x) { x = 1; } }
@@ -623,64 +657,64 @@ class M
     Ref1 r1;
     r1 = new Ref1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Out1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Ref2();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r1 = new Out2();
     r1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out1 o1;
     o1 = new Out1();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     o1 = new Ref2();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     o1 = new Out2();
     o1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Ref2 r2;
     r2 = new Ref2();
     r2.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r2 = new Out2();
     r2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out2 o2;
     o2 = new Out2();
     o2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     o1 = new Out1();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Ref2();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Out2();
     o1.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     r2 = new Ref2();
     r2.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     r2 = new Out2();
     r2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     o2 = new Out2();
     o2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
   }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
-1111
-111
-11
-1
-234
-34
+1133
+133
+33
+3
+224
+24
 4
 ");
         }
@@ -885,15 +919,16 @@ public class H
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            compilation.VerifyIL("H..cctor",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}
-");
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("H");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
 
@@ -3302,7 +3337,7 @@ public class D
   IL_0000:  ldc.i4.4
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.42F1B77334EDFA917032CCF8353020C73F8C62E1""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.3A3BFDE71B9585833F60BB15A5652D56C97FE581EBE272B5474558E92A26BE0A""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  stloc.0
   IL_0012:  ldloc.0
@@ -4326,7 +4361,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4459,7 +4494,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.Fails, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -5226,6 +5261,12 @@ System.ApplicationException[]System.ApplicationException: helloSystem.Applicatio
         }
     }";
 
+            // PEVerify:
+            // [ : Program::GetElementRef[T]][mdToken=0x6000004][offset 0x00000009][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // [ : Program::GetElementRef[T]][mdToken= 0x6000004][offset 0x00000017][found readonly address of ref ][expected address of ref ] Unexpected type on the stack.
+            // ILVerify:
+            // Unexpected type on the stack. { Offset = 9, Found = readonly address of 'T', Expected = address of 'T' }
+            // Unexpected type on the stack. { Offset = 23, Found = readonly address of 'T', Expected = address of 'T' }
             var compilation = CompileAndVerify(source, expectedOutput: @"hihi", verify: Verification.Fails);
 
             var expectedIL = @"
@@ -6664,7 +6705,7 @@ e
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.56C14CB445C628421AC674599E302B0879FB496F""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.45ADA43E830E5E3307519346BD95FFFAE55587E4B475BC481E2B70054B75C386""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  dup
   IL_0012:  ldc.i4.2
@@ -6676,7 +6717,7 @@ e
   IL_0020:  ldc.i4.5
   IL_0021:  newarr     ""bool""
   IL_0026:  dup
-  IL_0027:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.4E724558F6B816715597A51663AD8F05247E2C4A""
+  IL_0027:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.A4E9167DC11A5B8BA7E09C85BAFDEA0B6E0B399CE50086545509017050B33097""
   IL_002c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0031:  dup
   IL_0032:  ldc.i4.2
@@ -6688,7 +6729,7 @@ e
   IL_0040:  ldc.i4.5
   IL_0041:  newarr     ""byte""
   IL_0046:  dup
-  IL_0047:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.9755240DD0C4C1AD226DEBD40C6D2EBD408250CB""
+  IL_0047:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.5BD81897B38CE00BCF990B5AED9316FE43E7A3854DA09401C14DF4AF21B2F90D""
   IL_004c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0051:  dup
   IL_0052:  ldc.i4.2
@@ -6700,7 +6741,7 @@ e
   IL_0060:  ldc.i4.5
   IL_0061:  newarr     ""char""
   IL_0066:  dup
-  IL_0067:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.E313A2813013780396D58750DC5D62221C86F42F""
+  IL_0067:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=10 <PrivateImplementationDetails>.DC0F42A41F058686A364AF5B6BD49175C5B2CF3C4D5AE95417448BE3517B4008""
   IL_006c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0071:  dup
   IL_0072:  ldc.i4.2
@@ -6712,7 +6753,7 @@ e
   IL_0080:  ldc.i4.5
   IL_0081:  newarr     ""float""
   IL_0086:  dup
-  IL_0087:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.2F3DD953DBFB23217E7CE0E76630EBD31267E237""
+  IL_0087:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.0956A7FE9F6549A51F1EF3A6E0CD03FE7CF1EB2762309FC2A941F85C7E461827""
   IL_008c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0091:  dup
   IL_0092:  ldc.i4.2
@@ -6724,7 +6765,7 @@ e
   IL_00a0:  ldc.i4.5
   IL_00a1:  newarr     ""double""
   IL_00a6:  dup
-  IL_00a7:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.11F3436B917FFBA0FAB0FAD5563AF18FA24AC16A""
+  IL_00a7:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=40 <PrivateImplementationDetails>.F9D819AD50107F52959882DF3549DE08003AC644DCC12AFEA2B9BD936EE7D325""
   IL_00ac:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_00b1:  dup
   IL_00b2:  ldc.i4.2
@@ -6767,7 +6808,7 @@ public class D
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""int""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.FF942E5F620FC460CF9424D564C73AD8A99C74EE""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.BD7819A4179E7ACF9BDBEBF011C106FA85D32545EEE26D28FBF9068F4DEB6658""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  dup
   IL_0012:  ldc.i4.2
@@ -6782,7 +6823,7 @@ public class D
   IL_0027:  ldc.i4.5
   IL_0028:  newarr     ""int""
   IL_002d:  dup
-  IL_002e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.89E37886EEEDC70AEF61138E037CC60EFC35535F""
+  IL_002e:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.2C749102AF8952FBBED5FE95192883A4153E80448EB125C01A8B2961C0B266E9""
   IL_0033:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0038:  dup
   IL_0039:  ldc.i4.4
@@ -6850,7 +6891,7 @@ public class D
   IL_002e:  ldc.i4.s   15
   IL_0030:  newarr     ""int""
   IL_0035:  dup
-  IL_0036:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=60 <PrivateImplementationDetails>.49608711F905702F9F227AA782F8B408777D5DF9""
+  IL_0036:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=60 <PrivateImplementationDetails>.D6D2D407F387FBD5A6686795005577AE90492DFD316E28ECA98CA47FAF9C99C0""
   IL_003b:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0040:  dup
   IL_0041:  ldc.i4.s   12
@@ -6986,7 +7027,7 @@ DBNull
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""System.TypeCode""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.3191FF614021ADF3122AC274EA5B6097C21BEB81""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.095C4722BB84316FEEE41ADFDAFED13FECA8836A520BDE3AB77C52F5C9F6B620""
   IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  dup
   IL_0012:  ldc.i4.1
@@ -7620,7 +7661,7 @@ Abc123
   IL_0085:  ldc.i4.4
   IL_0086:  newarr     ""ushort""
   IL_008b:  dup
-  IL_008c:  ldtoken    ""long <PrivateImplementationDetails>.E9E8A66A117598333ABACF5B65971C2366E19B6C""
+  IL_008c:  ldtoken    ""long <PrivateImplementationDetails>.EA99F710D9D0B8BA192295C969A63ED7CE8FC5743DA20D2057FA2B6D2C404BFB""
   IL_0091:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0096:  callvirt   ""uint Program.C.Goo(out short, params ushort[])""
   IL_009b:  call       ""void System.Console.WriteLine(uint)""
@@ -7853,7 +7894,7 @@ class A
   IL_0001:  ldc.i4.5
   IL_0002:  newarr     ""int""
   IL_0007:  dup
-  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0008:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384""
   IL_000d:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0012:  stloc.0
   IL_0013:  ret
@@ -9798,7 +9839,9 @@ class MyClass
 ");
         }
 
-        [Fact, WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
+        [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
+        [WorkItem(538246, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538246"), WorkItem(543655, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543655")]
         public void FloatDoubleInfinity()
         {
             string source = @"
@@ -10423,7 +10466,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.Fails).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -10651,7 +10694,9 @@ public class MyClass {
         // digits < 1e-49 when rounding.
         [WorkItem(529827, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529827")]
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
-        [Fact]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
+        [Fact] // https://github.com/dotnet/coreclr/issues/22046
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -10674,8 +10719,25 @@ class C
         Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
-@"0.0000000000000000000000000031
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
+0.0000000000000000000000000031
+
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+0.1000000000000000000000000001");
+            }
+            else if (ExecutionConditionUtil.IsDesktop)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
 0.0000000000000000000000000001
@@ -10686,6 +10748,7 @@ class C
 
 0.1000000000000000000000000000
 0.1000000000000000000000000000");
+            }
         }
 
         [Fact]
@@ -11317,7 +11380,9 @@ class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/runtime/issues/1611")]
+        [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
             string source = @"
@@ -12223,7 +12288,8 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12376,7 +12442,8 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12879,6 +12946,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void Bug14064()
         {
             string source = @"
@@ -13206,8 +13274,10 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
-                diagnostics: diagnostics,
+                emitMethodBodies: true,
+                diagnostics: new BindingDiagnosticBag(diagnostics),
                 filterOpt: null,
+                entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
 
             // Add diagnostic to MethodBodyCompiler bag, as if
@@ -13262,7 +13332,6 @@ class A
             }
         }
     }
-
 }
 ";
             var compilation = CompileAndVerify(
@@ -13922,7 +13991,7 @@ True");
   IL_0040:  ldc.i4.4
   IL_0041:  newarr     ""bool""
   IL_0046:  dup
-  IL_0047:  ldtoken    ""int <PrivateImplementationDetails>.35CCB1599F52363510686EF38B7DB5E7998DB108""
+  IL_0047:  ldtoken    ""int <PrivateImplementationDetails>.52A5C4A10657220CAC05C63ADFA923C7771C55D868A58EE360EB3D1511985C3E""
   IL_004c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0051:  ldc.i4.2
   IL_0052:  ldelem.u1
@@ -14492,9 +14561,9 @@ class C
                 result.Diagnostics.Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (14,27): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //         switch (s) { case "A": break; case "B": break; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""A""").WithArguments("System.String", "op_Equality").WithLocation(14, 27)
                 );
             }
         }
@@ -14671,7 +14740,7 @@ using System;
             var source = @"
 enum MyEnum { first, second, last }
 struct MyStruct { int intStructMember; }
-public class Test
+public unsafe class Test
 {
     static bool boolMember = false;
     static char charMember = '\0';
@@ -14683,13 +14752,37 @@ public class Test
     static uint uintMember = 0;
     static long longMember = 0L;
     static ulong ulongMember = 0;
-    static decimal decimalMember = default(decimal);
+    static nint nintMember = 0;
+    static nuint nuintMember = 0;
+    static decimal decimalMember = 0m;
     static string strMember = null;
     static object objMember = null;
     static float floatMember = 0.0F;
     static double doubleMember = 0.0D;
     static MyEnum enumMember = MyEnum.first;
-    MyStruct structMember = default(MyStruct);
+
+    static bool boolMember2 = default(bool);
+    static char charMember2 = default(char);
+    static sbyte sbyteMember2 = default(sbyte);
+    static byte byteMember2 = default(byte);
+    static short shortMember2 = default(short);
+    static ushort ushortMember2 = default(ushort);
+    static int intMember2 = default(int);
+    static uint uintMember2 = default(uint);
+    static long longMember2 = default(long);
+    static ulong ulongMember2 = default(ulong);
+    static nint nintMember2 = default(nint);
+    static nuint nuintMember2 = default(nuint);
+    static decimal decimalMember2 = default(decimal);
+    static string strMember2 = default(string);
+    static object objMember2 = default(object);
+    static float floatMember2 = default(float);
+    static double doubleMember2 = default(double);
+    static MyEnum enumMember2 = default(MyEnum);
+    static MyStruct structMember2 = default(MyStruct);
+    static System.IntPtr intPtrMember2 = default(System.IntPtr);
+    static System.UIntPtr uintPtrMember2 = default(System.UIntPtr);
+    static void* voidPtrMember2 = default(void*);
 }
 
 class c1
@@ -14701,15 +14794,18 @@ class c1
 
 ";
 
-            CompileAndVerify(source, expectedOutput: @"").
-                VerifyIL("Test..cctor()",
-@"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}                                                                                           
-"); ;
+            CompileAndVerify(
+                source,
+                expectedOutput: "",
+                symbolValidator: validator,
+                options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]
@@ -15027,7 +15123,7 @@ class Program
     }
 }";
 
-            var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
+            var testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference();
             var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
@@ -16118,7 +16214,7 @@ public class Form1 {
         [Fact]
         public void CorrectOverloadOfStackAllocSpanChosen()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 class Test
 {
@@ -16132,15 +16228,18 @@ class Test
         var span2 = condition ? new Span<int>(null, 3) : stackalloc int[4];
         Console.Write(span2.Length);
     }
-}", TestOptions.UnsafeReleaseExe);
+}";
 
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeDebugExe);
             CompileAndVerify(comp, expectedOutput: "24", verify: Verification.Fails);
         }
 
-        [Fact]
+        [Fact, WorkItem(35764, "https://github.com/dotnet/roslyn/issues/35764")]
         public void StackAllocExpressionIL()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 class Test
 {
@@ -16151,9 +16250,11 @@ class Test
         x = stackalloc int[0];
         Console.Write(x.Length);
     }
-}", TestOptions.ReleaseExe);
-
-            CompileAndVerify(comp, expectedOutput: "330", verify: Verification.Fails).VerifyIL("Test.Main", @"
+}";
+            var expectedOutput = "330";
+            CSharpCompilation comp;
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       49 (0x31)
   .maxstack  2
@@ -16174,12 +16275,41 @@ class Test
   IL_002b:  call       ""void System.Console.Write(int)""
   IL_0030:  ret
 }");
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       54 (0x36)
+      .maxstack  2
+      .locals init (System.Span<int> V_0, //x
+                    System.Span<int> V_1)
+      IL_0000:  nop
+      IL_0001:  ldc.i4     0x84
+      IL_0006:  conv.u
+      IL_0007:  localloc
+      IL_0009:  ldc.i4.s   33
+      IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0010:  stloc.1
+      IL_0011:  ldloc.1
+      IL_0012:  stloc.0
+      IL_0013:  ldloca.s   V_0
+      IL_0015:  call       ""int System.Span<int>.Length.get""
+      IL_001a:  call       ""void System.Console.Write(int)""
+      IL_001f:  nop
+      IL_0020:  ldloca.s   V_0
+      IL_0022:  initobj    ""System.Span<int>""
+      IL_0028:  ldloca.s   V_0
+      IL_002a:  call       ""int System.Span<int>.Length.get""
+      IL_002f:  call       ""void System.Console.Write(int)""
+      IL_0034:  nop
+      IL_0035:  ret
+    }
+");
         }
 
         [Fact]
         public void StackAllocSpanLengthNotEvaluatedTwice()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 class Test
 {
@@ -16198,8 +16328,8 @@ class Test
             Console.Write(x.Length);
         }
     }
-}", TestOptions.ReleaseExe);
-
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
 {
   // Code size       44 (0x2c)
@@ -16232,12 +16362,308 @@ class Test
   IL_0029:  blt.s      IL_0004
   IL_002b:  ret
 }");
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "12345", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       56 (0x38)
+      .maxstack  2
+      .locals init (int V_0, //i
+                    System.Span<int> V_1, //x
+                    int V_2,
+                    System.Span<int> V_3,
+                    bool V_4)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.0
+      IL_0002:  stloc.0
+      IL_0003:  br.s       IL_002d
+      IL_0005:  nop
+      IL_0006:  call       ""int Test.GetLength()""
+      IL_000b:  stloc.2
+      IL_000c:  ldloc.2
+      IL_000d:  conv.u
+      IL_000e:  ldc.i4.4
+      IL_000f:  mul.ovf.un
+      IL_0010:  localloc
+      IL_0012:  ldloc.2
+      IL_0013:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0018:  stloc.3
+      IL_0019:  ldloc.3
+      IL_001a:  stloc.1
+      IL_001b:  ldloca.s   V_1
+      IL_001d:  call       ""int System.Span<int>.Length.get""
+      IL_0022:  call       ""void System.Console.Write(int)""
+      IL_0027:  nop
+      IL_0028:  nop
+      IL_0029:  ldloc.0
+      IL_002a:  ldc.i4.1
+      IL_002b:  add
+      IL_002c:  stloc.0
+      IL_002d:  ldloc.0
+      IL_002e:  ldc.i4.5
+      IL_002f:  clt
+      IL_0031:  stloc.s    V_4
+      IL_0033:  ldloc.s    V_4
+      IL_0035:  brtrue.s   IL_0005
+      IL_0037:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void NestedStackAlloc_01()
+        {
+            var source = @"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        Console.WriteLine(M(2, stackalloc int[3]));
+    }
+    public static int M(int x, Span<int> y) => x * y.Length;
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       25 (0x19)
+      .maxstack  2
+      .locals init (System.Span<int> V_0)
+      IL_0000:  ldc.i4.s   12
+      IL_0002:  conv.u
+      IL_0003:  localloc
+      IL_0005:  ldc.i4.3
+      IL_0006:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_000b:  stloc.0
+      IL_000c:  ldc.i4.2
+      IL_000d:  ldloc.0
+      IL_000e:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0013:  call       ""void System.Console.WriteLine(int)""
+      IL_0018:  ret
+    }
+");
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       27 (0x1b)
+      .maxstack  2
+      .locals init (System.Span<int> V_0)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.s   12
+      IL_0003:  conv.u
+      IL_0004:  localloc
+      IL_0006:  ldc.i4.3
+      IL_0007:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_000c:  stloc.0
+      IL_000d:  ldc.i4.2
+      IL_000e:  ldloc.0
+      IL_000f:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0014:  call       ""void System.Console.WriteLine(int)""
+      IL_0019:  nop
+      IL_001a:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void NestedStackAlloc_02()
+        {
+            var source = @"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        int z = 2;
+        Console.WriteLine(M(z, stackalloc int[3]));
+    }
+    public static int M(int x, Span<int> y) => x * y.Length;
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       27 (0x1b)
+      .maxstack  2
+      .locals init (int V_0,
+                    System.Span<int> V_1)
+      IL_0000:  ldc.i4.2
+      IL_0001:  stloc.0
+      IL_0002:  ldc.i4.s   12
+      IL_0004:  conv.u
+      IL_0005:  localloc
+      IL_0007:  ldc.i4.3
+      IL_0008:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_000d:  stloc.1
+      IL_000e:  ldloc.0
+      IL_000f:  ldloc.1
+      IL_0010:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0015:  call       ""void System.Console.WriteLine(int)""
+      IL_001a:  ret
+    }
+");
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       31 (0x1f)
+      .maxstack  2
+      .locals init (int V_0, //z
+                    int V_1,
+                    System.Span<int> V_2)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.2
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  stloc.1
+      IL_0005:  ldc.i4.s   12
+      IL_0007:  conv.u
+      IL_0008:  localloc
+      IL_000a:  ldc.i4.3
+      IL_000b:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0010:  stloc.2
+      IL_0011:  ldloc.1
+      IL_0012:  ldloc.2
+      IL_0013:  call       ""int Test.M(int, System.Span<int>)""
+      IL_0018:  call       ""void System.Console.WriteLine(int)""
+      IL_001d:  nop
+      IL_001e:  ret
+    }
+");
+        }
+
+        [Fact]
+        public void NestedStackAlloc_03()
+        {
+            var source = @"
+using System;
+class Test
+{
+    public static void Main()
+    {
+        int z = 2;
+        Console.WriteLine(z * stackalloc int[3] { 1, stackalloc int[2] { 4, 5 }.Length, 3 }.Length);
+    }
+    public static int M(int x, Span<int> y) => x * y.Length;
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       70 (0x46)
+      .maxstack  4
+      .locals init (int V_0,
+                    System.Span<int> V_1,
+                    System.Span<int> V_2)
+      IL_0000:  ldc.i4.2
+      IL_0001:  stloc.0
+      IL_0002:  ldc.i4.8
+      IL_0003:  conv.u
+      IL_0004:  localloc
+      IL_0006:  dup
+      IL_0007:  ldc.i4.4
+      IL_0008:  stind.i4
+      IL_0009:  dup
+      IL_000a:  ldc.i4.4
+      IL_000b:  add
+      IL_000c:  ldc.i4.5
+      IL_000d:  stind.i4
+      IL_000e:  ldc.i4.2
+      IL_000f:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0014:  stloc.2
+      IL_0015:  ldc.i4.s   12
+      IL_0017:  conv.u
+      IL_0018:  localloc
+      IL_001a:  dup
+      IL_001b:  ldc.i4.1
+      IL_001c:  stind.i4
+      IL_001d:  dup
+      IL_001e:  ldc.i4.4
+      IL_001f:  add
+      IL_0020:  ldloca.s   V_2
+      IL_0022:  call       ""int System.Span<int>.Length.get""
+      IL_0027:  stind.i4
+      IL_0028:  dup
+      IL_0029:  ldc.i4.2
+      IL_002a:  conv.i
+      IL_002b:  ldc.i4.4
+      IL_002c:  mul
+      IL_002d:  add
+      IL_002e:  ldc.i4.3
+      IL_002f:  stind.i4
+      IL_0030:  ldc.i4.3
+      IL_0031:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0036:  stloc.1
+      IL_0037:  ldloc.0
+      IL_0038:  ldloca.s   V_1
+      IL_003a:  call       ""int System.Span<int>.Length.get""
+      IL_003f:  mul
+      IL_0040:  call       ""void System.Console.WriteLine(int)""
+      IL_0045:  ret
+    }
+");
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "6", verify: Verification.Fails).VerifyIL("Test.Main", @"
+    {
+      // Code size       74 (0x4a)
+      .maxstack  4
+      .locals init (int V_0, //z
+                    int V_1,
+                    System.Span<int> V_2,
+                    System.Span<int> V_3)
+      IL_0000:  nop
+      IL_0001:  ldc.i4.2
+      IL_0002:  stloc.0
+      IL_0003:  ldloc.0
+      IL_0004:  stloc.1
+      IL_0005:  ldc.i4.8
+      IL_0006:  conv.u
+      IL_0007:  localloc
+      IL_0009:  dup
+      IL_000a:  ldc.i4.4
+      IL_000b:  stind.i4
+      IL_000c:  dup
+      IL_000d:  ldc.i4.4
+      IL_000e:  add
+      IL_000f:  ldc.i4.5
+      IL_0010:  stind.i4
+      IL_0011:  ldc.i4.2
+      IL_0012:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0017:  stloc.3
+      IL_0018:  ldc.i4.s   12
+      IL_001a:  conv.u
+      IL_001b:  localloc
+      IL_001d:  dup
+      IL_001e:  ldc.i4.1
+      IL_001f:  stind.i4
+      IL_0020:  dup
+      IL_0021:  ldc.i4.4
+      IL_0022:  add
+      IL_0023:  ldloca.s   V_3
+      IL_0025:  call       ""int System.Span<int>.Length.get""
+      IL_002a:  stind.i4
+      IL_002b:  dup
+      IL_002c:  ldc.i4.2
+      IL_002d:  conv.i
+      IL_002e:  ldc.i4.4
+      IL_002f:  mul
+      IL_0030:  add
+      IL_0031:  ldc.i4.3
+      IL_0032:  stind.i4
+      IL_0033:  ldc.i4.3
+      IL_0034:  newobj     ""System.Span<int>..ctor(void*, int)""
+      IL_0039:  stloc.2
+      IL_003a:  ldloc.1
+      IL_003b:  ldloca.s   V_2
+      IL_003d:  call       ""int System.Span<int>.Length.get""
+      IL_0042:  mul
+      IL_0043:  call       ""void System.Console.WriteLine(int)""
+      IL_0048:  nop
+      IL_0049:  ret
+    }
+");
         }
 
         [Fact]
         public void ImplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 unsafe class Test
 {
@@ -16259,15 +16685,18 @@ unsafe class Test
         Console.Write(""PointerOpCalled"");
         return default(Test);
     }
-}", TestOptions.UnsafeReleaseExe);
-
-            CompileAndVerify(comp, expectedOutput: "SpanOpCalled|PointerOpCalled", verify: Verification.Fails);
+}";
+            var expectedOutput = "SpanOpCalled|PointerOpCalled";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails);
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeDebugExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails);
         }
 
         [Fact]
         public void ExplicitCastOperatorOnStackAllocIsLoweredCorrectly()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            var source = @"
 using System;
 unsafe class Test
 {
@@ -16281,8 +16710,10 @@ unsafe class Test
         Console.Write(""SpanOpCalled"");
         return default(Test);
     }
-}", TestOptions.UnsafeReleaseExe);
-
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
+            comp = CreateCompilationWithMscorlibAndSpan(source, TestOptions.UnsafeDebugExe);
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
         }
 
@@ -16348,7 +16779,7 @@ unsafe class Test
             var verifier = CompileAndVerify(source, expectedOutput: "AB");
             verifier.VerifyIL("C.G",
 @"{
-  // Code size       15 (0xf)
+  // Code size       27 (0x1b)
   .maxstack  4
   .locals init (object[] V_0)
   IL_0000:  ldarg.0
@@ -16358,10 +16789,16 @@ unsafe class Test
   IL_0004:  ldloc.0
   IL_0005:  ldc.i4.0
   IL_0006:  ldelem.ref
-  IL_0007:  ldarg.1
-  IL_0008:  call       ""string string.Concat(object, object)""
-  IL_000d:  stelem.ref
-  IL_000e:  ret
+  IL_0007:  dup
+  IL_0008:  brtrue.s   IL_000e
+  IL_000a:  pop
+  IL_000b:  ldnull
+  IL_000c:  br.s       IL_0013
+  IL_000e:  callvirt   ""string object.ToString()""
+  IL_0013:  ldarg.1
+  IL_0014:  call       ""string string.Concat(string, string)""
+  IL_0019:  stelem.ref
+  IL_001a:  ret
 }");
         }
 
@@ -16432,7 +16869,7 @@ unsafe class Test
             var verifier = CompileAndVerify(source, expectedOutput: "Object[]AString[]B");
             verifier.VerifyIL("C.G",
 @"{
-  // Code size       22 (0x16)
+  // Code size       34 (0x22)
   .maxstack  4
   .locals init (object[] V_0,
                 int V_1)
@@ -16446,10 +16883,16 @@ unsafe class Test
   IL_000b:  ldloc.0
   IL_000c:  ldloc.1
   IL_000d:  ldelem.ref
-  IL_000e:  ldarg.1
-  IL_000f:  call       ""string string.Concat(object, object)""
-  IL_0014:  stelem.ref
-  IL_0015:  ret
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0015
+  IL_0011:  pop
+  IL_0012:  ldnull
+  IL_0013:  br.s       IL_001a
+  IL_0015:  callvirt   ""string object.ToString()""
+  IL_001a:  ldarg.1
+  IL_001b:  call       ""string string.Concat(string, string)""
+  IL_0020:  stelem.ref
+  IL_0021:  ret
 }");
         }
 
@@ -16740,6 +17183,49 @@ class Program
 }
 ";
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
+        }
+
+        [Fact]
+        [WorkItem(51228, "https://github.com/dotnet/roslyn/issues/51228")]
+        public void Issue51228()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static Task<object> t;
+
+    static async Task Main(string[] args)
+    {
+        Task<object> task = MethodAsync();
+        GetReference(__makeref(task));
+        object result = await task;
+        System.Console.WriteLine(result);
+        System.Console.WriteLine(task == t);
+    }
+
+    static void GetReference(TypedReference reference)
+    {
+        t = __refvalue(reference, Task<object>);
+        System.Console.WriteLine(__reftype(reference));
+    }
+
+    static async Task<object> MethodAsync()
+    {
+        await Task.FromResult(1);
+        await Task.FromResult(2);
+        return ""Success"";
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+System.Threading.Tasks.Task`1[System.Object]
+Success
+True
+", verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
     }
 }

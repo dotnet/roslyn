@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -60,17 +64,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                this.ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                this.location = node.GetLocation();
-                this.MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                location = node.GetLocation();
+                MethodGenerationKind = MethodGenerationKind.ExplicitConversion;
                 return true;
             }
 
@@ -84,16 +88,16 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     return false;
                 }
 
-                this.ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
+                ContainingType = document.SemanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 if (ContainingType == null)
                 {
                     return false;
                 }
 
-                this.IdentifierToken = identifierToken;
-                this.TypeToGenerateIn = typeToGenerateIn;
-                this.SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
-                this.MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
+                IdentifierToken = identifierToken;
+                TypeToGenerateIn = typeToGenerateIn;
+                SignatureInfo = new MethodSignatureInfo(document, this, methodSymbol);
+                MethodGenerationKind = MethodGenerationKind.ImplicitConversion;
                 return true;
             }
         }

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             _includeLocalSignatures = includeLocalSignatures;
         }
 
-        public unsafe static ModuleInstance Create(
+        public static unsafe ModuleInstance Create(
             PEMemoryBlock metadata,
             Guid moduleVersionId,
             ISymUnmanagedReader symReader = null)
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return Create(AssemblyMetadata.CreateFromImage(assemblyImage), symReader, includeLocalSignatures);
         }
 
-        private unsafe static ModuleInstance Create(
+        private static unsafe ModuleInstance Create(
             Metadata metadata,
             object symReader,
             bool includeLocalSignatures)

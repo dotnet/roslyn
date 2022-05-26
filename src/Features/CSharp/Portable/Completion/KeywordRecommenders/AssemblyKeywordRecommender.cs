@@ -1,8 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
@@ -17,18 +20,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             var token = context.TargetToken;
 
-            if (token.Kind() != SyntaxKind.OpenBracketToken)
+            if (token.Kind() == SyntaxKind.OpenBracketToken &&
+                token.GetRequiredParent().Kind() == SyntaxKind.AttributeList)
             {
-                return false;
-            }
-
-            if (token.Parent.Kind() == SyntaxKind.AttributeList)
-            {
-                var attributeList = token.Parent;
+                var attributeList = token.GetRequiredParent();
                 var parentSyntax = attributeList.Parent;
                 switch (parentSyntax)
                 {
-                    case CompilationUnitSyntax _:
+                    case CompilationUnitSyntax:
+                    case BaseNamespaceDeclarationSyntax:
                     // The case where the parent of attributeList is (Class/Interface/Enum/Struct)DeclarationSyntax, like:
                     // [$$
                     // class Goo {
@@ -39,16 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     // for that case is necessary check if they Parent is CompilationUnitSyntax
                     case IncompleteMemberSyntax incompleteMember when incompleteMember.Parent is CompilationUnitSyntax:
                         return true;
-                    default:
-                        return false;
                 }
             }
 
-            var skippedTokensTriviaSyntax = token.Parent;
-            // This case happens when:
-            // [$$
-            // namespace Goo {
-            return skippedTokensTriviaSyntax is SkippedTokensTriviaSyntax;
+            return false;
         }
     }
 }

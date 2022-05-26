@@ -1,70 +1,79 @@
 <#
-    This script drives the Jenkins verification that our build is correct.  In particular:
+  This script drives the Jenkins verification that our build is correct.  In particular:
 
-        - Our build has no double writes
-        - Our project.json files are consistent
-        - Our build files are well structured
-        - Our solution states are consistent
-        - Our generated files are consistent
+    - Our build has no double writes
+    - Our project.json files are consistent
+    - Our build files are well structured
+    - Our solution states are consistent
+    - Our generated files are consistent
 
 #>
 
 [CmdletBinding(PositionalBinding=$false)]
 param(
-    [string]$configuration = "Debug",
-    [switch]$help)
+  [string]$configuration = "Debug",
+  [switch]$enableDumps = $false,
+  [switch]$help)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
 function Print-Usage() {
-    Write-Host "Usage: test-build-correctness.ps1"
-    Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
+  Write-Host "Usage: test-build-correctness.ps1"
+  Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
 }
 
 try {
-    if ($help) {
-        Print-Usage
-        exit 0
-    }
-
-    $ci = $true
-
-    . (Join-Path $PSScriptRoot "build-utils.ps1")
-    Push-Location $RepoRoot
-
-    Write-Host "Building Roslyn"
-    Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -ci:$ci -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$false -properties "/p:RoslynEnforceCodeStyle=true"}
-
-    # Verify the state of our various build artifacts
-    Write-Host "Running BuildBoss"
-    $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
-    Exec-Console $buildBossPath "-r `"$RepoRoot`" -c $configuration"
-    Write-Host ""
-
-    # Verify the state of our generated syntax files
-    Write-Host "Checking generated compiler files"
-    Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
-    Write-Host ""
-    
-    # Verify the state of creating run settings for OptProf
-    Write-Host "Checking OptProf run settings generation"
-
-    # create a fake BootstrapperInfo.json file
-    $bootstrapperInfoPath = Join-Path $TempDir "BootstrapperInfo.json"
-    $bootstrapperInfoContent = "[{""BuildDrop"": ""https://vsdrop.corp.microsoft.com/file/v1/Products/42.42.42.42/42.42.42.42""}]"
-    $bootstrapperInfoContent | Set-Content $bootstrapperInfoPath
-
-    # generate run settings
-    Exec-Block { & (Join-Path $PSScriptRoot "common\sdk-task.ps1") -configuration:$configuration -task VisualStudio.BuildIbcTrainingSettings /p:VisualStudioDropName="Products/DummyDrop" /p:BootstrapperInfoPath=$bootstrapperInfoPath }
-    
+  if ($help) {
+    Print-Usage
     exit 0
+  }
+
+  $ci = $true
+
+  . (Join-Path $PSScriptRoot "build-utils.ps1")
+  Push-Location $RepoRoot
+
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    New-Item -Path $key -ErrorAction SilentlyContinue
+    New-ItemProperty -Path $key -Name 'DumpType' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpCount' -PropertyType 'DWord' -Value 2 -Force
+    New-ItemProperty -Path $key -Name 'DumpFolder' -PropertyType 'String' -Value $LogDir -Force
+  }
+
+  Write-Host "Building Roslyn"
+  Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -bootstrap -bootstrapConfiguration:Debug -ci:$ci -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties "/p:RoslynEnforceCodeStyle=true"}
+
+  Subst-TempDir
+
+  # Verify the state of our various build artifacts
+  Write-Host "Running BuildBoss"
+  $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
+  Exec-Console $buildBossPath "-r `"$RepoRoot/`" -c $configuration" -p Roslyn.sln
+  Write-Host ""
+
+  # Verify the state of our generated syntax files
+  Write-Host "Checking generated compiler files"
+  Exec-Block { & (Join-Path $PSScriptRoot "generate-compiler-code.ps1") -test -configuration:$configuration }
+  Exec-Console dotnet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
+  Write-Host ""
+
+  exit 0
 }
 catch [exception] {
-    Write-Host $_
-    Write-Host $_.Exception
-    exit 1
+  Write-Host $_
+  Write-Host $_.Exception
+  exit 1
 }
 finally {
-    Pop-Location
+  if ($enableDumps) {
+    $key = "HKLM:\\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps"
+    Remove-ItemProperty -Path $key -Name 'DumpType'
+    Remove-ItemProperty -Path $key -Name 'DumpCount'
+    Remove-ItemProperty -Path $key -Name 'DumpFolder'
+  }
+
+  Unsubst-TempDir
+  Pop-Location
 }

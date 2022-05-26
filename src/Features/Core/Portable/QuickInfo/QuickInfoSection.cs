@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -21,10 +23,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         public ImmutableArray<TaggedText> TaggedParts { get; }
 
-        private QuickInfoSection(string kind, ImmutableArray<TaggedText> taggedParts)
+        private QuickInfoSection(string? kind, ImmutableArray<TaggedText> taggedParts)
         {
-            this.Kind = kind ?? string.Empty;
-            this.TaggedParts = taggedParts.NullToEmpty();
+            Kind = kind ?? string.Empty;
+            TaggedParts = taggedParts.NullToEmpty();
         }
 
         /// <summary>
@@ -32,12 +34,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         /// <param name="kind">The kind of the section. Use <see cref="QuickInfoSectionKinds"/> for the most common kinds.</param>
         /// <param name="taggedParts">The individual tagged parts of the section.</param>
-        public static QuickInfoSection Create(string kind, ImmutableArray<TaggedText> taggedParts)
-        {
-            return new QuickInfoSection(kind, taggedParts);
-        }
+        public static QuickInfoSection Create(string? kind, ImmutableArray<TaggedText> taggedParts)
+            => new(kind, taggedParts);
 
-        private string _text;
+        private string? _text;
 
         /// <summary>
         /// The text of the section without tags.
@@ -48,13 +48,13 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             {
                 if (_text == null)
                 {
-                    if (this.TaggedParts.Length == 0)
+                    if (TaggedParts.Length == 0)
                     {
                         _text = string.Empty;
                     }
                     else
                     {
-                        Interlocked.CompareExchange(ref _text, string.Concat(this.TaggedParts.Select(t => t.Text)), null);
+                        Interlocked.CompareExchange(ref _text, string.Concat(TaggedParts.Select(t => t.Text)), null);
                     }
                 }
 

@@ -1,9 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -14,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string CreateDiagnosticDescription(this Exception exception)
         {
-            var aggregateException = exception as AggregateException;
-            if (aggregateException != null)
+            if (exception is AggregateException aggregateException)
             {
                 var flattened = aggregateException.Flatten();
                 return string.Join(s_separator, flattened.InnerExceptions.Select(e => GetExceptionMessage(e)));
@@ -31,19 +33,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string GetExceptionMessage(Exception exception)
         {
-            var fileNotFoundException = exception as FileNotFoundException;
-            if (fileNotFoundException == null)
-            {
-                return exception.ToString();
-            }
-
-            var fusionLog = DesktopShim.FileNotFoundExceptionShim.TryGetFusionLog(fileNotFoundException);
+            var fusionLog = (exception as FileNotFoundException)?.FusionLog;
             if (fusionLog == null)
             {
                 return exception.ToString();
             }
 
-            return string.Join(s_separator, fileNotFoundException.Message, fusionLog);
+            return string.Join(s_separator, exception.Message, fusionLog);
         }
     }
 }

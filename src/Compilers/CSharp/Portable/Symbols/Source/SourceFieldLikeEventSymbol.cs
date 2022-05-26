@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -19,16 +21,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly string _name;
         private readonly TypeWithAnnotations _type;
-        private readonly SourceEventFieldSymbol _associatedField;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
-        private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
+        private readonly SynthesizedEventAccessorSymbol _addMethod;
+        private readonly SynthesizedEventAccessorSymbol _removeMethod;
 
-        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
-            : base(containingType, declaratorSyntax, modifiers, null, declaratorSyntax.Identifier, diagnostics)
+        internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, BindingDiagnosticBag diagnostics)
+            : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
+                   nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
+            Debug.Assert(declaratorSyntax.Parent is object);
+
             _name = declaratorSyntax.Identifier.ValueText;
 
-            var declaratorDiagnostics = DiagnosticBag.GetInstance();
+            var declaratorDiagnostics = BindingDiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
             _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);
 
@@ -48,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // return type without losing the appearance of immutability.
             if (this.IsOverride)
             {
-                EventSymbol overriddenEvent = this.OverriddenEvent;
-                if ((object)overriddenEvent != null)
+                EventSymbol? overriddenEvent = this.OverriddenEvent;
+                if ((object?)overriddenEvent != null)
                 {
                     CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                 }
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                if (inInterfaceType)
+                if (inInterfaceType && !this.IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.Locations[0], this);
                 }
@@ -68,13 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_AbstractEventInitializer, this.Locations[0], this);
                 }
+                else if (this.IsExtern)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExternEventInitializer, this.Locations[0], this);
+                }
             }
 
             // NOTE: if there's an initializer in source, we'd better create a backing field, regardless of
             // whether or not the initializer is legal.
-            if (hasInitializer || !(inInterfaceType || this.IsExtern || this.IsAbstract))
+            if (hasInitializer || !(this.IsExtern || this.IsAbstract))
             {
-                _associatedField = MakeAssociatedField(declaratorSyntax);
+                AssociatedEventField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
@@ -83,9 +91,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
             }
 
+            if (inInterfaceType)
+            {
+                if ((IsAbstract || IsVirtual) && IsStatic)
+                {
+                    if (!ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, this.Locations[0]);
+                    }
+                }
+                else if (this.IsExtern || this.IsStatic)
+                {
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                    }
+                }
+                else if (!this.IsAbstract)
+                {
+                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                }
+            }
+
             // Accessors will assume that Type is available.
-            _addMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: true);
-            _removeMethod = new SynthesizedFieldLikeEventAccessorSymbol(this, isAdder: false);
+            _addMethod = new SynthesizedEventAccessorSymbol(this, isAdder: true);
+            _removeMethod = new SynthesizedEventAccessorSymbol(this, isAdder: false);
 
             if (declarationSyntax.Variables[0] == declaratorSyntax)
             {
@@ -100,10 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Backing field for field-like event. Will be null if the event
         /// has no initializer and is either extern or inside an interface.
         /// </summary>
-        internal override FieldSymbol AssociatedField
-        {
-            get { return _associatedField; }
-        }
+        internal override FieldSymbol? AssociatedField => AssociatedEventField;
+
+        internal SourceEventFieldSymbol? AssociatedEventField { get; }
 
         public override string Name
         {
@@ -134,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (object)_associatedField != null ?
+                return (object?)AssociatedEventField != null ?
                     AttributeLocation.Event | AttributeLocation.Method | AttributeLocation.Field :
                     AttributeLocation.Event | AttributeLocation.Method;
             }
@@ -147,17 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SourceEventFieldSymbol MakeAssociatedField(VariableDeclaratorSyntax declaratorSyntax)
         {
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
-            var field = new SourceEventFieldSymbol(this, declaratorSyntax, discardedDiagnostics);
-            discardedDiagnostics.Free();
+            var field = new SourceEventFieldSymbol(this, declaratorSyntax, BindingDiagnosticBag.Discarded);
 
             Debug.Assert(field.Name == _name);
             return field;
         }
 
-        internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
         {
-            if ((object)this.AssociatedField != null)
+            if ((object?)this.AssociatedField != null)
             {
                 this.AssociatedField.ForceComplete(locationOpt, cancellationToken);
             }

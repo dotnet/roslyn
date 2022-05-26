@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,46 +10,37 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
-    internal class MethodTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
+    internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractReferenceFinder<ITypeParameterSymbol>
     {
         protected override bool CanFind(ITypeParameterSymbol symbol)
-        {
-            return symbol.TypeParameterKind == TypeParameterKind.Method;
-        }
+            => symbol.TypeParameterKind == TypeParameterKind.Method;
 
-        protected override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
+        protected override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            ITypeParameterSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var symbol = symbolAndProjectId.Symbol;
             var method = (IMethodSymbol)symbol.ContainingSymbol;
             var ordinal = method.TypeParameters.IndexOf(symbol);
 
             if (ordinal >= 0)
             {
                 if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
-                {
-                    return Task.FromResult(ImmutableArray.Create(
-                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialDefinitionPart.TypeParameters[ordinal])));
-                }
+                    return Task.FromResult(ImmutableArray.Create<ISymbol>(method.PartialDefinitionPart.TypeParameters[ordinal]));
 
                 if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
-                {
-                    return Task.FromResult(ImmutableArray.Create(
-                        symbolAndProjectId.WithSymbol((ISymbol)method.PartialImplementationPart.TypeParameters[ordinal])));
-                }
+                    return Task.FromResult(ImmutableArray.Create<ISymbol>(method.PartialImplementationPart.TypeParameters[ordinal]));
             }
 
-            return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
+            return SpecializedTasks.EmptyImmutableArray<ISymbol>();
         }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             ITypeParameterSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
@@ -61,6 +54,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             //
             // Also, we only look for files that have the name of the owning type.  This helps filter
             // down the set considerably.
+            Contract.ThrowIfNull(symbol.DeclaringMethod);
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name,
                 GetMemberNameWithoutInterfaceName(symbol.DeclaringMethod.Name),
                 symbol.DeclaringMethod.ContainingType.Name);
@@ -74,8 +68,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : fullName;
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             ITypeParameterSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,

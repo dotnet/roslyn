@@ -3,7 +3,7 @@ async-streams (C# 8.0)
 
 Async-streams are asynchronous variants of enumerables, where getting the next element may involve an asynchronous operation. They are types that implement `IAsyncEnumerable<T>`.
 
-```C#
+```csharp
 // Those interfaces will ship as part of .NET Core 3
 namespace System.Collections.Generic
 {
@@ -40,7 +40,7 @@ An async-iterator method is a method that:
 3. uses both `await` syntax (`await` expression, `await foreach` or `await using` statements) and `yield` statements (`yield return`, `yield break`).
 
 For example:
-```C#
+```csharp
 async IAsyncEnumerable<int> GetValuesFromServer()
 {
     while (true)
@@ -86,7 +86,7 @@ thereby allowing consumers of async-streams to control cancellation.
 A producer of async-streams can make use of the cancellation token by writing an
 `IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken)` async-iterator method in a custom type.
 
-```C#
+```csharp
 E e = ((C)(x)).GetAsyncEnumerator(default);
 try
 {
@@ -117,7 +117,8 @@ But it contains additional state:
 - a promise of a value-or-end,
 - a current yielded value of type `T`,
 - an `int` capturing the id of the thread that created it,
-- a `bool` flag indicating "dispose mode".
+- a `bool` flag indicating "dispose mode",
+- a `CancellationTokenSource` for combining tokens (in enumerables).
 
 The central method of the state machine is `MoveNext()`. It gets run by `MoveNextAsync()`, or as a background continuation initiated from these from an `await` in the method.
 
@@ -133,8 +134,8 @@ Compared to the state machine for a regular async method, the `MoveNext()` for a
 - to support handling a `yield return` statement, which saves the current value and fulfills the promise with result `true`,
 - to support handling a `yield break` statement, which sets the dispose mode on and jumps to the enclosing `finally` or exit,
 - to dispatch execution to `finally` blocks (when disposing),
-- to exit the method, which fulfills the promise with result `false`,
-- to catch exceptions, which set the exception into the promise.
+- to exit the method, which disposes the `CancellationTokenSource` (if any) and fulfills the promise with result `false`,
+- to catch exceptions, which disposes the `CancellationTokenSource` (if any) and sets the exception into the promise.
 (The handling of an `await` is unchanged)
 
 This is reflected in the implementation, which extends the lowering machinery for async methods to:
@@ -143,7 +144,7 @@ This is reflected in the implementation, which extends the lowering machinery fo
 3. produce additional state and logic for the promise itself (see `AsyncIteratorRewriter`, which produces various other members: `MoveNextAsync`, `Current`, `DisposeAsync`,
 and some members supporting the resettable `ValueTask` behavior, namely `GetResult`, `SetStatus`, `OnCompleted`).
 
-```C#
+```csharp
 ValueTask<bool> MoveNextAsync()
 {
     if (state == StateMachineStates.FinishedStateMachine)
@@ -162,19 +163,20 @@ ValueTask<bool> MoveNextAsync()
 }
 ```
 
-```C#
+```csharp
 T Current => current;
 ```
 
 The kick-off method and the initialization of the state machine for an async-iterator method follows those for regular iterator methods.
 In particular, the synthesized `GetAsyncEnumerator()` method is like `GetEnumerator()` except that it sets the initial state to to StateMachineStates.NotStartedStateMachine (-1):
-```C#
+```csharp
 IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token)
 {
     {StateMachineType} result;
     if (initialThreadId == /*managedThreadId*/ && state == StateMachineStates.FinishedStateMachine)
     {
         state = InitialState; // -3
+        builder = AsyncIteratorMethodBuilder.Create();
         disposeMode = false;
         result = this;
     }
@@ -182,13 +184,30 @@ IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken token)
     {
         result = new {StateMachineType}(InitialState);
     }
-    /* copy all of the parameter proxies */
+    /* copy each parameter proxy, or in the case of the parameter marked with [EnumeratorCancellation] combine it with `GetAsyncEnumerator`'s `token` parameter */
+}
+```
+
+For the parameter with `[EnumeratorCancellation]`, `GetAsyncEnumerator` initializes it by combining the two available tokens:
+```csharp
+if (this.parameterProxy.Equals(default))
+{
+    result.parameter = token;
+}
+else if (token.Equals(this.parameterProxy) || token.Equals(default))
+{
+    result.parameter = this.parameterProxy;
+}
+else
+{
+    result.combinedTokens = CancellationTokenSource.CreateLinkedTokenSource(this.parameterProxy, token);
+    result.parameter = combinedTokens.Token;
 }
 ```
 For a discussion of the threadID check, see https://github.com/dotnet/corefx/issues/3481
 
 Similarly, the kick-off method is much like those of regular iterator methods:
-```C#
+```csharp
 {
     {StateMachineType} result = new {StateMachineType}(StateMachineStates.FinishedStateMachine); // -2
     /* save parameters into parameter proxies */
@@ -227,7 +246,7 @@ Looking at disposal from the perspective of a given `finally` block, the code in
 - in dispose mode, following a nested `finally`.
 
 A `yield return` is lowered as:
-```C#
+```csharp
 _current = expression;
 _state = <next_state>;
 goto <exprReturnTruelabel>; // which does _valueOrEndPromise.SetResult(true); return;
@@ -239,12 +258,12 @@ if (disposeMode) /* jump to enclosing finally or exit */
 ```
 
 A `yield break` is lowered as:
-```C#
+```csharp
 disposeMode = true;
 /* jump to enclosing finally or exit */
 ```
 
-```C#
+```csharp
 ValueTask IAsyncDisposable.DisposeAsync()
 {
     if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
@@ -266,7 +285,7 @@ ValueTask IAsyncDisposable.DisposeAsync()
 ##### Regular versus extracted finally
 
 When the `finally` clause contains no `await` expressions, a `try/finally` is lowered as:
-```C#
+```csharp
 try
 {
     ...
@@ -280,7 +299,7 @@ if (disposeMode) /* jump to enclosing finally or exit */
 ```
 
 When a `finally` contains `await` expressions, it is extracted before async rewriting (by AsyncExceptionHandlerRewriter). In those cases, we get:
-```C#
+```csharp
 try
 {
     ...
@@ -325,7 +344,7 @@ The result of invoking `DisposeAsync` from states -1 or N is unspecified. This c
  ^                                   |  |                          |
  |         done and disposed         |  |      yield return        |
  +-----------------------------------+  +-----------------------> -N
- |                                   |                             |
+ |        or exception thrown        |                             |
  |                                   |                             |
  |                             yield |                             |
  |                             break |           DisposeAsync      |

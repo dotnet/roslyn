@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Text
@@ -515,7 +517,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
+            Dim aliasedCorlib = TestMetadata.Net451.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
             Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 
@@ -569,6 +571,18 @@ BC30560: 'Task' is ambiguous in the namespace 'System.Threading.Tasks'.
     Public T as Task
                 ~~~~
                 </expected>)
+        End Sub
+
+        <Fact, WorkItem(54836, "https://github.com/dotnet/roslyn/issues/54836")>
+        Public Sub RetargetableAttributeIsRespectedInSource()
+            Dim code = <![CDATA[
+Imports System.Reflection
+<Assembly: AssemblyFlags(AssemblyNameFlags.Retargetable)>
+]]>
+
+            Dim comp = CreateCompilation(code.Value)
+            Assert.True(comp.Assembly.Identity.IsRetargetable)
+            AssertTheseEmitDiagnostics(comp)
         End Sub
 
     End Class

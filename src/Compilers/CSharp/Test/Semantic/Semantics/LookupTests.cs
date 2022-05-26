@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +11,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -33,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
-            return model.LookupSymbols(position, container, name).Where(s => !arity.HasValue || arity == ((Symbol)s).GetMemberArity()).ToList();
+            return model.LookupSymbols(position, container.GetPublicSymbol(), name).Where(s => !arity.HasValue || arity == s.GetSymbol().GetMemberArity()).ToList();
         }
 
         #endregion helpers
@@ -681,9 +685,9 @@ class B : A
             Assert.NotEqual(0, baseExprLocation);
 
             var baseExprInfo = model.GetTypeInfo((ExpressionSyntax)baseExprNode);
-            Assert.NotNull(baseExprInfo);
+            Assert.NotEqual(default, baseExprInfo);
 
-            var baseExprType = (NamedTypeSymbol)baseExprInfo.Type;
+            var baseExprType = (INamedTypeSymbol)baseExprInfo.Type;
             Assert.NotNull(baseExprType);
             Assert.Equal("A", baseExprType.Name);
 
@@ -1033,6 +1037,96 @@ class Program
             Assert.Contains(expected_in_lookupSymbols[0], actual_lookupSymbols_as_string);
         }
 
+        [Fact]
+        public void LookupInsideLocalFunctionAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        [ObsoleteAttribute(/*pos*/
+        static void local1(int z)
+        {
+        }
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
+        [Fact]
+        public void LookupInsideLambdaAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        Action<int> a =
+            [ObsoleteAttribute(/*pos*/
+            (int z) => { };
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
+        [Fact]
+        public void LookupInsideIncompleteStatementAttribute()
+        {
+            var testSrc = @"
+using System;
+
+class Program
+{
+    const int w = 0451;
+
+    void M()
+    {
+        int x = 42;
+        const int y = 123;
+        [ObsoleteAttribute(/*pos*/
+        int
+    }
+}
+";
+
+            var lookupNames = GetLookupNames(testSrc);
+            var lookupSymbols = GetLookupSymbols(testSrc).Select(e => e.ToTestDisplayString()).ToList();
+
+            Assert.Contains("w", lookupNames);
+            Assert.Contains("y", lookupNames);
+            Assert.Contains("System.Int32 Program.w", lookupSymbols);
+            Assert.Contains("System.Int32 y", lookupSymbols);
+        }
+
         [WorkItem(541909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541909")]
         [Fact]
         public void LookupFromRangeVariableAfterFromClause()
@@ -1277,9 +1371,9 @@ class Program
             var comp = CreateCompilationWithMscorlib40(new[] { tree });
             var model = comp.GetSemanticModel(tree);
             var eof = tree.GetCompilationUnitRoot().FullSpan.End;
-            Assert.NotEqual(eof, 0);
+            Assert.NotEqual(0, eof);
             var symbols = model.LookupSymbols(eof);
-            CompilationUtils.CheckSymbols(symbols, "System", "Microsoft");
+            CompilationUtils.CheckISymbols(symbols, "System", "Microsoft");
         }
 
         [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
@@ -1301,8 +1395,8 @@ class Program
             var actual_lookupSymbols = GetLookupSymbols(source);
 
             // Verify nested namespaces *are not* imported.
-            var systemNS = (NamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("System") && sym.Kind == SymbolKind.Namespace).Single();
-            NamespaceSymbol systemXmlNS = systemNS.GetNestedNamespace("Xml");
+            var systemNS = (INamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("System") && sym.Kind == SymbolKind.Namespace).Single();
+            INamespaceSymbol systemXmlNS = systemNS.GetNestedNamespace("Xml");
             Assert.DoesNotContain(systemXmlNS, actual_lookupSymbols);
         }
 
@@ -1431,21 +1525,21 @@ class Q : P
 
         private void TestLookupSymbolsNestedNamespaces(List<ISymbol> actual_lookupSymbols)
         {
-            var namespaceX = (NamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("X") && sym.Kind == SymbolKind.Namespace).Single();
+            var namespaceX = (INamespaceSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("X") && sym.Kind == SymbolKind.Namespace).Single();
 
             // Verify nested namespaces within namespace X *are not* present in lookup symbols.
-            NamespaceSymbol namespaceY = namespaceX.GetNestedNamespace("Y");
+            INamespaceSymbol namespaceY = namespaceX.GetNestedNamespace("Y");
             Assert.DoesNotContain(namespaceY, actual_lookupSymbols);
-            NamedTypeSymbol typeInnerZ = namespaceY.GetTypeMembers("InnerZ").Single();
+            INamedTypeSymbol typeInnerZ = namespaceY.GetTypeMembers("InnerZ").Single();
             Assert.DoesNotContain(typeInnerZ, actual_lookupSymbols);
 
             // Verify nested types *are not* present in lookup symbols.
-            var typeA = (NamedTypeSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("A") && sym.Kind == SymbolKind.NamedType).Single();
-            NamedTypeSymbol typeB = typeA.GetTypeMembers("B").Single();
+            var typeA = (INamedTypeSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("A") && sym.Kind == SymbolKind.NamedType).Single();
+            INamedTypeSymbol typeB = typeA.GetTypeMembers("B").Single();
             Assert.DoesNotContain(typeB, actual_lookupSymbols);
 
             // Verify aliases to nested namespaces within namespace X *are* present in lookup symbols.
-            var aliasY = (AliasSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("aliasY") && sym.Kind == SymbolKind.Alias).Single();
+            var aliasY = (IAliasSymbol)actual_lookupSymbols.Where((sym) => sym.Name.Equals("aliasY") && sym.Kind == SymbolKind.Alias).Single();
             Assert.Contains(aliasY, actual_lookupSymbols);
         }
 
@@ -1472,7 +1566,7 @@ class C
             compilation.VerifyDiagnostics();
             var exprs = GetExprSyntaxList(tree);
             var expr = GetExprSyntaxForBinding(exprs);
-            var method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            var method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
             Assert.Equal("object.F()", method.ToDisplayString());
             var reducedFrom = method.ReducedFrom;
             Assert.NotNull(reducedFrom);
@@ -1505,12 +1599,12 @@ class C
             var exprs = GetExprSyntaxList(tree);
 
             var expr = GetExprSyntaxForBinding(exprs, index: 0);
-            var method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            var method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
             Assert.Null(method.ReducedFrom);
             Assert.Equal("E.F(object)", method.ToDisplayString());
 
             expr = GetExprSyntaxForBinding(exprs, index: 1);
-            method = (MethodSymbol)model.GetSymbolInfo(expr).Symbol;
+            method = (IMethodSymbol)model.GetSymbolInfo(expr).Symbol;
             Assert.Equal("object.F()", method.ToDisplayString());
             var reducedFrom = method.ReducedFrom;
             Assert.NotNull(reducedFrom);
@@ -1636,15 +1730,15 @@ class Test
             Assert.Equal(2, syntaxes.Length);
 
             // The properties in T are hidden - we bind to the properties on more-derived interfaces
-            Assert.Equal(propertyLP, model.GetSymbolInfo(syntaxes[0]).Symbol);
-            Assert.Equal(propertyRQ, model.GetSymbolInfo(syntaxes[1]).Symbol);
+            Assert.Equal(propertyLP.GetPublicSymbol(), model.GetSymbolInfo(syntaxes[0]).Symbol);
+            Assert.Equal(propertyRQ.GetPublicSymbol(), model.GetSymbolInfo(syntaxes[1]).Symbol);
 
             int position = source.IndexOf("return", StringComparison.Ordinal);
 
             // We do the right thing with diamond inheritance (i.e. member is hidden along all paths
             // if it is hidden along any path) because we visit base interfaces in topological order.
-            Assert.Equal(propertyLP, model.LookupSymbols(position, interfaceB, "P").Single());
-            Assert.Equal(propertyRQ, model.LookupSymbols(position, interfaceB, "Q").Single());
+            Assert.Equal(propertyLP.GetPublicSymbol(), model.LookupSymbols(position, interfaceB.GetPublicSymbol(), "P").Single());
+            Assert.Equal(propertyRQ.GetPublicSymbol(), model.LookupSymbols(position, interfaceB.GetPublicSymbol(), "Q").Single());
         }
 
         [Fact]
@@ -1700,10 +1794,10 @@ public class C<T>
             int position = source.IndexOf("return", StringComparison.Ordinal);
 
             var symbols = model.LookupSymbols(position, name: "T");
-            Assert.Equal(methodT, symbols.Single()); // Hides type parameter.
+            Assert.Equal(methodT.GetPublicSymbol(), symbols.Single()); // Hides type parameter.
 
             symbols = model.LookupNamespacesAndTypes(position, name: "T");
-            Assert.Equal(classC.TypeParameters.Single(), symbols.Single()); // Ignore intervening method.
+            Assert.Equal(classC.TypeParameters.Single().GetPublicSymbol(), symbols.Single()); // Ignore intervening method.
         }
 
         [Fact]
@@ -1924,8 +2018,8 @@ class Program
             var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
 
             var symbolInfo = model.GetSymbolInfo(call.Expression);
-            Assert.NotNull(symbolInfo);
-            Assert.Equal(symbolInfo.Symbol, m);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
         }
 
         [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
@@ -1954,8 +2048,8 @@ class Program
             var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
-            Assert.Equal(symbolInfo.Symbol, m);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
         }
 
         [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
@@ -1984,8 +2078,8 @@ class Program
             var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
-            Assert.Equal(symbolInfo.Symbol, m);
+            Assert.NotEqual(default, symbolInfo);
+            Assert.Equal(symbolInfo.Symbol.GetSymbol(), m);
         }
 
         [Fact, WorkItem(1091936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1091936")]
@@ -2010,8 +2104,43 @@ class Program
             var node = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().Single();
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.NotNull(symbolInfo);
+            Assert.NotEqual(default, symbolInfo);
             Assert.NotNull(symbolInfo.Symbol);
+        }
+
+        [Fact]
+        public void GenericAttribute_LookupSymbols_01()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1<string>(""a"")]
+class C { }";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var symbol = model.GetSymbolInfo(node);
+            Assert.Equal("Attr1<System.String>..ctor(System.String t)", symbol.Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void GenericAttribute_LookupSymbols_02()
+        {
+            var source = @"
+using System;
+class Attr1<T> : Attribute { public Attr1(T t) { } }
+
+[Attr1</*<bind>*/string/*</bind>*/>]
+class C { }";
+
+            var names = GetLookupNames(source);
+            Assert.Contains("C", names);
+            Assert.Contains("Attr1", names);
         }
 
         #endregion

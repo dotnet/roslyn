@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 
@@ -8,17 +10,17 @@ namespace Microsoft.CodeAnalysis.Syntax
     {
         internal class SeparatedWithManyWeakChildren : SyntaxList
         {
-            private readonly ArrayElement<WeakReference<SyntaxNode>>[] _children;
+            private readonly ArrayElement<WeakReference<SyntaxNode>?>[] _children;
 
             internal SeparatedWithManyWeakChildren(InternalSyntax.SyntaxList green, SyntaxNode parent, int position)
                 : base(green, parent, position)
             {
-                _children = new ArrayElement<WeakReference<SyntaxNode>>[(((green.SlotCount + 1) >> 1) - 1)];
+                _children = new ArrayElement<WeakReference<SyntaxNode>?>[(((green.SlotCount + 1) >> 1) - 1)];
             }
 
-            internal override SyntaxNode GetNodeSlot(int i)
+            internal override SyntaxNode? GetNodeSlot(int i)
             {
-                SyntaxNode result = null;
+                SyntaxNode? result = null;
 
                 if ((i & 1) == 0)
                 {
@@ -29,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Syntax
                 return result;
             }
 
-            internal override SyntaxNode GetCachedSlot(int i)
+            internal override SyntaxNode? GetCachedSlot(int i)
             {
-                SyntaxNode result = null;
+                SyntaxNode? result = null;
 
                 if ((i & 1) == 0)
                 {

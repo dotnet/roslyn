@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -27,7 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _substitution As TypeSubstitution
 
         Private Sub New(substitution As TypeSubstitution)
-            Debug.Assert(substitution IsNot Nothing AndAlso substitution.TargetGenericDefinition.IsDefinition)
+            Debug.Assert(substitution IsNot Nothing)
+            Debug.Assert(substitution.TargetGenericDefinition.IsDefinition)
+            Debug.Assert(TypeOf substitution.TargetGenericDefinition Is InstanceTypeSymbol) ' Required to ensure symmetrical equality
             _substitution = substitution
         End Sub
 
@@ -239,11 +243,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return DirectCast(OriginalDefinition.GetDeclaredBase(basesBeingResolved).InternalSubstituteTypeParameters(_substitution).AsTypeSymbolOnly(), NamedTypeSymbol)
         End Function
 
-        Friend NotOverridable Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend NotOverridable Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim instanceInterfaces = OriginalDefinition.GetDeclaredInterfacesNoUseSiteDiagnostics(basesBeingResolved)
 
             If instanceInterfaces.Length = 0 Then
@@ -261,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
 
-        Friend NotOverridable Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend NotOverridable Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Dim fullBase = OriginalDefinition.BaseTypeNoUseSiteDiagnostics
 
             If fullBase IsNot Nothing Then
@@ -271,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Friend NotOverridable Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend NotOverridable Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim instanceInterfaces = OriginalDefinition.InterfacesNoUseSiteDiagnostics
 
             If instanceInterfaces.Length = 0 Then
@@ -489,26 +493,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
         End Function
 
-        Public Overrides Function GetHashCode() As Integer
-            Dim _hash As Integer = OriginalDefinition.GetHashCode()
-            _hash = Hash.Combine(ContainingType, _hash)
+        Public NotOverridable Overrides Function GetHashCode() As Integer
+            Dim hash As Integer = OriginalDefinition.GetHashCode()
+            If Me._substitution.WasConstructedForModifiers() Then
+                Return hash
+            End If
+
+            hash = Roslyn.Utilities.Hash.Combine(ContainingType, hash)
 
             ' There is a circularity problem here with alpha-renamed type parameters.
             ' Calculating GetHashCode for them calls back into container's GetHashCode.
-            ' Do not ask for hash code of type arguments here, derived classes 
-            ' override this function and do that when appropriate. 
-            Return _hash
+            If Me IsNot Me.ConstructedFrom Then
+                For Each typeArgument In TypeArgumentsNoUseSiteDiagnostics
+                    hash = Roslyn.Utilities.Hash.Combine(typeArgument, hash)
+                Next
+            End If
+
+            Return hash
         End Function
 
-        Public MustOverride Overrides Function Equals(obj As Object) As Boolean
-
-        ''' <summary>
-        ''' Compare SubstitutedNamedTypes with no regard to type arguments.
-        ''' </summary>
-        Private Function EqualsWithNoRegardToTypeArguments(Of T As SubstitutedNamedType)(other As T) As Boolean
+        Public NotOverridable Overrides Function Equals(other As TypeSymbol, comparison As TypeCompareKind) As Boolean
+            If other Is Me Then
+                Return True
+            End If
 
             If other Is Nothing Then
                 Return False
+            End If
+
+            If (comparison And TypeCompareKind.AllIgnoreOptionsForVB) = 0 AndAlso
+               Not Me.GetType().Equals(other.GetType()) Then
+                Return False
+            End If
+
+            Dim otherTuple = TryCast(other, TupleTypeSymbol)
+            If otherTuple IsNot Nothing Then
+                Return otherTuple.Equals(Me, comparison)
             End If
 
             If Not OriginalDefinition.Equals(other.OriginalDefinition) Then
@@ -518,18 +538,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim containingType = Me.ContainingType
 
             If containingType IsNot Nothing AndAlso
-                Not containingType.Equals(other.ContainingType) Then
+               Not containingType.Equals(other.ContainingType, comparison) Then
                 Return False
             End If
 
-            ' There is a circularity problem here with alpha-renamed type parameters.
-            ' Equals for them calls back into container's Equals.
-            ' Do not compare type arguments here, derived classes 
-            ' override Equals and do that when appropriate. 
+            Dim otherNamed = DirectCast(other, NamedTypeSymbol)
+
+            If Me Is Me.ConstructedFrom AndAlso otherNamed Is otherNamed.ConstructedFrom Then
+                ' No need to compare type arguments on those containers when they didn't add type arguments.
+                ' That would cause cycles because Equals for them calls back into container's Equals.
+                Return True
+            End If
+
+            Dim arguments = TypeArgumentsNoUseSiteDiagnostics
+            Dim otherArguments = otherNamed.TypeArgumentsNoUseSiteDiagnostics
+            Dim count As Integer = arguments.Length
+
+            For i As Integer = 0 To count - 1 Step 1
+                If Not arguments(i).Equals(otherArguments(i), comparison) Then
+                    Return False
+                End If
+            Next
+
+            If (comparison And TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) = 0 AndAlso
+               Not HasSameTypeArgumentCustomModifiers(Me, otherNamed) Then
+
+                Return False
+            End If
+
             Return True
         End Function
 
-        Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As ConsList(Of Symbol)) As NamedTypeSymbol
+        Friend Overrides Function GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved As BasesBeingResolved) As NamedTypeSymbol
             Dim fullBase = OriginalDefinition.GetDirectBaseTypeNoUseSiteDiagnostics(basesBeingResolved)
 
             If fullBase IsNot Nothing Then
@@ -640,8 +680,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' alpha-renamed type parameters.
                 Debug.Assert(container.TypeSubstitution IsNot Nothing AndAlso
                              container.TypeSubstitution.TargetGenericDefinition Is fullInstanceType.ContainingSymbol)
-                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution,
-                                                                         StaticCast(Of TypeParameterSymbol).From(newTypeParameters))
+                Dim substitution = VisualBasic.Symbols.TypeSubstitution.CreateForAlphaRename(container.TypeSubstitution, newTypeParameters)
                 Debug.Assert(substitution.TargetGenericDefinition Is fullInstanceType)
 
                 ' Now create the symbol.
@@ -783,14 +822,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 'End If
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-
-                Return EqualsWithNoRegardToTypeArguments(TryCast(obj, SpecializedGenericType))
-            End Function
-
         End Class
 
         ''' <summary>
@@ -904,14 +935,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me
             End Function
 
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-
-                Return EqualsWithNoRegardToTypeArguments(TryCast(obj, SpecializedNonGenericType))
-            End Function
-
         End Class
 
         ''' <summary>
@@ -975,52 +998,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Public Overrides Function Construct(typeArguments As ImmutableArray(Of TypeSymbol)) As NamedTypeSymbol
                 Throw New InvalidOperationException()
-            End Function
-
-            Public Overrides Function GetHashCode() As Integer
-                Dim _hash As Integer = MyBase.GetHashCode()
-
-                For Each typeArgument In TypeArgumentsNoUseSiteDiagnostics
-                    _hash = Hash.Combine(typeArgument, _hash)
-                Next
-
-                Return _hash
-            End Function
-
-            Public Overrides Function Equals(obj As Object) As Boolean
-                If Me Is obj Then
-                    Return True
-                End If
-
-                Dim other = TryCast(obj, ConstructedType)
-
-                If Not EqualsWithNoRegardToTypeArguments(other) Then
-                    Return False
-                End If
-
-                If _hasTypeArgumentsCustomModifiers <> other._hasTypeArgumentsCustomModifiers Then
-                    Return False
-                End If
-
-                Dim arguments = TypeArgumentsNoUseSiteDiagnostics
-                Dim otherArguments = other.TypeArgumentsNoUseSiteDiagnostics
-                Dim count As Integer = arguments.Length
-
-                For i As Integer = 0 To count - 1 Step 1
-                    If Not arguments(i).Equals(otherArguments(i)) Then
-                        Return False
-                    End If
-                Next
-
-                If _hasTypeArgumentsCustomModifiers Then
-                    For i As Integer = 0 To count - 1 Step 1
-                        If Not GetTypeArgumentCustomModifiers(i).SequenceEqual(other.GetTypeArgumentCustomModifiers(i)) Then
-                            Return False
-                        End If
-                    Next
-                End If
-
-                Return True
             End Function
 
             Friend NotOverridable Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
@@ -1200,7 +1177,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' No effect
                 Return Me
             End Function
-
 
         End Class
 

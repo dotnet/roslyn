@@ -1,0 +1,191 @@
+﻿[$RootKey$\Languages\File Extensions\.bas]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.cls]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.ctl]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.dob]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.dsr]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.frm]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.pag]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Languages\File Extensions\.vb]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+
+[$RootKey$\Services\{e34acdc0-baae-11d0-88bf-00a0c9110049}]
+@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Name"="Visual Basic Language Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\Services\{019971d6-4685-11d2-b48a-0000f87572eb}]
+@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Name"="Visual Basic Project System Shim"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\Services\{8df9750d-069b-4b81-973a-152e97420c5c}]
+@="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Name"="Visual Basic TempPE Compiler Factory Service"
+"IsAsyncQueryable"=dword:00000001
+
+[$RootKey$\AutomationProperties\TextEditor\Basic-Specific]
+@="#104"
+"Description"="#106"
+"Name"="Basic-Specific"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+[$RootKey$\AutomationProperties\TextEditor\Basic]
+@="#103"
+"Description"="#105"
+"Name"="Basic"
+"Package"="{f5e7e720-1401-11d1-883b-0000f87579d2}"
+"ResourcePackage"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"ProfileSave"=dword:00000001
+"VSSettingsMigration"=dword:00000001
+
+// The option page configuration is duplicated on VisualBasicPackage type definition.
+//
+// VB option pages tree
+//   Visual Basic
+//     General (from editor)
+//     Scroll Bars (from editor)
+//     Tabs (from editor)
+//     Advanced
+//     Code Style (category)
+//       General
+//       Naming
+//     IntelliSense
+
+
+[$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\IntelliSense]
+@="#112"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Page"="{04460a3b-1b5f-4402-bc6d-89a4f6f0a8d7}"
+"Keywords"="#312"
+
+[$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style\General]
+@="#111"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Page"="{10c168e1-3470-448a-a1ac-73d6bc070750}"
+"Keywords"="#10161"
+
+[$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style\Naming]
+@="#110"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Page"="{bca454e0-95e4-4877-b4cb-b1d642b7bafa}"
+"Keywords"="#10162"
+
+[$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Advanced]
+@="#102"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"Page"="{f1e1021e-a781-4862-9f4b-88746a288a67}"
+"Keywords"="#10160"
+
+[$RootKey$\Languages\Language Services\Basic\EditorToolsOptions\Code Style]
+@="#109"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+
+[$RootKey$\Editors]
+
+[$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}]
+"DeferUntilIntellisenseIsReady"=dword:00000000
+"Package"="{574FC912-F74F-4B4E-92C3-F695C208A2BB}"
+"DisplayName"="#1012"
+"CommonPhysicalViewAttributes"=dword:00000003
+"ExcludeDefTextEditor"=dword:00000001
+"EditorTrustLevel"=dword:00000002
+"LinkedEditorGuid"="{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+@="Visual Basic Editor with Encoding"
+
+[$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}\LogicalViews]
+"{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a701-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}\UntrustedLogicalViews]
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\Editors\{6C33E1AA-1401-4536-AB67-0E21E6E569DA}\Extensions]
+"bas"=dword:00000027
+"cls"=dword:00000027
+"frm"=dword:00000027
+"dob"=dword:00000027
+"dsr"=dword:00000027
+"pag"=dword:00000027
+"ctl"=dword:00000027
+"vb"=dword:00000027
+
+[$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}]
+"DeferUntilIntellisenseIsReady"=dword:00000000
+"Package"="{574FC912-F74F-4B4E-92C3-F695C208A2BB}"
+"DisplayName"="#1013"
+"CommonPhysicalViewAttributes"=dword:00000002
+"ExcludeDefTextEditor"=dword:00000001
+"EditorTrustLevel"=dword:00000002
+@="Visual Basic Editor"
+
+[$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}\LogicalViews]
+"{7651a700-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a701-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a703-06e5-11d1-8ebd-00a0c90f26ea}"=""
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}\PhysicalViewAttributes]
+"Form"=dword:00000003
+
+[$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}\UntrustedLogicalViews]
+"{7651a702-06e5-11d1-8ebd-00a0c90f26ea}"="Form"
+
+[$RootKey$\Editors\{2C015C70-C72C-11D0-88C3-00A0C9110049}\Extensions]
+"bas"=dword:00000028
+"cls"=dword:00000028
+"frm"=dword:00000028
+"dob"=dword:00000028
+"dsr"=dword:00000028
+"pag"=dword:00000028
+"ctl"=dword:00000028
+"vb"=dword:00000028
+
+[$RootKey$\FileExtensionMapping\{4EFF8F38-5CAD-44D4-BA53-E9F0FC152D1F}]
+"DisplayName"="#108"
+"EditorGUID"="{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+"LogViewID"="{E34ACDC0-BAAE-11D0-88BF-00A0C9110049}"
+"Package"="{574FC912-F74F-4B4E-92C3-F695C208A2BB}"
+"SortPriority"=dword:00000064
+@="Microsoft Visual Basic"
+
+[$RootKey$\Languages\Language Services\Basic]
+@="{e34acdc0-baae-11d0-88bf-00a0c9110049}"
+"Package"="{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+"LangResID"=dword:00000065
+
+"DefaultToInsertSpaces"=dword:00000001
+"EnableAdvancedMembersOption"=dword:00000001
+"HideAdvancedMembersByDefault"=dword:00000001
+"RequestStockColors"=dword:00000001
+"ShowBraceCompletion"=dword:00000001
+"ShowCompletion"=dword:00000001
+"ShowDropdownBarOption"=dword:00000001
+"ShowSmartIndent"=dword:00000001
+"SupportsImageCaching"=dword:00000001
+"Single Code Window Only"=dword:00000000
+// DesignerLoader is still set in VBLanguageService.pkgdef in the main product setup authoring since that needs to differ between Dev12 and Dev14.
+
+[$RootKey$\Text Editor\Basic]
+"Insert Tabs"=dword:00000000
+"Indent Style"=dword:00000002
+
+[$RootKey$\VB Editor\Roslyn]
+"DisplayLineSeparators"=dword:00000001

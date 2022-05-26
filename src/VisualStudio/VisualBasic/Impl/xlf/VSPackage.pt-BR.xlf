@@ -8,18 +8,43 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Editor de Página de Código do Microsoft Visual Basic</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">Editor do Visual Basic com Codificação</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Editor do Microsoft Visual Basic</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Editor do Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
-        <target state="needs-review-translation">Inserção automática de construções finais;Alterar configurações de reformatação automática;Alterar modo de estrutura de tópicos;Inserção automática de membros Interface e MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar sugestões para correção de erros;Ativar ou desativar realce de referências e palavras-chave;Regex;Colorir expressões regulares;Realçar componentes relacionados sob o cursor;Relatar expressões regulares inválidas</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">Sublinhar variáveis reatribuídas;exibir dicas incorporadas;inserção automática de construções finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática de interface e membros MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar as sugestões de correção de erros;ativar ou desativar o realce de referências e palavras-chave;
+Regex; 
+expressões regulares;
+componentes relacionados sob o cursor;
+Notificar expressões regulares inválidas;
+regex;
+expressões regulares;
+JSON;
+Colorizar cadeias de caracteres JSON;
+Notificar cadeias de caracteres JSON inválidas;
+Detectar e oferecer recursos de editor para cadeia de caracteres JSON;
+Usar cores aprimoradas; editar o Esquema de Cores;Margem de Herança; Importar Diretivas;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -64,7 +89,7 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Qualify with Me;Prefer intrinsic types;Style;Code Style</target>
+        <target state="translated">Qualificar com Me;Preferir tipos intrínsecos;Estilo;Estilo do Código</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
@@ -101,6 +126,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Ferramentas do Visual Basic</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">Um arquivo de script vazio do Visual Basic.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Script do Visual Basic</target>
+        <note />
       </trans-unit>
     </body>
   </file>

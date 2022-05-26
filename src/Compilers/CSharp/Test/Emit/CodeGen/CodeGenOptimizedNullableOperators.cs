@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1093,7 +1097,7 @@ class Program
 }";
             string expectedIL6 = expectedIL4;
 
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics(
+            CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(
                 // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         return new int?(N1()) == new short?();
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "new int?(N1()) == new short?()").WithArguments("false", "int", "short?").WithLocation(21, 16),
@@ -1107,7 +1111,7 @@ class Program
                 //         return ((S?)null) < new S?(N4());
                 Diagnostic(ErrorCode.WRN_CmpAlwaysFalse, "((S?)null) < new S?(N4())").WithArguments("S?").WithLocation(41, 16)
                 );
-            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature());
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
             comp.VerifyDiagnostics(
                 // (21,16): warning CS0472: The result of the expression is always 'false' since a value of type 'int' is never equal to 'null' of type 'short?'
                 //         return new int?(N1()) == new short?();

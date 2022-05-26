@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
@@ -44,102 +49,99 @@ namespace Microsoft.Cci
         private readonly Dictionary<DebugSourceDocument, DocumentHandle> _documentIndex = new Dictionary<DebugSourceDocument, DocumentHandle>();
         private readonly Dictionary<IImportScope, ImportScopeHandle> _scopeIndex = new Dictionary<IImportScope, ImportScopeHandle>(ImportScopeEqualityComparer.Instance);
 
-        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, StandaloneSignatureHandle localSignatureHandleOpt, ref LocalVariableHandle lastLocalVariableHandle, ref LocalConstantHandle lastLocalConstantHandle)
+        private void SerializeMethodDebugInfo(IMethodBody bodyOpt, int methodRid, int aggregateMethodRid, StandaloneSignatureHandle localSignatureHandleOpt, ref LocalVariableHandle lastLocalVariableHandle, ref LocalConstantHandle lastLocalConstantHandle)
         {
             if (bodyOpt == null)
             {
-                _debugMetadataOpt.AddMethodDebugInformation(default(DocumentHandle), default(BlobHandle));
+                _debugMetadataOpt.AddMethodDebugInformation(document: default, sequencePoints: default);
                 return;
             }
 
             bool isKickoffMethod = bodyOpt.StateMachineTypeName != null;
-            bool emitDebugInfo = isKickoffMethod || !bodyOpt.SequencePoints.IsEmpty;
-
-            if (!emitDebugInfo)
-            {
-                _debugMetadataOpt.AddMethodDebugInformation(default(DocumentHandle), default(BlobHandle));
-                return;
-            }
+            bool emitAllDebugInfo = isKickoffMethod || !bodyOpt.SequencePoints.IsEmpty;
 
             var methodHandle = MetadataTokens.MethodDefinitionHandle(methodRid);
 
-            var bodyImportScope = bodyOpt.ImportScope;
-            var importScopeHandle = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : default(ImportScopeHandle);
-
             // documents & sequence points:
-            DocumentHandle singleDocumentHandle;
-            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.SequencePoints, _documentIndex, out singleDocumentHandle);
-
+            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.SequencePoints, _documentIndex, out var singleDocumentHandle);
             _debugMetadataOpt.AddMethodDebugInformation(document: singleDocumentHandle, sequencePoints: sequencePointsBlob);
 
-            // Unlike native PDB we don't emit an empty root scope.
-            // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
+            if (emitAllDebugInfo)
+            {
+                var bodyImportScope = bodyOpt.ImportScope;
+                var importScopeHandle = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : default;
 
-            if (bodyOpt.LocalScopes.Length == 0)
-            {
-                // TODO: the compiler should produce a scope for each debuggable method 
-                _debugMetadataOpt.AddLocalScope(
-                    method: methodHandle,
-                    importScope: importScopeHandle,
-                    variableList: NextHandle(lastLocalVariableHandle),
-                    constantList: NextHandle(lastLocalConstantHandle),
-                    startOffset: 0,
-                    length: bodyOpt.IL.Length);
-            }
-            else
-            {
-                foreach (LocalScope scope in bodyOpt.LocalScopes)
+                // Unlike native PDB we don't emit an empty root scope.
+                // scopes are already ordered by StartOffset ascending then by EndOffset descending (the longest scope first).
+
+                if (bodyOpt.LocalScopes.Length == 0)
                 {
+                    // TODO: the compiler should produce a scope for each debuggable method rather then adding one here
                     _debugMetadataOpt.AddLocalScope(
                         method: methodHandle,
                         importScope: importScopeHandle,
                         variableList: NextHandle(lastLocalVariableHandle),
                         constantList: NextHandle(lastLocalConstantHandle),
-                        startOffset: scope.StartOffset,
-                        length: scope.Length);
-
-                    foreach (ILocalDefinition local in scope.Variables)
-                    {
-                        Debug.Assert(local.SlotIndex >= 0);
-
-                        lastLocalVariableHandle = _debugMetadataOpt.AddLocalVariable(
-                            attributes: local.PdbAttributes,
-                            index: local.SlotIndex,
-                            name: _debugMetadataOpt.GetOrAddString(local.Name));
-
-                        SerializeLocalInfo(local, lastLocalVariableHandle);
-                    }
-
-                    foreach (ILocalDefinition constant in scope.Constants)
-                    {
-                        var mdConstant = constant.CompileTimeValue;
-                        Debug.Assert(mdConstant != null);
-
-                        lastLocalConstantHandle = _debugMetadataOpt.AddLocalConstant(
-                            name: _debugMetadataOpt.GetOrAddString(constant.Name),
-                            signature: SerializeLocalConstantSignature(constant));
-
-                        SerializeLocalInfo(constant, lastLocalConstantHandle);
-                    }
+                        startOffset: 0,
+                        length: bodyOpt.IL.Length);
                 }
-            }
-
-            var moveNextBodyInfo = bodyOpt.MoveNextBodyInfo;
-            if (moveNextBodyInfo != null)
-            {
-                _debugMetadataOpt.AddStateMachineMethod(
-                    moveNextMethod: methodHandle,
-                    kickoffMethod: GetMethodDefinitionHandle(moveNextBodyInfo.KickoffMethod));
-
-                if (moveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncInfo)
+                else
                 {
-                    SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle);
+                    foreach (LocalScope scope in bodyOpt.LocalScopes)
+                    {
+                        _debugMetadataOpt.AddLocalScope(
+                            method: methodHandle,
+                            importScope: importScopeHandle,
+                            variableList: NextHandle(lastLocalVariableHandle),
+                            constantList: NextHandle(lastLocalConstantHandle),
+                            startOffset: scope.StartOffset,
+                            length: scope.Length);
+
+                        foreach (ILocalDefinition local in scope.Variables)
+                        {
+                            Debug.Assert(local.SlotIndex >= 0);
+
+                            lastLocalVariableHandle = _debugMetadataOpt.AddLocalVariable(
+                                attributes: local.PdbAttributes,
+                                index: local.SlotIndex,
+                                name: _debugMetadataOpt.GetOrAddString(local.Name));
+
+                            SerializeLocalInfo(local, lastLocalVariableHandle);
+                        }
+
+                        foreach (ILocalDefinition constant in scope.Constants)
+                        {
+                            var mdConstant = constant.CompileTimeValue;
+                            Debug.Assert(mdConstant != null);
+
+                            lastLocalConstantHandle = _debugMetadataOpt.AddLocalConstant(
+                                name: _debugMetadataOpt.GetOrAddString(constant.Name),
+                                signature: SerializeLocalConstantSignature(constant));
+
+                            SerializeLocalInfo(constant, lastLocalConstantHandle);
+                        }
+                    }
                 }
+
+                var moveNextBodyInfo = bodyOpt.MoveNextBodyInfo;
+                if (moveNextBodyInfo != null)
+                {
+                    _debugMetadataOpt.AddStateMachineMethod(
+                        moveNextMethod: methodHandle,
+                        kickoffMethod: GetMethodDefinitionHandle(moveNextBodyInfo.KickoffMethod));
+
+                    if (moveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncInfo)
+                    {
+                        SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle, aggregateMethodRid);
+                    }
+                }
+
+                SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
             }
 
-            SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
-
-            // delta doesn't need this information - we use information recorded by previous generation emit
+            // Emit EnC info for all methods even if they do not have sequence points.
+            // The information facilitates reusing lambdas and closures. The reuse is important for runtimes that can't add new members (e.g. Mono).
+            // EnC delta doesn't need this information - we use information recorded by previous generation emit.
             if (Context.Module.CommonCompilation.Options.EnableEditAndContinue && IsFullMetadata)
             {
                 SerializeEncMethodDebugInformation(bodyOpt, methodHandle);
@@ -560,7 +562,7 @@ namespace Microsoft.Cci
 
         #region State Machines
 
-        private void SerializeAsyncMethodSteppingInfo(AsyncMoveNextBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod)
+        private void SerializeAsyncMethodSteppingInfo(AsyncMoveNextBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod, int aggregateMethodDefRid)
         {
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
             Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
@@ -573,7 +575,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32((uint)asyncInfo.YieldOffsets[i]);
                 writer.WriteUInt32((uint)asyncInfo.ResumeOffsets[i]);
-                writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(moveNextMethod));
+                writer.WriteCompressedInteger(aggregateMethodDefRid);
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
@@ -727,44 +729,60 @@ namespace Microsoft.Cci
 
         private DocumentHandle GetOrAddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
         {
-            DocumentHandle documentHandle;
-            if (!index.TryGetValue(document, out documentHandle))
+            if (index.TryGetValue(document, out var documentHandle))
             {
-                DebugSourceInfo info = document.GetSourceInfo();
+                return documentHandle;
+            }
 
-                documentHandle = _debugMetadataOpt.AddDocument(
-                    name: _debugMetadataOpt.GetOrAddDocumentName(document.Location),
-                    hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
-                    hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
-                    language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+            return AddDocument(document, index);
+        }
 
-                index.Add(document, documentHandle);
+        private DocumentHandle AddDocument(DebugSourceDocument document, Dictionary<DebugSourceDocument, DocumentHandle> index)
+        {
+            DocumentHandle documentHandle;
+            DebugSourceInfo info = document.GetSourceInfo();
 
-                if (info.EmbeddedTextBlob != null)
-                {
-                    _debugMetadataOpt.AddCustomDebugInformation(
-                        parent: documentHandle,
-                        kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
-                        value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
-                }
+            var name = document.Location;
+            if (_usingNonSourceDocumentNameEnumerator)
+            {
+                var result = _nonSourceDocumentNameEnumerator.MoveNext();
+                Debug.Assert(result);
+                name = _nonSourceDocumentNameEnumerator.Current;
+            }
+
+            documentHandle = _debugMetadataOpt.AddDocument(
+                name: _debugMetadataOpt.GetOrAddDocumentName(name),
+                hashAlgorithm: info.Checksum.IsDefault ? default(GuidHandle) : _debugMetadataOpt.GetOrAddGuid(info.ChecksumAlgorithmId),
+                hash: info.Checksum.IsDefault ? default(BlobHandle) : _debugMetadataOpt.GetOrAddBlob(info.Checksum),
+                language: _debugMetadataOpt.GetOrAddGuid(document.Language));
+
+            index.Add(document, documentHandle);
+
+            if (info.EmbeddedTextBlob != null)
+            {
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: documentHandle,
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.EmbeddedSource),
+                    value: _debugMetadataOpt.GetOrAddBlob(info.EmbeddedTextBlob));
             }
 
             return documentHandle;
         }
 
         /// <summary>
-        /// Add document entries for any embedded text document that does not yet have an entry.
+        /// Add document entries for all debug documents that do not yet have an entry.
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
+        public void AddRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var document in documents)
+            foreach (var kvp in documents
+                .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
+                .OrderBy(kvp => kvp.Key))
             {
-                Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
-                GetOrAddDocument(document, _documentIndex);
+                AddDocument(kvp.Value, _documentIndex);
             }
         }
 
@@ -821,5 +839,173 @@ namespace Microsoft.Cci
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
                 value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
+
+        ///<summary>The version of the compilation options schema to be written to the PDB.</summary>
+        private const int CompilationOptionsSchemaVersion = 2;
+
+        /// <summary>
+        /// Capture the set of compilation options to allow a compilation 
+        /// to be reconstructed from the pdb
+        /// </summary>
+        private void EmbedCompilationOptions(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            if (this.Context.RebuildData is { } rebuildData)
+            {
+                var reader = rebuildData.OptionsBlobReader;
+                builder.WriteBytes(reader.ReadBytes(reader.RemainingBytes));
+            }
+            else
+            {
+                var compilerVersion = typeof(Compilation).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+                WriteValue(CompilationOptionNames.CompilationOptionsVersion, CompilationOptionsSchemaVersion.ToString());
+                WriteValue(CompilationOptionNames.CompilerVersion, compilerVersion);
+
+                WriteValue(CompilationOptionNames.Language, module.CommonCompilation.Options.Language);
+                WriteValue(CompilationOptionNames.SourceFileCount, module.CommonCompilation.SyntaxTrees.Count().ToString());
+                WriteValue(CompilationOptionNames.OutputKind, module.OutputKind.ToString());
+
+                if (module.EmitOptions.FallbackSourceFileEncoding != null)
+                {
+                    WriteValue(CompilationOptionNames.FallbackEncoding, module.EmitOptions.FallbackSourceFileEncoding.WebName);
+                }
+
+                if (module.EmitOptions.DefaultSourceFileEncoding != null)
+                {
+                    WriteValue(CompilationOptionNames.DefaultEncoding, module.EmitOptions.DefaultSourceFileEncoding.WebName);
+                }
+
+                int portabilityPolicy = 0;
+                if (module.CommonCompilation.Options.AssemblyIdentityComparer is DesktopAssemblyIdentityComparer identityComparer)
+                {
+                    portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightLibraryAssembliesPortability ? 0b1 : 0;
+                    portabilityPolicy |= identityComparer.PortabilityPolicy.SuppressSilverlightPlatformAssembliesPortability ? 0b10 : 0;
+                }
+
+                if (portabilityPolicy != 0)
+                {
+                    WriteValue(CompilationOptionNames.PortabilityPolicy, portabilityPolicy.ToString());
+                }
+
+                var optimizationLevel = module.CommonCompilation.Options.OptimizationLevel;
+                var debugPlusMode = module.CommonCompilation.Options.DebugPlusMode;
+                if ((optimizationLevel, debugPlusMode) != OptimizationLevelFacts.DefaultValues)
+                {
+                    WriteValue(CompilationOptionNames.Optimization, optimizationLevel.ToPdbSerializedString(debugPlusMode));
+                }
+
+                var platform = module.CommonCompilation.Options.Platform;
+                WriteValue(CompilationOptionNames.Platform, platform.ToString());
+
+                var runtimeVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                WriteValue(CompilationOptionNames.RuntimeVersion, runtimeVersion);
+
+                module.CommonCompilation.SerializePdbEmbeddedCompilationOptions(builder);
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationOptions),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+
+            void WriteValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        /// <summary>
+        /// Writes information about metadata references to the pdb so the same
+        /// reference can be found on sourcelink to create the compilation again
+        /// </summary>
+        private void EmbedMetadataReferenceInformation(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            // Order of information
+            // File name (null terminated string): A.exe
+            // Extern Alias (null terminated string): a1,a2,a3
+            // MetadataImageKind (byte)
+            // EmbedInteropTypes (boolean)
+            // COFF header Timestamp field (4 byte int)
+            // COFF header SizeOfImage field (4 byte int)
+            // MVID (Guid, 24 bytes)
+            var referenceManager = module.CommonCompilation.GetBoundReferenceManager();
+            foreach (var pair in referenceManager.GetReferencedAssemblyAliases())
+            {
+                if (referenceManager.GetMetadataReference(pair.AssemblySymbol) is PortableExecutableReference { FilePath: { } } portableReference)
+                {
+                    var fileName = PathUtilities.GetFileName(portableReference.FilePath);
+                    var peReader = pair.AssemblySymbol.GetISymbol() is IAssemblySymbol assemblySymbol
+                        ? assemblySymbol.GetMetadata().GetAssembly().ManifestModule.PEReaderOpt
+                        : null;
+
+                    // Don't write before checking that we can get a peReader for the metadata reference
+                    if (peReader is null)
+                        continue;
+
+                    // Write file name first
+                    builder.WriteUTF8(fileName);
+
+                    // Make sure to add null terminator
+                    builder.WriteByte(0);
+
+                    // Extern alias
+                    if (pair.Aliases.Length > 0)
+                        builder.WriteUTF8(string.Join(",", pair.Aliases.OrderBy(StringComparer.Ordinal)));
+
+                    // Always null terminate the extern alias list
+                    builder.WriteByte(0);
+
+                    byte kindAndEmbedInteropTypes = (byte)(portableReference.Properties.EmbedInteropTypes
+                        ? 0b10
+                        : 0b0);
+
+                    kindAndEmbedInteropTypes |= portableReference.Properties.Kind switch
+                    {
+                        MetadataImageKind.Assembly => 1,
+                        MetadataImageKind.Module => 0,
+                        _ => throw ExceptionUtilities.UnexpectedValue(portableReference.Properties.Kind)
+                    };
+
+                    builder.WriteByte(kindAndEmbedInteropTypes);
+                    builder.WriteInt32(peReader.PEHeaders.CoffHeader.TimeDateStamp);
+                    builder.WriteInt32(peReader.PEHeaders.PEHeader.SizeOfImage);
+
+                    var metadataReader = peReader.GetMetadataReader();
+                    var moduleDefinition = metadataReader.GetModuleDefinition();
+                    builder.WriteGuid(metadataReader.GetGuid(moduleDefinition.Mvid));
+                }
+            }
+
+            _debugMetadataOpt.AddCustomDebugInformation(
+                parent: EntityHandle.ModuleDefinition,
+                kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.CompilationMetadataReferences),
+                value: _debugMetadataOpt.GetOrAddBlob(builder));
+        }
+
+        private void EmbedTypeDefinitionDocumentInformation(CommonPEModuleBuilder module)
+        {
+            var builder = new BlobBuilder();
+
+            foreach (var (definition, documents) in module.GetTypeToDebugDocumentMap(Context))
+            {
+                foreach (var document in documents)
+                {
+                    var handle = GetOrAddDocument(document, _documentIndex);
+                    builder.WriteCompressedInteger(MetadataTokens.GetRowNumber(handle));
+                }
+                _debugMetadataOpt.AddCustomDebugInformation(
+                    parent: GetTypeDefinitionHandle(definition),
+                    kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.TypeDefinitionDocuments),
+                    value: _debugMetadataOpt.GetOrAddBlob(builder));
+                builder.Clear();
+            }
+        }
+
     }
 }

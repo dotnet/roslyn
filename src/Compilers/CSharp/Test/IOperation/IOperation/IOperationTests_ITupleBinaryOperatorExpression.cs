@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.IOperation)]
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_ITupleBinaryOperatorExpression : SemanticModelTestBase
     {
         [Fact]
         public void VerifyTupleEqualityBinaryOperator()
@@ -182,18 +186,22 @@ class C
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(source);
-            (var operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
-            var equals = (ITupleBinaryOperation)operation;
-            Assert.Equal(OperationKind.SimpleAssignment, equals.Parent.Kind);
-            Assert.Equal(2, equals.Children.Count());
-
-            var left = equals.Children.ElementAt(0);
-            Assert.Equal(OperationKind.Conversion, left.Kind);
-            Assert.Equal(OperationKind.ParameterReference, left.Children.Single().Kind);
-
-            var right = equals.Children.ElementAt(1);
-            Assert.Equal(OperationKind.Tuple, right.Kind);
+            string expectedOperationTree =
+@"
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinary, Type: System.Boolean) (Syntax: 't1 == (l, l)')
+    Left: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int64, System.Int64), IsImplicit) (Syntax: 't1')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+        IParameterReferenceOperation: t1 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 't1')
+    Right: 
+    ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int64)) (Syntax: '(l, l)')
+        NaturalType: (System.Int64, System.Int64)
+        Elements(2):
+            IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'l')
+            IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'l')
+";
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

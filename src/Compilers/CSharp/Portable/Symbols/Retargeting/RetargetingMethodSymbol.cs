@@ -1,11 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
@@ -44,9 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private ImmutableArray<CSharpAttributeData> _lazyReturnTypeCustomAttributes;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
-        private TypeWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
+
+        private UnmanagedCallersOnlyAttributeData _lazyUnmanagedAttributeData = UnmanagedCallersOnlyAttributeData.Uninitialized;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
         {
@@ -118,23 +126,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override bool ReturnsVoid
-        {
-            get
-            {
-                return _underlyingMethod.ReturnsVoid;
-            }
-        }
-
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                if (_lazyReturnType.IsDefault)
+                if (_lazyReturnType is null)
                 {
-                    _lazyReturnType = this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType);
+                    Interlocked.CompareExchange(ref _lazyReturnType,
+                                                new TypeWithAnnotations.Boxed(this.RetargetingTranslator.Retarget(_underlyingMethod.ReturnTypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode, this.ContainingType)),
+                                                null);
                 }
-                return _lazyReturnType;
+                return _lazyReturnType.Value;
             }
         }
 
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, this.RetargetParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, this.RetargetParameters());
                 }
 
                 return _lazyParameters;
@@ -170,14 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
             else
             {
-                ParameterSymbol[] parameters = new ParameterSymbol[count];
+                var parameters = ArrayBuilder<ParameterSymbol>.GetInstance(count);
 
                 for (int i = 0; i < count; i++)
                 {
-                    parameters[i] = new RetargetingMethodParameterSymbol(this, list[i]);
+                    parameters.Add(new RetargetingMethodParameterSymbol(this, list[i]));
                 }
 
-                return parameters.AsImmutableOrNull();
+                return parameters.ToImmutableAndFree();
             }
         }
 
@@ -221,6 +223,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             return this.RetargetingTranslator.GetRetargetedAttributes(_underlyingMethod.GetReturnTypeAttributes(), ref _lazyReturnTypeCustomAttributes);
         }
+
+#nullable enable
+        internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+        {
+            if (ReferenceEquals(_lazyUnmanagedAttributeData, UnmanagedCallersOnlyAttributeData.Uninitialized))
+            {
+                var data = _underlyingMethod.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+                if (ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized)
+                    || ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound))
+                {
+                    // Underlying hasn't been found yet either, just return it. We'll check again the next
+                    // time this is called
+                    return data;
+                }
+
+                if (data?.CallingConventionTypes.IsEmpty == false)
+                {
+                    var builder = PooledHashSet<INamedTypeSymbolInternal>.GetInstance();
+                    foreach (var identifier in data.CallingConventionTypes)
+                    {
+                        builder.Add((INamedTypeSymbolInternal)RetargetingTranslator.Retarget((NamedTypeSymbol)identifier));
+                    }
+
+                    data = UnmanagedCallersOnlyAttributeData.Create(builder.ToImmutableHashSet());
+                    builder.Free();
+                }
+
+                Interlocked.CompareExchange(ref _lazyUnmanagedAttributeData, data, UnmanagedCallersOnlyAttributeData.Uninitialized);
+            }
+
+            return _lazyUnmanagedAttributeData;
+        }
+#nullable disable
 
         public override AssemblySymbol ContainingAssembly
         {
@@ -283,16 +318,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        /// <summary>
+        /// The explicitly overridden method (e.g. as would be declared in the PE method in covariant return scenarios).
+        /// </summary>
+        internal MethodSymbol ExplicitlyOverriddenClassMethod
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            get
             {
-                DiagnosticInfo result = null;
+                return
+                    _underlyingMethod.RequiresExplicitOverride(out _)
+                        ? this.RetargetingTranslator.Retarget(_underlyingMethod.OverriddenMethod, MemberSignatureComparer.RetargetedExplicitImplementationComparer)
+                        : null;
+            }
+        }
+
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
+        {
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
+            {
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
@@ -310,5 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             // retargeting symbols refer to a symbol from another compilation, they don't define locals in the current compilation
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
     }
 }

@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
-        private TypeWithAnnotations.Builder _lazyReturnType;
+        private TypeWithAnnotations.Boxed _lazyReturnType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeMap _lazyMap;
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
@@ -209,6 +212,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.OriginalDefinition.GetReturnTypeAttributes();
         }
 
+        internal sealed override UnmanagedCallersOnlyAttributeData GetUnmanagedCallersOnlyAttributeData(bool forceComplete)
+            => this.OriginalDefinition.GetUnmanagedCallersOnlyAttributeData(forceComplete);
+
         public sealed override Symbol AssociatedSymbol
         {
             get
@@ -218,24 +224,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool ReturnsVoid
-        {
-            get
-            {
-                return OriginalDefinition.ReturnsVoid;
-            }
-        }
-
         public sealed override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                if (_lazyReturnType.IsDefault)
+                if (_lazyReturnType == null)
                 {
-                    var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnTypeWithAnnotations);
-                    _lazyReturnType.InterlockedInitialize(returnType);
+                    var returnType = Map.SubstituteType(OriginalDefinition.ReturnTypeWithAnnotations);
+                    Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
                 }
-                return _lazyReturnType.ToType();
+                return _lazyReturnType.Value;
             }
         }
 
@@ -254,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _lazyParameters, SubstituteParameters(), default(ImmutableArray<ParameterSymbol>));
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, SubstituteParameters());
                 }
 
                 return _lazyParameters;
@@ -358,22 +356,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable;
+
         private int ComputeHashCode()
         {
             int code = this.OriginalDefinition.GetHashCode();
-            code = Hash.Combine(this.ContainingType, code);
 
-            // Unconstructed method may contain alpha-renamed type parameters while
-            // may still be considered equal, we do not want to give different hashcode to such types.
-            //
-            // Example:
-            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods
-            //    A<int>.Goo<V'>
-            //    A<int>.Goo<V">     
-            //  Note that V' and V" are type parameters substituted via alpha-renaming of original V
-            //  These are different objects, but represent the same "type parameter at index 1"
-            //
-            //  In short - we are not interested in the type arguments of unconstructed methods.
+            // If the containing type of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such, consider only
+            // the original definition for the hashcode when we know equality is possible
+            var containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode == this.OriginalDefinition.ContainingType.GetHashCode() &&
+                wasConstructedForAnnotations(this))
+            {
+                return code;
+            }
+
+            code = Hash.Combine(containingHashCode, code);
+
+            // Unconstructed methods may contain alpha-renamed type parameters while	
+            // still be considered equal; we do not want to give a different hashcode to such types.	
+            //	
+            // Example:	
+            //   Having original method A<U>.Goo<V>() we create two _unconstructed_ methods	
+            //    A<int>.Goo<V'>	
+            //    A<int>.Goo<V">     	
+            //  Note that V' and V" are type parameters substituted via alpha-renaming of original V	
+            //  These are different objects, but represent the same "type parameter at index 1"	
+            //	
+            //  In short - we are not interested in the type arguments of unconstructed methods.	
             if ((object)ConstructedFrom != (object)this)
             {
                 foreach (var arg in this.TypeArgumentsWithAnnotations)
@@ -382,14 +394,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            // 0 means that hashcode is not initialized. 
+            // in a case we really get 0 for the hashcode, tweak it by +1
+            if (code == 0)
+            {
+                code++;
+            }
+
             return code;
+
+            static bool wasConstructedForAnnotations(SubstitutedMethodSymbol method)
+            {
+                var typeArguments = method.TypeArgumentsWithAnnotations;
+                var typeParameters = method.OriginalDefinition.TypeParameters;
+
+                for (int i = 0; i < typeArguments.Length; i++)
+                {
+                    if (!typeParameters[i].Equals(
+                         typeArguments[i].Type,
+                         TypeCompareKind.ConsiderEverything))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
-        public override bool Equals(object obj)
+        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            if ((object)this == obj) return true;
-
-            SubstitutedMethodSymbol other = obj as SubstitutedMethodSymbol;
+            MethodSymbol other = obj as MethodSymbol;
             if ((object)other == null) return false;
 
             if ((object)this.OriginalDefinition != (object)other.OriginalDefinition &&
@@ -400,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This checks if the methods have the same definition and the type parameters on the containing types have been
             // substituted in the same way.
-            if (!TypeSymbol.Equals(this.ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2)) return false;
+            if (!TypeSymbol.Equals(this.ContainingType, other.ContainingType, compareKind)) return false;
 
             // If both are declarations, then we don't need to check type arguments
             // If exactly one is a declaration, then they re not equal
@@ -416,8 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int arity = this.Arity;
             for (int i = 0; i < arity; i++)
             {
-                // TODO: what about annotations
-                if (!TypeSymbol.Equals(this.TypeArgumentsWithAnnotations[i].Type, other.TypeArgumentsWithAnnotations[i].Type, TypeCompareKind.ConsiderEverything2))
+                if (!this.TypeArgumentsWithAnnotations[i].Equals(other.TypeArgumentsWithAnnotations[i], compareKind))
                 {
                     return false;
                 }
@@ -429,18 +463,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
         {
             int code = _hashCode;
-
             if (code == 0)
             {
                 code = ComputeHashCode();
-
-                // 0 means that hashcode is not initialized. 
-                // in a case we really get 0 for the hashcode, tweak it by +1
-                if (code == 0)
-                {
-                    code++;
-                }
-
                 _hashCode = code;
             }
 

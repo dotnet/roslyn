@@ -1,12 +1,14 @@
-﻿using Mono.Options;
-using Newtonsoft.Json;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+using Mono.Options;
 
 namespace BuildBoss
 {
@@ -30,15 +32,17 @@ namespace BuildBoss
         {
             string repositoryDirectory = null;
             string configuration = "Debug";
+            string primarySolution = null;
             List<string> solutionFiles;
 
             var options = new OptionSet
             {
                 { "r|root=", "The repository root", value => repositoryDirectory = value },
-                { "c|configuration=", "Build configuration", value => configuration = value }
+                { "c|configuration=", "Build configuration", value => configuration = value },
+                { "p|primary=", "Primary solution file name (which contains all projects)", value => primarySolution = value },
             };
 
-            if (configuration != "Debug" && configuration != "Release")
+            if (configuration is not "Debug" and not "Release")
             {
                 Console.Error.WriteLine($"Invalid configuration: '{configuration}'");
                 return false;
@@ -72,7 +76,7 @@ namespace BuildBoss
                 solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
             }
 
-            return Go(repositoryDirectory, configuration, solutionFiles);
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles);
         }
 
         private static string FindRepositoryRoot(string startDirectory)
@@ -86,19 +90,20 @@ namespace BuildBoss
             return dir;
         }
 
-        private static bool Go(string repositoryDirectory, string configuration, List<string> solutionFileNames)
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames)
         {
             var allGood = true;
             foreach (var solutionFileName in solutionFileNames)
             {
-                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName));
+                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName), isPrimarySolution: solutionFileName == primarySolution);
             }
 
             var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
 
-            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
             allGood &= ProcessTargets(repositoryDirectory);
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
+            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
+            allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration);
 
             if (!allGood)
             {
@@ -125,9 +130,9 @@ namespace BuildBoss
             }
         }
 
-        private static bool ProcessSolution(string solutionFilePath)
+        private static bool ProcessSolution(string solutionFilePath, bool isPrimarySolution)
         {
-            var util = new SolutionCheckerUtil(solutionFilePath);
+            var util = new SolutionCheckerUtil(solutionFilePath, isPrimarySolution);
             return CheckCore(util, $"Solution {solutionFilePath}");
         }
 
@@ -149,6 +154,12 @@ namespace BuildBoss
         {
             var util = new PackageContentsChecker(repositoryDirectory, artifactsDirectory, configuration);
             return CheckCore(util, $"NuPkg and VSIX files");
+        }
+
+        private static bool ProcessOptProf(string repositoryDirectory, string artifactsDirectory, string configuration)
+        {
+            var util = new OptProfCheckerUtil(repositoryDirectory, artifactsDirectory, configuration);
+            return CheckCore(util, $"OptProf inputs");
         }
     }
 }

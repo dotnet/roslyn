@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -17,13 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class MethodToStateMachineRewriter : MethodToClassRewriter
     {
         internal readonly MethodSymbol OriginalMethod;
-
-        /// <summary>
-        /// True if we need to generate the code to do the bookkeeping so we can "finalize" the state machine
-        /// by executing code from its current state through the enclosing finally blocks.  This is true for
-        /// iterators and false for async.
-        /// </summary>
-        private readonly bool _useFinalizerBookkeeping;
 
         /// <summary>
         /// Generate return statements from the state machine method body.
@@ -69,21 +66,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dictionary<LabelSymbol, List<int>> _dispatches = new Dictionary<LabelSymbol, List<int>>();
 
         /// <summary>
-        /// A try block might have no state (transitions) within it, in which case it does not need
-        /// to have a state to represent finalization.  This flag tells us whether the current try
-        /// block that we are within has a finalizer state.  Initially true as we have the (trivial)
-        /// finalizer state of -1 at the top level.  Not used if !this.useFinalizerBookkeeping.
-        /// </summary>
-        private bool _hasFinalizerState = true;
-
-        /// <summary>
-        /// If hasFinalizerState is true, this is the state for finalization from anywhere in this
-        /// try block.  Initially set to -1, representing the no-op finalization required at the top
-        /// level.  Not used if !this.useFinalizerBookkeeping.
-        /// </summary>
-        private int _currentFinalizerState = -1;
-
-        /// <summary>
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
         /// so that members of this set may be allocated to locals when the locals come into scope.
         /// </summary>
@@ -98,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = EmptyStructTypeCache.CreateNeverEmpty();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
@@ -118,8 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics,
-            bool useFinalizerBookkeeping)
+            BindingDiagnosticBag diagnostics)
             : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
             Debug.Assert(F != null);
@@ -133,8 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.F = F;
             this.stateField = state;
             this.cachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), syntax: F.Syntax, kind: SynthesizedLocalKind.StateMachineCachedState);
-            _useFinalizerBookkeeping = useFinalizerBookkeeping;
-            _hasFinalizerState = useFinalizerBookkeeping;
             this.OriginalMethod = originalMethod;
             _hoistedVariables = hoistedVariables;
             _synthesizedLocalOrdinals = synthesizedLocalOrdinals;
@@ -200,13 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void AddState(out int stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
             stateNumber = _nextState++;
-
-            if (_useFinalizerBookkeeping && !_hasFinalizerState)
-            {
-                _currentFinalizerState = _nextState++;
-                _hasFinalizerState = true;
-            }
-
             AddState(stateNumber, out resumeLabel);
         }
 
@@ -272,8 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.Spill);
                     continue;
                 }
-
-                Debug.Assert(local.SynthesizedKind.IsLongLived());
 
                 CapturedSymbolReplacement proxy;
                 bool reused = false;
@@ -414,9 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {
-            // In debug builds we don't reuse any hoisted variable.
-            Debug.Assert(F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release);
-
             ArrayBuilder<StateMachineFieldSymbol> fields;
             if (_lazyAvailableReusableHoistedFields != null && _lazyAvailableReusableHoistedFields.TryGetValue(type, out fields) && fields.Count > 0)
             {
@@ -445,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
-                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
+                    _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(Symbols.SymbolEqualityComparer.IgnoringDynamicTupleNamesAndNullability);
                 }
 
                 _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
@@ -466,12 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool needsSacrificialEvaluation = false;
             var hoistedFields = ArrayBuilder<StateMachineFieldSymbol>.GetInstance();
 
-            AwaitExpressionSyntax awaitSyntaxOpt;
+            SyntaxNode awaitSyntaxOpt;
             int syntaxOffset;
             if (F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
             {
-                awaitSyntaxOpt = (AwaitExpressionSyntax)local.GetDeclaratorSyntax();
-                syntaxOffset = this.OriginalMethod.CalculateLocalSyntaxOffset(awaitSyntaxOpt.SpanStart, awaitSyntaxOpt.SyntaxTree);
+                awaitSyntaxOpt = local.GetDeclaratorSyntax();
+                Debug.Assert(awaitSyntaxOpt.IsKind(SyntaxKind.AwaitExpression) || awaitSyntaxOpt.IsKind(SyntaxKind.SwitchExpression));
+                syntaxOffset = OriginalMethod.CalculateLocalSyntaxOffset(LambdaUtilities.GetDeclaratorPosition(awaitSyntaxOpt), awaitSyntaxOpt.SyntaxTree);
             }
             else
             {
@@ -506,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression HoistExpression(
             BoundExpression expr,
-            AwaitExpressionSyntax awaitSyntaxOpt,
+            SyntaxNode awaitSyntaxOpt,
             int syntaxOffset,
             RefKind refKind,
             ArrayBuilder<BoundExpression> sideEffects,
@@ -623,10 +591,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slotAllocatorOpt == null ||
                             !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics),
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,
                                 id,
-                                Diagnostics,
+                                Diagnostics.DiagnosticBag,
                                 out slotIndex))
                         {
                             slotIndex = _nextFreeHoistedLocalSlot++;
@@ -796,61 +764,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
             var oldDispatches = _dispatches;
-            var oldFinalizerState = _currentFinalizerState;
-            var oldHasFinalizerState = _hasFinalizerState;
 
             _dispatches = null;
-            _currentFinalizerState = -1;
-            _hasFinalizerState = false;
 
             BoundBlock tryBlock = F.Block((BoundStatement)this.Visit(node.TryBlock));
             GeneratedLabelSymbol dispatchLabel = null;
             if (_dispatches != null)
             {
                 dispatchLabel = F.GenerateLabel("tryDispatch");
-                if (_hasFinalizerState)
-                {
-                    // cause the current finalizer state to arrive here and then "return false"
-                    var finalizer = F.GenerateLabel("finalizer");
-                    _dispatches.Add(finalizer, new List<int>() { _currentFinalizerState });
-                    var skipFinalizer = F.GenerateLabel("skipFinalizer");
-                    tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
-                        Dispatch(),
-                        F.Goto(skipFinalizer),
-                        F.Label(finalizer), // code for the finalizer here
-                        GenerateSetBothStates(StateMachineStates.NotStartedStateMachine),
-                        GenerateReturn(false),
-                        F.Label(skipFinalizer),
-                        tryBlock);
-                }
-                else
-                {
-                    tryBlock = F.Block(
-                        F.HiddenSequencePoint(),
-                        Dispatch(),
-                        tryBlock);
-                }
 
-                if (oldDispatches == null)
-                {
-                    Debug.Assert(!oldHasFinalizerState);
-                    oldDispatches = new Dictionary<LabelSymbol, List<int>>();
-                }
+                tryBlock = F.Block(
+                    F.HiddenSequencePoint(),
+                    Dispatch(),
+                    tryBlock);
 
+                oldDispatches ??= new Dictionary<LabelSymbol, List<int>>();
                 oldDispatches.Add(dispatchLabel, new List<int>(from kv in _dispatches.Values from n in kv orderby n select n));
             }
 
-            _hasFinalizerState = oldHasFinalizerState;
-            _currentFinalizerState = oldFinalizerState;
             _dispatches = oldDispatches;
 
             ImmutableArray<BoundCatchBlock> catchBlocks = this.VisitList(node.CatchBlocks);
+
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
                     condition: ShouldEnterFinallyBlock(),
-                    thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
+                    thenClause: VisitFinally(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
 
@@ -865,6 +805,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        protected virtual BoundBlock VisitFinally(BoundBlock finallyBlock)
+        {
+            return (BoundBlock)this.Visit(finallyBlock);
         }
 
         protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()

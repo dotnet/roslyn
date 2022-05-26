@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -15,12 +18,20 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicIntelliSense(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicIntelliSense))
+        public BasicIntelliSense(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicIntelliSense))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
+
+            // Disable import completion.
+            VisualStudio.Workspace.SetImportCompletionOption(false);
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void IntelliSenseTriggersOnParenWithBraceCompletionAndCorrectUndoMerging()
         {
             SetUpEditor(@"
@@ -98,19 +109,15 @@ Module Module1
 End Module",
 assertCaretPosition: true);
 
-            if (LegacyCompletionCondition.Instance.ShouldSkip)
-            {
-                // Async completion has an extra undo step
-                VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
+            VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
-                VisualStudio.Editor.Verify.TextContains(@"
+            VisualStudio.Editor.Verify.TextContains(@"
 Module Module1
     Sub Main()
         Dim q As List($$)
     End Sub
 End Module",
 assertCaretPosition: true);
-            }
 
             VisualStudio.SendKeys.Send(Ctrl(VirtualKey.Z));
 
@@ -133,7 +140,7 @@ End Module",
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/45234"), Trait(Traits.Feature, Traits.Features.Completion)]
         public void TypeAVariableDeclaration()
         {
             SetUpEditor(@"
@@ -149,10 +156,10 @@ End Module");
             VisualStudio.Editor.Verify.CompletionItemsExist("Dim", "ReDim");
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send('i');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(' ');
             VisualStudio.Editor.Verify.CompletionItemsExist("As");
@@ -162,30 +169,30 @@ End Module");
             VisualStudio.Editor.Verify.CompletionItemsExist("Integer", "UInteger");
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send('=');
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send("fooo");
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(' ');
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(VirtualKey.Backspace);
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(VirtualKey.Backspace);
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
 
             VisualStudio.SendKeys.Send(
                 VirtualKey.Left,
                 VirtualKey.Delete);
-            Assert.Equal(true, VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -204,7 +211,7 @@ End Module");
             VisualStudio.Editor.Verify.CompletionItemsExist("_AppDomain");
 
             VisualStudio.SendKeys.Send("'");
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Module Module1
     Sub Main()
@@ -225,7 +232,7 @@ Imports$$");
             VisualStudio.Editor.Verify.CompletionItemsExist("Microsoft", "System");
 
             VisualStudio.SendKeys.Send('<');
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -307,7 +314,7 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemsExist("UFoo");
 
             VisualStudio.SendKeys.Send(VirtualKey.Enter);
-            Assert.Equal(false, VisualStudio.Editor.IsCompletionActive());
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"
 Interface UFoo

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Globalization;
 using System.IO;
@@ -12,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 {
     public class PDBConstantTests : CSharpTestBase
     {
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringsWithSurrogateChar()
         {
             var source = @"
@@ -80,7 +84,7 @@ public class T
         }
 
         [WorkItem(546862, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546862")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void InvalidUnicodeString()
         {
             var source = @"
@@ -141,7 +145,7 @@ public class T
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void AllTypes()
         {
             var source = @"
@@ -237,8 +241,8 @@ public class C<S>
         <constant name=""U4"" value=""0"" type=""UInt32"" />
         <constant name=""I8"" value=""0"" type=""Int64"" />
         <constant name=""U8"" value=""0"" type=""UInt64"" />
-        <constant name=""R4"" value=""0"" type=""Single"" />
-        <constant name=""R8"" value=""0"" type=""Double"" />
+        <constant name=""R4"" value=""0x00000000"" type=""Single"" />
+        <constant name=""R8"" value=""0x0000000000000000"" type=""Double"" />
         <constant name=""EI1"" value=""0"" signature=""EnumI1{Int32}"" />
         <constant name=""EU1"" value=""0"" signature=""EnumU1{Int32}"" />
         <constant name=""EI2"" value=""0"" signature=""EnumI2{Int32}"" />
@@ -265,7 +269,7 @@ public class C<S>
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void SimpleLocalConstant()
         {
             var text = @"
@@ -309,10 +313,10 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void LambdaLocalConstants()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 using System;
 
 class C
@@ -329,7 +333,7 @@ class C
         });
     }
 }
-";
+");
             var c = CompileAndVerify(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
@@ -379,10 +383,10 @@ class C
         }
 
         [WorkItem(543342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543342")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void IteratorLocalConstants()
         {
-            var source = @"
+            var source = WithWindowsLineBreaks(@"
 using System.Collections.Generic;
 
 class C
@@ -397,7 +401,7 @@ class C
         }
     }
 }
-";
+");
             // NOTE: Roslyn's output is somewhat different than Dev10's in this case, but
             // all of the changes look reasonable.  The main thing for this test is that 
             // Dev10 creates fields for the locals in the iterator class.  Roslyn doesn't
@@ -426,7 +430,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x1c"" endOffset=""0x63"" />
+          <slot startOffset=""0x20"" endOffset=""0x67"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
@@ -436,23 +440,23 @@ class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
-        <entry offset=""0x1b"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x1c"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
-        <entry offset=""0x23"" hidden=""true"" document=""1"" />
-        <entry offset=""0x25"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x26"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x3d"" hidden=""true"" document=""1"" />
-        <entry offset=""0x44"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
-        <entry offset=""0x45"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""1"" />
-        <entry offset=""0x55"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""1"" />
-        <entry offset=""0x60"" hidden=""true"" document=""1"" />
-        <entry offset=""0x63"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1f"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x20"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x27"" hidden=""true"" document=""1"" />
+        <entry offset=""0x29"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x2a"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x41"" hidden=""true"" document=""1"" />
+        <entry offset=""0x48"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x49"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""1"" />
+        <entry offset=""0x59"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""1"" />
+        <entry offset=""0x64"" hidden=""true"" document=""1"" />
+        <entry offset=""0x67"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x65"">
+      <scope startOffset=""0x0"" endOffset=""0x69"">
         <namespace name=""System.Collections.Generic"" />
-        <scope startOffset=""0x1b"" endOffset=""0x65"">
+        <scope startOffset=""0x1f"" endOffset=""0x69"">
           <constant name=""x"" value=""1"" type=""Int32"" />
-          <scope startOffset=""0x25"" endOffset=""0x45"">
+          <scope startOffset=""0x29"" endOffset=""0x49"">
             <constant name=""y"" value=""2"" type=""Int32"" />
           </scope>
         </scope>
@@ -462,7 +466,8 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
+        [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void LocalConstantsTypes()
         {
             var text = @"
@@ -498,8 +503,8 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <constant name=""o"" value=""null"" type=""Object"" />
         <constant name=""s"" value=""hello"" type=""String"" />
-        <constant name=""f"" value=""-3.402823E+38"" type=""Single"" />
-        <constant name=""d"" value=""1.79769313486232E+308"" type=""Double"" />
+        <constant name=""f"" value=""0xFF7FFFFF"" type=""Single"" />
+        <constant name=""d"" value=""0x7FEFFFFFFFFFFFFF"" type=""Double"" />
       </scope>
     </method>
   </methods>
@@ -507,7 +512,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void WRN_PDBConstantStringValueTooLong()
         {
             var longStringValue = new string('a', 2049);
@@ -531,33 +536,32 @@ class C
             var result = compilation.Emit(exebits, pdbbits);
             result.Diagnostics.Verify();
 
-            /*
-             * old behavior. This new warning was abandoned
-            result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
-
-            //make sure that this warning is suppressable
-            compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-                WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
-
-            result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            result.Diagnostics.Verify();
-
-            //make sure that this warning can be turned into an error.
-            compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
-                WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
-
-            result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
-            Assert.False(result.Success);
-            result.Diagnostics.Verify(
-                                      Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
-             * */
+            //  old behavior. This new warning was abandoned
+            // 
+            // result.Diagnostics.Verify(// warning CS7063: Constant string value of 'goo' is too long to be used in a PDB file. Only the debug experience may be affected.
+            //                           Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "..."));
+            // 
+            // //make sure that this warning is suppressable
+            // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
+            //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>(){ {(int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Suppress} }));
+            // 
+            // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+            // result.Diagnostics.Verify();
+            // 
+            // //make sure that this warning can be turned into an error.
+            // compilation = CreateCompilationWithMscorlib(text, compOptions: Options.Exe.WithDebugInformationKind(Common.DebugInformationKind.Full).WithOptimizations(false).
+            //     WithSpecificDiagnosticOptions(new Dictionary<int, ReportWarning>() { { (int)ErrorCode.WRN_PDBConstantStringValueTooLong, ReportWarning.Error } }));
+            // 
+            // result = compilation.Emit(exebits, null, "DontCare", pdbbits, null);
+            // Assert.False(result.Success);
+            // result.Diagnostics.Verify(
+            //                          Diagnostic(ErrorCode.WRN_PDBConstantStringValueTooLong).WithArguments("goo", longStringValue.Substring(0, 20) + "...").WithWarningAsError(true));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringConstantTooLong()
         {
-            var text = @"
+            var text = WithWindowsLineBreaks(@"
 class C
 {
     void M()
@@ -601,7 +605,7 @@ this is a string constant that is too long to fit into the PDB
 this is a string constant that is too long to fit into the PDB"";
     }
 }
-";
+");
             var c = CompileAndVerify(text, options: TestOptions.DebugDll);
 
             c.VerifyPdb("C.M", @"
@@ -644,7 +648,7 @@ this is a string constant that is too long to fit into the PDB"";
         }
 
         [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringWithNulCharacter_MaxSupportedLength()
         {
             const int length = 2031;
@@ -704,7 +708,7 @@ class C
         }
 
         [WorkItem(178988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/178988")]
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void StringWithNulCharacter_OverSupportedLength()
         {
             const int length = 2032;
@@ -760,7 +764,7 @@ class C
 </symbols>", format: DebugInformationFormat.PortablePdb);
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void DecimalLocalConstants()
         {
             var text = @"

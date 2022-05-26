@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -48,6 +49,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool MayBeNameofOperator(this InvocationExpressionSyntax node)
+        {
+            if (node.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() == SyntaxKind.NameOfKeyword &&
+                node.ArgumentList.Arguments.Count == 1)
+            {
+                ArgumentSyntax argument = node.ArgumentList.Arguments[0];
+                if (argument.NameColon == null && argument.RefOrOutKeyword == default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// This method is used to keep the code that generates binders in sync
         /// with the code that searches for binders.  We don't want the searcher
@@ -62,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxKind kind = syntax.Kind();
             switch (kind)
             {
+                case SyntaxKind.InvocationExpression when ((InvocationExpressionSyntax)syntax).MayBeNameofOperator():
+                    return true;
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -77,17 +96,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
+
+                case SyntaxKind.RecordDeclaration:
+                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
+
+                case SyntaxKind.RecordStructDeclaration:
+                    return false;
+
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
-
             }
         }
 
-        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax? expression)
         {
             // All these nodes are valid scope designators due to the pattern matching and out vars features.
-            CSharpSyntaxNode parent = expression?.Parent;
+            CSharpSyntaxNode? parent = expression?.Parent;
             switch (parent?.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
@@ -110,33 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool IsVariableDeclarationInitialization(this SyntaxNode node)
-        {
-            Debug.Assert(node != null);
-
-            SyntaxNode equalsValueClause = node.Parent;
-
-            if (!equalsValueClause.IsKind(SyntaxKind.EqualsValueClause))
-            {
-                return false;
-            }
-
-            SyntaxNode variableDeclarator = equalsValueClause.Parent;
-
-            if (!variableDeclarator.IsKind(SyntaxKind.VariableDeclarator))
-            {
-                return false;
-            }
-
-            return variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
-        }
-
         /// <summary>
-        /// Because the instruction cannot have any values on the stack before CLR execution.
-        /// Limit it to assignments and conditional expressions for now.
-        /// https://github.com/dotnet/roslyn/issues/22046
+        /// Because the instruction cannot have any values on the stack before CLR execution
+        /// we limited it to assignments and conditional expressions in C# 7.
+        /// See https://github.com/dotnet/roslyn/issues/22046.
+        /// In C# 8 we relaxed
+        /// that by rewriting the code to move it to the statement level where the stack is empty.
         /// </summary>
-        internal static bool IsLegalSpanStackAllocPosition(this SyntaxNode node)
+        internal static bool IsLegalCSharp73SpanStackAllocPosition(this SyntaxNode node)
         {
             Debug.Assert(node != null);
 
@@ -150,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            SyntaxNode parentNode = node.Parent;
+            SyntaxNode? parentNode = node.Parent;
 
             if (parentNode is null)
             {
@@ -162,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In case of a declaration of a Span<T> variable
                 case SyntaxKind.EqualsValueClause:
                     {
-                        SyntaxNode variableDeclarator = parentNode.Parent;
+                        SyntaxNode? variableDeclarator = parentNode.Parent;
 
                         return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
                             variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
@@ -178,20 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
-        {
-            switch (lambda.Kind())
-            {
-                case SyntaxKind.SimpleLambdaExpression:
-                    return ((SimpleLambdaExpressionSyntax)lambda).Body;
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    return ((ParenthesizedLambdaExpressionSyntax)lambda).Body;
-                case SyntaxKind.AnonymousMethodExpression:
-                    return ((AnonymousMethodExpressionSyntax)lambda).Block;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
-            }
-        }
+            => ((AnonymousFunctionExpressionSyntax)lambda).Body;
 
         /// <summary>
         /// Given an initializer expression infer the name of anonymous property or tuple element.
@@ -257,9 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
-            this ExpressionSyntax syntax,
-            DiagnosticBag diagnostics,
+        internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
+            this ExpressionSyntax? syntax,
+            BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
             refKind = RefKind.None;
@@ -274,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)
         {
             if (IsDeconstructionCompatibleArgument(expression))
             {

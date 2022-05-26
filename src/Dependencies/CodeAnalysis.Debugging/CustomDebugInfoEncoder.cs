@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -95,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 (uc, builder) =>
                 {
                     builder.WriteUInt16((ushort)uc.Count);
-                    foreach (int usingCount in uc)
+                    foreach (var usingCount in uc)
                     {
                         Debug.Assert(usingCount <= ushort.MaxValue);
                         builder.WriteUInt16((ushort)usingCount);
@@ -198,6 +202,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                         {
                             builder.WriteUTF8(info.LocalName);
                         }
+
                         builder.WriteByte(0);
                     }
                 });
@@ -208,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             T debugInfo,
             Action<T, BlobBuilder> recordSerializer)
         {
-            int startOffset = Builder.Count;
+            var startOffset = Builder.Count;
             Builder.WriteByte(CustomDebugInfoConstants.Version);
             Builder.WriteByte((byte)kind);
             Builder.WriteByte(0);
@@ -218,9 +223,9 @@ namespace Microsoft.CodeAnalysis.Debugging
 
             recordSerializer(debugInfo, Builder);
 
-            int length = Builder.Count - startOffset;
-            int alignedLength = 4 * ((length + 3) / 4);
-            byte alignmentSize = (byte)(alignedLength - length);
+            var length = Builder.Count - startOffset;
+            var alignedLength = 4 * ((length + 3) / 4);
+            var alignmentSize = (byte)(alignedLength - length);
             Builder.WriteBytes(0, alignmentSize);
 
             // Fill in alignment size and length. 

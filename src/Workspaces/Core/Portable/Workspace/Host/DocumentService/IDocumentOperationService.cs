@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.Host
 {
     /// <summary>
-    /// provide various operations for this document
-    /// 
-    /// I followed name from EditorOperation for now. 
+    /// TODO: Merge into <see cref="DocumentPropertiesService"/>.
+    /// Used by Razor via IVT.
     /// </summary>
     internal interface IDocumentOperationService : IDocumentService
     {

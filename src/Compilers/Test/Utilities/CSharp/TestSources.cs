@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -24,7 +28,7 @@ namespace System
         public Span(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
         public void CopyTo(Span<T> other) { }
@@ -69,6 +73,15 @@ namespace System
         }
 
         public static implicit operator Span<T>(T[] array) => new Span<T>(array);
+
+        public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
+
+        public Span<T> Slice(int offset, int length)
+        {
+            var copy = new T[length];
+            Array.Copy(arr, offset, copy, 0, length);
+            return new Span<T>(copy);
+        }
     }
 
     public readonly ref struct ReadOnlySpan<T>
@@ -88,7 +101,7 @@ namespace System
         public ReadOnlySpan(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
         public void CopyTo(Span<T> other) { }
@@ -135,6 +148,13 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
 
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
+
+        public ReadOnlySpan<T> Slice(int offset, int length)
+        {
+            var copy = new T[length];
+            Array.Copy(arr, offset, copy, 0, length);
+            return new ReadOnlySpan<T>(copy);
+        }
     }
 
     public readonly ref struct SpanLike<T>
@@ -298,6 +318,8 @@ namespace System
         public override int GetHashCode() => _value;
 
         public static implicit operator Index(int value) => FromStart(value);
+
+        public override string ToString() => IsFromEnd ? ""^"" + Value.ToString() : Value.ToString();
     }
 }";
 
@@ -366,6 +388,8 @@ namespace System
                 length = Length;
             }
         }
+
+        public override string ToString() => $""{Start}..{End}"";
     }
 }";
 
@@ -386,38 +410,46 @@ namespace System.Runtime.CompilerServices
     }
 }";
 
-        // The references we use for System.String do not have an indexer for
-        // System.Index and System.Range, so this wrapper mimics the behavior
-        public const string StringWithIndexers = @"
-internal readonly struct MyString
+        public const string ITuple = @"
+namespace System.Runtime.CompilerServices
 {
-    private readonly string _s;
-    public MyString(string s)
+    public interface ITuple
     {
-        _s = s;
+        int Length { get; }
+        object this[int index] { get; }
     }
-    public static implicit operator MyString(string s) => new MyString(s);
-    public static implicit operator string(MyString m) => m._s;
+}";
 
-    public int Length => _s.Length;
-
-    public char this[int index] => _s[index];
-
-    public char this[Index index]
+        public const string MemoryExtensions = @"
+namespace System
+{
+    public static class MemoryExtensions
     {
-        get
+        public static bool SequenceEqual<T> (this ReadOnlySpan<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
         {
-            int actualIndex = index.GetOffset(Length);
-            return this[actualIndex];
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
         }
-    }
 
-    public string this[Range range] => Substring(range);
+        public static bool SequenceEqual<T> (this Span<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
 
-    public string Substring(Range range)
-    {
-        (int start, int length) = range.GetOffsetAndLength(Length);
-        return _s.Substring(start, length);
+        public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
     }
 }";
     }

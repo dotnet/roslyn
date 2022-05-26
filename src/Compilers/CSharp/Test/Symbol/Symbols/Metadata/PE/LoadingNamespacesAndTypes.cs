@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -18,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             XElement dumpXML = LoadChildNamespace1(assembly.Modules[0].GlobalNamespace);
 
             var baseLine = XElement.Load(new MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes));
@@ -32,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test2()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             XElement dumpXML = LoadChildNamespace2(assembly.Modules[0].GlobalNamespace);
 
             var baseLine = XElement.Load(new MemoryStream(TestResources.SymbolsTests.Metadata.MscorlibNamespacesAndTypes));
@@ -117,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test3()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             var module0 = assembly.Modules[0];
             var globalNS = module0.GlobalNamespace;
 
@@ -127,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var extent = globalNS.Extent;
 
-            Assert.Equal(extent.Kind, NamespaceKind.Module);
+            Assert.Equal(NamespaceKind.Module, extent.Kind);
             Assert.Same(extent.Module, module0);
             Assert.Equal(1, globalNS.ConstituentNamespaces.Length);
             Assert.Same(globalNS, globalNS.ConstituentNamespaces[0]);
@@ -140,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             extent = systemNS.Extent;
 
-            Assert.Equal(extent.Kind, NamespaceKind.Module);
+            Assert.Equal(NamespaceKind.Module, extent.Kind);
             Assert.Same(extent.Module, module0);
             Assert.Equal(1, systemNS.ConstituentNamespaces.Length);
             Assert.Same(systemNS, systemNS.ConstituentNamespaces[0]);
@@ -153,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             extent = collectionsNS.Extent;
 
-            Assert.Equal(extent.Kind, NamespaceKind.Module);
+            Assert.Equal(NamespaceKind.Module, extent.Kind);
             Assert.Same(extent.Module, module0);
             Assert.Equal(1, collectionsNS.ConstituentNamespaces.Length);
             Assert.Same(collectionsNS, collectionsNS.ConstituentNamespaces[0]);
@@ -162,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test4()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
             TestGetMembersOfName(assembly.Modules[0]);
 
             var assembly2 = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.DifferByCase.TypeAndNamespaceDifferByCase);
@@ -172,14 +177,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         private void TypeAndNamespaceDifferByCase(ModuleSymbol module0)
         {
             var someName = module0.GlobalNamespace.GetMembers("SomenamE");
-            Assert.Equal(someName.Length, 0);
+            Assert.Equal(0, someName.Length);
 
             someName = module0.GlobalNamespace.GetMembers("somEnamE");
-            Assert.Equal(someName.Length, 1);
+            Assert.Equal(1, someName.Length);
             Assert.NotNull((someName[0] as NamedTypeSymbol));
 
             someName = module0.GlobalNamespace.GetMembers("SomeName");
-            Assert.Equal(someName.Length, 1);
+            Assert.Equal(1, someName.Length);
             Assert.NotNull((someName[0] as NamespaceSymbol));
 
             var someName1_1 = module0.GlobalNamespace.GetTypeMembers("somEnamE1").OrderBy((t) => t.Name).ToArray();
@@ -219,35 +224,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         private void TestGetMembersOfName(ModuleSymbol module0)
         {
             var sys = module0.GlobalNamespace.GetMembers("SYSTEM");
-            Assert.Equal(sys.Length, 0);
+            Assert.Equal(0, sys.Length);
 
             sys = module0.GlobalNamespace.GetMembers("System");
-            Assert.Equal(sys.Length, 1);
+            Assert.Equal(1, sys.Length);
 
             var system = sys[0] as NamespaceSymbol;
             Assert.NotNull(system);
 
-            Assert.Equal(system.GetMembers("Action").Length, 9);
-            Assert.Equal(system.GetMembers("ActionThatDoesntExist").Length, 0);
+            Assert.Equal(9, system.GetMembers("Action").Length);
+            Assert.Equal(0, system.GetMembers("ActionThatDoesntExist").Length);
 
-            Assert.Equal(system.GetTypeMembers("Action").Length, 9);
-            Assert.Equal(system.GetTypeMembers("ActionThatDoesntExist").Length, 0);
+            Assert.Equal(9, system.GetTypeMembers("Action").Length);
+            Assert.Equal(0, system.GetTypeMembers("ActionThatDoesntExist").Length);
 
-            Assert.Equal(system.GetTypeMembers("Action", 20).Length, 0);
+            Assert.Equal(0, system.GetTypeMembers("Action", 20).Length);
             var actionOf0 = system.GetTypeMembers("Action", 0).Single();
             var actionOf4 = system.GetTypeMembers("Action", 4).Single();
             Assert.Equal("Action", actionOf0.Name);
             Assert.Equal("Action", actionOf4.Name);
-            Assert.Equal(actionOf0.Arity, 0);
-            Assert.Equal(actionOf4.Arity, 4);
+            Assert.Equal(0, actionOf0.Arity);
+            Assert.Equal(4, actionOf4.Arity);
 
-            Assert.Equal(system.GetTypeMembers("ActionThatDoesntExist", 1).Length, 0);
+            Assert.Equal(0, system.GetTypeMembers("ActionThatDoesntExist", 1).Length);
 
             var collectionsArray = ((NamespaceSymbol)sys[0]).GetMembers("CollectionS");
-            Assert.Equal(collectionsArray.Length, 0);
+            Assert.Equal(0, collectionsArray.Length);
 
             collectionsArray = ((NamespaceSymbol)sys[0]).GetMembers("Collections");
-            Assert.Equal(collectionsArray.Length, 1);
+            Assert.Equal(1, collectionsArray.Length);
 
             var collections = collectionsArray[0] as NamespaceSymbol;
             Assert.NotNull(collections);
@@ -255,34 +260,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(0, collections.GetAttributes().Length);
 
             var enumerable = collections.GetMembers("IEnumerable");
-            Assert.Equal(enumerable.Length, 1);
+            Assert.Equal(1, enumerable.Length);
             Assert.Equal("System.Collections.IEnumerable", ((NamedTypeSymbol)enumerable[0]).ToTestDisplayString());
 
             var generic = collections.GetMembers("Generic");
-            Assert.Equal(generic.Length, 1);
+            Assert.Equal(1, generic.Length);
             Assert.NotNull((generic[0] as NamespaceSymbol));
 
             var dictionaryArray = ((NamespaceSymbol)generic[0]).GetMembers("Dictionary");
-            Assert.Equal(dictionaryArray.Length, 1);
+            Assert.Equal(1, dictionaryArray.Length);
 
             var dictionary = (NamedTypeSymbol)dictionaryArray[0];
-            Assert.Equal(dictionary.Arity, 2);
+            Assert.Equal(2, dictionary.Arity);
             Assert.Same(dictionary.ConstructedFrom, dictionary);
             Assert.Equal("Dictionary", dictionary.Name);
 
             Assert.Equal(0, collections.GetAttributes(dictionary).Count());
 
-            Assert.Equal(dictionary.GetTypeMembers("ValueCollectionThatDoesntExist").Length, 0);
-            Assert.Equal(dictionary.GetTypeMembers("ValueCollectioN").Length, 0);
+            Assert.Equal(0, dictionary.GetTypeMembers("ValueCollectionThatDoesntExist").Length);
+            Assert.Equal(0, dictionary.GetTypeMembers("ValueCollectioN").Length);
 
             var valueCollection = dictionary.GetTypeMembers("ValueCollection");
-            Assert.Equal(valueCollection.Length, 1);
+            Assert.Equal(1, valueCollection.Length);
             Assert.Equal("ValueCollection", ((NamedTypeSymbol)valueCollection[0]).Name);
-            Assert.Equal(((NamedTypeSymbol)valueCollection[0]).Arity, 0);
+            Assert.Equal(0, ((NamedTypeSymbol)valueCollection[0]).Arity);
 
-            Assert.Equal(dictionary.GetTypeMembers("ValueCollectionThatDoesntExist", 1).Length, 0);
+            Assert.Equal(0, dictionary.GetTypeMembers("ValueCollectionThatDoesntExist", 1).Length);
             Assert.Equal(valueCollection[0], dictionary.GetTypeMembers("ValueCollection", 0).Single());
-            Assert.Equal(dictionary.GetTypeMembers("ValueCollection", 1).Length, 0);
+            Assert.Equal(0, dictionary.GetTypeMembers("ValueCollection", 1).Length);
         }
 
         [ClrOnlyFact]
@@ -376,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var compilation = CSharpCompilation.Create("C1", references:
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_21006.mscorlib,
+                    Net40.mscorlib,
                     TestReferences.SymbolsTests.WithSpaces
                 });
 
@@ -393,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var compilation = CSharpCompilation.Create("C1", references:
                 new[]
                 {
-                    TestReferences.NetFx.v4_0_21006.mscorlib,
+                    Net40.mscorlib,
                     TestReferences.SymbolsTests.WithSpacesModule
                 });
 

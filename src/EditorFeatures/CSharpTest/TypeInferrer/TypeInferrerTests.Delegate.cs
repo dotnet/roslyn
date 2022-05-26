@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
     {
         private async Task TestDelegateAsync(string text, string expectedType)
         {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
             MarkupTestFile.GetSpan(text, out text, out var textSpan);
 
-            Document document = fixture.UpdateDocument(text, SourceCodeKind.Regular);
+            var document = workspaceFixture.Target.UpdateDocument(text, SourceCodeKind.Regular);
 
             var root = await document.GetSyntaxRootAsync();
             var node = FindExpressionSyntaxFromSpan(root, textSpan);

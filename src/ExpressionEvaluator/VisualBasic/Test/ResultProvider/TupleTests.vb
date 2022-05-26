@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
@@ -40,7 +42,7 @@ End Class"
                         "(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)",
                         "(Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short, Short)",
                         "o._17",
-                        DkmEvaluationResultFlags.Expandable))
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
                 children = GetChildren(children(0))
                 Verify(children,
                     EvalResult("Item1", "1", "Short", "o._17.Item1"),
@@ -121,7 +123,7 @@ End Class"
                         "((1, (2, 3), 4, 5, 6, 7, 8, 9), (10, 11, 12))",
                         "(K As (A As Integer, D As (B As Integer, C As Integer), E As Integer, F As Integer, G As Integer, H As Integer, I As Integer, J As Integer), O As (L As Integer, M As Integer, N As Integer))",
                         "o.F",
-                        DkmEvaluationResultFlags.Expandable))
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
             End Using
         End Sub
 
@@ -154,15 +156,15 @@ class C
                 Dim result = FormatResult("o", value)
                 Dim children = GetChildren(result)
                 Verify(children,
-                    EvalResult("F", "{A(Of (Object, Object)(), (Object, Object()))}", "A(Of (A As Object, B As Object)(), (C As Object, D As Object()))", "o.F", DkmEvaluationResultFlags.Expandable),
-                    EvalResult("G", "{B(Of (Object, B(Of (Object, Object)).S))}", "B(Of (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G", DkmEvaluationResultFlags.Expandable))
+                    EvalResult("F", "{A(Of (Object, Object)(), (Object, Object()))}", "A(Of (A As Object, B As Object)(), (C As Object, D As Object()))", "o.F", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{B(Of (Object, B(Of (Object, Object)).S))}", "B(Of (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
                 Dim moreChildren = GetChildren(children(0))
                 Verify(moreChildren,
-                    EvalResult("F", "Nothing", "(A As Object, B As Object)()", "o.F.F"),
-                    EvalResult("G", "{Length=0}", "(C As Object, D As Object())()", "o.F.G"))
+                    EvalResult("F", "Nothing", "(A As Object, B As Object)()", "o.F.F", DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult("G", "{Length=0}", "(C As Object, D As Object())()", "o.F.G", DkmEvaluationResultFlags.CanFavorite))
                 moreChildren = GetChildren(children(1))
                 Verify(moreChildren,
-                    EvalResult("F", "(Nothing, (Nothing, {B(Of (Object, Object)).S}))", "(X As Object, Y As (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G.F", DkmEvaluationResultFlags.Expandable))
+                    EvalResult("F", "(Nothing, (Nothing, {B(Of (Object, Object)).S}))", "(X As Object, Y As (E As Object, H As B(Of (F As Object, G As Object)).S))", "o.G.F", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
                 moreChildren = GetChildren(moreChildren(0))
                 Verify(moreChildren,
                     EvalResult("X", "Nothing", "Object", "o.G.F.Item1"),
@@ -202,7 +204,7 @@ End Class"
                        EvalResult("o", "{As}", "As", "o", DkmEvaluationResultFlags.Expandable))
                 Dim children = GetChildren(result)
                 Verify(children,
-                    EvalResult("_f", "(Nothing, {Namespace.Structure})", "Object {(As, Namespace.Structure)}", "o._f", DkmEvaluationResultFlags.Expandable))
+                    EvalResult("_f", "(Nothing, {Namespace.Structure})", "Object {(As, Namespace.Structure)}", "o._f", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite))
                 children = GetChildren(children(0))
                 Verify(children,
                     EvalResult("Item1", "Nothing", "As", "DirectCast(o._f, ([As], [Namespace].[Structure])).Item1"),

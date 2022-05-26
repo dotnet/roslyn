@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol baseType = fieldAccess.FieldSymbol.ContainingType;
                 while ((object)baseType != null)
                 {
-                    if (TypeSymbol.Equals(baseType, marshalByRefType, TypeCompareKind.ConsiderEverything2))
+                    if (TypeSymbol.Equals(baseType, marshalByRefType, TypeCompareKind.ConsiderEverything))
                     {
                         return true;
                     }
@@ -245,7 +249,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckBinaryOperator(BoundBinaryOperator node)
         {
-            if ((object)node.MethodOpt == null)
+            if (node.Method is MethodSymbol method)
+            {
+                if (_inExpressionLambda)
+                {
+                    if (method.Name == WellKnownMemberNames.CheckedDivisionOperatorName)
+                    {
+                        Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, method);
+                    }
+                    else if ((method.IsAbstract || method.IsVirtual) && method.IsStatic)
+                    {
+                        Error(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, node);
+                    }
+                }
+            }
+            else
             {
                 CheckUnsafeType(node.Left);
                 CheckUnsafeType(node.Right);
@@ -256,16 +274,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckLiftedBinOp(node);
             CheckRelationals(node);
             CheckDynamic(node);
+
+            if (_inExpressionLambda && node.OperatorKind.Operator() == BinaryOperatorKind.UnsignedRightShift)
+            {
+                Error(ErrorCode.ERR_FeatureNotValidInExpressionTree, node, ">>>");
+            }
         }
 
         private void CheckCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             BoundExpression left = node.Left;
 
-            if (!node.Operator.Kind.IsDynamic() && !node.LeftConversion.IsIdentity && node.LeftConversion.Exists)
+            if (!node.Operator.Kind.IsDynamic() && node.LeftConversion is BoundConversion { Conversion: { IsIdentity: false, Exists: true } conversion })
             {
                 // Need to represent the implicit conversion as a node in order to be able to produce correct diagnostics.
-                left = new BoundConversion(left.Syntax, left, node.LeftConversion, node.Operator.Kind.IsChecked(),
+                left = new BoundConversion(left.Syntax, left, conversion, node.Operator.Kind.IsChecked(),
                                            explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: null, type: node.Operator.LeftType);
             }
 
@@ -331,7 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conv = (BoundConversion)node;
             if (conv.ExplicitCastInCode) return false;
             NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
-            if ((object)nt == null || !nt.IsReferenceType) return false;
+            if ((object)nt == null || !nt.IsReferenceType || nt.IsInterface)
+            {
+                return false;
+            }
+
             string opName = (oldOperatorKind == BinaryOperatorKind.ObjectEqual) ? WellKnownMemberNames.EqualityOperatorName : WellKnownMemberNames.InequalityOperatorName;
             for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
             {
@@ -422,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (!Binder.CheckConstantBounds(conversion.Operand.Type.SpecialType, constantValue))
+                if (!Binder.CheckConstantBounds(conversion.Operand.Type.SpecialType, constantValue, out _))
                 {
                     Error(ErrorCode.WRN_VacuousIntegralComp, tree, conversion.Operand.Type);
                     return;
@@ -571,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // * a conversion with no cast in source code that goes from a smaller
         //   signed type to a larger signed or unsigned type.
         //
-        // * an conversion (with or without a cast) from a smaller
+        // * a conversion (with or without a cast) from a smaller
         //   signed type to a larger unsigned type.
 
         private static ulong FindSurprisingSignExtensionBits(BoundExpression expr)
@@ -721,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CheckNullableNullBinOp(BoundBinaryOperator node)
         {
-            if ((node.OperatorKind & BinaryOperatorKind.NullableNull) == 0)
+            if (node.OperatorKind.OperandTypes() != BinaryOperatorKind.NullableNull)
             {
                 return;
             }
@@ -786,16 +813,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     string always = node.OperatorKind.Operator() == BinaryOperatorKind.NotEqual ? "true" : "false";
 
-                    if (_compilation.FeatureStrictEnabled || !node.OperatorKind.IsUserDefined())
+                    if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
                     {
-                        if (node.Right.NullableNeverHasValue() && node.Left.NullableAlwaysHasValue())
-                        {
-                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
-                        }
-                        else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
-                        {
-                            Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
-                        }
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Left.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Right));
+                    }
+                    else if (node.Left.NullableNeverHasValue() && node.Right.NullableAlwaysHasValue())
+                    {
+                        Error(node.OperatorKind.IsUserDefined() ? ErrorCode.WRN_NubExprIsConstBool2 : ErrorCode.WRN_NubExprIsConstBool, node, always, node.Right.Type.GetNullableUnderlyingType(), GetTypeForLiftedComparisonWarning(node.Left));
                     }
                     break;
                 case BinaryOperatorKind.Or:
@@ -860,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void CheckForDeconstructionAssignmentToSelf(BoundTupleLiteral leftTuple, BoundExpression right)
+        private void CheckForDeconstructionAssignmentToSelf(BoundTupleExpression leftTuple, BoundExpression right)
         {
             while (right.Kind == BoundKind.Conversion)
             {
@@ -892,9 +916,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftArgument = leftArguments[i];
                 var rightArgument = rightTuple.Arguments[i];
 
-                if (leftArgument.Kind == BoundKind.TupleLiteral)
+                if (leftArgument is BoundTupleExpression tupleExpression)
                 {
-                    CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)leftArgument, rightArgument);
+                    CheckForDeconstructionAssignmentToSelf(tupleExpression, rightArgument);
                 }
                 else if (IsSameLocalOrField(leftArgument, rightArgument))
                 {

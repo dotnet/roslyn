@@ -12,24 +12,34 @@
         <target state="translated">"Await" und "ConfigureAwait(false)" hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_Obsolete">
-        <source>Add &lt;Obsolete&gt;</source>
-        <target state="translated">&lt;Veraltet&gt; hinzufügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="translated">Fehlende Importe hinzufügen</target>
-        <note>{Locked="Import"} "Import" is a VB keyword and should not be localized.</note>
+        <note>{Locked="Import"}</note>
       </trans-unit>
       <trans-unit id="Add_Shadows">
         <source>Add 'Shadows'</source>
-        <target state="translated">Schatten hinzufügen</target>
+        <target state="translated">"Shadows" hinzufügen</target>
         <note>{Locked="Shadows"} "Shadows" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="If_statement_can_be_simplified">
-        <source>'If' statement can be simplified</source>
-        <target state="translated">Die If-Anweisung kann vereinfacht werden.</target>
+      <trans-unit id="Apply_isnot_preferences">
+        <source>Apply IsNot preferences</source>
+        <target state="translated">IsNot-Voreinstellungen anwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_object_creation_preferences">
+        <source>Apply object creation preferences</source>
+        <target state="translated">Objekterstellungsvoreinstellungen anwenden</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_DirectCast">
+        <source>Change to 'DirectCast'</source>
+        <target state="translated">In "DirectCast" ändern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Change_to_TryCast">
+        <source>Change to 'TryCast'</source>
+        <target state="translated">In "TryCast" ändern</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_0">
@@ -72,11 +82,6 @@
         <target state="translated">Using-Anweisung einführen</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Make_0_inheritable">
-        <source>Make '{0}' inheritable</source>
-        <target state="new">Make '{0}' inheritable</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Verschieben Sie die "{0}"-Anweisung zu Zeile {1}.</target>
@@ -92,9 +97,24 @@
         <target state="translated">&lt;Mehrere Typen&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
-        <target state="translated">Unnötige Import-Direktiven entfernen</target>
+      <trans-unit id="Organize_Imports">
+        <source>Organize Imports</source>
+        <target state="translated">Import-Direktiven organisieren</target>
+        <note>{Locked="Import"}</note>
+      </trans-unit>
+      <trans-unit id="Project_level_Imports">
+        <source>Project level 'Imports'</source>
+        <target state="new">Project level 'Imports'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_shared_keyword_from_module_member">
+        <source>Remove 'Shared' keyword from Module member</source>
+        <target state="translated">Schlüsselwort "Shared" aus Modulmember entfernen</target>
+        <note>{Locked="Shared"} "Shared" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Shared_constructor">
+        <source>Shared constructor</source>
+        <target state="translated">Freigegebener Konstruktor</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_new_field">
@@ -105,6 +125,11 @@
       <trans-unit id="Note_colon_Space_completion_is_disabled_to_avoid_potential_interference_To_insert_a_name_from_the_list_use_tab">
         <source>Note: Space completion is disabled to avoid potential interference. To insert a name from the list, use tab.</source>
         <target state="translated">Hinweis: Die Vervollständigung mit der LEERTASTE wurde deaktiviert, um Probleme zu vermeiden. Verwenden Sie zum Einfügen eines Namens aus der Liste die TAB-TASTE.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_Events">
+        <source>({0} Events)</source>
+        <target state="translated">({0} Ereignisse)</target>
         <note />
       </trans-unit>
       <trans-unit id="new_field">
@@ -215,12 +240,7 @@
       <trans-unit id="Remove_Me_qualification">
         <source>Remove 'Me' qualification</source>
         <target state="translated">Qualifikation "Me" entfernen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_can_be_simplified">
-        <source>Name can be simplified</source>
-        <target state="translated">Der Name kann vereinfacht werden</target>
-        <note />
+        <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="can_t_determine_valid_range_of_statements_to_extract_out">
         <source>can't determine valid range of statements to extract out</source>
@@ -279,7 +299,7 @@
       </trans-unit>
       <trans-unit id="next_statement_control_variable_doesn_t_have_matching_declaration_statement">
         <source>next statement control variable doesn't have matching declaration statement</source>
-        <target state="translated">Die Variable zur Steuerung der next-Anweisung besitzt keine übereinstimmende Deklarationsanweisung.</target>
+        <target state="translated">Die Steuervariable der next-Anweisung besitzt keine übereinstimmende Deklarationsanweisung.</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_doesn_t_contain_any_valid_node">
@@ -290,26 +310,6 @@
       <trans-unit id="no_valid_statement_range_to_extract_out">
         <source>no valid statement range to extract out</source>
         <target state="translated">kein gültiger Anweisungsbereich für die Extraktion</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_selection">
-        <source>Invalid selection</source>
-        <target state="translated">Ungültige Auswahl</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Selection_doesn_t_contain_any_valid_token">
-        <source>Selection doesn't contain any valid token</source>
-        <target state="translated">Auswahl enthält keinen gültigen Token</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_valid_selection_to_perform_extraction">
-        <source>No valid selection to perform extraction</source>
-        <target state="translated">Keine gültige Auswahl für die Druckführung der Extraktion</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_common_root_node_for_extraction">
-        <source>No common root node for extraction</source>
-        <target state="translated">Es ist kein gemeinsamer Stammknoten für die Extraktion vorhanden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deprecated">
@@ -337,16 +337,11 @@
         <target state="translated">&lt;neue Variable&gt;</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_and_Sort_Imports">
-        <source>R&amp;emove and Sort Imports</source>
-        <target state="translated">Import-Direktiven &amp;entfernen und sortieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Creates_a_delegate_procedure_instance_that_references_the_specified_procedure_AddressOf_procedureName">
         <source>Creates a delegate procedure instance that references the specified procedure.
 AddressOf &lt;procedureName&gt;</source>
         <target state="translated">Erstellt eine Delegatprozedurinstanz, die auf die angegebene Prozedur verweist.
-AddressOf &lt;Prozedurname&gt;</target>
+AddressOf &lt;procedureName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Indicates_that_an_external_procedure_has_another_name_in_its_DLL">
@@ -595,11 +590,6 @@ Dim {&lt;var&gt; [As [New] dataType [(boundList)]][= initializer]}[, var2]</targ
       <trans-unit id="Specifies_the_group_that_the_loop_variable_in_a_For_Each_statement_is_to_traverse">
         <source>Specifies the group that the loop variable in a For Each statement is to traverse.</source>
         <target state="translated">Gibt die Gruppe an, die die Schleifenvariable in einer For Each-Anweisung durchlaufen soll.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specifies_the_group_that_the_loop_variable_is_to_traverse_in_a_For_Each_statement_or_specifies_the_range_variable_in_a_query">
-        <source>Specifies the group that the loop variable is to traverse in a For Each statement, or specifies the range variable in a query.</source>
-        <target state="translated">Gibt die Gruppe an, die die Schleifenvariable in einer For Each-Anweisung durchlaufen soll, oder gibt die Bereichsvariable in einer Abfrage an.</target>
         <note />
       </trans-unit>
       <trans-unit id="Causes_the_current_class_or_interface_to_inherit_the_attributes_variables_properties_procedures_and_events_from_another_class_or_set_of_interfaces">
@@ -897,7 +887,7 @@ Iterator Function(&lt;Parameterliste&gt;) As IEnumerable(Of &lt;T&gt;)</target>
         <source>Determines the run-time type of an object reference variable and compares it to a data type. Returns True or False depending, on whether the two types are compatible.
 &lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</source>
         <target state="translated">Bestimmt den Laufzeittyp einer Objektverweisvariablen und vergleicht ihn mit einem Datentyp. Gibt True oder False zurück, abhängig davon, ob die beiden Typen kompatibel sind.
-&lt;Ergebnis&gt; = TypeOf &lt;Objektausdruck&gt; Is &lt;Typname&gt;</target>
+&lt;result&gt; = TypeOf &lt;objectExpression&gt; Is &lt;typeName&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Used_in_a_Declare_statement_Specifies_that_Visual_Basic_should_marshal_all_strings_to_Unicode_values_in_a_call_into_an_external_procedure_and_should_look_up_the_procedure_without_modifying_its_name">
@@ -935,11 +925,6 @@ Iterator Function(&lt;Parameterliste&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       <trans-unit id="Specifies_the_sort_order_for_an_Order_By_clause_in_a_query_The_smallest_element_will_appear_first">
         <source>Specifies the sort order for an Order By clause in a query. The smallest element will appear first.</source>
         <target state="translated">Gibt die Sortierreihenfolge für eine Order By-Klausel in einer Abfrage an. Das kleinste Element wird zuerst aufgeführt.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Asynchronously_waits_for_the_task_to_finish">
-        <source>Asynchronously waits for the task to finish.</source>
-        <target state="translated">Wartet asynchron darauf, dass die Aufgabe fertig ist.</target>
         <note />
       </trans-unit>
       <trans-unit id="Sets_the_string_comparison_method_specified_in_Option_Compare_to_a_strict_binary_sort_order">
@@ -1360,7 +1345,7 @@ Option Strict {On | Off}</target>
         <source>Ensures that multiple threads do not execute the statement block at the same time.
 SyncLock &lt;object&gt;...End Synclock</source>
         <target state="translated">Stellt sicher, dass der Anweisungsblock nicht von mehreren Threads gleichzeitig ausgeführt wird.
-SyncLock &lt;Objekt&gt;...End Synclock</target>
+SyncLock &lt;object&gt;...End Synclock</target>
         <note />
       </trans-unit>
       <trans-unit id="Includes_elements_up_to_a_specified_position_in_the_collection">
@@ -1426,14 +1411,14 @@ Using &lt;Ressource1&gt;[, &lt;Ressource2&gt;]...End Using</target>
         <source>Specifies the declaration of property initializations in an object initializer.
 New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</source>
         <target state="translated">Gibt die Deklaration von Eigenschafteninitialisierungen in einem Objektinitialisierer an.
-New &lt;Typname&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
+New &lt;typeName&gt; With {[.&lt;property&gt; = &lt;expression&gt;][,...]}</target>
         <note />
       </trans-unit>
       <trans-unit id="Runs_a_series_of_statements_that_refer_to_a_single_object_or_structure_With_object_End_With">
         <source>Runs a series of statements that refer to a single object or structure.
 With &lt;object&gt;...End With</source>
         <target state="translated">Gibt eine Reihe von Anweisungen zurück, die auf ein Objekt oder eine Struktur verweisen.
-With &lt;Objekt&gt;...End With</target>
+With &lt;object&gt;...End With</target>
         <note />
       </trans-unit>
       <trans-unit id="Produces_an_element_of_an_IEnumerable_or_IEnumerator">
@@ -1472,34 +1457,14 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">Aktiviert die Berichterstattung angegebener Warnungen im Teil der Quelldatei unter der aktuellen Zeile.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Await">
-        <source>Insert 'Await'.</source>
-        <target state="translated">"Await" einfügen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Make_0_an_Async_Function">
         <source>Make {0} an Async Function.</source>
         <target state="translated">"{0}" in eine Async-Funktion umwandeln.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Insert_Missing_Cast">
-        <source>Insert Missing Cast</source>
-        <target state="translated">Fehlende Umwandlung einfügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Convert_0_to_Iterator">
-        <source>Convert {0} to Iterator</source>
-        <target state="translated">{0} in Iterator konvertieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Replace_Return_with_Yield">
-        <source>Replace 'Return' with 'Yield</source>
-        <target state="translated">"Return" durch "Yield" ersetzen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Use_the_correct_control_variable">
         <source>Use the correct control variable</source>
-        <target state="translated">Richtige Steuerungsvariable verwenden</target>
+        <target state="translated">Richtige Steuervariable verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="NameOf_function">
@@ -1515,36 +1480,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       <trans-unit id="Generate_widening_conversion_in_0">
         <source>Generate widening conversion in '{0}'</source>
         <target state="translated">Erweiternde Konvertierung in "{0}" generieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_Dispose_disposing_As_Boolean_above">
-        <source>Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.</source>
-        <target state="translated">Ändern Sie diesen Code nicht. Fügen Sie Bereinigungscode in Dispose(disposing As Boolean) weiter oben ein.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_Finalize_below">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.</source>
-        <target state="translated">TODO: nicht verwaltete Ressourcen (nicht verwaltete Objekte) freigeben und Finalize() weiter unten überschreiben.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_Finalize_only_if_Dispose_disposing_As_Boolean_above_has_code_to_free_unmanaged_resources">
-        <source>TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.</source>
-        <target state="translated">TODO: Finalize() nur überschreiben, wenn Dispose(disposing As Boolean) weiter oben Code zur Bereinigung nicht verwalteter Ressourcen enthält.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="This_code_added_by_Visual_Basic_to_correctly_implement_the_disposable_pattern">
-        <source>This code added by Visual Basic to correctly implement the disposable pattern.</source>
-        <target state="translated">Dieser Code wird von Visual Basic hinzugefügt, um das Dispose-Muster richtig zu implementieren.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_uncomment_the_following_line_if_Finalize_is_overridden_above">
-        <source>TODO: uncomment the following line if Finalize() is overridden above.</source>
-        <target state="translated">TODO: Auskommentierung der folgenden Zeile aufheben, wenn Finalize() oben überschrieben wird.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Imports_statement_is_unnecessary">
-        <source>Imports statement is unnecessary.</source>
-        <target state="translated">Imports-Anweisung ist unnötig.</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">
@@ -1624,7 +1559,7 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       </trans-unit>
       <trans-unit id="Lambda">
         <source>Lambda</source>
-        <target state="translated">Lambda</target>
+        <target state="translated">Lambdafunktion</target>
         <note />
       </trans-unit>
       <trans-unit id="Where_clause">
@@ -1697,11 +1632,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">WithEvents-Feld</target>
         <note>{Locked="WithEvents"} "WithEvents" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="property_accessor">
-        <source>property accessor</source>
-        <target state="translated">Eigenschaftenaccessor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="as_clause">
         <source>as clause</source>
         <target state="translated">as-Klausel</target>
@@ -1722,11 +1652,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">Attribute</target>
         <note />
       </trans-unit>
-      <trans-unit id="Too_many_arguments_to_0">
-        <source>Too many arguments to '{0}'.</source>
-        <target state="translated">Zu viele Argumente für "{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Type_0_is_not_defined">
         <source>Type '{0}' is not defined.</source>
         <target state="translated">Der Typ "{0}" ist nicht definiert.</target>
@@ -1734,7 +1659,7 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       </trans-unit>
       <trans-unit id="Add_Overloads">
         <source>Add 'Overloads'</source>
-        <target state="translated">Überladungen hinzufügen</target>
+        <target state="translated">"Overloads" hinzufügen</target>
         <note>{Locked="Overloads"} "Overloads" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Add_a_metadata_reference_to_specified_assembly_and_all_its_dependencies_e_g_Sharpr_myLib_dll">
@@ -1825,21 +1750,6 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       <trans-unit id="Make_Async_Sub">
         <source>Make Async Sub</source>
         <target state="translated">Sub als asynchron definieren</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Add_Me">
-        <source>Add 'Me.'</source>
-        <target state="translated">"Me." hinzufügen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_Is_Nothing_check">
-        <source>Use 'Is Nothing' check</source>
-        <target state="translated">Prüfung "Is Nothing" verwenden</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_IsNot_Nothing_check">
-        <source>Use 'IsNot Nothing' check</source>
-        <target state="translated">Prüfung "IsNot Nothing" verwenden</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">

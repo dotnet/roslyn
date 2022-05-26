@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Reflection
 Imports System.Reflection.Metadata
@@ -387,8 +389,8 @@ End Class
                 End Sub
 
             CompileAndVerify(verifiable, validator:=validator)
-            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.Fails)
-            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.Fails)
+            CompileAndVerify(unverifiable, validator:=validator, verify:=Verification.FailsPEVerify)
+            CompileAndVerify(unloadable, validator:=validator, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact>
@@ -564,7 +566,7 @@ End Class
     </file>
 </compilation>
             ' type C can't be loaded
-            CompileAndVerify(source, verify:=Verification.Fails)
+            CompileAndVerify(source, verify:=Verification.FailsPEVerify)
         End Sub
 
         <Fact>

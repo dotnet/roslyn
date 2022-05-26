@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -56,14 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _correspondingDefaultField = correspondingDefaultFieldOpt ?? this;
         }
 
-        public override bool IsTupleField
-        {
-            get
-            {
-                return true;
-            }
-        }
-
         /// <summary>
         /// If this is a field representing a tuple element,
         /// returns the index of the element (zero-based).
@@ -91,12 +87,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _tupleElementIndex >= 0 && !_isImplicitlyDeclared;
+            }
+        }
+
         public override FieldSymbol TupleUnderlyingField
         {
             get
             {
                 // Failed to find one
                 return null;
+            }
+        }
+
+        public override FieldSymbol OriginalDefinition
+        {
+            get
+            {
+                return this;
             }
         }
 
@@ -147,22 +159,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _useSiteDiagnosticInfo;
+            return new UseSiteInfo<AssemblySymbol>(_useSiteDiagnosticInfo);
         }
 
-        public override sealed int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
-            return Equals(obj as TupleErrorFieldSymbol);
+            return Equals(obj as TupleErrorFieldSymbol, compareKind);
         }
 
-        public bool Equals(TupleErrorFieldSymbol other)
+        public bool Equals(TupleErrorFieldSymbol other, TypeCompareKind compareKind)
         {
             if ((object)other == this)
             {
@@ -171,7 +183,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                TypeSymbol.Equals(ContainingType, other.ContainingType, TypeCompareKind.ConsiderEverything2);
+                TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
+        }
+
+        internal override FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        {
+            Debug.Assert(newOwner.IsTupleType && newOwner.TupleElementTypesWithAnnotations.Length > TupleElementIndex);
+            if (ReferenceEquals(newOwner, ContainingType))
+            {
+                return this;
+            }
+
+            TupleErrorFieldSymbol newCorrespondingField = null;
+            if (!ReferenceEquals(_correspondingDefaultField, this))
+            {
+                newCorrespondingField = (TupleErrorFieldSymbol)_correspondingDefaultField.AsMember(newOwner);
+            }
+
+            return new TupleErrorFieldSymbol(
+                newOwner,
+                Name,
+                TupleElementIndex,
+                _locations.IsEmpty ? null : Locations[0],
+                newOwner.TupleElementTypesWithAnnotations[TupleElementIndex],
+                _useSiteDiagnosticInfo,
+                _isImplicitlyDeclared,
+                newCorrespondingField);
         }
     }
 }

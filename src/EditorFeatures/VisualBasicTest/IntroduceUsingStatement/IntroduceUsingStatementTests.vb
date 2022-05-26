@@ -1,4 +1,8 @@
-﻿Imports Microsoft.CodeAnalysis.CodeRefactorings
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
+
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
@@ -94,6 +98,7 @@ End Class", "Class C
     Sub M(disposable As System.IDisposable)
         Using name = disposable
         End Using
+
         Dim ignore = disposable
     End Sub
 End Class")
@@ -110,6 +115,7 @@ End Class", "Class C
     Sub M(disposable As System.IDisposable)
         Using name = disposable
         End Using
+
         Dim ignore = disposable
     End Sub
 End Class")
@@ -283,6 +289,7 @@ End Class", "Class C
             M(null)
             M(x)
         End Using
+
         M(null)
     End Sub
 End Class")
@@ -355,6 +362,109 @@ End Class")
         New Action(Function() Dim x = disposable[||])
     End Sub
 End Class")
+        End Function
+
+        <Fact>
+        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        Public Async Function ExpandsToIncludeSurroundedVariableDeclarations() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Dim buffer = reader.GetBuffer()
+        buffer.Clone()
+        Dim a = 1
+    End Sub
+End Class",
+"Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Dim buffer = reader.GetBuffer()
+            buffer.Clone()
+        End Using
+
+        Dim a = 1
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        <WorkItem(35237, "https://github.com/dotnet/roslyn/issues/35237")>
+        Public Async Function ExpandsToIncludeSurroundedMultiVariableDeclarations() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.IO
+
+Class C
+    Sub M()
+        Dim reader = New MemoryStream()[||]
+        Dim buffer = reader.GetBuffer()
+        Dim a As Integer = buffer(0), b As Integer = a
+        Dim c = b
+        Dim d = 1
+    End Sub
+End Class",
+"Imports System.IO
+
+Class C
+    Sub M()
+        Using reader = New MemoryStream()
+            Dim buffer = reader.GetBuffer()
+            Dim a As Integer = buffer(0), b As Integer = a
+            Dim c = b
+        End Using
+
+        Dim d = 1
+    End Sub
+End Class")
+        End Function
+
+        <Fact>
+        <WorkItem(43373, "https://github.com/dotnet/roslyn/issues/43373")>
+        Public Async Function HandleTrailingComma() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class D
+    Implements IDisposable
+
+    Public Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Module Program
+    Public Property Current As Object
+
+    Sub Main(args As String())
+        Dim dt As D = New D()[||] 'This is a comment
+        Console.WriteLine(dt.ToString())
+    End Sub
+End Module",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Class D
+    Implements IDisposable
+
+    Public Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Module Program
+    Public Property Current As Object
+
+    Sub Main(args As String())
+        Using dt As D = New D() 'This is a comment
+            Console.WriteLine(dt.ToString())
+        End Using
+    End Sub
+End Module")
         End Function
     End Class
 End Namespace

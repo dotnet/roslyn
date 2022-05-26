@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -77,7 +81,7 @@ class C4 : C1 {}
             var x_base_base = x.BaseType().BaseType() as ErrorTypeSymbol;
             var er = x_base_base.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -104,7 +108,7 @@ class A<T>
             var x_base = e.BaseType() as ErrorTypeSymbol;
             var er = x_base.ErrorInfo;
 
-            Assert.Equal("error CS0146: Circular base class dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
+            Assert.Equal("error CS0146: Circular base type dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -133,7 +137,7 @@ class B {
             var x_base = d.BaseType() as ErrorTypeSymbol;
             var er = x_base.ErrorInfo;
 
-            Assert.Equal("error CS0146: Circular base class dependency involving 'A<int>.C' and 'B.D'",
+            Assert.Equal("error CS0146: Circular base type dependency involving 'A<int>.C' and 'B.D'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -198,10 +202,10 @@ class B<T> : A<B<T>> {
 ";
             var comp = CreateCompilation(text);
             comp.GetDeclarationDiagnostics().Verify(
-    // (2,7): error CS0146: Circular base class dependency involving 'B<A<T>>' and 'A<T>'
+    // (2,7): error CS0146: Circular base type dependency involving 'B<A<T>>' and 'A<T>'
     // class A<T> : B<A<T>> { }
     Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B<A<T>>", "A<T>"),
-    // (3,7): error CS0146: Circular base class dependency involving 'A<B<T>>' and 'B<T>'
+    // (3,7): error CS0146: Circular base type dependency involving 'A<B<T>>' and 'B<T>'
     // class B<T> : A<B<T>> {
     Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A<B<T>>", "B<T>")
                 );
@@ -254,7 +258,7 @@ class C : A {
 }
 
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = (Compilation)CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -262,7 +266,7 @@ class C : A {
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var someMemberInA = classA.Members[0];
@@ -270,7 +274,7 @@ class C : A {
 
             var members = model.LookupSymbols(positionInA, a, "Z");
             Assert.Equal(1, members.Length);
-            Assert.False(((TypeSymbol)members[0]).IsErrorType());
+            Assert.False(((ITypeSymbol)members[0]).IsErrorType());
             Assert.Equal("C.Z", members[0].ToTestDisplayString());
 
             var members2 = model.LookupSymbols(positionInA, a, "Q");
@@ -291,7 +295,7 @@ class B<T> : A {
   public class Y {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
+            var comp = (Compilation)CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
 
@@ -299,7 +303,7 @@ class B<T> : A {
             //Assert.True(aBase.IsErrorType());
             //Assert.Equal("B", aBase.Name);
 
-            var tree = comp.SyntaxTrees[0];
+            var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var classA = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             var someMemberInA = classA.Members[0];
@@ -332,7 +336,7 @@ internal class F : A
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (16,22): error CS0060: Inconsistent accessibility: base class 'A.B.C.X' is less accessible than class 'F.D.E'
+                // (16,22): error CS0060: Inconsistent accessibility: base type 'A.B.C.X' is less accessible than class 'F.D.E'
                 //         public class E : C.X { }
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "E").WithArguments("F.D.E", "A.B.C.X")
                 );
@@ -360,7 +364,7 @@ public partial class C1
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // (10,15): error CS0060: Inconsistent accessibility: base type 'NV' is less accessible than class 'C1'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }
@@ -390,7 +394,7 @@ public partial class C1
                 // (10,15): error CS0709: 'C1': cannot derive from static class 'NV'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_StaticBaseClass, "C1").WithArguments("NV", "C1").WithLocation(10, 15),
-                // (10,15): error CS0060: Inconsistent accessibility: base class 'NV' is less accessible than class 'C1'
+                // (10,15): error CS0060: Inconsistent accessibility: base type 'NV' is less accessible than class 'C1'
                 // partial class C1 : NV
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }
@@ -693,7 +697,7 @@ class A : A { }
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'A' and 'A'
+                // (2,7): error CS0146: Circular base type dependency involving 'A' and 'A'
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("A", "A"));
         }
 
@@ -706,9 +710,9 @@ class B : A { }
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'B' and 'A'
+                // (2,7): error CS0146: Circular base type dependency involving 'B' and 'A'
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("B", "A"),
-                // (3,7): error CS0146: Circular base class dependency involving 'A' and 'B'
+                // (3,7): error CS0146: Circular base type dependency involving 'A' and 'B'
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "B"));
         }
 
@@ -723,7 +727,7 @@ class A : A.B
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (2,7): error CS0146: Circular base class dependency involving 'A.B' and 'A'
+                // (2,7): error CS0146: Circular base type dependency involving 'A.B' and 'A'
                 Diagnostic(ErrorCode.ERR_CircularBase, "A").WithArguments("A.B", "A"));
         }
 
@@ -912,7 +916,7 @@ interface I<T> { }
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,21): error CS0146: Circular base class dependency involving 'C' and 'C'
+                // (7,21): error CS0146: Circular base type dependency involving 'C' and 'C'
                 Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("C", "C"));
         }
 
@@ -972,7 +976,7 @@ class B : A<B.Y.Z>
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (15,17): error CS0146: Circular base class dependency involving 'B.Y' and 'B'
+                // (15,17): error CS0146: Circular base type dependency involving 'B.Y' and 'B'
                 Diagnostic(ErrorCode.ERR_CircularBase, "X").WithArguments("B", "B.Y"),
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Z").WithArguments("Z", "B.Y"),
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "V").WithArguments("V", "B.Y"));
@@ -995,7 +999,7 @@ interface I4 : I1 {}
             var x_base_base = x.Interfaces().First().Interfaces().First() as ErrorTypeSymbol;
             var er = x_base_base.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'I2' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -1036,12 +1040,12 @@ public class ClassC : ClassB {}
             Assert.IsType<Retargeting.RetargetingNamedTypeSymbol>(B2);
             Assert.Same(B1, ((Retargeting.RetargetingNamedTypeSymbol)B2).UnderlyingNamedType);
             Assert.Same(C.BaseType(), B2);
-            Assert.False(((INamedTypeSymbol)B2).IsSerializable);
+            Assert.False(B2.IsSerializable);
 
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
@@ -1049,7 +1053,7 @@ public class ClassC : ClassB {}
             var errorBase1 = A2.BaseType() as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -1103,7 +1107,7 @@ public class ClassC : ClassB {}
             var errorBase = B2.BaseType() as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
@@ -1111,7 +1115,7 @@ public class ClassC : ClassB {}
             var errorBase1 = A2.BaseType() as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
@@ -1139,13 +1143,13 @@ public class ClassB : ClassA {}
             var errorBase = B_base as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
-            Assert.Equal("error CS0146: Circular base class dependency involving 'ClassA' and 'ClassB'",
+            Assert.Equal("error CS0146: Circular base type dependency involving 'ClassA' and 'ClassB'",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var errorBase1 = A_base as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
@@ -1197,13 +1201,13 @@ public class ClassC : ClassB {}
             var errorBase = B_base as ErrorTypeSymbol;
             var er = errorBase.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var errorBase1 = A_base as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
-            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
+            Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
@@ -1234,13 +1238,13 @@ public class ClassC : ClassB {}
             Assert.IsAssignableFrom<PENamedTypeSymbol>(B2.BaseType());
         }
 
-        [Fact]
-        public void NestedNames1()
+        [Theory, MemberData(nameof(FileScopedOrBracedNamespace))]
+        public void NestedNames1(string ob, string cb)
         {
             var text =
 @"
 namespace N
-{
+" + ob + @"
     static class C
     {
         class A<T>
@@ -1249,7 +1253,7 @@ namespace N
             private class D { }
         }
     }
-}
+" + cb + @"
 ";
             var comp = CreateEmptyCompilation(text);
             var global = comp.GlobalNamespace;
@@ -1428,9 +1432,33 @@ public class B : N { }
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
-        [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
-        [Fact]
-        public void NamespaceClassInterfaceEscapedIdentifier()
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier1()
+        {
+            var text = @"
+namespace @if
+{
+    public interface @break { }
+    public class @int<@string> { }
+    public class @float : @int<@break>, @if.@break { }
+}";
+            var comp = CreateCompilation(Parse(text));
+            NamespaceSymbol nif = (NamespaceSymbol)comp.SourceModule.GlobalNamespace.GetMembers("if").Single();
+            Assert.Equal("if", nif.Name);
+            Assert.Equal("@if", nif.ToString());
+            NamedTypeSymbol cfloat = (NamedTypeSymbol)nif.GetMembers("float").Single();
+            Assert.Equal("float", cfloat.Name);
+            Assert.Equal("@if.@float", cfloat.ToString());
+            NamedTypeSymbol cint = cfloat.BaseType();
+            Assert.Equal("int", cint.Name);
+            Assert.Equal("@if.@int<@if.@break>", cint.ToString());
+            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
+            Assert.Equal("break", ibreak.Name);
+            Assert.Equal("@if.@break", ibreak.ToString());
+        }
+
+        [Fact, WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
+        public void NamespaceClassInterfaceEscapedIdentifier2()
         {
             var text = @"
 namespace @if
@@ -1449,9 +1477,9 @@ namespace @if
             NamedTypeSymbol cint = cfloat.BaseType();
             Assert.Equal("int", cint.Name);
             Assert.Equal("@if.@int<@if.@break>", cint.ToString());
-            NamedTypeSymbol ibreak = cfloat.Interfaces().Single();
-            Assert.Equal("break", ibreak.Name);
-            Assert.Equal("@if.@break", ibreak.ToString());
+
+            // No interfaces as the above doesn't parse due to the errant : in the base list.
+            Assert.Empty(cfloat.Interfaces());
         }
 
         [WorkItem(539328, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539328")]
@@ -1548,12 +1576,12 @@ class C : I2 { }
             Assert.Equal(derivedInterface, @class.Interfaces().Single());
             Assert.True(@class.AllInterfaces().SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
 
-            var typeDef = (Cci.ITypeDefinition)@class;
+            var typeDef = (Cci.ITypeDefinition)@class.GetCciAdapter();
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
             var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciInterfaces = typeDef.Interfaces(context)
-                .Select(impl => impl.TypeRef).Cast<NamedTypeSymbol>().AsImmutable();
+                .Select(impl => impl.TypeRef.GetInternalSymbol()).Cast<NamedTypeSymbol>().AsImmutable();
             Assert.True(cciInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));
             context.Diagnostics.Verify();
         }
@@ -1909,7 +1937,7 @@ struct S : C.I
             // Ideally report "CS0426: The type name 'I' does not exist in the type 'S'"
             // instead. Bug #896959.
             compilation.VerifyDiagnostics(
-                // (1,14): error CS0146: Circular base class dependency involving 'S' and 'S'
+                // (1,14): error CS0146: Circular base type dependency involving 'S' and 'S'
                 // struct S : S.I
                 Diagnostic(ErrorCode.ERR_CircularBase, "I").WithArguments("S", "S").WithLocation(1, 14));
         }
@@ -2262,18 +2290,71 @@ class Derived : Base
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
-                // (13,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
-                //     class F : A<D*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("Base.D").WithLocation(13, 17),
                 // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
-                // (12,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
-                //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("Base.C").WithLocation(12, 17),
+                // (13,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
                 // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
                 //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11));
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
+                // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_01()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<(object, A.B)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base type dependency involving 'A' and 'A'
+                // class A : I<(object, A.B)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 24));
+        }
+
+        [Fact]
+        [WorkItem(1107185, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1107185")]
+        public void Tuple_MissingNestedTypeArgument_02()
+        {
+            var source =
+@"class A<T>
+{
+}
+class B : A<(object, B.C)>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0146: Circular base type dependency involving 'B' and 'B'
+                // class B : A<(object, B.C)>
+                Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("B", "B").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void Tuple_MissingNestedTypeArgument_03()
+        {
+            var source =
+@"interface I<T>
+{
+}
+class A : I<System.ValueTuple<object, A.B>>
+{
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0146: Circular base type dependency involving 'A' and 'A'
+                // class A : I<System.ValueTuple<object, A.B>>
+                Diagnostic(ErrorCode.ERR_CircularBase, "B").WithArguments("A", "A").WithLocation(4, 41));
         }
     }
 }

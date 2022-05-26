@@ -1,11 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     Partial Friend Class VisualBasicReplacePropertyWithMethods
-        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax)
+        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, CrefReferenceSyntax, StatementSyntax, PropertyStatementSyntax)
 
         Private Class ConvertValueToParamRewriter
             Inherits VisualBasicSyntaxRewriter
@@ -15,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Private Sub New()
             End Sub
 
-            Private Function ConvertToParam(name As XmlNodeSyntax) As SyntaxNode
+            Private Shared Function ConvertToParam(name As XmlNodeSyntax) As SyntaxNode
                 Return name.ReplaceToken(DirectCast(name, XmlNameSyntax).LocalName,
                                          SyntaxFactory.XmlNameToken("param", SyntaxKind.IdentifierToken))
             End Function

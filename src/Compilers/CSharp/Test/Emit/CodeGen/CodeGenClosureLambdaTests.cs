@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -1111,11 +1115,10 @@ class Program
             var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
             verifier.VerifyIL("Program.<>c__DisplayClass1_0<T>.<F>b__0", @"
 {
-  // Code size      131 (0x83)
+  // Code size      113 (0x71)
   .maxstack  3
   .locals init (Program.<>c__DisplayClass1_1<T> V_0, //CS$<>8__locals0
-                Program.<>c__DisplayClass1_2<T> V_1, //CS$<>8__locals1
-                T V_2)
+                T V_1)
   IL_0000:  newobj     ""Program.<>c__DisplayClass1_1<T>..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -1137,38 +1140,32 @@ class Program
     IL_0029:  brtrue.s   IL_002f
     IL_002b:  pop
     IL_002c:  ldc.i4.0
-    IL_002d:  br.s       IL_005d
+    IL_002d:  br.s       IL_0050
     IL_002f:  unbox.any  ""T""
-    IL_0034:  newobj     ""Program.<>c__DisplayClass1_2<T>..ctor()""
-    IL_0039:  stloc.1
-    IL_003a:  ldloc.1
-    IL_003b:  ldloc.0
-    IL_003c:  stfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals2""
-    IL_0041:  stloc.2
-    IL_0042:  ldloc.1
-    IL_0043:  ldloc.2
-    IL_0044:  stfld      ""T Program.<>c__DisplayClass1_2<T>.e""
-    IL_0049:  ldloc.1
-    IL_004a:  ldftn      ""bool Program.<>c__DisplayClass1_2<T>.<F>b__1()""
-    IL_0050:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
-    IL_0055:  callvirt   ""bool System.Func<bool>.Invoke()""
-    IL_005a:  ldc.i4.0
-    IL_005b:  cgt.un
-    IL_005d:  endfilter
+    IL_0034:  stloc.1
+    IL_0035:  ldloc.0
+    IL_0036:  ldloc.1
+    IL_0037:  stfld      ""T Program.<>c__DisplayClass1_1<T>.e""
+    IL_003c:  ldloc.0
+    IL_003d:  ldftn      ""bool Program.<>c__DisplayClass1_1<T>.<F>b__1()""
+    IL_0043:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
+    IL_0048:  callvirt   ""bool System.Func<bool>.Invoke()""
+    IL_004d:  ldc.i4.0
+    IL_004e:  cgt.un
+    IL_0050:  endfilter
   }  // end filter
   {  // handler
-    IL_005f:  pop
-    IL_0060:  ldstr      ""pass_""
-    IL_0065:  ldarg.0
-    IL_0066:  ldfld      ""string Program.<>c__DisplayClass1_0<T>.x""
-    IL_006b:  ldloc.1
-    IL_006c:  ldfld      ""Program.<>c__DisplayClass1_1<T> Program.<>c__DisplayClass1_2<T>.CS$<>8__locals2""
-    IL_0071:  ldfld      ""string Program.<>c__DisplayClass1_1<T>.y""
-    IL_0076:  call       ""string string.Concat(string, string, string)""
-    IL_007b:  call       ""void System.Console.Write(string)""
-    IL_0080:  leave.s    IL_0082
+    IL_0052:  pop
+    IL_0053:  ldstr      ""pass_""
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""string Program.<>c__DisplayClass1_0<T>.x""
+    IL_005e:  ldloc.0
+    IL_005f:  ldfld      ""string Program.<>c__DisplayClass1_1<T>.y""
+    IL_0064:  call       ""string string.Concat(string, string, string)""
+    IL_0069:  call       ""void System.Console.Write(string)""
+    IL_006e:  leave.s    IL_0070
   }
-  IL_0082:  ret
+  IL_0070:  ret
 }
 ");
         }
@@ -3481,18 +3478,18 @@ class Program
     }
 }";
             CompileAndVerify(source, expectedOutput: "13").
-            VerifyIL("Program.c1.<>c__DisplayClass1_1.<Test>b__2",
+            VerifyIL("Program.c1.<>c__DisplayClass1_0.<Test>b__2",
 @"{
   // Code size       31 (0x1f)
   .maxstack  3
-  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_2..ctor()""
+  IL_0000:  newobj     ""Program.c1.<>c__DisplayClass1_1..ctor()""
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      ""Program.c1.<>c__DisplayClass1_1 Program.c1.<>c__DisplayClass1_2.CS$<>8__locals2""
+  IL_0007:  stfld      ""Program.c1.<>c__DisplayClass1_0 Program.c1.<>c__DisplayClass1_1.CS$<>8__locals1""
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      ""int Program.c1.<>c__DisplayClass1_2.z""
-  IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1_2.<Test>b__3(int)""
+  IL_000e:  stfld      ""int Program.c1.<>c__DisplayClass1_1.z""
+  IL_0013:  ldftn      ""int Program.c1.<>c__DisplayClass1_1.<Test>b__3(int)""
   IL_0019:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
   IL_001e:  ret
 }");
@@ -3782,8 +3779,7 @@ public static class Program
         [Fact]
         public void ParentFrame05()
         {
-            // IMPORTANT: this code should not initialize any fields in Program.c1.<>c__DisplayClass0 except "a"
-            //            Program.c1.<>c__DisplayClass0 should not capture any frame pointers.
+            // IMPORTANT: Program.c1.<>c__DisplayClass1_0 should not capture any frame pointers.
 
             string source = @"
 using System;
@@ -3829,8 +3825,8 @@ class Program
             CompileAndVerify(source, expectedOutput: "6").
             VerifyIL("Program.c1.Test",
 @"{
-  // Code size       96 (0x60)
-  .maxstack  3
+  // Code size       85 (0x55)
+  .maxstack  2
   .locals init (System.Func<int> V_0, //ff
                 System.Func<int> V_1, //aa
                 Program.c1.<>c__DisplayClass1_0 V_2) //CS$<>8__locals0
@@ -3840,7 +3836,7 @@ class Program
   IL_0003:  stloc.1
   IL_0004:  ldarg.0
   IL_0005:  call       ""bool Program.c1.T()""
-  IL_000a:  brfalse.s  IL_004d
+  IL_000a:  brfalse.s  IL_0042
   IL_000c:  newobj     ""Program.c1.<>c__DisplayClass1_0..ctor()""
   IL_0011:  stloc.2
   IL_0012:  ldloc.2
@@ -3848,28 +3844,25 @@ class Program
   IL_0014:  stfld      ""int Program.c1.<>c__DisplayClass1_0.a""
   IL_0019:  ldarg.0
   IL_001a:  call       ""bool Program.c1.T()""
-  IL_001f:  brfalse.s  IL_004d
-  IL_0021:  newobj     ""Program.c1.<>c__DisplayClass1_1..ctor()""
-  IL_0026:  dup
-  IL_0027:  ldloc.2
-  IL_0028:  stfld      ""Program.c1.<>c__DisplayClass1_0 Program.c1.<>c__DisplayClass1_1.CS$<>8__locals1""
-  IL_002d:  dup
-  IL_002e:  ldc.i4.4
-  IL_002f:  stfld      ""int Program.c1.<>c__DisplayClass1_1.b""
-  IL_0034:  ldftn      ""int Program.c1.<>c__DisplayClass1_1.<Test>b__0()""
-  IL_003a:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_003f:  stloc.0
-  IL_0040:  ldarg.0
-  IL_0041:  ldftn      ""int Program.c1.<Test>b__1_1()""
-  IL_0047:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
-  IL_004c:  stloc.1
-  IL_004d:  ldloc.0
-  IL_004e:  callvirt   ""int System.Func<int>.Invoke()""
-  IL_0053:  ldloc.1
-  IL_0054:  callvirt   ""int System.Func<int>.Invoke()""
-  IL_0059:  add
-  IL_005a:  call       ""void System.Console.WriteLine(int)""
-  IL_005f:  ret
+  IL_001f:  brfalse.s  IL_0042
+  IL_0021:  ldloc.2
+  IL_0022:  ldc.i4.4
+  IL_0023:  stfld      ""int Program.c1.<>c__DisplayClass1_0.b""
+  IL_0028:  ldloc.2
+  IL_0029:  ldftn      ""int Program.c1.<>c__DisplayClass1_0.<Test>b__0()""
+  IL_002f:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0034:  stloc.0
+  IL_0035:  ldarg.0
+  IL_0036:  ldftn      ""int Program.c1.<Test>b__1_1()""
+  IL_003c:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_0041:  stloc.1
+  IL_0042:  ldloc.0
+  IL_0043:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_0048:  ldloc.1
+  IL_0049:  callvirt   ""int System.Func<int>.Invoke()""
+  IL_004e:  add
+  IL_004f:  call       ""void System.Console.WriteLine(int)""
+  IL_0054:  ret
 }");
         }
 
@@ -4212,14 +4205,16 @@ namespace Lambda.Bugs
 ";
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(1, 1),
                 // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
                 //             void I<NestedClass.NestedClass.NestedClass.NestedClass.NestedClass>.Goo(int x)
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "Goo").WithArguments("Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo").WithLocation(17, 81),
                 // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
                 //                 Func<int> f = () => x;
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31),
+                // (19,31): error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
+                //                 Func<int> f = () => x;
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => x").WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(19, 31)
+                );
         }
 
         [WorkItem(540049, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540049")]
@@ -4243,8 +4238,9 @@ class Program
             CompileAndVerify(source, expectedOutput: "7");
         }
 
+        [Fact]
         [WorkItem(1019237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019237")]
-        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10838")]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void OrderOfDelegateMembers()
         {
             var source = @"
@@ -5383,6 +5379,434 @@ class C
   IL_004f:  box        ""int""
   IL_0054:  stfld      ""object C.<>c__DisplayClass0_0.o""
   IL_0059:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly()
+        {
+            // The lambda passed into StaticMethod depends on TLocal type argument of LocalMethod
+            // so if the delegate is cached outside the method the type argument reference is broken
+            // and code throws BadImageFormatException. Such a broken code will looks like:
+            // class DisplayClass
+            // {
+            //     Func<TLocal, string> _cachedDelegate;
+            //
+            //     void LocalMethod<TLocal>()
+            //     {
+            //         ...
+            //     }
+            //
+            // The test checks that it is not the issue.
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalFunction<TLocal>(TLocal value)
+            {
+                StaticMethod(value, param, (_, __) => message);
+                StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+            }
+
+            message = i.ToString();
+            LocalFunction<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        /// <summary>
+        /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
+        /// for the test case description
+        /// </summary>
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter2_CompilesCorrectly()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalFunction<TLocal>(TLocal value)
+            {
+                InnerLocalFunction();
+
+                void InnerLocalFunction()
+                {
+                    StaticMethod(value, param, (_, __) => message);
+                    StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                    StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+                }
+            }
+
+            message = i.ToString();
+            LocalFunction<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        /// <summary>
+        /// Check <see cref="LambdaDependentOnEnclosingLocalFunctionTypeParameter1_CompilesCorrectly"/> summary
+        /// for the test case description
+        /// </summary>
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingLocalFunctionTypeParameter3_CompilesCorrectly()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        OuterLocalFunction();
+
+        void OuterLocalFunction()
+        {
+            for (int i = 0; i < 1; i++)
+            {
+                void LocalFunction<TLocal>(TLocal value)
+                {
+                    StaticMethod(value, param, (_, __) => message);
+                    StaticMethod(new List<TLocal> { value }, param, (_, __) => message);
+                    StaticMethod(new TLocal[] { value }, param, (_, __) => message);
+                }
+
+                message = i.ToString();
+                LocalFunction<string>(string.Empty);
+            }
+        }
+    }
+
+    static void StaticMethod<TFirst, TSecond, TOut>(TFirst first, TSecond second, Func<TFirst, TSecond, TOut> func)
+    {
+        Console.Write($""{func(first, second)}-{typeof(TFirst)};"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"0-System.String;0-System.Collections.Generic.List`1[System.String];0-System.String[];");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideLocalFunctionInsideLoop_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalMethod()
+            {
+                StaticMethod(message, _ => message);
+            }
+
+            message = i.ToString();
+            LocalMethod();
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.<>c__DisplayClass0_0.<Main>g__LocalMethod|0()",
+                @"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Func<string, string> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""string Program.<>c__DisplayClass0_0.message""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""System.Func<string, string> Program.<>c__DisplayClass0_0.<>9__1""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0025
+  IL_000f:  pop
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.0
+  IL_0012:  ldftn      ""string Program.<>c__DisplayClass0_0.<Main>b__1(string)""
+  IL_0018:  newobj     ""System.Func<string, string>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stloc.0
+  IL_001f:  stfld      ""System.Func<string, string> Program.<>c__DisplayClass0_0.<>9__1""
+  IL_0024:  ldloc.0
+  IL_0025:  call       ""void Program.StaticMethod<string, string>(string, System.Func<string, string>)""
+  IL_002a:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaDependentOnEnclosingMethodTypeParameter_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            message = i.ToString();
+
+            StaticMethod(param, _ => message);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.TestMethod<T>(T)",
+                @"{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
+                int V_1, //i
+                System.Func<T, string> V_2)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_0<T>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldsfld     ""string string.Empty""
+  IL_000c:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_004b
+  IL_0015:  ldloc.0
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0022:  ldarg.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0042
+  IL_002c:  pop
+  IL_002d:  ldloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__0(T)""
+  IL_0035:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stloc.2
+  IL_003c:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0041:  ldloc.2
+  IL_0042:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4.1
+  IL_0049:  add
+  IL_004a:  stloc.1
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  blt.s      IL_0015
+  IL_004f:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideGenericLocalFunction_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            void LocalFunction<TLocal>(TLocal value)
+            {
+                StaticMethod(param, _ => message);
+            }
+
+            message = i.ToString();
+            LocalFunction<string>(string.Empty);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.<>c__DisplayClass1_0<T>.<TestMethod>g__LocalFunction|0<TLocal>(TLocal)",
+                @"{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (System.Func<T, string> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""T Program.<>c__DisplayClass1_0<T>.param""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__1""
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0025
+  IL_000f:  pop
+  IL_0010:  ldarg.0
+  IL_0011:  ldarg.0
+  IL_0012:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__1<TLocal>(T)""
+  IL_0018:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_001d:  dup
+  IL_001e:  stloc.0
+  IL_001f:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__1""
+  IL_0024:  ldloc.0
+  IL_0025:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_002a:  ret
+}");
+        }
+
+        [WorkItem(44720, "https://github.com/dotnet/roslyn/issues/44720")]
+        [Fact]
+        public void LambdaInsideGenericMethod_IsCached()
+        {
+            string source =
+                @"using System;
+using System.Collections.Generic;
+
+static class Program
+{
+    private static void Main()
+    {
+        TestMethod(string.Empty);
+    }
+
+    private static void TestMethod<T>(T param)
+    {
+        var message = string.Empty;
+
+        for (int i = 0; i < 1; i++)
+        {
+            message = i.ToString();
+            StaticMethod(param, _ => message);
+        }
+    }
+
+    static void StaticMethod<TIn, TOut>(TIn value, Func<TIn, TOut> func)
+    {
+        Console.Write($""{func(value)}-{typeof(TIn)};"");
+    }
+}";
+            var compilation = CompileAndVerify(source, expectedOutput: @"0-System.String;");
+            compilation.VerifyIL("Program.TestMethod<T>(T)",
+                @"{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (Program.<>c__DisplayClass1_0<T> V_0, //CS$<>8__locals0
+                int V_1, //i
+                System.Func<T, string> V_2)
+  IL_0000:  newobj     ""Program.<>c__DisplayClass1_0<T>..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldsfld     ""string string.Empty""
+  IL_000c:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
+  IL_0013:  br.s       IL_004b
+  IL_0015:  ldloc.0
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       ""string int.ToString()""
+  IL_001d:  stfld      ""string Program.<>c__DisplayClass1_0<T>.message""
+  IL_0022:  ldarg.0
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0029:  dup
+  IL_002a:  brtrue.s   IL_0042
+  IL_002c:  pop
+  IL_002d:  ldloc.0
+  IL_002e:  ldloc.0
+  IL_002f:  ldftn      ""string Program.<>c__DisplayClass1_0<T>.<TestMethod>b__0(T)""
+  IL_0035:  newobj     ""System.Func<T, string>..ctor(object, System.IntPtr)""
+  IL_003a:  dup
+  IL_003b:  stloc.2
+  IL_003c:  stfld      ""System.Func<T, string> Program.<>c__DisplayClass1_0<T>.<>9__0""
+  IL_0041:  ldloc.2
+  IL_0042:  call       ""void Program.StaticMethod<T, string>(T, System.Func<T, string>)""
+  IL_0047:  ldloc.1
+  IL_0048:  ldc.i4.1
+  IL_0049:  add
+  IL_004a:  stloc.1
+  IL_004b:  ldloc.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  blt.s      IL_0015
+  IL_004f:  ret
 }");
         }
     }

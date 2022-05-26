@@ -1,15 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -36,14 +40,13 @@ namespace Microsoft.Cci
         // in support of determinism
         private bool IsDeterministic { get => _hashAlgorithmNameOpt.Name != null; }
 
-
         public PdbWriter(string fileName, Func<ISymWriterMetadataProvider, SymUnmanagedWriter> symWriterFactory, HashAlgorithmName hashAlgorithmNameOpt)
         {
             _fileName = fileName;
             _symWriterFactory = symWriterFactory;
             _hashAlgorithmNameOpt = hashAlgorithmNameOpt;
             _documentIndex = new Dictionary<DebugSourceDocument, int>();
-            _qualifiedNameCache = new Dictionary<object, string>();
+            _qualifiedNameCache = new Dictionary<object, string>(ReferenceEqualityComparer.Instance);
         }
 
         public void WriteTo(Stream stream)
@@ -62,64 +65,17 @@ namespace Microsoft.Cci
         public void SerializeDebugInfo(IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, CustomDebugInfoWriter customDebugInfoWriter)
         {
             Debug.Assert(_metadataWriter != null);
+            var methodHandle = (MethodDefinitionHandle)_metadataWriter.GetMethodHandle(methodBody.MethodDefinition);
 
             // A state machine kickoff method doesn't have sequence points as it only contains generated code.
             // We could avoid emitting debug info for it if the corresponding MoveNext method had no sequence points,
             // but there is no real need for such optimization.
             // 
             // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
-            // This is to accomodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
+            // This is to accommodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
             bool isKickoffMethod = methodBody.StateMachineTypeName != null;
-            bool emitDebugInfo = isKickoffMethod || !methodBody.SequencePoints.IsEmpty ||
+            bool emitAllDebugInfo = isKickoffMethod || !methodBody.SequencePoints.IsEmpty ||
                 methodBody.MethodDefinition == (Context.Module.DebugEntryPoint ?? Context.Module.PEEntryPoint);
-
-            if (!emitDebugInfo)
-            {
-                return;
-            }
-
-            var methodHandle = (MethodDefinitionHandle)_metadataWriter.GetMethodHandle(methodBody.MethodDefinition);
-            int methodToken = MetadataTokens.GetToken(methodHandle);
-
-            OpenMethod(methodToken, methodBody.MethodDefinition);
-
-            var localScopes = methodBody.LocalScopes;
-
-            // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
-            if (localScopes.Length > 0)
-            {
-                this.DefineScopeLocals(localScopes[0], localSignatureHandleOpt);
-            }
-
-            if (!isKickoffMethod && methodBody.ImportScope != null)
-            {
-                IMethodDefinition forwardToMethod;
-                if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out forwardToMethod))
-                {
-                    if (forwardToMethod != null)
-                    {
-                        UsingNamespace("@" + MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(forwardToMethod)), methodBody.MethodDefinition);
-                    }
-                    // otherwise, the forwarding is done via custom debug info
-                }
-                else
-                {
-                    this.DefineNamespaceScopes(methodBody);
-                }
-            }
-
-            DefineLocalScopes(localScopes, localSignatureHandleOpt);
-            EmitSequencePoints(methodBody.SequencePoints);
-
-            if (methodBody.MoveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncMoveNextInfo)
-            {
-                _symWriter.SetAsyncInfo(
-                    methodToken,
-                    MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
-                    asyncMoveNextInfo.CatchHandlerOffset,
-                    asyncMoveNextInfo.YieldOffsets.AsSpan(),
-                    asyncMoveNextInfo.ResumeOffsets.AsSpan());
-            }
 
             var compilationOptions = Context.Module.CommonCompilation.Options;
 
@@ -127,19 +83,70 @@ namespace Microsoft.Cci
             // bug #1067635 is fixed and available in SDK.
             bool suppressNewCustomDebugInfo = compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata;
 
-            // delta doesn't need this information - we use information recorded by previous generation emit
-            bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata;
+            bool emitDynamicAndTupleInfo = emitAllDebugInfo && !suppressNewCustomDebugInfo;
 
-            bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
-            if (blob != null)
+            // Emit EnC info for all methods even if they do not have sequence points.
+            // The information facilitates reusing lambdas and closures. The reuse is important for runtimes that can't add new members (e.g. Mono).
+            bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata && !suppressNewCustomDebugInfo;
+
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitStateMachineInfo: emitAllDebugInfo, emitEncInfo, emitDynamicAndTupleInfo, out bool emitExternNamespaces);
+
+            if (!emitAllDebugInfo && blob.Length == 0)
             {
-                _symWriter.DefineCustomMetadata(blob);
+                return;
             }
 
-            if (emitExternNamespaces)
+            int methodToken = MetadataTokens.GetToken(methodHandle);
+            OpenMethod(methodToken, methodBody.MethodDefinition);
+
+            if (emitAllDebugInfo)
             {
-                DefineAssemblyReferenceAliases();
+                var localScopes = methodBody.LocalScopes;
+
+                // Define locals, constants and namespaces in the outermost local scope (opened in OpenMethod):
+                if (localScopes.Length > 0)
+                {
+                    DefineScopeLocals(localScopes[0], localSignatureHandleOpt);
+                }
+
+                if (!isKickoffMethod && methodBody.ImportScope != null)
+                {
+                    if (customDebugInfoWriter.ShouldForwardNamespaceScopes(Context, methodBody, methodHandle, out IMethodDefinition forwardToMethod))
+                    {
+                        if (forwardToMethod != null)
+                        {
+                            UsingNamespace("@" + MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(forwardToMethod)), methodBody.MethodDefinition);
+                        }
+                        // otherwise, the forwarding is done via custom debug info
+                    }
+                    else
+                    {
+                        DefineNamespaceScopes(methodBody);
+                    }
+                }
+
+                DefineLocalScopes(localScopes, localSignatureHandleOpt);
+                EmitSequencePoints(methodBody.SequencePoints);
+
+                if (methodBody.MoveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncMoveNextInfo)
+                {
+                    _symWriter.SetAsyncInfo(
+                        methodToken,
+                        MetadataTokens.GetToken(_metadataWriter.GetMethodHandle(asyncMoveNextInfo.KickoffMethod)),
+                        asyncMoveNextInfo.CatchHandlerOffset,
+                        asyncMoveNextInfo.YieldOffsets.AsSpan(),
+                        asyncMoveNextInfo.ResumeOffsets.AsSpan());
+                }
+
+                if (emitExternNamespaces)
+                {
+                    DefineAssemblyReferenceAliases();
+                }
+            }
+
+            if (blob.Length > 0)
+            {
+                _symWriter.DefineCustomMetadata(blob);
             }
 
             CloseMethod(methodBody.IL.Length);
@@ -572,6 +579,11 @@ namespace Microsoft.Cci
                 return documentIndex;
             }
 
+            return AddDocumentIndex(document);
+        }
+
+        private int AddDocumentIndex(DebugSourceDocument document)
+        {
             Guid algorithmId;
             ReadOnlySpan<byte> checksum;
             ReadOnlySpan<byte> embeddedSource;
@@ -597,7 +609,7 @@ namespace Microsoft.Cci
                 embeddedSource = null;
             }
 
-            documentIndex = _symWriter.DefineDocument(
+            int documentIndex = _symWriter.DefineDocument(
                 document.Location,
                 document.Language,
                 document.LanguageVendor,
@@ -742,19 +754,28 @@ namespace Microsoft.Cci
         }
 
         /// <summary>
-        /// Write document entries for any embedded text document that does not yet have an entry.
+        /// Write document entries for all debug documents that do not yet have an entry.
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
         /// text even if there are no corresponding sequence points.
         /// </remarks>
-        public void WriteRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> embeddedDocuments)
+        public void WriteRemainingDebugDocuments(IReadOnlyDictionary<string, DebugSourceDocument> documents)
         {
-            foreach (var document in embeddedDocuments)
+            foreach (var kvp in documents
+                .Where(kvp => !_documentIndex.ContainsKey(kvp.Value))
+                .OrderBy(kvp => kvp.Key))
             {
-                Debug.Assert(!document.GetSourceInfo().EmbeddedTextBlob.IsDefault);
-                GetDocumentIndex(document);
+                AddDocumentIndex(kvp.Value);
             }
+        }
+
+        public void WriteCompilerVersion(string language)
+        {
+            var compilerAssembly = typeof(Compilation).Assembly;
+            var fileVersion = Version.Parse(compilerAssembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+            var versionString = compilerAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+            _symWriter.AddCompilerInfo((ushort)fileVersion.Major, (ushort)fileVersion.Minor, (ushort)fileVersion.Build, (ushort)fileVersion.Revision, $"{language} - {versionString}");
         }
     }
 }

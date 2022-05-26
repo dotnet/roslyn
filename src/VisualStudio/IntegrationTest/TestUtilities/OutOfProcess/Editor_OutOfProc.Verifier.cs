@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -144,13 +148,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 Assert.Equal(expectedItem, currentItem);
             }
 
-            public void VerifyCurrentSignature(
-                Signature expectedSignature)
-            {
-                var currentSignature = _textViewWindow.GetCurrentSignature();
-                Assert.Equal(expectedSignature, currentSignature);
-            }
-
             public void CurrentSignature(string content)
             {
                 var currentSignature = _textViewWindow.GetCurrentSignature();
@@ -162,6 +159,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 string documentation)
             {
                 var currentParameter = _textViewWindow.GetCurrentSignature().CurrentParameter;
+                Contract.ThrowIfNull(currentParameter);
+
                 Assert.Equal(name, currentParameter.Name);
                 Assert.Equal(documentation, currentParameter.Documentation);
             }
@@ -170,6 +169,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 params (string name, string documentation)[] parameters)
             {
                 var currentParameters = _textViewWindow.GetCurrentSignature().Parameters;
+                Contract.ThrowIfNull(currentParameters);
+
                 for (var i = 0; i < parameters.Length; i++)
                 {
                     var (expectedName, expectedDocumentation) = parameters[i];
@@ -187,15 +188,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void ErrorTags(params string[] expectedTags)
             {
-                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
+                _instance.Workspace.WaitForAllAsyncOperations(
+                    Helper.HangMitigatingTimeout,
+                    FeatureAttribute.Workspace,
+                    FeatureAttribute.SolutionCrawler,
+                    FeatureAttribute.DiagnosticService,
+                    FeatureAttribute.ErrorSquiggles);
                 var actualTags = _textViewWindow.GetErrorTags();
-                Assert.Equal(expectedTags, actualTags);
-            }
-
-            public void IsProjectItemDirty(bool expectedValue)
-            {
-                Assert.Equal(expectedValue, _textViewWindow._editorInProc.IsProjectItemDirty());
+                AssertEx.EqualOrDiff(
+                    string.Join(Environment.NewLine, expectedTags),
+                    string.Join(Environment.NewLine, actualTags));
             }
         }
     }

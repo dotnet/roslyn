@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -67,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolDisplayPartKind.AliasName:
                 case SymbolDisplayPartKind.ClassName:
+                case SymbolDisplayPartKind.RecordClassName:
                 case SymbolDisplayPartKind.StructName:
                 case SymbolDisplayPartKind.InterfaceName:
                 case SymbolDisplayPartKind.EnumName:
@@ -197,15 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                var local = symbol as LocalSymbol;
-                if ((object)local != null)
-                {
-                    VisitTypeWithAnnotations(local.TypeWithAnnotations);
-                }
-                else
-                {
-                    symbol.Type.Accept(this.NotFirstVisitor);
-                }
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
             }
 
@@ -235,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                symbol.Type.Accept(this);
+                symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
             }
 
@@ -373,9 +370,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IncludeNamedType(INamedTypeSymbol namedType)
         {
-            return
-                namedType != null &&
-                (!namedType.IsScriptClass || format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType));
+            if (namedType is null)
+            {
+                return false;
+            }
+
+            if (namedType.IsScriptClass && !format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeScriptType))
+            {
+                return false;
+            }
+
+            if (namedType == semanticModelOpt?.Compilation.ScriptGlobalsType)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsEnumMember(ISymbol symbol)

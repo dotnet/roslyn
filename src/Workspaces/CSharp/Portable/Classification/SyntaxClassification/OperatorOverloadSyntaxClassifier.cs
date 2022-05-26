@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -20,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             typeof(PostfixUnaryExpressionSyntax));
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
+            ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
@@ -39,20 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         private static TextSpan GetOperatorTokenSpan(SyntaxNode syntax)
-        {
-            switch (syntax)
+            => syntax switch
             {
-                case AssignmentExpressionSyntax assignmentExpression:
-                    return assignmentExpression.OperatorToken.Span;
-                case BinaryExpressionSyntax binaryExpression:
-                    return binaryExpression.OperatorToken.Span;
-                case PrefixUnaryExpressionSyntax prefixUnaryExpression:
-                    return prefixUnaryExpression.OperatorToken.Span;
-                case PostfixUnaryExpressionSyntax postfixUnaryExpression:
-                    return postfixUnaryExpression.OperatorToken.Span;
-            }
-
-            return default;
-        }
+                AssignmentExpressionSyntax assignmentExpression => assignmentExpression.OperatorToken.Span,
+                BinaryExpressionSyntax binaryExpression => binaryExpression.OperatorToken.Span,
+                PrefixUnaryExpressionSyntax prefixUnaryExpression => prefixUnaryExpression.OperatorToken.Span,
+                PostfixUnaryExpressionSyntax postfixUnaryExpression => postfixUnaryExpression.OperatorToken.Span,
+                _ => default,
+            };
     }
 }

@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,12 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
     internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
         : AbstractIntroduceUsingStatementCodeRefactoringProvider<StatementSyntax, LocalDeclarationStatementSyntax>
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpIntroduceUsingStatementCodeRefactoringProvider()
+        {
+        }
+
         protected override string CodeActionTitle => CSharpFeaturesResources.Introduce_using_statement;
 
         protected override bool CanRefactorToContainBlockStatements(SyntaxNode parent)
-        {
-            return parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
-        }
+            => parent is BlockSyntax || parent is SwitchSectionSyntax || parent.IsEmbeddedStatementOwner();
 
         protected override SyntaxList<StatementSyntax> GetStatements(SyntaxNode parentOfStatementsToSurround)
         {
@@ -37,16 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement
                 throw ExceptionUtilities.UnexpectedValue(parentOfStatementsToSurround);
         }
 
-        protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxTriviaList sameLineTrivia, SyntaxList<StatementSyntax> statementsToSurround)
-        {
-            var usingStatement = SyntaxFactory.UsingStatement(
+        protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxList<StatementSyntax> statementsToSurround)
+            => SyntaxFactory.UsingStatement(
+                SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithLeadingTrivia(declarationStatement.GetLeadingTrivia()),
+                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
                 declaration: declarationStatement.Declaration.WithoutTrivia(),
                 expression: null, // Declaration already has equals token and expression
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
                 statement: SyntaxFactory.Block(statementsToSurround));
-
-            return usingStatement
-                .WithCloseParenToken(usingStatement.CloseParenToken
-                    .WithTrailingTrivia(sameLineTrivia));
-        }
     }
 }

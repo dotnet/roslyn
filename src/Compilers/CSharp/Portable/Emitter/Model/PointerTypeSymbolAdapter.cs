@@ -1,25 +1,36 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class PointerTypeSymbol :
+    internal partial class
+#if DEBUG
+        PointerTypeSymbolAdapter : SymbolAdapter,
+#else
+        PointerTypeSymbol :
+#endif 
         Cci.IPointerTypeReference
     {
         Cci.ITypeReference Cci.IPointerTypeReference.GetTargetType(EmitContext context)
         {
-            var type = ((PEModuleBuilder)context.Module).Translate(this.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(AdaptedPointerTypeSymbol.PointedAtType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
 
-            if (this.PointedAtTypeWithAnnotations.CustomModifiers.Length == 0)
+            if (AdaptedPointerTypeSymbol.PointedAtTypeWithAnnotations.CustomModifiers.Length == 0)
             {
                 return type;
             }
             else
             {
-                return new Cci.ModifiedTypeReference(type, this.PointedAtTypeWithAnnotations.CustomModifiers.As<Cci.ICustomModifier>());
+                return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedPointerTypeSymbol.PointedAtTypeWithAnnotations.CustomModifiers));
             }
         }
 
@@ -103,4 +114,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
     }
+
+    internal partial class PointerTypeSymbol
+    {
+#if DEBUG
+        private PointerTypeSymbolAdapter _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new PointerTypeSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new PointerTypeSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal PointerTypeSymbol AdaptedPointerTypeSymbol => this;
+
+        internal new PointerTypeSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+    }
+
+#if DEBUG
+    internal partial class PointerTypeSymbolAdapter
+    {
+        internal PointerTypeSymbolAdapter(PointerTypeSymbol underlyingPointerTypeSymbol)
+        {
+            AdaptedPointerTypeSymbol = underlyingPointerTypeSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedPointerTypeSymbol;
+        internal PointerTypeSymbol AdaptedPointerTypeSymbol { get; }
+    }
+#endif
 }

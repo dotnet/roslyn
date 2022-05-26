@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -17,18 +22,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     [Export(typeof(IRefactorNotifyService))]
-    internal sealed class VsRefactorNotifyService : ForegroundThreadAffinitizedObject, IRefactorNotifyService
+    internal sealed class VsRefactorNotifyService : IRefactorNotifyService
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VsRefactorNotifyService(IThreadingContext threadingContext)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
         }
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
             {
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
@@ -65,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
             {
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
@@ -106,9 +113,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string[] rqnames)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
-            hierarchyToItemIDsMap = null;
             rqnames = null;
             if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
             {
@@ -126,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string rqname)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             hierarchyToItemIDsMap = null;
             rqname = null;
@@ -136,8 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var visualStudioWorkspace = workspace as VisualStudioWorkspace;
-            if (visualStudioWorkspace == null)
+            if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
             {
                 return false;
             }
@@ -151,14 +156,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
+        private static bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
         {
             if (symbol.Kind == SymbolKind.Method)
             {
                 var methodSymbol = symbol as IMethodSymbol;
 
-                if (methodSymbol.MethodKind == MethodKind.Constructor ||
-                    methodSymbol.MethodKind == MethodKind.Destructor)
+                if (methodSymbol.MethodKind is MethodKind.Constructor or
+                    MethodKind.Destructor)
                 {
                     symbol = symbol.ContainingType;
                 }
@@ -170,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspace visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var hierarchyToItemIDsMap = new Dictionary<IVsHierarchy, List<uint>>();
 

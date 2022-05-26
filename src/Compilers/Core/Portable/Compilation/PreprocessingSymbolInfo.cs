@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 using System;
@@ -12,14 +14,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The symbol that was referred to by the identifier, if any. 
         /// </summary>
-        public IPreprocessingSymbol Symbol { get; }
+        public IPreprocessingSymbol? Symbol { get; }
 
         /// <summary>
         /// Returns true if this preprocessing symbol is defined at the identifier position.
         /// </summary>
         public bool IsDefined { get; }
 
-        internal PreprocessingSymbolInfo(IPreprocessingSymbol symbol, bool isDefined)
+        internal PreprocessingSymbolInfo(IPreprocessingSymbol? symbol, bool isDefined)
             : this()
         {
             this.Symbol = symbol;
@@ -32,9 +34,9 @@ namespace Microsoft.CodeAnalysis
                 && object.Equals(this.IsDefined, other.IsDefined);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is PreprocessingSymbolInfo && this.Equals((PreprocessingSymbolInfo)obj);
+            return obj is PreprocessingSymbolInfo p && this.Equals(p);
         }
 
         public override int GetHashCode()

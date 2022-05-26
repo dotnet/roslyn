@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -42,6 +45,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
         /// </summary>
         private const string CS0308 = nameof(CS0308);
 
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpFullyQualifyCodeFixProvider()
+        {
+        }
+
         public override ImmutableArray<string> FixableDiagnosticIds
         {
             get { return ImmutableArray.Create(CS0103, CS0104, CS0246, CS0305, CS0308, IDEDiagnosticIds.UnboundIdentifierId); }
@@ -51,8 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
         protected override bool CanFullyQualify(Diagnostic diagnostic, ref SyntaxNode node)
         {
-            var simpleName = node as SimpleNameSyntax;
-            if (simpleName == null)
+            if (node is not SimpleNameSyntax simpleName)
             {
                 return false;
             }
@@ -70,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
             return true;
         }
 
-        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> ReplaceNodeAsync(SyntaxNode node, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken)
         {
             var simpleName = (SimpleNameSyntax)node;
 
@@ -85,6 +93,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify
 
             var syntaxTree = simpleName.SyntaxTree;
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // If the name is a type that is part of a using directive, eg. "using Math" then we can go further and
+            // instead of just changing to "using System.Math", we can make it "using static System.Math" and avoid the
+            // CS0138 that would result from the former.  Don't do this for using aliases though as `static` and using
+            // aliases cannot be combined.
+            if (resultingSymbolIsType &&
+                node.Parent is UsingDirectiveSyntax { Alias: null, StaticKeyword.RawKind: 0 } usingDirective)
+            {
+                var newUsingDirective = usingDirective
+                    .WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                    .WithName(qualifiedName);
+
+                return root.ReplaceNode(usingDirective, newUsingDirective);
+            }
+
             return root.ReplaceNode(simpleName, qualifiedName);
         }
     }

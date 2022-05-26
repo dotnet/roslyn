@@ -1,9 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
@@ -11,12 +13,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
         private readonly VisualStudioWorkspace_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
         public void SetOptionInfer(string projectName, bool value)
@@ -24,9 +24,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc.SetOptionInfer(projectName, value);
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
-
-        public void SetPersistenceOption(bool value)
-            => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
 
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
@@ -46,33 +43,56 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
 
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
+
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
+
+        public void ResetOptions()
+            => _inProc.ResetOptions();
 
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
 
-        public void SetQuickInfo(bool value)
-            => _inProc.EnableQuickInfo(value);
+        public void SetImportCompletionOption(bool value)
+        {
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, value);
+        }
+
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetGlobalOption(WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources, language: null, value);
+        }
+
+        public void SetArgumentCompletionSnippetsOption(bool value)
+        {
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, value);
+        }
+
+        public void SetTriggerCompletionInArgumentLists(bool value)
+            => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
 
         public void SetFullSolutionAnalysis(bool value)
         {
-            SetPerLanguageOption(
-                optionName: "Closed File Diagnostic",
-                feature: "ServiceFeaturesOnOff",
-                language: LanguageNames.CSharp,
-                value: value ? "true" : "false");
+            var scope = value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.CSharp, scope);
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, scope);
 
-            SetPerLanguageOption(
-                optionName: "Closed File Diagnostic",
-                feature: "ServiceFeaturesOnOff",
-                language: LanguageNames.VisualBasic,
-                value: value ? "true" : "false");
+            var compilerScope = value ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.OpenFiles;
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption, LanguageNames.CSharp, compilerScope);
+            SetGlobalOption(WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption, LanguageNames.VisualBasic, compilerScope);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
+
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public string GetWorkingFolder() => _inProc.GetWorkingFolder();
+        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
+            => _inProc.SetGlobalOption(option, language, value);
     }
 }

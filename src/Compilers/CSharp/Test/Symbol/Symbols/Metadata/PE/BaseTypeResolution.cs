@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +15,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using CSReferenceManager = Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ReferenceManager;
 using System.Reflection.Metadata;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -19,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(Net40.mscorlib);
 
             TestBaseTypeResolutionHelper1(assembly);
 
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.MDTestLib1,
                 TestReferences.SymbolsTests.MDTestLib2,
-                TestReferences.NetFx.v4_0_21006.mscorlib
+                Net40.mscorlib
             });
 
             TestBaseTypeResolutionHelper2(assemblies);
@@ -165,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             foreach (var arg in varCorTypes_Derived.BaseType().TypeArguments())
             {
-                Assert.IsType<MissingMetadataTypeSymbol>(arg);
+                Assert.IsAssignableFrom<MissingMetadataTypeSymbol>(arg);
             }
         }
 
@@ -301,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test3()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            var mscorlibRef = Net40.mscorlib;
 
             var c1 = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
 

@@ -1,11 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceEventAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourceEventSymbol _event;
+        private readonly string _name;
+        private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations _lazyReturnType;
@@ -22,11 +24,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            ImmutableArray<Location> locations)
-            : base(@event.containingType, syntaxReference, locations)
+            ImmutableArray<Location> locations,
+            EventSymbol explicitlyImplementedEventOpt,
+            string aliasQualifierOpt,
+            bool isAdder,
+            bool isIterator,
+            bool isNullableAnalysisEnabled)
+            : base(@event.containingType, syntaxReference, locations, isIterator)
         {
             _event = @event;
+
+            string name;
+            ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
+            if ((object)explicitlyImplementedEventOpt == null)
+            {
+                name = SourceEventSymbol.GetAccessorName(@event.Name, isAdder);
+                explicitInterfaceImplementations = ImmutableArray<MethodSymbol>.Empty;
+            }
+            else
+            {
+                MethodSymbol implementedAccessor = isAdder ? explicitlyImplementedEventOpt.AddMethod : explicitlyImplementedEventOpt.RemoveMethod;
+                string accessorName = (object)implementedAccessor != null ? implementedAccessor.Name : SourceEventSymbol.GetAccessorName(explicitlyImplementedEventOpt.Name, isAdder);
+
+                name = ExplicitInterfaceHelpers.GetMemberName(accessorName, explicitlyImplementedEventOpt.ContainingType, aliasQualifierOpt);
+                explicitInterfaceImplementations = (object)implementedAccessor == null ? ImmutableArray<MethodSymbol>.Empty : ImmutableArray.Create<MethodSymbol>(implementedAccessor);
+            }
+
+            _explicitInterfaceImplementations = explicitInterfaceImplementations;
+
+            this.MakeFlags(
+                isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
+                @event.Modifiers,
+                returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).
+                isExtensionMethod: false,
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
+                isMetadataVirtualIgnoringModifiers: @event.IsExplicitInterfaceImplementation && (@event.Modifiers & DeclarationModifiers.Static) == 0);
+
+            _name = GetOverriddenAccessorName(@event, isAdder) ?? name;
         }
+
+        public override string Name
+        {
+            get { return _name; }
+        }
+
+        internal override bool IsExplicitInterfaceImplementation
+        {
+            get { return _event.IsExplicitInterfaceImplementation; }
+        }
+
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
+        {
+            get { return _explicitInterfaceImplementations; }
+        }
+
+        public sealed override bool AreLocalsZeroed
+            => !_event.HasSkipLocalsInitAttribute && base.AreLocalsZeroed;
 
         public SourceEventSymbol AssociatedEvent
         {
@@ -38,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _event; }
         }
 
-        protected sealed override void MethodChecks(DiagnosticBag diagnostics)
+        protected sealed override void MethodChecks(BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(_lazyParameters.IsDefault != _lazyReturnType.HasType);
 
@@ -57,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_event.IsWindowsRuntimeEvent)
                 {
                     TypeSymbol eventTokenType = compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken);
-                    Binder.ReportUseSiteDiagnostics(eventTokenType, diagnostics, this.Location);
+                    Binder.ReportUseSite(eventTokenType, diagnostics, this.Location);
 
                     if (this.MethodKind == MethodKind.EventAdd)
                     {
@@ -76,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // void remove_E(EventRegistrationToken t);
 
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                        Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                        Binder.ReportUseSite(voidType, diagnostics, this.Location);
                         _lazyReturnType = TypeWithAnnotations.Create(voidType);
                         this.SetReturnsVoid(returnsVoid: true);
 
@@ -90,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // void remove_E(EventDelegate d);
 
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
-                    Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
+                    Binder.ReportUseSite(voidType, diagnostics, this.Location);
                     _lazyReturnType = TypeWithAnnotations.Create(voidType);
                     this.SetReturnsVoid(returnsVoid: true);
 
@@ -153,8 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        public sealed override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
-            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+        public sealed override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes()
+            => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
+
+        public sealed override ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds()
+            => ImmutableArray<TypeParameterConstraintKind>.Empty;
 
         internal Location Location
         {

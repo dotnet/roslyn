@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IteratorStateMachine stateMachineType,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(body, method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
         {
             // the element type may contain method type parameters, which are now alpha-renamed into type parameters of the generated class
@@ -45,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
             TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         protected bool VerifyPresenceOfRequiredAPIs()
         {
-            DiagnosticBag bag = DiagnosticBag.GetInstance();
+            var bag = BindingDiagnosticBag.GetInstance(withDiagnostics: true, diagnostics.AccumulatesDependencies);
 
             EnsureSpecialType(SpecialType.System_Int32, bag);
             EnsureSpecialType(SpecialType.System_IDisposable, bag);
@@ -115,7 +120,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasErrors = bag.HasAnyErrors();
-            if (hasErrors)
+            if (!hasErrors)
+            {
+                diagnostics.AddDependencies(bag);
+            }
+            else
             {
                 diagnostics.AddRange(bag);
             }
@@ -124,14 +133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !hasErrors;
         }
 
-        private Symbol EnsureSpecialMember(SpecialMember member, DiagnosticBag bag)
+        private Symbol EnsureSpecialMember(SpecialMember member, BindingDiagnosticBag bag)
         {
             Symbol symbol;
             Binder.TryGetSpecialTypeMember(F.Compilation, member, body.Syntax, bag, out symbol);
             return symbol;
         }
 
-        private void EnsureSpecialType(SpecialType type, DiagnosticBag bag)
+        private void EnsureSpecialType(SpecialType type, BindingDiagnosticBag bag)
         {
             Binder.GetSpecialType(F.Compilation, type, body.Syntax, bag);
         }
@@ -139,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the property and its getter exist and collect any use-site errors.
         /// </summary>
-        private void EnsureSpecialPropertyGetter(SpecialMember member, DiagnosticBag bag)
+        private void EnsureSpecialPropertyGetter(SpecialMember member, BindingDiagnosticBag bag)
         {
             PropertySymbol symbol = (PropertySymbol)EnsureSpecialMember(member, bag);
             if ((object)symbol != null)
@@ -151,11 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var info = getter.GetUseSiteDiagnostic();
-                if ((object)info != null)
-                {
-                    bag.Add(new CSDiagnostic(info, body.Syntax.Location));
-                }
+                bag.ReportUseSite(getter, body.Syntax.Location);
             }
         }
 
@@ -287,9 +292,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.New(stateMachineType.Constructor.AsMember(frameType), F.Literal(initialState))));
         }
 
-        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+        protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
         {
-            return F.Return(F.Local(stateMachineVariable));
+            var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
+            // return local;
+            bodyBuilder.Add(
+                F.Return(
+                    F.Local(stateMachineVariable)));
+
+            return F.Block(bodyBuilder.ToImmutableAndFree());
         }
 
         private void GenerateMoveNextAndDispose(

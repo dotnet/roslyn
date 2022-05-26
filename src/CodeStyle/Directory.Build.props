@@ -1,0 +1,8 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <!-- https://github.com/dotnet/roslyn/issues/46984 -->
+    <AssemblyVersion></AssemblyVersion>
+    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+  </PropertyGroup>
+</Project>

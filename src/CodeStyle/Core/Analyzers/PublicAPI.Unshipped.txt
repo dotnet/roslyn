@@ -1,74 +1,94 @@
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.CodeStyleOption(T value, Microsoft.CodeAnalysis.CodeStyle.NotificationOption notification) -> void
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T> other) -> bool
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Notification.get -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Notification.set -> void
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.ToXElement() -> System.Xml.Linq.XElement
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Value.get -> T
-Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Value.set -> void
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.get -> string
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.set -> void
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
-Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
-Microsoft.CodeAnalysis.Formatting.FormattingOptions
-Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle
-Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Block = 1 -> Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle
-Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle.None = 0 -> Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle
-Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart = 2 -> Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle
-Microsoft.CodeAnalysis.Options.IOption
-Microsoft.CodeAnalysis.Options.IOption.DefaultValue.get -> object
-Microsoft.CodeAnalysis.Options.IOption.Feature.get -> string
-Microsoft.CodeAnalysis.Options.IOption.IsPerLanguage.get -> bool
-Microsoft.CodeAnalysis.Options.IOption.Name.get -> string
-Microsoft.CodeAnalysis.Options.IOption.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-Microsoft.CodeAnalysis.Options.IOption.Type.get -> System.Type
-Microsoft.CodeAnalysis.Options.Option<T>
-Microsoft.CodeAnalysis.Options.Option<T>.DefaultValue.get -> T
-Microsoft.CodeAnalysis.Options.Option<T>.Feature.get -> string
-Microsoft.CodeAnalysis.Options.Option<T>.Name.get -> string
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name) -> void
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue) -> void
-Microsoft.CodeAnalysis.Options.Option<T>.Option(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
-Microsoft.CodeAnalysis.Options.Option<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-Microsoft.CodeAnalysis.Options.Option<T>.Type.get -> System.Type
-Microsoft.CodeAnalysis.Options.OptionKey
-Microsoft.CodeAnalysis.Options.OptionKey.Equals(Microsoft.CodeAnalysis.Options.OptionKey other) -> bool
-Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string
-Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption
-Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
-Microsoft.CodeAnalysis.Options.OptionStorageLocation
-Microsoft.CodeAnalysis.Options.OptionStorageLocation.OptionStorageLocation() -> void
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.DefaultValue.get -> T
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Feature.get -> string
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Name.get -> string
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue) -> void
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
-Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Type.get -> System.Type
-override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.GetHashCode() -> int
-override Microsoft.CodeAnalysis.CodeStyle.NotificationOption.ToString() -> string
-override Microsoft.CodeAnalysis.Options.Option<T>.ToString() -> string
-override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool
-override Microsoft.CodeAnalysis.Options.OptionKey.GetHashCode() -> int
-override Microsoft.CodeAnalysis.Options.OptionKey.ToString() -> string
-override Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.ToString() -> string
-static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
-static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
-static Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentationSize.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
-static Microsoft.CodeAnalysis.Formatting.FormattingOptions.NewLine.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
-static Microsoft.CodeAnalysis.Formatting.FormattingOptions.SmartIndent.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle>
-static Microsoft.CodeAnalysis.Formatting.FormattingOptions.TabSize.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<int>
-static Microsoft.CodeAnalysis.Formatting.FormattingOptions.UseTabs.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
-static Microsoft.CodeAnalysis.Options.Option<T>.implicit operator Microsoft.CodeAnalysis.Options.OptionKey(Microsoft.CodeAnalysis.Options.Option<T> option) -> Microsoft.CodeAnalysis.Options.OptionKey
-static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
-static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Error -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.None -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Silent -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Suggestion -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
-static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Warning -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.AddAccessor = 26 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Attribute = 22 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Class = 2 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.CompilationUnit = 1 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Constructor = 10 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.ConversionOperator = 9 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.CustomEvent = 17 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Delegate = 6 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Destructor = 11 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Enum = 5 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.EnumMember = 15 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Event = 16 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Field = 12 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.GetAccessor = 24 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Indexer = 14 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Interface = 4 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.LambdaExpression = 23 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Method = 7 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Namespace = 18 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.NamespaceImport = 19 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.None = 0 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Operator = 8 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Parameter = 20 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Property = 13 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RaiseAccessor = 28 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RecordClass = 29 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.RemoveAccessor = 27 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.SetAccessor = 25 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Struct = 3 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind.Variable = 21 -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationKind
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.DeclarationModifiers() -> void
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers modifiers) -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAbstract.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsAsync.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsConst.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsExtern.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsNew.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsOverride.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsPartial.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsReadOnly.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsRef.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsSealed.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsStatic.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsUnsafe.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsVirtual.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsVolatile.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsWithEvents.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.IsWriteOnly.get -> bool
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithAsync(bool isAsync) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsAbstract(bool isAbstract) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsConst(bool isConst) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsExtern(bool isExtern) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsNew(bool isNew) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsOverride(bool isOverride) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsReadOnly(bool isReadOnly) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsRef(bool isRef) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsSealed(bool isSealed) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsStatic(bool isStatic) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsUnsafe(bool isUnsafe) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsVirtual(bool isVirtual) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsVolatile(bool isVolatile) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsWriteOnly(bool isWriteOnly) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithPartial(bool isPartial) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithWithEvents(bool withEvents) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.ToString() -> string
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Abstract.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Async.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Const.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Extern.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.From(Microsoft.CodeAnalysis.ISymbol symbol) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.New.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.None.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator !=(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator &(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator +(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator -(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator ==(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> bool
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.operator |(Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers left, Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers right) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Override.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Partial.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.ReadOnly.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Ref.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Sealed.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Static.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers modifiers) -> bool
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Unsafe.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Virtual.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Volatile.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithEvents.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WriteOnly.get -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers

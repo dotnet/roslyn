@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -11,7 +15,6 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
-using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
 {
@@ -20,20 +23,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
     {
         internal static char semicolon = ';';
 
-        internal abstract VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace);
+        internal abstract ICommandHandler GetCommandHandler(TestWorkspace workspace);
 
         protected abstract TestWorkspace CreateTestWorkspace(string code);
 
         /// <summary>
-        /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> marked with <c>$$</c>
-        /// does not perform any special "complete statement" operations, e.g. inserting missing delimiters or moving
-        /// the caret prior to the semicolon character insertion. In other words, statement completion does not impact
-        /// typing behavior for the case.
+        /// Verify that typing a semicolon at the location in <paramref name="initialMarkup"/> 
+        /// marked with 
+        ///     - <c>$$</c> for caret position
+        ///     - or, <c>[|</c> and <c>|]</c> for selected span
+        /// does not perform any special "complete statement" operations, e.g. inserting missing 
+        /// delimiters or moving the caret prior to the semicolon character insertion. In other words, 
+        /// statement completion does not impact typing behavior for the case.
         /// </summary>
-        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup, string newLine = "\r\n")
+        protected void VerifyNoSpecialSemicolonHandling(string initialMarkup)
         {
-            var expected = initialMarkup.Replace("$$", ";$$");
-            VerifyTypingSemicolon(initialMarkup, expected, newLine);
+            var expected = initialMarkup.Contains("$$") ?
+                initialMarkup.Replace("$$", ";$$") :
+                initialMarkup.Replace("|]", ";$$|]");
+
+            VerifyTypingSemicolon(initialMarkup, expected);
         }
 
         /// <summary>
@@ -41,21 +50,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
         /// produces the result in <paramref name="expectedMarkup"/>. The final caret location in
         /// <paramref name="expectedMarkup"/> is marked with <c>$$</c>.
         /// </summary>
-        protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup, string newLine = "\r\n")
+        protected void VerifyTypingSemicolon(string initialMarkup, string expectedMarkup)
         {
-            Verify(initialMarkup, expectedMarkup, newLine: newLine,
-                execute: (view, workspace) =>
-                {
-                    var commandHandler = GetCommandHandler(workspace);
-
-                    var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
-                    var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
-
-                    commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
-                });
+            Verify(initialMarkup, expectedMarkup, ExecuteTest);
         }
 
-        private Action CreateInsertTextHandler(ITextView textView, string text)
+        protected void ExecuteTest(IWpfTextView view, TestWorkspace workspace)
+        {
+            var commandHandler = GetCommandHandler(workspace);
+
+            var commandArgs = new TypeCharCommandArgs(view, view.TextBuffer, semicolon);
+            var nextHandler = CreateInsertTextHandler(view, semicolon.ToString());
+
+            commandHandler.ExecuteCommand(commandArgs, nextHandler, TestCommandExecutionContext.Create());
+        }
+
+        private static Action CreateInsertTextHandler(ITextView textView, string text)
         {
             return () =>
             {
@@ -65,16 +75,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
             };
         }
 
-        private void Verify(string initialMarkup, string expectedMarkup,
+        protected void Verify(string initialMarkup, string expectedMarkup,
             Action<IWpfTextView, TestWorkspace> execute,
-            Action<TestWorkspace> setOptionsOpt = null, string newLine = "\r\n")
+            Action<TestWorkspace> setOptionsOpt = null)
         {
             using (var workspace = CreateTestWorkspace(initialMarkup))
             {
                 var testDocument = workspace.Documents.Single();
 
-                Assert.True(testDocument.CursorPosition.HasValue, "No caret position set!");
-                var startCaretPosition = testDocument.CursorPosition.Value;
+                Assert.True(testDocument.CursorPosition.HasValue || testDocument.SelectedSpans.Any(), "No caret position or selected spans are set!");
+                var startCaretPosition = testDocument.CursorPosition ?? testDocument.SelectedSpans.Last().End;
 
                 var view = testDocument.GetTextView();
 
@@ -82,14 +92,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
                 {
                     var selectedSpan = testDocument.SelectedSpans[0];
 
-                    var isReversed = selectedSpan.Start == startCaretPosition
-                        ? true
-                        : false;
+                    var isReversed = selectedSpan.Start == startCaretPosition;
 
                     view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
                 }
 
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, startCaretPosition));
 
                 setOptionsOpt?.Invoke(workspace);
 

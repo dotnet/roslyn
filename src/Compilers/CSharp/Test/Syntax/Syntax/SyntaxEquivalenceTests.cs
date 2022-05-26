@@ -1,8 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+#nullable disable
+
+using System;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -26,6 +28,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // now try as if the second tree were created from scratch.
             var tree3 = SyntaxFactory.ParseSyntaxTree(tree2.GetText().ToString());
             Assert.False(SyntaxFactory.AreEquivalent(tree1, tree3, topLevel));
+        }
+
+        private void VerifyEquivalent(SyntaxNode node1, SyntaxNode node2, Func<SyntaxKind, bool> ignoreChildNode)
+        {
+            Assert.True(SyntaxFactory.AreEquivalent(node1, node2, ignoreChildNode));
+
+            // now try as if the second tree were created from scratch.
+            var tree3 = SyntaxFactory.ParseSyntaxTree(node2.GetText().ToString());
+            Assert.True(SyntaxFactory.AreEquivalent(node1, tree3.GetRoot(), ignoreChildNode));
         }
 
         [Fact]
@@ -447,6 +458,831 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             VerifyEquivalent(tree1, tree2, topLevel: true);
             VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Theory, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
+        [InlineData("#nullable enable", "#nullable disable")]
+        [InlineData("#nullable enable", "#nullable restore")]
+        [InlineData("#nullable disable", "#nullable restore")]
+        [InlineData("#nullable enable", "#nullable enable warnings")]
+        [InlineData("#nullable enable", "#nullable enable annotations")]
+        [InlineData("#nullable enable annotations", "#nullable enable warnings")]
+        [InlineData("", "#nullable disable")]
+        [InlineData("", "#nullable enable")]
+        [InlineData("", "#nullable restore")]
+        [InlineData("#nullable disable", "")]
+        [InlineData("#nullable enable", "")]
+        [InlineData("#nullable restore", "")]
+        public void TestNullableDirectives_DifferentDirectives(string firstDirective, string secondDirective)
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree($@"
+{firstDirective}
+class C
+{{
+}}");
+            var tree2 = SyntaxFactory.ParseSyntaxTree($@"
+{secondDirective}
+class C
+{{
+}}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1.GetRoot(), tree2.GetRoot(), ignoreChildNode: k => k == SyntaxKind.NullableDirectiveTrivia);
+
+            var tree3 = SyntaxFactory.ParseSyntaxTree($@"
+class C
+{{
+    void M()
+    {{
+{firstDirective}
+    }}
+}}");
+            var tree4 = SyntaxFactory.ParseSyntaxTree($@"
+class C
+{{
+    void M()
+    {{
+{secondDirective}
+    }}
+}}");
+
+            VerifyNotEquivalent(tree3, tree4, topLevel: true);
+            VerifyNotEquivalent(tree3, tree4, topLevel: false);
+            VerifyEquivalent(tree3.GetRoot(), tree4.GetRoot(), ignoreChildNode: k => k == SyntaxKind.NullableDirectiveTrivia);
+        }
+
+        [Theory, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
+        [InlineData("#nullable enable")]
+        [InlineData("#nullable disable")]
+        [InlineData("#nullable restore")]
+        [InlineData("#nullable enable warnings")]
+        public void TestNullableDirectives_TopLevelIdentical(string directive)
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree($@"
+class C
+{{
+    void M()
+    {{
+{directive}
+        Console.WriteLine(1234);
+    }}
+}}");
+            var tree2 = SyntaxFactory.ParseSyntaxTree($@"
+class C
+{{
+    void M()
+    {{
+{directive}
+    }}
+}}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
+        public void TestNullableDirectives_InvalidDirective()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+#nullable invalid
+    }
+}");
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact, WorkItem(38694, "https://github.com/dotnet/roslyn/issues/38694")]
+        public void TestNullableDirectives_DifferentNumberOfDirectives()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+#nullable enable
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+#nullable enable
+#nullable disable
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestRawStringLiteral1()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestRawStringLiteral2()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abcd"""""";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestRawStringLiteral3()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestRawStringLiteral4()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""""abc"""""""";
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestStringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestStringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = @""abc"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestStringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abcd"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestStringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = @""abcd"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = @""abc""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abcd""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""U8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_05()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8StringLiteral_06()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc"";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = ""abc""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""""abc""""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abcd""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""U8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_05()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8SingleLineRawStringLiteral_06()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_01()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            VerifyEquivalent(tree1, tree2, topLevel: false);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_02()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""""
+abc
+""""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_03()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abcd
+""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_04()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""U8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_05()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+"""""";
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_06()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+"""""";
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
+        }
+
+        [Fact]
+        public void TestUTF8MultiLineRawStringLiteral_07()
+        {
+            var tree1 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""
+abc
+""""""u8;
+    }
+}");
+
+            var tree2 = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        var v = """"""abc""""""u8;
+    }
+}");
+
+            VerifyNotEquivalent(tree1, tree2, topLevel: false);
+            VerifyEquivalent(tree1, tree2, topLevel: true);
         }
     }
 }

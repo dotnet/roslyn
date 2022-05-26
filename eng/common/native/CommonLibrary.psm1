@@ -48,7 +48,7 @@ function DownloadAndExtract {
                                            -Verbose:$Verbose
 
   if ($DownloadStatus -Eq $False) {
-    Write-Error "Download failed"
+    Write-Error "Download failed from $Uri"
     return $False
   }
 
@@ -59,9 +59,38 @@ function DownloadAndExtract {
                                           -Verbose:$Verbose
 
   if ($UnzipStatus -Eq $False) {
-    Write-Error "Unzip failed"
-    return $False
+    # Retry Download one more time with Force=true
+    $DownloadRetryStatus = CommonLibrary\Get-File -Uri $Uri `
+                                             -Path $TempToolPath `
+                                             -DownloadRetries 1 `
+                                             -RetryWaitTimeInSeconds $RetryWaitTimeInSeconds `
+                                             -Force:$True `
+                                             -Verbose:$Verbose
+
+    if ($DownloadRetryStatus -Eq $False) {
+      Write-Error "Last attempt of download failed as well"
+      return $False
+    }
+
+    # Retry unzip again one more time with Force=true
+    $UnzipRetryStatus = CommonLibrary\Expand-Zip -ZipPath $TempToolPath `
+                                            -OutputDirectory $InstallDirectory `
+                                            -Force:$True `
+                                            -Verbose:$Verbose
+    if ($UnzipRetryStatus -Eq $False)
+    {
+      Write-Error "Last attempt of unzip failed as well"
+      # Clean up partial zips and extracts
+      if (Test-Path $TempToolPath) {
+        Remove-Item $TempToolPath -Force
+      }
+      if (Test-Path $InstallDirectory) {
+        Remove-Item $InstallDirectory -Force -Recurse
+      }
+      return $False
+    }
   }
+
   return $True
 }
 
@@ -116,18 +145,25 @@ function Get-File {
     New-Item -path $DownloadDirectory -force -itemType "Directory" | Out-Null
   }
 
+  $TempPath = "$Path.tmp"
   if (Test-Path -IsValid -Path $Uri) {
-    Write-Verbose "'$Uri' is a file path, copying file to '$Path'"
-    Copy-Item -Path $Uri -Destination $Path
+    Write-Verbose "'$Uri' is a file path, copying temporarily to '$TempPath'"
+    Copy-Item -Path $Uri -Destination $TempPath
+    Write-Verbose "Moving temporary file to '$Path'"
+    Move-Item -Path $TempPath -Destination $Path
     return $?
   }
   else {
     Write-Verbose "Downloading $Uri"
+    # Don't display the console progress UI - it's a huge perf hit
+    $ProgressPreference = 'SilentlyContinue'   
     while($Attempt -Lt $DownloadRetries)
     {
       try {
-        Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $Path
-        Write-Verbose "Downloaded to '$Path'"
+        Invoke-WebRequest -UseBasicParsing -Uri $Uri -OutFile $TempPath
+        Write-Verbose "Downloaded to temporary location '$TempPath'"
+        Move-Item -Path $TempPath -Destination $Path
+        Write-Verbose "Moved temporary file to '$Path'"
         return $True
       }
       catch {
@@ -209,7 +245,7 @@ function New-ScriptShim {
       Remove-Item (Join-Path $ShimDirectory "$ShimName.exe")
     }
 
-    Invoke-Expression "$ShimDirectory\WinShimmer\winshimmer.exe $ShimName $ToolFilePath $ShimDirectory"
+    & "$ShimDirectory\WinShimmer\winshimmer.exe" $ShimName $ToolFilePath $ShimDirectory
     return $True
   }
   catch {
@@ -240,7 +276,8 @@ function Get-MachineArchitecture {
   }
   if (($ProcessorArchitecture -Eq "AMD64") -Or
       ($ProcessorArchitecture -Eq "IA64") -Or
-      ($ProcessorArchitecture -Eq "ARM64")) {
+      ($ProcessorArchitecture -Eq "ARM64") -Or
+      ($ProcessorArchitecture -Eq "LOONGARCH64")) {
     return "x64"
   }
   return "x86"
@@ -328,16 +365,21 @@ function Expand-Zip {
         return $False
       }
     }
-    if (-Not (Test-Path $OutputDirectory)) {
-      New-Item -path $OutputDirectory -Force -itemType "Directory" | Out-Null
+
+    $TempOutputDirectory = Join-Path "$(Split-Path -Parent $OutputDirectory)" "$(Split-Path -Leaf $OutputDirectory).tmp"
+    if (Test-Path $TempOutputDirectory) {
+      Remove-Item $TempOutputDirectory -Force -Recurse
     }
+    New-Item -Path $TempOutputDirectory -Force -ItemType "Directory" | Out-Null
 
     Add-Type -assembly "system.io.compression.filesystem"
-    [io.compression.zipfile]::ExtractToDirectory("$ZipPath", "$OutputDirectory")
+    [io.compression.zipfile]::ExtractToDirectory("$ZipPath", "$TempOutputDirectory")
     if ($? -Eq $False) {
       Write-Error "Unable to extract '$ZipPath'"
       return $False
     }
+
+    Move-Item -Path $TempOutputDirectory -Destination $OutputDirectory
   }
   catch {
     Write-Host $_

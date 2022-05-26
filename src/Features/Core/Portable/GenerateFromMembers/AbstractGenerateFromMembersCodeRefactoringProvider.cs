@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,9 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -20,45 +24,20 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         {
         }
 
-        /// <summary>
-        /// Gets the enclosing named type for the specified position.  We can't use
-        /// <see cref="SemanticModel.GetEnclosingSymbol"/> because that doesn't return
-        /// the type you're current on if you're on the header of a class/interface.
-        /// </summary>
-        internal static INamedTypeSymbol GetEnclosingNamedType(
-            SemanticModel semanticModel, SyntaxNode root, int start, CancellationToken cancellationToken)
-        {
-            var token = root.FindToken(start);
-            if (token == ((ICompilationUnitSyntax)root).EndOfFileToken)
-            {
-                token = token.GetPreviousToken();
-            }
-
-            for (var node = token.Parent; node != null; node = node.Parent)
-            {
-                if (semanticModel.GetDeclaredSymbol(node) is INamedTypeSymbol declaration)
-                {
-                    return declaration;
-                }
-            }
-
-            return null;
-        }
-
-        protected async Task<SelectedMemberInfo> GetSelectedMemberInfoAsync(
+        protected static async Task<SelectedMemberInfo?> GetSelectedMemberInfoAsync(
             Document document, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var selectedDeclarations = await syntaxFacts.GetSelectedFieldsAndPropertiesAsync(
+                tree, textSpan, allowPartialSelection, cancellationToken).ConfigureAwait(false);
 
             if (selectedDeclarations.Length > 0)
             {
-                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var selectedMembers = selectedDeclarations.SelectMany(
-                    d => semanticFacts.GetDeclaredSymbols(semanticModel, d, cancellationToken)).WhereNotNull().ToImmutableArray();
+                var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var selectedMembers = selectedDeclarations.Select(
+                    d => semanticModel.GetDeclaredSymbol(d, cancellationToken)).WhereNotNull().ToImmutableArray();
                 if (selectedMembers.Length > 0)
                 {
                     var containingType = selectedMembers.First().ContainingType;
@@ -79,25 +58,21 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             => !symbol.IsStatic && IsWritableFieldOrProperty(symbol);
 
         private static bool IsReadableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
-                case IFieldSymbol field: return IsViableField(field);
-                case IPropertySymbol property: return IsViableProperty(property) && !property.IsWriteOnly;
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field),
+                IPropertySymbol property => IsViableProperty(property) && !property.IsWriteOnly,
+                _ => false,
+            };
 
         private static bool IsWritableFieldOrProperty(ISymbol symbol)
-        {
-            switch (symbol)
+            => symbol switch
             {
                 // Can use non const fields and properties with setters in them.
-                case IFieldSymbol field: return IsViableField(field) && !field.IsConst;
-                case IPropertySymbol property: return IsViableProperty(property) && property.IsWritableInConstructor();
-                default: return false;
-            }
-        }
+                IFieldSymbol field => IsViableField(field) && !field.IsConst,
+                IPropertySymbol property => IsViableProperty(property) && property.IsWritableInConstructor(),
+                _ => false,
+            };
 
         private static bool IsViableField(IFieldSymbol field)
             => field.AssociatedSymbol == null;
@@ -105,32 +80,46 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
         private static bool IsViableProperty(IPropertySymbol property)
             => property.Parameters.IsEmpty;
 
-        protected ImmutableArray<IParameterSymbol> DetermineParameters(
-            ImmutableArray<ISymbol> selectedMembers)
+        /// <summary>
+        /// Returns an array of parameter symbols that correspond to selected member symbols.
+        /// If a selected member symbol has an empty base identifier name, the parameter symbol will not be added.
+        /// </summary>
+        /// <param name="selectedMembers"></param>
+        /// <param name="rules"></param>
+        /// <returns></returns>
+        protected static ImmutableArray<IParameterSymbol> DetermineParameters(
+            ImmutableArray<ISymbol> selectedMembers, ImmutableArray<NamingRule> rules)
         {
-            var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<IParameterSymbol>.GetInstance(out var parameters);
 
             foreach (var symbol in selectedMembers)
             {
-                var type = symbol is IFieldSymbol
-                    ? ((IFieldSymbol)symbol).Type
-                    : ((IPropertySymbol)symbol).Type;
+                var type = symbol.GetMemberType();
+                if (type == null)
+                    continue;
+
+                var identifierNameParts = IdentifierNameParts.CreateIdentifierNameParts(symbol, rules);
+                if (identifierNameParts.BaseName == "")
+                {
+                    continue;
+                }
+
+                var parameterNamingRule = rules.Where(rule => rule.SymbolSpecification.AppliesTo(SymbolKind.Parameter, Accessibility.NotApplicable)).First();
+                var parameterName = parameterNamingRule.NamingStyle.MakeCompliant(identifierNameParts.BaseName).First();
 
                 parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
                     refKind: RefKind.None,
                     isParams: false,
                     type: type,
-                    name: symbol.Name.ToCamelCase().TrimStart(s_underscore)));
+                    name: parameterName));
             }
 
-            return parameters.ToImmutableAndFree();
+            return parameters.ToImmutable();
         }
 
-        private static readonly char[] s_underscore = { '_' };
-
         protected static readonly SymbolDisplayFormat SimpleFormat =
-            new SymbolDisplayFormat(
+            new(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeParamsRefOut | SymbolDisplayParameterOptions.IncludeType,

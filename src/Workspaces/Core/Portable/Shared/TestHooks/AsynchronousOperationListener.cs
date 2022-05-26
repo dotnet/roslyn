@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -13,27 +15,83 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal sealed partial class AsynchronousOperationListener : IAsynchronousOperationListener, IAsynchronousOperationWaiter
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
 
+#pragma warning disable IDE0052 // Remove unread private members - Can this field be removed?
         private readonly string _featureName;
-        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+#pragma warning restore IDE0052 // Remove unread private members
 
-        private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
+        private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new();
+        private CancellationTokenSource _expeditedDelayCancellationTokenSource;
+
+        private List<DiagnosticAsyncToken> _diagnosticTokenList = new();
         private int _counter;
         private bool _trackActiveTokens;
 
-        public AsynchronousOperationListener() :
-            this(featureName: "noname", enableDiagnosticTokens: false)
+        public AsynchronousOperationListener()
+            : this(featureName: "noname", enableDiagnosticTokens: false)
         {
         }
 
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
             _featureName = featureName;
+            _expeditedDelayCancellationTokenSource = new CancellationTokenSource();
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
-        public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/pull/58646",
+            Constraint = "Cannot use async/await because it produces large numbers of first-chance cancellation exceptions.")]
+        public Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return Task.FromCanceled<bool>(cancellationToken);
+
+            var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            if (expeditedDelayCancellationToken.IsCancellationRequested)
+            {
+                // The operation is already being expedited
+                return SpecializedTasks.False;
+            }
+
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
+
+            var delayTask = Task.Delay(delay, cancellationTokenSource.Token);
+            if (delayTask.IsCompleted)
+            {
+                cancellationTokenSource.Dispose();
+                if (delayTask.Status == TaskStatus.RanToCompletion)
+                    return SpecializedTasks.True;
+                else if (cancellationToken.IsCancellationRequested)
+                    return Task.FromCanceled<bool>(cancellationToken);
+                else
+                    return SpecializedTasks.False;
+            }
+
+            // Handle continuation in a local function to avoid capturing arguments when this path is avoided
+            return DelaySlow(delayTask, cancellationTokenSource, cancellationToken);
+
+            static Task<bool> DelaySlow(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
+            {
+                return delayTask.ContinueWith(
+                    task =>
+                    {
+                        cancellationTokenSourceToDispose.Dispose();
+                        if (task.Status == TaskStatus.RanToCompletion)
+                            return SpecializedTasks.True;
+                        else if (cancellationToken.IsCancellationRequested)
+                            return Task.FromCanceled<bool>(cancellationToken);
+                        else
+                            return SpecializedTasks.False;
+                    },
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default).Unwrap();
+            }
+        }
+
+        public IAsyncToken BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {
@@ -72,12 +130,16 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
 
                 _pendingTasks.Clear();
+
+                // Replace the cancellation source used for expediting waits.
+                var oldSource = Interlocked.Exchange(ref _expeditedDelayCancellationTokenSource, new CancellationTokenSource());
+                oldSource.Dispose();
             }
 
             if (_trackActiveTokens)
             {
-                int i = 0;
-                bool removed = false;
+                var i = 0;
+                var removed = false;
                 while (i < _diagnosticTokenList.Count)
                 {
                     if (_diagnosticTokenList[i] == token)
@@ -94,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateWaitTask()
+        public Task ExpeditedWaitAsync()
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {
@@ -105,6 +167,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
                 else
                 {
+                    // Use CancelAfter to ensure cancellation callbacks are not synchronously invoked under the _gate.
+                    _expeditedDelayCancellationTokenSource.CancelAfter(TimeSpan.Zero);
+
                     // Calling SetResult on a normal TaskCompletionSource can cause continuations to run synchronously
                     // at that point. That's a problem as that may cause additional code to run while we're holding a lock. 
                     // In order to prevent that, we pass along RunContinuationsAsynchronously in order to ensure that 
@@ -145,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     }
 
                     _trackActiveTokens = value;
-                    _diagnosticTokenList = _trackActiveTokens ? new List<DiagnosticAsyncToken>() : null;
+                    _diagnosticTokenList = new List<DiagnosticAsyncToken>();
                 }
             }
         }

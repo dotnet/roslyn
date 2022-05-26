@@ -6,14 +6,15 @@
 *.user
 *.userprefs
 *.sln.docstates
+*.svclog
 .vs/
+.vscode/settings.json
 
 # Build results
 [Aa]rtifacts/
 [Dd]ebug/
 [Rr]elease/
 [Bb]inaries/
-x64/
 [Bb]in/
 [Oo]bj/
 .dotnet/
@@ -185,9 +186,6 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
-
-# Visual Studio Code
-.vscode/
 
 # JetBrains Rider
 .idea/

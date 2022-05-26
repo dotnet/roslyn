@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+#nullable disable
+
+namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// The nullable state of an rvalue computed in <see cref="NullableWalker"/>.
@@ -9,7 +13,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal enum NullableFlowState : byte
     {
-        NotNull,
-        MaybeNull
+        /// <summary>
+        /// Not null.
+        /// </summary>
+        NotNull = 0b00,
+
+        /// <summary>
+        /// Maybe null (type is nullable).
+        /// </summary>
+        MaybeNull = 0b01,
+
+        /// <summary>
+        /// Maybe null (type may be not nullable).
+        /// </summary>
+        MaybeDefault = 0b11,
     }
 }

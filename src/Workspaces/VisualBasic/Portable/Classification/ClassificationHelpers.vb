@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
             ElseIf token.Kind = SyntaxKind.IdentifierToken Then
-                Return ClassifyIdentifierSyntax(token)
+                Return GetSyntacticClassificationForIdentifier(token)
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
             ElseIf token.Kind = SyntaxKind.XmlNameToken Then
@@ -48,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind().ToString())
+                throw ExceptionUtilities.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -182,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
-        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
+        Public Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 
@@ -212,6 +214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Return ClassificationTypeNames.EnumMemberName
             ElseIf TypeOf parent Is LabelStatementSyntax AndAlso DirectCast(parent, LabelStatementSyntax).LabelToken = identifier Then
                 Return ClassificationTypeNames.LabelName
+            ElseIf TypeOf parent?.Parent Is CatchStatementSyntax AndAlso DirectCast(parent.Parent, CatchStatementSyntax).IdentifierName.Identifier = identifier Then
+                Return ClassificationTypeNames.LocalName
             ElseIf TryClassifyModifiedIdentifer(parent, identifier, classification) Then
                 Return classification
             ElseIf (identifier.ToString() = "IsTrue" OrElse identifier.ToString() = "IsFalse") AndAlso
@@ -309,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    Return Contract.FailWithReturn(Of String)("Unhandled type declaration")
+                    throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 
@@ -319,8 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - TODO: Do we need to do the same work here that we do in C#?
         Friend Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
-            ' TODO: Do we need to do the same work here that we do in C#?
+#Enable Warning IDE0060 ' Remove unused parameter
             Return classifiedSpan
         End Function
     End Module

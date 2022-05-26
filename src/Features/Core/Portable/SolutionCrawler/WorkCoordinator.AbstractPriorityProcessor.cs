@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     protected readonly IncrementalAnalyzerProcessor Processor;
 
-                    private readonly object _gate;
+                    private readonly object _gate = new();
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
                     public AbstractPriorityProcessor(
@@ -28,19 +30,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
                         IGlobalOperationNotificationService globalOperationNotificationService,
-                        int backOffTimeSpanInMs,
-                        CancellationToken shutdownToken) :
-                        base(listener, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
+                        TimeSpan backOffTimeSpan,
+                        CancellationToken shutdownToken)
+                        : base(listener, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                     {
-                        _gate = new object();
                         _lazyAnalyzers = lazyAnalyzers;
 
-                        this.Processor = processor;
-
-                        if (this.Processor._documentTracker != null)
-                        {
-                            this.Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
-                        }
+                        Processor = processor;
+                        Processor._documentTracker.NonRoslynBufferTextChanged += OnNonRoslynBufferTextChanged;
                     }
 
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers
@@ -63,43 +60,61 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    protected override void PauseOnGlobalOperation()
-                    {
-                        SolutionCrawlerLogger.LogGlobalOperation(this.Processor._logAggregator);
-                    }
+                    protected override void OnPaused()
+                        => SolutionCrawlerLogger.LogGlobalOperation(Processor._logAggregator);
 
                     protected abstract Task HigherQueueOperationTask { get; }
                     protected abstract bool HigherQueueHasWorkItem { get; }
 
                     protected async Task WaitForHigherPriorityOperationsAsync()
                     {
-                        using (Logger.LogBlock(FunctionId.WorkCoordinator_WaitForHigherPriorityOperationsAsync, this.CancellationToken))
+                        using (Logger.LogBlock(FunctionId.WorkCoordinator_WaitForHigherPriorityOperationsAsync, CancellationToken))
                         {
-                            do
+                            while (true)
                             {
-                                // Host is shutting down
-                                if (this.CancellationToken.IsCancellationRequested)
-                                {
-                                    return;
-                                }
+                                CancellationToken.ThrowIfCancellationRequested();
 
                                 // we wait for global operation and higher queue operation if there is anything going on
-                                if (!this.GlobalOperationTask.IsCompleted || !this.HigherQueueOperationTask.IsCompleted)
+                                await HigherQueueOperationTask.ConfigureAwait(false);
+
+                                if (HigherQueueHasWorkItem)
                                 {
-                                    await Task.WhenAll(this.GlobalOperationTask, this.HigherQueueOperationTask).ConfigureAwait(false);
+                                    // There was still something more important in another queue.  Back off again (e.g.
+                                    // call UpdateLastAccessTime) then wait that amount of time and check again to see
+                                    // if that queue is clear.
+                                    UpdateLastAccessTime();
+                                    await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                    continue;
                                 }
 
-                                // if there are no more work left for higher queue, then it is our time to go ahead
-                                if (!HigherQueueHasWorkItem)
+                                if (GetIsPaused())
                                 {
-                                    return;
+                                    // if we're paused, we still want to keep waiting until we become unpaused. After we
+                                    // become unpaused though, loop around those to see if there is still high pri work
+                                    // to do.
+                                    await WaitForIdleAsync(Listener).ConfigureAwait(false);
+                                    continue;
                                 }
 
-                                // back off and wait for next time slot.
-                                this.UpdateLastAccessTime();
-                                await this.WaitForIdleAsync().ConfigureAwait(false);
+                                // There was no higher queue work item and we're not paused. However, we may not have
+                                // waited long enough to actually satisfy our own backoff-delay.  If so, wait until
+                                // we're actually idle.
+                                if (ShouldContinueToBackOff())
+                                {
+                                    // Do the wait.  If it returns 'true' then we did the full wait.  Loop around again
+                                    // to see if there is higher priority work, or if we got paused.
+
+                                    // However, if it returns 'false' then that means the delay completed quickly
+                                    // because some unit/integration test is asking us to expedite our work.  In that
+                                    // case, just return out immediately so we can process what is in our queue.
+                                    if (await WaitForIdleAsync(Listener).ConfigureAwait(false))
+                                        continue;
+
+                                    // intentional fall-through.
+                                }
+
+                                return;
                             }
-                            while (true);
                         }
                     }
 
@@ -107,13 +122,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         base.Shutdown();
 
-                        if (this.Processor._documentTracker != null)
-                        {
-                            this.Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
-                        }
+                        Processor._documentTracker.NonRoslynBufferTextChanged -= OnNonRoslynBufferTextChanged;
                     }
 
-                    private void OnNonRoslynBufferTextChanged(object sender, EventArgs e)
+                    private void OnNonRoslynBufferTextChanged(object? sender, EventArgs e)
                     {
                         // There are 2 things incremental processor takes care of
                         //
@@ -128,7 +140,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // we need to make sure we play nice with neighbors as well.
                         //
                         // now, we don't care where changes are coming from. if there is any change in host, we pause ourselves for a while.
-                        this.UpdateLastAccessTime();
+                        UpdateLastAccessTime();
                     }
                 }
             }

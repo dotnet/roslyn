@@ -1,10 +1,12 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToImplementedMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I
@@ -33,7 +35,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToImplementedMethod_WithTuples() As Task
             Dim markup = <Text><![CDATA[
 Interface I
@@ -62,7 +64,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToImplementingMethod() As Task
             Dim markup = <Text><![CDATA[
 Interface I
@@ -91,7 +93,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToOverriddenMethod() As Task
             Dim markup = <Text><![CDATA[
 Class B
@@ -124,7 +126,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToOverridingMethod() As Task
             Dim markup = <Text><![CDATA[
 Class B
@@ -157,7 +159,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToOverriddenMethod_Transitive() As Task
 
             Dim markup = <Text><![CDATA[
@@ -203,7 +205,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToOverridingMethod_Transitive() As Task
 
             Dim markup = <Text><![CDATA[
@@ -250,7 +252,7 @@ End Class]]></Text>.NormalizedValue()
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestReorderParameters_Cascade_ToMethods_Complex() As Task
 
             '     B   I   I2
@@ -348,7 +350,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        Public Async Function TestReorderParameters_Cascade_ToOverridingMethod_IncludeParamTags() As Task
+        Public Shared Async Function TestReorderParameters_Cascade_ToOverridingMethod_IncludeParamTags() As Task
 
             Dim markup = <Text><![CDATA[
 Class B

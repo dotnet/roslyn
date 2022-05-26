@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Diagnostics;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis
             /// This form of signing occurs in memory using the <see cref="PEBuilder"/> APIs. This is the default 
             /// form of signing and will be used when a strong name key is provided in a file on disk.
             /// </summary>
-            SignedWithBulider,
+            SignedWithBuilder,
 
             /// <summary>
             /// This form of signing occurs using the <see cref="IClrStrongName"/> COM APIs. This form of signing
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly EmitStreamProvider _emitStreamProvider;
             private readonly EmitStreamSignKind _emitStreamSignKind;
-            private readonly StrongNameProvider _strongNameProvider;
+            private readonly StrongNameProvider? _strongNameProvider;
             private (Stream tempStream, string tempFilePath)? _tempInfo;
 
             /// <summary>
@@ -53,21 +55,21 @@ namespace Microsoft.CodeAnalysis
             /// which case it is owned by that. Or it is just an alias for the value that is stored 
             /// in <see cref="_tempInfo"/> in which case it will be disposed from there.
             /// </summary>
-            private Stream _stream;
+            private Stream? _stream;
 
             internal EmitStream(
                 EmitStreamProvider emitStreamProvider,
                 EmitStreamSignKind emitStreamSignKind,
-                StrongNameProvider strongNameProvider)
+                StrongNameProvider? strongNameProvider)
             {
-                Debug.Assert(emitStreamProvider != null);
-                Debug.Assert(strongNameProvider != null || emitStreamSignKind == EmitStreamSignKind.None);
+                RoslynDebug.Assert(emitStreamProvider != null);
+                RoslynDebug.Assert(strongNameProvider != null || emitStreamSignKind == EmitStreamSignKind.None);
                 _emitStreamProvider = emitStreamProvider;
                 _emitStreamSignKind = emitStreamSignKind;
                 _strongNameProvider = strongNameProvider;
             }
 
-            internal Func<Stream> GetCreateStreamFunc(DiagnosticBag diagnostics)
+            internal Func<Stream?> GetCreateStreamFunc(DiagnosticBag diagnostics)
             {
                 return () => CreateStream(diagnostics);
             }
@@ -104,10 +106,10 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// Create the stream which should be used for Emit. This should only be called one time.
             /// </summary>
-            private Stream CreateStream(DiagnosticBag diagnostics)
+            private Stream? CreateStream(DiagnosticBag diagnostics)
             {
-                Debug.Assert(_stream == null);
-                Debug.Assert(diagnostics != null);
+                RoslynDebug.Assert(_stream == null);
+                RoslynDebug.Assert(diagnostics != null);
 
                 if (diagnostics.HasAnyErrors())
                 {
@@ -126,7 +128,7 @@ namespace Microsoft.CodeAnalysis
                 // stream that this method was called with.
                 if (_emitStreamSignKind == EmitStreamSignKind.SignedWithFile)
                 {
-                    Debug.Assert(_strongNameProvider != null);
+                    RoslynDebug.Assert(_strongNameProvider != null);
 
                     Stream tempStream;
                     string tempFilePath;
@@ -155,14 +157,15 @@ namespace Microsoft.CodeAnalysis
 
             internal bool Complete(StrongNameKeys strongNameKeys, CommonMessageProvider messageProvider, DiagnosticBag diagnostics)
             {
-                Debug.Assert(_stream != null);
-                Debug.Assert(_emitStreamSignKind != EmitStreamSignKind.SignedWithFile || _tempInfo.HasValue);
+                RoslynDebug.Assert(_stream != null);
+                RoslynDebug.Assert(_emitStreamSignKind != EmitStreamSignKind.SignedWithFile || _tempInfo.HasValue);
 
                 try
                 {
                     if (_tempInfo.HasValue)
                     {
-                        Debug.Assert(_emitStreamSignKind == EmitStreamSignKind.SignedWithFile);
+                        RoslynDebug.Assert(_emitStreamSignKind == EmitStreamSignKind.SignedWithFile);
+                        RoslynDebug.Assert(_strongNameProvider is object);
                         var (tempStream, tempFilePath) = _tempInfo.GetValueOrDefault();
 
                         try

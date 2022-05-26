@@ -1,18 +1,34 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 {
-    [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestExtractInterfaceOptionsService : IExtractInterfaceOptionsService
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestExtractInterfaceOptionsService()
+        {
+        }
+
         public IEnumerable<ISymbol> AllExtractableMembers { get; private set; }
         public string DefaultInterfaceName { get; private set; }
         public List<string> ConflictingTypeNames { get; private set; }
@@ -33,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             List<string> conflictingTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName)
+            string languageName,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
         {
             this.AllExtractableMembers = extractableMembers;
             this.DefaultInterfaceName = defaultInterfaceName;
@@ -48,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
-                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
+                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
+                    fallbackOptions);
 
             return Task.FromResult(result);
         }

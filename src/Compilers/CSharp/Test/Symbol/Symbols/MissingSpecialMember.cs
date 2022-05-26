@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -6,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -116,7 +121,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { Net40.mscorlib }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -511,7 +516,16 @@ namespace System
             {
                 var symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+
+                if (special == SpecialType.System_Runtime_CompilerServices_RuntimeFeature ||
+                    special == SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute)
+                {
+                    Assert.Equal(SymbolKind.ErrorType, symbol.Kind); // Not available
+                }
+                else
+                {
+                    Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
+                }
             }
         }
 
@@ -526,7 +540,19 @@ namespace System
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
                 var symbol = comp.GetSpecialTypeMember(special);
-                Assert.NotNull(symbol);
+                if (special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__CovariantReturnsOfClasses
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
+                    || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor)
+                {
+                    Assert.Null(symbol); // Not available
+                }
+                else
+                {
+                    Assert.NotNull(symbol);
+                }
             }
         }
 
@@ -559,6 +585,8 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                     case WellKnownType.System_Runtime_CompilerServices_NullableAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_NullableContextAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
@@ -580,6 +608,10 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder:
                     case WellKnownType.System_Threading_CancellationToken:
                     case WellKnownType.System_Runtime_CompilerServices_SwitchExpressionException:
+                    case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
+                    case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
+                    case WellKnownType.System_MemoryExtensions:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -595,6 +627,7 @@ namespace System
 
                 switch (wkt)
                 {
+                    case WellKnownType.System_ValueTuple:
                     case WellKnownType.System_ValueTuple_T1:
                     case WellKnownType.System_ValueTuple_T2:
                     case WellKnownType.System_ValueTuple_T3:
@@ -884,10 +917,14 @@ namespace System
                     case WellKnownMember.System_Array__Empty:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte:
                     case WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags:
-                    case WellKnownMember.System_Span_T__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor:
+                    case WellKnownMember.System_Span_T__ctor_Pointer:
+                    case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
-                    case WellKnownMember.System_ReadOnlySpan_T__ctor:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
@@ -896,6 +933,8 @@ namespace System
                     case WellKnownMember.System_Range__StartAt:
                     case WellKnownMember.System_Range__EndAt:
                     case WellKnownMember.System_Range__get_All:
+                    case WellKnownMember.System_Range__get_Start:
+                    case WellKnownMember.System_Range__get_End:
                     case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
@@ -926,6 +965,12 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
+                    case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
+                    case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
+                    case WellKnownMember.System_MemoryExtensions__AsSpan_String:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -1258,9 +1303,6 @@ class MyClass
             compilation.VerifyEmitDiagnostics(
                 // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         MyClass b = (int?)1;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21),
-                // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         MyClass b = (int?)1;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "(int?)1").WithArguments("System.Nullable`1", ".ctor").WithLocation(9, 21)
                 );
         }
@@ -1349,39 +1391,6 @@ class Program
                 // (58,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         Test.NullableDecimal();            
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "Test.NullableDecimal()").WithArguments("System.Nullable`1", ".ctor").WithLocation(58, 9)
-                );
-        }
-
-        [Fact]
-        public void System_String__ConcatObjectObject()
-        {
-            var source =
-@"
-
-using System;
-
-class Class1
-{
-    static void Main()
-    {
-    }
-}
-
-class MyClass
-{
-    public static implicit operator MyClass(decimal Value)
-    {
-        Console.WriteLine(""Value is: "" + Value);
-        return new MyClass();
-    }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
-            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
-            compilation.VerifyEmitDiagnostics(
-                // (16,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine("Value is: " + Value);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Value is: "" + Value").WithArguments("System.String", "Concat").WithLocation(16, 27)
                 );
         }
 
@@ -1503,6 +1512,31 @@ namespace Test
         }
 
         [Fact]
+        public void System_String__ConcatObjectObject()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+class Class1
+{
+    static void Main()
+    {
+        Expression<Func<object, string>> e = x => ""X = "" + x;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
+            compilation.VerifyEmitDiagnostics(
+                // (9,51): error CS0656: Missing compiler required member 'System.String.Concat'
+                //         Expression<Func<object, string>> e = x => "X = " + x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""X = "" + x").WithArguments("System.String", "Concat").WithLocation(9, 51)
+                );
+        }
+
+        [Fact]
         public void System_String__ConcatStringStringString()
         {
             string source = @"
@@ -1512,7 +1546,7 @@ struct S
     private string str;
     public S(char chr) { this.str = chr.ToString(); }
     public S(string str) { this.str = str; }
-    public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
+    public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
 }
 
 class C
@@ -1525,8 +1559,8 @@ class C
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringString);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
-                //     public static S operator + (S x, S y) { return new S('(' + x.str + '+' + y.str + ')'); }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "'(' + x.str + '+'").WithArguments("System.String", "Concat").WithLocation(8, 58)
+                //     public static S operator + (S x, S y) { return new S(x.str + '+' + y.str); }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x.str + '+' + y.str").WithArguments("System.String", "Concat").WithLocation(8, 58)
                 );
         }
 
@@ -1715,9 +1749,6 @@ class C
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
-                // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //     c++;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5),
                 // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //     c++;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c++").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 5)
@@ -1948,10 +1979,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "bt").WithArguments("System.Nullable`1", ".ctor").WithLocation(11, 21),
                 // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
                 //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14),
-                // (13,14): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
-                //         T(1, true & bnt);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true & bnt").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "true").WithArguments("System.Nullable`1", ".ctor").WithLocation(13, 14)
                 );
         }
 
@@ -2138,12 +2166,12 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
-                // (13,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (13,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "hmm":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""hmm"":").WithArguments("System.String", "op_Equality").WithLocation(13, 13),
-                // (33,13): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""hmm""").WithArguments("System.String", "op_Equality").WithLocation(13, 18),
+                // (33,18): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //             case "baz":
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""baz"":").WithArguments("System.String", "op_Equality").WithLocation(33, 13)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""baz""").WithArguments("System.String", "op_Equality").WithLocation(33, 18)
                 );
         }
 
@@ -2237,37 +2265,35 @@ struct X
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //     switch (x)
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(9, 13),
-                // (14,7): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                // (14,12): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
                 //       case 1:
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "case 1:").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 7)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(14, 12)
                 );
         }
 
         [Fact]
         public void System_String__ConcatObject()
         {
+            // It isn't possible to trigger this diagnostic, as we don't use String.Concat(object)
+
             var source = @"
 using System;
-
 public class Test
 {
     private static string S = ""F"";
     private static object O = ""O"";
-
     static void Main()
     {
         Console.WriteLine(O + null);
         Console.WriteLine(S + null);
     }
 }
-";
-            var compilation = CreateCompilationWithMscorlib45(source);
+    ";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
-            compilation.VerifyEmitDiagnostics(
-                // (11,27): error CS0656: Missing compiler required member 'System.String.Concat'
-                //         Console.WriteLine(O + null);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "O + null").WithArguments("System.String", "Concat").WithLocation(11, 27)
-                );
+            compilation.VerifyEmitDiagnostics(); // We don't expect any
+            CompileAndVerify(compilation, expectedOutput: @"O
+F");
         }
 
         [Fact]
@@ -2384,7 +2410,7 @@ class C
         }
 
         [Fact]
-        public void System_Decimal__op_Implicit_FromInt32()
+        public void System_Decimal__op_Implicit_FromInt32_1()
         {
             var source =
 @"using System;
@@ -2411,6 +2437,74 @@ public class Test
                 // (16,78): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
                 //         Expression<Func<SampStruct?, decimal, decimal>> testExpr = (x, y) => x ?? y;
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x ?? y").WithArguments("System.Decimal", "op_Implicit").WithLocation(16, 78)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_2()
+        {
+            var source =
+@"
+public class Test
+{
+    static void Main()
+    {
+        int x = 1;
+        decimal y = x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (7,21): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         decimal y = x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(7, 21)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_3()
+        {
+            var source =
+@"
+public class Test
+{
+    static void Main()
+    {
+        int? x = 1;
+        decimal? y = x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (7,22): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         decimal? y = x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(7, 22)
+                );
+        }
+
+        [Fact]
+        public void System_Decimal__op_Implicit_FromInt32_4()
+        {
+            var source =
+@"
+using System;
+using System.Linq.Expressions;
+
+public class Test
+{
+    static void Main()
+    {
+        Expression<Func<int?, decimal?>> testExpr = (x) => x;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
+            compilation.VerifyEmitDiagnostics(
+                // (9,60): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
+                //         Expression<Func<int?, decimal?>> testExpr = (x) => x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Decimal", "op_Implicit").WithLocation(9, 60)
                 );
         }
 

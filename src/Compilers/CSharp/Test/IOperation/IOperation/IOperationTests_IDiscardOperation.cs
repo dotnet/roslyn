@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -8,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IDiscardOperation : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -357,7 +361,7 @@ Block[B5] - Exit
 
         [WorkItem(27086, "https://github.com/dotnet/roslyn/issues/27086")]
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29297")]
+        [Fact]
         public void DiscardFlow_06()
         {
             string source = @"
@@ -384,11 +388,10 @@ Block[B1] - Block
     Statements (0)
     Jump if False (Regular) to Block[B2]
         IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'o is var _')
-          Expression: 
+          Value: 
             IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o')
           Pattern: 
-            IDeclarationPatternOperation (Declared Symbol: System.Object _) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var _')
-
+            IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null) (Syntax: '_') (InputType: System.Object, NarrowedType: System.Object)
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1*2]

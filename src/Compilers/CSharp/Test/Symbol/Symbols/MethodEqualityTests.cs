@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -39,8 +43,8 @@ class Class2
             Assert.Equal(class1Method1, class1Method1);
 
             //null
-            Assert.NotEqual(null, class1Method1);
-            Assert.NotEqual(class1Method1, null);
+            Assert.NotNull(class1Method1);
+            Assert.NotNull(class1Method1);
 
             //different type
             Assert.NotEqual<Symbol>(class1, class1Method1);
@@ -192,11 +196,11 @@ class Class
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            var comp = (Compilation)CreateCompilation(text);
             var global = comp.GlobalNamespace;
 
             var @class = global.GetTypeMembers("Class").Single();
-            var classMethodDeclaration = (MethodSymbol)@class.GetMembers("Method").Single();
+            var classMethodDeclaration = (IMethodSymbol)@class.GetMembers("Method").Single();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -210,7 +214,7 @@ class Class
             {
                 var exprStmt = (ExpressionStatementSyntax)stmt;
                 var semanticInfo = model.GetSymbolInfo(exprStmt.Expression);
-                return (MethodSymbol)semanticInfo.Symbol;
+                return (IMethodSymbol)semanticInfo.Symbol;
             }).ToArray();
 
             Assert.Equal(6, invokedMethods.Length);
@@ -234,7 +238,7 @@ class Class
             Assert.Equal(invokedMethods[4], invokedMethods[3]);
 
             //invocations with different type args are not equal
-            var pairWiseNotEqual = new MethodSymbol[]
+            var pairWiseNotEqual = new IMethodSymbol[]
             {
                 invokedMethods[0],
                 invokedMethods[2],

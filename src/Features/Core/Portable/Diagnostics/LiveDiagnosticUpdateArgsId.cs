@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Roslyn.Utilities;
 
@@ -8,36 +10,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly string _analyzerPackageName;
 
-        public readonly object Key;
-        public readonly int Kind;
+        public readonly object ProjectOrDocumentId;
+        public readonly AnalysisKind Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object key, int kind, string analyzerPackageName) :
-            base(analyzer)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind, string analyzerPackageName)
+            : base(analyzer)
         {
-            Contract.ThrowIfNull(key);
+            Contract.ThrowIfNull(projectOrDocumentId);
 
-            Key = key;
+            ProjectOrDocumentId = projectOrDocumentId;
             Kind = kind;
 
             _analyzerPackageName = analyzerPackageName;
         }
 
-        public override string BuildTool => _analyzerPackageName ?? base.BuildTool;
+        public override string BuildTool => _analyzerPackageName;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            var other = obj as LiveDiagnosticUpdateArgsId;
-            if (other == null)
+            if (obj is not LiveDiagnosticUpdateArgsId other)
             {
                 return false;
             }
 
-            return Kind == other.Kind && Equals(Key, other.Key) && base.Equals(obj);
+            return Kind == other.Kind && Equals(ProjectOrDocumentId, other.ProjectOrDocumentId) && base.Equals(obj);
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(Key, Hash.Combine(Kind, base.GetHashCode()));
-        }
+            => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
     }
 }

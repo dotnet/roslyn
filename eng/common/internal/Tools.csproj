@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
   <ItemGroup>
     <!-- Clear references, the SDK may add some depending on UsuingToolXxx settings, but we only want to restore the following -->
@@ -12,8 +12,12 @@
     <PackageReference Include="Drop.App" Version="$(DropAppVersion)" ExcludeAssets="all" Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'"/>
   </ItemGroup>
   <PropertyGroup>
-    <RestoreSources>
-      https://devdiv.pkgs.visualstudio.com/_packaging/8f470c7e-ac49-4afe-a6ee-cf784e438b93/nuget/v3/index.json;
+    <RestoreSources></RestoreSources>
+    <RestoreSources Condition="'$(UsingToolIbcOptimization)' == 'true'">
+      https://devdiv.pkgs.visualstudio.com/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json;
+    </RestoreSources>
+    <RestoreSources Condition="'$(UsingToolVisualStudioIbcTraining)' == 'true'">
+      $(RestoreSources);
       https://devdiv.pkgs.visualstudio.com/_packaging/VS/nuget/v3/index.json;
     </RestoreSources>
   </PropertyGroup>

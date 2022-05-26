@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Emit;
@@ -11,8 +13,9 @@ namespace Microsoft.CodeAnalysis
     /// <remarks>
     /// Synthesized local variables are either 
     /// 1) Short-lived (temporary)
-    ///    The lifespan of an temporary variable shall not cross a statement boundary (a PDB sequence point).
-    ///    These variables are not tracked by EnC and don't have names.
+    ///    The lifespan of a temporary variable shall not cross a statement boundary (a PDB sequence point).
+    ///    These variables are not tracked by EnC and don't have names. Only values less than 0 are considered
+    ///    short-lived: new short-lived kinds should have a negative value.
     ///  
     /// 2) Long-lived
     ///    All variables whose lifespan might cross a statement boundary (include a PDB sequence point)
@@ -200,7 +203,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Stores a dynamic analysis instrumentation payload array. The value is initialized in
-        /// synthesized mehtod prologue code and referred to throughout the method body.
+        /// synthesized method prologue code and referred to throughout the method body.
         /// </summary>
         InstrumentationPayload = 34,
 

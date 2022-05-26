@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Threading.Tasks;
@@ -241,8 +245,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             var expected = new FormatException();
 
             // These intentionally used `Assert.Throws` instead of `Assert.ThrowsAsync`
+#pragma warning disable CA2012 // Use ValueTasks correctly (the instance is never created)
             Assert.Same(expected, Assert.Throws<FormatException>(() => AsyncLazyInitializer.EnsureInitializedAsync(() => throw expected, () => new ValueTask<object>(new object()))));
             Assert.Same(expected, Assert.Throws<FormatException>(() => AsyncLazyInitializer.EnsureInitializedAsync(_ => throw expected, _ => new ValueTask<object>(new object()), this)));
+#pragma warning restore CA2012 // Use ValueTasks correctly
 
             Assert.Null(_value);
         }
@@ -300,8 +306,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         {
             Assert.Null(_value);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, () => new ValueTask<object>(default(object))));
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, _ => new ValueTask<object>(default(object)), this));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, () => new ValueTask<object>((object)null)));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, _ => new ValueTask<object>((object)null), this));
 
             Assert.Null(_value);
         }

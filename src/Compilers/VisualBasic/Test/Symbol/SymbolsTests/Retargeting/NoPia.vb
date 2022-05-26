@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -224,7 +226,7 @@ End Class
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
                     compilation1,
                     compilation2,
-                    MscorlibRef
+                    TestMetadata.Net40.mscorlib
                 })
             Dim localTypes1 = assemblies(0).Modules(0)
             Dim localTypes2 = assemblies(1).Modules(0)
@@ -1631,7 +1633,8 @@ End Class
                 references:={New VisualBasicCompilationReference(multiModule),
                              New VisualBasicCompilationReference(pia1)})
 
-            CompileAndVerify(consumer)
+            ' ILVerify: The method or operation is not implemented.
+            CompileAndVerify(consumer, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact, WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>

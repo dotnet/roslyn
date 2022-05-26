@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 #if !NET472
 #pragma warning disable IDE0055 // Fix formatting
@@ -1775,9 +1779,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -1815,7 +1819,7 @@ class UsePia
 }";
 
             DiagnosticDescription[] expected = {
-                // (10,16): error CS0144: Cannot create an instance of the abstract class or interface 'ITest28'
+                // (10,16): error CS0144: Cannot create an instance of the abstract type or interface 'ITest28'
                 //         return new ITest28();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new ITest28()").WithArguments("ITest28")
                                                };
@@ -2054,10 +2058,10 @@ class UsePia
 
 
             DiagnosticDescription[] expected = {
-                // (10,27): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
+                // (10,20): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
                 //         return new ITest28(1);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(1)").WithArguments("ITest28", "1")
-                                               };
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ITest28").WithArguments("ITest28", "1").WithLocation(10, 20)
+            };
 
             var compilation = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
@@ -4704,11 +4708,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -5181,11 +5185,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
@@ -5701,7 +5705,7 @@ class B : IA
                 Assert.Equal(ParameterAttributes.HasDefault, p.Flags);
                 Assert.Equal((object)0x0000000C, p.ExplicitDefaultConstantValue.Value);
                 Assert.False(p.HasExplicitDefaultValue);
-                Assert.Throws(typeof(InvalidOperationException), delegate
+                Assert.Throws<InvalidOperationException>(delegate
                     {
                         var tmp = p.ExplicitDefaultValue;
                     });
@@ -5770,7 +5774,7 @@ class B : IA
                 Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString());
                 Assert.Null(p.ExplicitDefaultConstantValue);
                 Assert.False(p.HasExplicitDefaultValue);
-                Assert.Throws(typeof(InvalidOperationException), delegate
+                Assert.Throws<InvalidOperationException>(delegate
                 {
                     var tmp = p.ExplicitDefaultValue;
                 });

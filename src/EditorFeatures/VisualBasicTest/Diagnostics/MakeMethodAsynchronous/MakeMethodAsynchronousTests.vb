@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -13,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestAwaitInSubNoModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -25,7 +28,7 @@ End Module",
 "Imports System
 Imports System.Threading.Tasks
 Module Program
-    Async Sub TestAsync()
+    Async Sub Test()
         Await Task.Delay(1) 
  End Sub
 End Module",
@@ -33,6 +36,7 @@ End Module",
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestAwaitInSubWithModifiers() As Task
             Await TestInRegularAndScriptAsync(
 "Imports System
@@ -45,7 +49,7 @@ End Module",
 "Imports System
 Imports System.Threading.Tasks
 Module Program
-    Public Shared Async Sub TestAsync()
+    Public Shared Async Sub Test()
         Await Task.Delay(1) 
  End Sub
 End Module",
@@ -137,6 +141,7 @@ Module Program
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -146,7 +151,7 @@ Module Program
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-Async Function rtrtAsync() As Task
+Async Function rtrt() As Task
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -154,6 +159,7 @@ Async Function rtrtAsync() As Task
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncVoidMethod() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -163,7 +169,7 @@ Async Function rtrtAsync() As Task
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-Async Sub rtrtAsync()
+Async Sub rtrt()
         Await Nothing
     End Sub
 </ModuleDeclaration>
@@ -188,6 +194,7 @@ Async Function rtrtAsync() As Threading.Tasks.Task
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -197,7 +204,7 @@ Async Function rtrtAsync() As Threading.Tasks.Task
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-Async Function rtrtAsync() As Task
+Async Function rtrt() As Task
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -205,6 +212,7 @@ Async Function rtrtAsync() As Task
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction2() As Task
             Dim initial =
 <ModuleDeclaration>
@@ -214,7 +222,7 @@ Async Function rtrtAsync() As Task
 </ModuleDeclaration>
             Dim expected =
 <ModuleDeclaration>
-Async Function rtrtAsync() As Task(Of Integer)
+Async Function rtrt() As Task(Of Integer)
         Await Nothing
     End Function
 </ModuleDeclaration>
@@ -224,21 +232,28 @@ Async Function rtrtAsync() As Task(Of Integer)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
         Public Async Function TestBadAwaitInNonAsyncFunction3() As Task
             Dim initial =
-<ModuleDeclaration>
+<File>
+Module M1
     Function rtrt() As Integer
         [|Await Nothing|]
     End Function
-</ModuleDeclaration>
+End Module
+</File>
             Dim expected =
-<ModuleDeclaration>
-Async Function rtrtAsync() As Threading.Tasks.Task(Of Integer)
-    Await Nothing
+<File>
+Imports System.Threading.Tasks
+
+Module M1
+    Async Function rtrtAsync() As Task(Of Integer)
+        Await Nothing
     End Function
-</ModuleDeclaration>
+End Module
+</File>
             Await TestAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction4() As Task
             Dim initial =
 <File>
@@ -251,7 +266,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrtAsync() As Task
+    Async Function rtrt() As Task
         Await Nothing
     End Function
 End Class
@@ -260,6 +275,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
+        <WorkItem(33082, "https://github.com/dotnet/roslyn/issues/33082")>
         Public Async Function TestBadAwaitInNonAsyncFunction5() As Task
             Dim initial =
 <File>
@@ -272,7 +288,7 @@ End Class
             Dim expected =
 <File>
 Class Program
-    Async Function rtrtAsync() As Task(Of Integer)
+    Async Function rtrt() As Task(Of Integer)
         Await Nothing
     End Function
 End Class
@@ -292,8 +308,10 @@ End Class
 </File>
             Dim expected =
 <File>
+Imports System.Threading.Tasks
+
 Class Program
-    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of Integer)
+    Async Function rtrtAsync() As Task(Of Integer)
         Await Nothing
     End Function
 End Class
@@ -313,8 +331,10 @@ End Class
 </File>
             Dim expected =
 <File>
+Imports System.Threading.Tasks
+
 Class Program
-    Async Function rtrtAsync() As System.Threading.Tasks.Task(Of Program)
+    Async Function rtrtAsync() As Task(Of Program)
         Await Nothing
     End Function
 End Class

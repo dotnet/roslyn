@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.CSharp.Symbols
+#nullable disable
+
+namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// The nullable annotations that can apply in source.
@@ -14,24 +18,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum NullableAnnotation : byte
     {
         /// <summary>
+        /// Type is not annotated - string, int, T (including the case when T is unconstrained).
+        /// </summary>
+        NotAnnotated,
+
+        /// <summary>
         /// The type is not annotated in a context where the nullable feature is not enabled.
         /// Used for interoperation with existing pre-nullable code.
         /// </summary>
         Oblivious,
 
         /// <summary>
-        /// Type is not annotated - string, int, T (including the case when T is unconstrained).
+        /// Type is annotated with '?' - string?, T?.
         /// </summary>
-        NotAnnotated,
+        Annotated,
 
         /// <summary>
-        /// Type is annotated with '?' - string?, T? where T : class; and for int?, T? where T : struct.
+        /// Used for indexed type parameters and used locally in override/implementation checks.
+        /// When substituting a type parameter with Ignored annotation into some original type parameter
+        /// with some other annotation, the result is the annotation from the original symbol.
+        ///
+        /// T annotated + (T -> U ignored) = U annotated
+        /// T oblivious + (T -> U ignored) = U oblivious
+        /// T not-annotated + (T -> U ignored) = U not-annotated
         /// </summary>
-        /// <remarks>
-        /// A type must be known to be a (non-nullable)
-        /// type in order to be <see cref="Annotated"/>.  Therefore type parameters typically cannot be <see cref="Annotated"/> --
-        /// only a type parameter that is constrained to a non-nullable type can be <see cref="Annotated"/>.
-        /// </remarks>
-        Annotated,
+        Ignored,
     }
 }

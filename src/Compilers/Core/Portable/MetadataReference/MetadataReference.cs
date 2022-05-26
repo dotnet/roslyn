@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
-using Microsoft.CodeAnalysis.InternalUtilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Path or name used in error messages to identity the reference.
         /// </summary>
-        public virtual string Display { get { return null; } }
+        public virtual string? Display { get { return null; } }
 
         /// <summary>
         /// Returns true if this reference is an unresolved reference.
@@ -117,9 +118,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         public static PortableExecutableReference CreateFromImage(
             ImmutableArray<byte> peImage,
-            MetadataReferenceProperties properties = default(MetadataReferenceProperties),
-            DocumentationProvider documentation = null,
-            string filePath = null)
+            MetadataReferenceProperties properties = default,
+            DocumentationProvider? documentation = null,
+            string? filePath = null)
         {
             var metadata = AssemblyMetadata.CreateFromImage(peImage);
             return new MetadataImageReference(metadata, properties, documentation, filePath, display: null);
@@ -145,15 +146,14 @@ namespace Microsoft.CodeAnalysis
         /// deterministically use <see cref="AssemblyMetadata.CreateFromStream(Stream, PEStreamOptions)"/> 
         /// to create an <see cref="IDisposable"/> metadata object and 
         /// <see cref="AssemblyMetadata.GetReference(DocumentationProvider, ImmutableArray{string}, bool, string, string)"/> to get a reference to it.
-        /// to get a reference to it.
         /// </para>
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         public static PortableExecutableReference CreateFromImage(
             IEnumerable<byte> peImage,
-            MetadataReferenceProperties properties = default(MetadataReferenceProperties),
-            DocumentationProvider documentation = null,
-            string filePath = null)
+            MetadataReferenceProperties properties = default,
+            DocumentationProvider? documentation = null,
+            string? filePath = null)
         {
             var metadata = AssemblyMetadata.CreateFromImage(peImage);
             return new MetadataImageReference(metadata, properties, documentation, filePath, display: null);
@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static PortableExecutableReference CreateFromStream(
             Stream peStream,
-            MetadataReferenceProperties properties = default(MetadataReferenceProperties),
-            DocumentationProvider documentation = null,
-            string filePath = null)
+            MetadataReferenceProperties properties = default,
+            DocumentationProvider? documentation = null,
+            string? filePath = null)
         {
             // Prefetch data and close the stream. 
             var metadata = AssemblyMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage);
@@ -226,11 +226,20 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public static PortableExecutableReference CreateFromFile(
             string path,
-            MetadataReferenceProperties properties = default(MetadataReferenceProperties),
-            DocumentationProvider documentation = null)
-        {
-            var peStream = FileUtilities.OpenFileStream(path);
+            MetadataReferenceProperties properties = default,
+            DocumentationProvider? documentation = null)
+            => CreateFromFile(
+                StandardFileSystem.Instance.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read),
+                path,
+                properties,
+                documentation);
 
+        internal static PortableExecutableReference CreateFromFile(
+            Stream peStream,
+            string path,
+            MetadataReferenceProperties properties = default,
+            DocumentationProvider? documentation = null)
+        {
             // prefetch image, close stream to avoid locking it:
             var module = ModuleMetadata.CreateFromStream(peStream, PEStreamOptions.PrefetchEntireImage);
 
@@ -290,7 +299,7 @@ namespace Microsoft.CodeAnalysis
         public static MetadataReference CreateFromAssembly(
             Assembly assembly,
             MetadataReferenceProperties properties,
-            DocumentationProvider documentation = null)
+            DocumentationProvider? documentation = null)
         {
             return CreateFromAssemblyInternal(assembly, properties, documentation);
         }
@@ -298,7 +307,7 @@ namespace Microsoft.CodeAnalysis
         internal static PortableExecutableReference CreateFromAssemblyInternal(
             Assembly assembly,
             MetadataReferenceProperties properties,
-            DocumentationProvider documentation = null)
+            DocumentationProvider? documentation = null)
         {
             // Note: returns MetadataReference and not PortableExecutableReference so that we can in future support assemblies that
             // which are not backed by PE image.
@@ -324,7 +333,7 @@ namespace Microsoft.CodeAnalysis
                 throw new NotSupportedException(CodeAnalysisResources.CantCreateReferenceToAssemblyWithoutLocation);
             }
 
-            Stream peStream = FileUtilities.OpenFileStream(location);
+            Stream peStream = StandardFileSystem.Instance.OpenFileWithNormalizedException(location, FileMode.Open, FileAccess.Read, FileShare.Read);
 
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
             // which might also lock the file until the reference is GC'd.

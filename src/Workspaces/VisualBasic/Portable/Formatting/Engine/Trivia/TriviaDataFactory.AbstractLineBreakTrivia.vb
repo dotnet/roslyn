@@ -1,17 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Diagnostics
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -21,12 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected ReadOnly _original As String
             Protected ReadOnly _newString As String
 
-            Public Sub New(optionSet As OptionSet,
+            Public Sub New(options As SyntaxFormattingOptions,
                            original As String,
                            lineBreaks As Integer,
                            indentation As Integer,
                            elastic As Boolean)
-                MyBase.New(optionSet, lineBreaks, indentation, elastic, LanguageNames.VisualBasic)
+                MyBase.New(options, lineBreaks, indentation, elastic, LanguageNames.VisualBasic)
 
                 Me._original = original
                 Me._newString = CreateStringFromState()
@@ -35,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Protected MustOverride Function CreateStringFromState() As String
 
             Public Overrides Function WithSpace(space As Integer, context As FormattingContext, formattingRules As ChainedFormattingRules) As TriviaData
-                Return Contract.FailWithReturn(Of TriviaData)("Should never happen")
+                throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides Function WithLine(line As Integer, indentation As Integer,
                                                context As FormattingContext,
                                                formattingRules As ChainedFormattingRules,
                                                cancellationToken As CancellationToken) As TriviaData
-                Return Contract.FailWithReturn(Of TriviaData)("Should never happen")
+                throw ExceptionUtilities.Unreachable
             End Function
 
             Public Overrides ReadOnly Property ContainsChanges As Boolean

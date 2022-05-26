@@ -1,6 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -15,11 +19,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
+    [ExportCompletionProvider(nameof(OverrideCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(PreprocessorCompletionProvider))]
+    [Shared]
     internal partial class OverrideCompletionProvider : AbstractOverrideCompletionProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public OverrideCompletionProvider()
         {
         }
+
+        internal override string Language => LanguageNames.CSharp;
 
         protected override SyntaxNode GetSyntax(SyntaxToken token)
         {
@@ -27,13 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ?? token.GetAncestor<EventDeclarationSyntax>()
                 ?? token.GetAncestor<PropertyDeclarationSyntax>()
                 ?? token.GetAncestor<IndexerDeclarationSyntax>()
-                ?? (SyntaxNode)token.GetAncestor<MethodDeclarationSyntax>();
+                ?? (SyntaxNode?)token.GetAncestor<MethodDeclarationSyntax>()
+                ?? throw ExceptionUtilities.UnexpectedValue(token);
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
-        }
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
         {
@@ -41,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
         }
 
-        public override bool TryDetermineReturnType(SyntaxToken startToken, SemanticModel semanticModel, CancellationToken cancellationToken, out ITypeSymbol returnType, out SyntaxToken nextToken)
+        public override bool TryDetermineReturnType(SyntaxToken startToken, SemanticModel semanticModel, CancellationToken cancellationToken, out ITypeSymbol? returnType, out SyntaxToken nextToken)
         {
             nextToken = startToken;
             returnType = null;
@@ -50,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // 'partial' is actually an identifier.  If we see it just bail.  This does mean
                 // we won't handle overrides that actually return a type called 'partial'.  And
                 // not a single tear was shed.
-                if (typeSyntax is IdentifierNameSyntax &&
-                    ((IdentifierNameSyntax)typeSyntax).Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
+                if (typeSyntax is IdentifierNameSyntax identifierName &&
+                    identifierName.Identifier.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword))
                 {
                     return false;
                 }
@@ -70,9 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             modifiers = new DeclarationModifiers();
             seenAccessibility = Accessibility.NotApplicable;
             var overrideToken = default(SyntaxToken);
-            bool isUnsafe = false;
-            bool isSealed = false;
-            bool isAbstract = false;
+            var isUnsafe = false;
+            var isSealed = false;
+            var isAbstract = false;
 
             while (IsOnStartLine(token.SpanStart, text, startLine) && !token.IsKind(SyntaxKind.None))
             {
@@ -163,9 +175,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 token = previousToken;
             }
 
-            startToken = token;
             modifiers = new DeclarationModifiers(isUnsafe: isUnsafe, isAbstract: isAbstract, isOverride: true, isSealed: isSealed);
-            return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent.SpanStart, text, startLine);
+            return overrideToken.IsKind(SyntaxKind.OverrideKeyword) && IsOnStartLine(overrideToken.Parent!.SpanStart, text, startLine);
         }
 
         public override SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken)
@@ -174,8 +185,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return token.GetPreviousTokenIfTouchingWord(position);
         }
 
-        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType)
+        public override ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType)
         {
+            if (returnType == null)
+            {
+                return members;
+            }
+
             var filteredMembers = members.WhereAsArray(m =>
                 SymbolEquivalenceComparer.Instance.Equals(GetReturnType(m), returnType));
 
@@ -202,8 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 {
                     // move to the end of the last statement of the first accessor
                     var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
-                    var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
-                        firstAccessor.ExpressionBody.Expression;
+                    var firstAccessorStatement = (SyntaxNode?)firstAccessor.Body?.Statements.LastOrDefault() ??
+                        firstAccessor.ExpressionBody!.Expression;
                     return firstAccessorStatement.GetLocation().SourceSpan.End;
                 }
                 else

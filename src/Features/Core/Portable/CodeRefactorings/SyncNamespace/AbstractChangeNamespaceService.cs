@@ -1,16 +1,23 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -28,21 +35,23 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
     {
         public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
-        public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
+        public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+
+        public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 
         /// <summary>
         /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
-        /// namespce to be changed. If this reference is the right side of a qualified name, the new node returned would
+        /// namespace to be changed. If this reference is the right side of a qualified name, the new node returned would
         /// be the entire qualified name. Depends on whether <paramref name="newNamespaceParts"/> is provided, the name 
         /// in the new node might be qualified with this new namespace instead.
         /// </summary>
-        /// <param name="reference">A reference to a type declared inside the namespce to be changed, which is calculated 
+        /// <param name="reference">A reference to a type declared inside the namespace to be changed, which is calculated 
         /// based on results from `SymbolFinder.FindReferencesAsync`.</param>
         /// <param name="newNamespaceParts">If specified, the namespace of original reference will be replaced with given 
         /// namespace in the replacement node.</param>
         /// <param name="old">The node to be replaced. This might be an ancestor of original </param>
         /// <param name="new">The replacement node.</param>
-        public abstract bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, out SyntaxNode old, out SyntaxNode @new);
+        public abstract bool TryGetReplacementReferenceSyntax(SyntaxNode reference, ImmutableArray<string> newNamespaceParts, ISyntaxFactsService syntaxFacts, [NotNullWhen(returnValue: true)] out SyntaxNode? old, [NotNullWhen(returnValue: true)] out SyntaxNode? @new);
     }
 
     internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSyntax, TCompilationUnitSyntax, TMemberDeclarationSyntax>
@@ -67,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
 
-        protected abstract Task<SyntaxNode> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode?> TryGetApplicableContainerFromSpanAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         protected abstract string GetDeclaredNamespace(SyntaxNode container);
 
@@ -83,7 +92,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         protected abstract Task<ImmutableArray<(DocumentId id, SyntaxNode container)>> GetValidContainersFromAllLinkedDocumentsAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
         private static bool IsValidContainer(SyntaxNode container)
-            => container is TCompilationUnitSyntax || container is TNamespaceDeclarationSyntax;
+            => container is TCompilationUnitSyntax or TNamespaceDeclarationSyntax;
+
+        protected static bool IsGlobalNamespace(ImmutableArray<string> parts)
+            => parts.Length == 1 && parts[0].Length == 0;
 
         public override async Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
@@ -96,14 +108,77 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return !applicableContainers.IsDefault;
         }
 
+        public override async Task<Solution?> TryChangeTopLevelNamespacesAsync(
+            Document document,
+            string targetNamespace,
+            CodeCleanupOptionsProvider fallbackOptions,
+            CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Don't descend into anything other than top level declarations from the root.
+            // ChangeNamespaceService only controls top level declarations right now.
+            // Don't use namespaces that already match the target namespace
+            var originalNamespaceDeclarations = await GetTopLevelNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+
+            if (originalNamespaceDeclarations.Length == 0)
+            {
+                return null;
+            }
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var originalNamespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations.First(), cancellationToken).ToDisplayString();
+            var solution = document.Project.Solution;
+
+            // Only loop as many top level namespace declarations as we originally had. 
+            // Change namespace doesn't change this number, so this helps limit us and
+            // rule out namespaces that didn't need to be changed
+            for (var i = 0; i < originalNamespaceDeclarations.Length; i++)
+            {
+                var namespaceName = semanticModel.GetRequiredDeclaredSymbol(originalNamespaceDeclarations[i], cancellationToken).ToDisplayString();
+                if (namespaceName != originalNamespaceName)
+                {
+                    // Skip all namespaces that didn't match the original namespace name that 
+                    // we were syncing. 
+                    continue;
+                }
+
+                syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                // Since the original namespaces were retrieved before the document was modified
+                // get the current top level namespaces. Since we're only renaming namespaces, the 
+                // number and index of each is the same.
+                var namespaces = await GetTopLevelNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+                Debug.Assert(namespaces.Length == originalNamespaceDeclarations.Length);
+
+                var namespaceToRename = namespaces[i];
+                solution = await ChangeNamespaceAsync(document, namespaceToRename, targetNamespace, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                document = solution.GetRequiredDocument(document.Id);
+            }
+
+            return solution;
+            static async Task<ImmutableArray<SyntaxNode>> GetTopLevelNamespacesAsync(Document document, CancellationToken cancellationToken)
+            {
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+                return syntaxRoot
+                    .DescendantNodes(n => !syntaxFacts.IsDeclaration(n))
+                    .Where(n => syntaxFacts.IsBaseNamespaceDeclaration(n))
+                    .ToImmutableArray();
+            }
+        }
+
         public override async Task<Solution> ChangeNamespaceAsync(
             Document document,
             SyntaxNode container,
             string targetNamespace,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // Make sure given namespace name is valid, "" means global namespace.
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             if (targetNamespace == null
                 || (targetNamespace.Length > 0 && !targetNamespace.Split(s_dotSeparator).All(syntaxFacts.IsValidIdentifier)))
             {
@@ -143,56 +218,51 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var documentIds = containersFromAllDocuments.SelectAsArray(pair => pair.id);
             var solutionAfterNamespaceChange = annotatedSolution;
-            var referenceDocuments = PooledHashSet<DocumentId>.GetInstance();
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var referenceDocuments);
 
-            try
+            foreach (var documentId in documentIds)
             {
-                foreach (var documentId in documentIds)
-                {
-                    var (newSolution, refDocumentIds) =
-                        await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
-                            .ConfigureAwait(false);
-                    solutionAfterNamespaceChange = newSolution;
-                    referenceDocuments.AddRange(refDocumentIds);
-                }
-
-                var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
-
-                // After changing documents, we still need to remove unnecessary imports related to our change.
-                // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
-                // just ones that fully matche the old/new namespace. Because it's hard to get it right and will almost 
-                // certainly cause perf issue.
-                // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
-                // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
-                //
-                //      namespace Foo
-                //      {
-                //          using Bar;
-                //          ~~~~~~~~~
-                //      }
-                //
-                // Also, because we may have added different imports to document that triggered the refactoring
-                // and the documents that reference affected types declared in changed namespace, we try to remove
-                // unnecessary imports separately.
-
-                var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterFirstMerge,
-                    documentIds,
-                    CreateAllContainingNamespaces(declaredNamespace),
-                    cancellationToken).ConfigureAwait(false);
-
-                solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
-                    solutionAfterImportsRemoved,
-                    referenceDocuments.ToImmutableArray(),
-                    ImmutableArray.Create(declaredNamespace, targetNamespace),
-                    cancellationToken).ConfigureAwait(false);
-
-                return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
+                var (newSolution, refDocumentIds) =
+                    await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, fallbackOptions, cancellationToken)
+                        .ConfigureAwait(false);
+                solutionAfterNamespaceChange = newSolution;
+                referenceDocuments.AddRange(refDocumentIds);
             }
-            finally
-            {
-                referenceDocuments.Free();
-            }
+
+            var solutionAfterFirstMerge = await MergeDiffAsync(solution, solutionAfterNamespaceChange, cancellationToken).ConfigureAwait(false);
+
+            // After changing documents, we still need to remove unnecessary imports related to our change.
+            // We don't try to remove all imports that might become unnecessary/invalid after the namespace change, 
+            // just ones that fully match the old/new namespace. Because it's hard to get it right and will almost 
+            // certainly cause perf issue.
+            // For example, if we are changing namespace `Foo.Bar` (which is the only namespace declaration with such name)
+            // to `A.B`, the using of name `Bar` in a different file below would remain untouched, even it's no longer valid:
+            //
+            //      namespace Foo
+            //      {
+            //          using Bar;
+            //          ~~~~~~~~~
+            //      }
+            //
+            // Also, because we may have added different imports to document that triggered the refactoring
+            // and the documents that reference affected types declared in changed namespace, we try to remove
+            // unnecessary imports separately.
+
+            var solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                solutionAfterFirstMerge,
+                documentIds,
+                GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
+                fallbackOptions,
+                cancellationToken).ConfigureAwait(false);
+
+            solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
+                solutionAfterImportsRemoved,
+                referenceDocuments.ToImmutableArray(),
+                ImmutableArray.Create(declaredNamespace, targetNamespace),
+                fallbackOptions,
+                cancellationToken).ConfigureAwait(false);
+
+            return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
         }
 
         protected async Task<ImmutableArray<(DocumentId, SyntaxNode)>> TryGetApplicableContainersFromAllDocumentsAsync(
@@ -206,47 +276,39 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // those documents, then we know we can't make a proper code change. We will return null and the check 
             // will return false. We use span of namespace declaration found in each document to decide if they are identical.            
 
-            var documents = ids.SelectAsArray(id => solution.GetDocument(id));
-            var containers = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length);
-            var spanForContainers = PooledHashSet<TextSpan>.GetInstance();
+            var documents = ids.SelectAsArray(id => solution.GetRequiredDocument(id));
+            using var containersDisposer = ArrayBuilder<(DocumentId, SyntaxNode)>.GetInstance(ids.Length, out var containers);
+            using var spanForContainersDisposer = PooledHashSet<TextSpan>.GetInstance(out var spanForContainers);
 
-            try
+            foreach (var document in documents)
             {
-                foreach (var document in documents)
+                var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
+
+                if (container is TNamespaceDeclarationSyntax)
                 {
-                    var container = await TryGetApplicableContainerFromSpanAsync(document, span, cancellationToken).ConfigureAwait(false);
-
-                    if (container is TNamespaceDeclarationSyntax)
-                    {
-                        spanForContainers.Add(container.Span);
-                    }
-                    else if (container is TCompilationUnitSyntax)
-                    {
-                        // In case there's no namespace declaration in the document, we used an empty span as key, 
-                        // since a valid namespace declaration node can't have zero length.
-                        spanForContainers.Add(default);
-                    }
-                    else
-                    {
-                        return default;
-                    }
-
-                    containers.Add((document.Id, container));
+                    spanForContainers.Add(container.Span);
+                }
+                else if (container is TCompilationUnitSyntax)
+                {
+                    // In case there's no namespace declaration in the document, we used an empty span as key, 
+                    // since a valid namespace declaration node can't have zero length.
+                    spanForContainers.Add(default);
+                }
+                else
+                {
+                    return default;
                 }
 
-                return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
+                containers.Add((document.Id, container));
             }
-            finally
-            {
-                containers.Free();
-                spanForContainers.Free();
-            }
+
+            return spanForContainers.Count == 1 ? containers.ToImmutable() : default;
         }
 
         /// <summary>
         /// Mark container nodes with our annotation so we can keep track of them across syntax modifications.
         /// </summary>
-        protected async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
+        protected static async Task<Solution> AnnotateContainersAsync(Solution solution, ImmutableArray<(DocumentId, SyntaxNode)> containers, CancellationToken cancellationToken)
         {
             var solutionEditor = new SolutionEditor(solution);
             foreach (var (id, container) in containers)
@@ -262,8 +324,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Document document, SyntaxNode container, CancellationToken cancellationToken)
         {
             var memberDecls = GetMemberDeclarationsInContainer(container);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
 
             foreach (var memberDecl in memberDecls)
             {
@@ -288,10 +350,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // TODO: figure out how to properly determine if and how a document is linked using project system.
 
-            // If we found a linked document which is part of a project with differenct project file,
+            // If we found a linked document which is part of a project with different project file,
             // then it's an actual linked file (i.e. not a multi-targeting project). We don't support that for now.
             if (linkedDocumentIds.Any(id =>
-                    !PathUtilities.PathsEqual(solution.GetDocument(id).Project.FilePath, document.Project.FilePath)))
+                    !PathUtilities.PathsEqual(solution.GetRequiredDocument(id).Project.FilePath!, document.Project.FilePath!)))
             {
                 allDocumentIds = default;
                 return false;
@@ -306,7 +368,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var declarations = GetMemberDeclarationsInContainer(container);
             var builder = ArrayBuilder<ISymbol>.GetInstance();
 
@@ -320,32 +382,32 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         }
 
         private static ImmutableArray<string> GetNamespaceParts(string @namespace)
-        {
-            return @namespace?.Split(s_dotSeparator).ToImmutableArray() ?? default;
-        }
+            => @namespace?.Split(s_dotSeparator).ToImmutableArray() ?? default;
 
-        private static ImmutableArray<string> CreateAllContainingNamespaces(string @namespace)
+        private static ImmutableArray<string> GetAllNamespaceImportsForDeclaringDocument(string oldNamespace, string newNamespace)
         {
-            var parts = GetNamespaceParts(@namespace);
+            var parts = GetNamespaceParts(oldNamespace);
             var builder = ArrayBuilder<string>.GetInstance();
             for (var i = 1; i <= parts.Length; ++i)
             {
                 builder.Add(string.Join(".", parts.Take(i)));
             }
 
+            builder.Add(newNamespace);
+
             return builder.ToImmutableAndFree();
         }
 
-        private ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
+        private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
-            var builder = ArrayBuilder<SyntaxNode>.GetInstance(names.Length);
+            using var builderDisposer = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
             for (var i = 0; i < names.Length; ++i)
             {
                 builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
         }
 
         private static SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)
@@ -369,10 +431,11 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             DocumentId id,
             string oldNamespace,
             string newNamespace,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(id);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var document = solution.GetRequiredDocument(id);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var container = root.GetAnnotatedNodes(ContainerAnnotation).Single();
 
             // Get types declared in the changing namespace, because we need to fix all references to them, 
@@ -381,14 +444,14 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-            // Separating references to declaredSymbols into two groups based on wheter it's located in the same 
+            // Separating references to declaredSymbols into two groups based on whether it's located in the same 
             // document as the namespace declaration. This is because code change required for them are different.
             var refLocationsInCurrentDocument = new List<LocationForAffectedSymbol>();
             var refLocationsInOtherDocuments = new List<LocationForAffectedSymbol>();
 
             var refLocations = await Task.WhenAll(
                 declaredSymbols.Select(declaredSymbol
-                    => FindReferenceLocationsForSymbol(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
+                    => FindReferenceLocationsForSymbolAsync(document, declaredSymbol, cancellationToken))).ConfigureAwait(false);
 
             foreach (var refLocation in refLocations.SelectMany(locs => locs))
             {
@@ -398,12 +461,14 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 }
                 else
                 {
+                    RoslynDebug.AssertNotNull(refLocation.Document.FilePath);
+                    RoslynDebug.AssertNotNull(document.FilePath);
                     Debug.Assert(!PathUtilities.PathsEqual(refLocation.Document.FilePath, document.FilePath));
                     refLocationsInOtherDocuments.Add(refLocation);
                 }
             }
 
-            var documentWithNewNamespace = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, oldNamespace, newNamespace, cancellationToken)
+            var documentWithNewNamespace = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, oldNamespace, newNamespace, fallbackOptions, cancellationToken)
                 .ConfigureAwait(false);
             var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
@@ -412,9 +477,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var fixedDocuments = await Task.WhenAll(
                 refLocationGroups.Select(refInOneDocument =>
                     FixReferencingDocumentAsync(
-                        solutionWithChangedNamespace.GetDocument(refInOneDocument.Key),
+                        solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
                         refInOneDocument,
                         newNamespace,
+                        fallbackOptions,
                         cancellationToken))).ConfigureAwait(false);
 
             var solutionWithFixedReferences = await MergeDocumentChangesAsync(solutionWithChangedNamespace, fixedDocuments, cancellationToken).ConfigureAwait(false);
@@ -428,7 +494,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 originalSolution = originalSolution.WithDocumentSyntaxRoot(
                     document.Id,
-                    await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
+                    await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
             }
 
             return originalSolution;
@@ -449,57 +515,47 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             public Document Document => ReferenceLocation.Document;
         }
 
-        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbol(
+        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbolAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var builder = ArrayBuilder<LocationForAffectedSymbol>.GetInstance();
-            try
-            {
-                var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
-                builder.AddRange(referencedSymbols
-                    .Where(refSymbol => refSymbol.Definition.Equals(symbol))
-                    .SelectMany(refSymbol => refSymbol.Locations)
-                    .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
+            using var _ = ArrayBuilder<LocationForAffectedSymbol>.GetInstance(out var builder);
 
-                // So far we only have references to types declared in affected namespace. We also need to 
-                // handle invocation of extension methods (in reduced form) that are declared in those types. 
-                // Therefore additional calls to find references are needed for those extension methods.
-                // This will returns all the references, not just in the reduced form. But we will
-                // not further distinguish the usage. In the worst case, those references are redundant because
-                // they are already covered by the type references found above.
-                if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+            var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            builder.AddRange(referencedSymbols
+                .Where(refSymbol => refSymbol.Definition.Equals(symbol))
+                .SelectMany(refSymbol => refSymbol.Locations)
+                .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
+
+            // So far we only have references to types declared in affected namespace. We also need to 
+            // handle invocation of extension methods (in reduced form) that are declared in those types. 
+            // Therefore additional calls to find references are needed for those extension methods.
+            // This will returns all the references, not just in the reduced form. But we will
+            // not further distinguish the usage. In the worst case, those references are redundant because
+            // they are already covered by the type references found above.
+            if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+            {
+                foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
                 {
-                    foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
+                    if (methodSymbol.IsExtensionMethod)
                     {
-                        if (methodSymbol.IsExtensionMethod)
-                        {
-                            var referencedMethodSymbols = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
-                            builder.AddRange(referencedMethodSymbols
-                                .SelectMany(refSymbol => refSymbol.Locations)
-                                .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: true)));
-                        }
+                        var referencedMethodSymbols = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
+                        builder.AddRange(referencedMethodSymbols
+                            .SelectMany(refSymbol => refSymbol.Locations)
+                            .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: true)));
                     }
                 }
+            }
 
-                return builder.ToImmutable();
-            }
-            finally
-            {
-                builder.Free();
-            }
+            return builder.ToImmutable();
         }
 
         private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            var progress = new StreamingProgressCollector();
             await SymbolFinder.FindReferencesAsync(
-                symbolAndProjectId: SymbolAndProjectId.Create(symbol, document.Project.Id),
-                solution: document.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                symbol, document.Project.Solution, progress, documents: null,
+                FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
             return progress.GetReferencedSymbols();
         }
@@ -509,6 +565,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             IReadOnlyList<LocationForAffectedSymbol> refLocations,
             string oldNamespace,
             string newNamespace,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             Debug.Assert(newNamespace != null);
@@ -531,7 +588,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             // 3. Change namespace declaration to target namespace.
             // 4. Simplify away unnecessary qualifications.
 
-            var addImportService = document.GetLanguageService<IAddImportsService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             ImmutableArray<SyntaxNode> containersToAddImports;
 
             var oldNamespaceParts = GetNamespaceParts(oldNamespace);
@@ -539,79 +596,83 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             if (refLocations.Count > 0)
             {
-                (document, containersToAddImports) = await FixReferencesAsync(document, this, addImportService, refLocations, newNamespaceParts, cancellationToken)
+                (document, containersToAddImports) = await FixReferencesAsync(document, this, addImportService, refLocations, newNamespaceParts, fallbackOptions, cancellationToken)
                     .ConfigureAwait(false);
             }
             else
             {
                 // If there's no reference to types declared in this document,
                 // we will use root node as import container.
-                containersToAddImports = ImmutableArray.Create(await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
+                containersToAddImports = ImmutableArray.Create(await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
             }
 
             Debug.Assert(containersToAddImports.Length > 0);
 
             // Need to import all containing namespaces of old namespace and add them to the document (if it's not global namespace)
-            var namesToImport = CreateAllContainingNamespaces(oldNamespace);
+            // Include the new namespace in case there are multiple namespace declarations in
+            // the declaring document. They may need a using statement added to correctly keep
+            // references to the type inside it's new namespace
+            var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
             var documentWithAddedImports = await AddImportsInContainersAsync(
-                    document,
-                    addImportService,
-                    containersToAddImports,
-                    namesToImport,
-                    placeSystemNamespaceFirst,
-                    cancellationToken).ConfigureAwait(false);
+                document,
+                addImportService,
+                containersToAddImports,
+                namesToImport,
+                documentOptions.AddImportOptions,
+                cancellationToken).ConfigureAwait(false);
 
-            var root = await documentWithAddedImports.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await documentWithAddedImports.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             root = ChangeNamespaceDeclaration((TCompilationUnitSyntax)root, oldNamespaceParts, newNamespaceParts)
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            root = Formatter.Format(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken);
+            var services = documentWithAddedImports.Project.Solution.Workspace.Services;
+            root = Formatter.Format(root, Formatter.Annotation, services, documentOptions.FormattingOptions, cancellationToken);
 
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
             var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);
-            return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(formattedDocument, documentOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> FixReferencingDocumentAsync(
+        private static async Task<Document> FixReferencingDocumentAsync(
             Document document,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             string newNamespace,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             // 1. Fully qualify all simple references (i.e. not via an alias) with new namespace.
             // 2. Add using of new namespace (for each reference's container).
             // 3. Try to simplify qualified names introduced from step(1).
 
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
+            var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
 
             var newNamespaceParts = GetNamespaceParts(newNamespace);
 
             var (documentWithRefFixed, containers) =
-                await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, cancellationToken)
+                await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, fallbackOptions, cancellationToken)
                     .ConfigureAwait(false);
 
-            var optionSet = await documentWithRefFixed.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithRefFixed.Project.Language);
+            var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
 
             var documentWithAdditionalImports = await AddImportsInContainersAsync(
                 documentWithRefFixed,
                 addImportService,
                 containers,
                 ImmutableArray.Create(newNamespace),
-                placeSystemNamespaceFirst,
+                documentOptions.AddImportOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, optionSet, cancellationToken)
+            var formattedDocument = await Formatter.FormatAsync(documentWithAdditionalImports, Formatter.Annotation, documentOptions.FormattingOptions, cancellationToken)
                 .ConfigureAwait(false);
 
-            return await Simplifier.ReduceAsync(formattedDocument, optionSet, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(formattedDocument, documentOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -622,20 +683,22 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         ///     2. find and mark the qualified reference for simplification.
         /// Otherwise, there would be no namespace replacement.
         /// </summary>
-        private async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
+        private static async Task<(Document, ImmutableArray<SyntaxNode>)> FixReferencesAsync(
             Document document,
             IChangeNamespaceService changeNamespaceService,
             IAddImportsService addImportService,
             IEnumerable<LocationForAffectedSymbol> refLocations,
             ImmutableArray<string> newNamespaceParts,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
             var root = editor.OriginalRoot;
-            var containers = PooledHashSet<SyntaxNode>.GetInstance();
+            using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var containers);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // We need a dummy import to figure out the container for given reference.
             var dummyImport = CreateImport(generator, "Dummy", withFormatterAnnotation: false);
@@ -676,8 +739,10 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     }
                 }
 
+                var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+
                 // Use a dummy import node to figure out which container the new import will be added to.
-                var container = addImportService.GetImportContainer(root, refNode, dummyImport);
+                var container = addImportService.GetImportContainer(root, refNode, dummyImport, addImportsOptions);
                 containers.Add(container);
             }
 
@@ -687,31 +752,32 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             var fixedDocument = editor.GetChangedDocument();
-            root = await fixedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)));
+            root = await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var result = (fixedDocument, containers.SelectAsArray(c => root.GetCurrentNode(c)
+                ?? throw new InvalidOperationException("Can't get SyntaxNode from GetCurrentNode.")));
 
-            containers.Free();
             return result;
         }
 
-        private async Task<Solution> RemoveUnnecessaryImportsAsync(
+        private static async Task<Solution> RemoveUnnecessaryImportsAsync(
             Solution solution,
             ImmutableArray<DocumentId> ids,
             ImmutableArray<string> names,
+            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            var LinkedDocumentsToSkip = PooledHashSet<DocumentId>.GetInstance();
+            using var _ = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
             var documentsToProcessBuilder = ArrayBuilder<Document>.GetInstance();
 
             foreach (var id in ids)
             {
-                if (LinkedDocumentsToSkip.Contains(id))
+                if (linkedDocumentsToSkip.Contains(id))
                 {
                     continue;
                 }
 
-                var document = solution.GetDocument(id);
-                LinkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
+                var document = solution.GetRequiredDocument(id);
+                linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
                 documentsToProcessBuilder.Add(document);
 
                 document = await RemoveUnnecessaryImportsWorker(
@@ -722,7 +788,6 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             }
 
             var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
-            LinkedDocumentsToSkip.Free();
 
             var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
                     doc => RemoveUnnecessaryImportsWorker(
@@ -732,18 +797,20 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
 
-            Task<Document> RemoveUnnecessaryImportsWorker(
+            async Task<Document> RemoveUnnecessaryImportsWorker(
                 Document doc,
                 IEnumerable<SyntaxNode> importsToRemove,
                 CancellationToken token)
             {
-                var removeImportService = doc.GetLanguageService<IRemoveUnnecessaryImportsService>();
-                var syntaxFacts = doc.GetLanguageService<ISyntaxFactsService>();
+                var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+                var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
+                var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(fallbackOptions, token).ConfigureAwait(false);
 
-                return removeImportService.RemoveUnnecessaryImportsAsync(
+                return await removeImportService.RemoveUnnecessaryImportsAsync(
                     doc,
                     import => importsToRemove.Any(importToRemove => syntaxFacts.AreEquivalent(importToRemove, import)),
-                    token);
+                    formattingOptions,
+                    token).ConfigureAwait(false);
             }
         }
 
@@ -751,12 +818,12 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         /// Add imports for the namespace specified by <paramref name="names"/>
         /// to the provided <paramref name="containers"/>
         /// </summary>
-        private async Task<Document> AddImportsInContainersAsync(
+        private static async Task<Document> AddImportsInContainersAsync(
             Document document,
             IAddImportsService addImportService,
             ImmutableArray<SyntaxNode> containers,
             ImmutableArray<string> names,
-            bool placeSystemNamespaceFirst,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
             // Sort containers based on their span start, to make the result of 
@@ -765,6 +832,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 containers = containers.Sort(SyntaxNodeSpanStartComparer.Instance);
             }
+
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             var imports = CreateImports(document, names, withFormatterAnnotation: true);
             foreach (var container in containers)
@@ -776,9 +845,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     ? container.DescendantNodes().First()
                     : container;
 
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
+                var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, generator, options, cancellationToken);
                 document = document.WithSyntaxRoot(root);
             }
 
@@ -787,7 +856,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         private static async Task<Solution> MergeDiffAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
-            var diffMergingSession = new LinkedFileDiffMergingSession(oldSolution, newSolution, newSolution.GetChanges(oldSolution), logSessionInfo: false);
+            var diffMergingSession = new LinkedFileDiffMergingSession(oldSolution, newSolution, newSolution.GetChanges(oldSolution));
             var mergeResult = await diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).ConfigureAwait(false);
             return mergeResult.MergedSolution;
         }
@@ -800,8 +869,13 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             public static SyntaxNodeSpanStartComparer Instance { get; } = new SyntaxNodeSpanStartComparer();
 
-            public int Compare(SyntaxNode x, SyntaxNode y)
-                => x.Span.Start - y.Span.Start;
+            public int Compare(SyntaxNode? x, SyntaxNode? y)
+            {
+                Contract.ThrowIfNull(x);
+                Contract.ThrowIfNull(y);
+
+                return x.Span.Start - y.Span.Start;
+            }
         }
     }
 }

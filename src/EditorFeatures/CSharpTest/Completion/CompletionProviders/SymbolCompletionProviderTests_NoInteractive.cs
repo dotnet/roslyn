@@ -1,12 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,31 +24,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
     {
-        public SymbolCompletionProviderTests_NoInteractive(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(SymbolCompletionProvider);
 
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new SymbolCompletionProvider();
-        }
-
-        protected override Task VerifyWorkerAsync(
+        private protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task IsCommitCharacterTest()
-        {
-            await VerifyCommonCommitCharactersAsync("class C { void M() { System.Console.$$", textTypedSoFar: "");
-        }
+            => await VerifyCommonCommitCharactersAsync("class C { void M() { System.Console.$$", textTypedSoFar: "");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void IsTextualTriggerCharacterTest()
@@ -47,7 +51,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             TestCommonIsTextualTriggerCharacter();
 
             VerifyTextualTriggerCharacter("Abc $$X", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false);
-            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false);
+
+            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: false, showCompletionInArgumentLists: true);
+
+            VerifyTextualTriggerCharacter("Abc$$ ", shouldTriggerWithTriggerOnLettersEnabled: false, shouldTriggerWithTriggerOnLettersDisabled: false, showCompletionInArgumentLists: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -59,23 +66,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvalidLocation1()
-        {
-            await VerifyItemIsAbsentAsync(@"System.Console.$$", @"Beep");
-        }
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task GlobalStatement1()
+            => await VerifyItemExistsAsync(@"System.Console.$$", @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvalidLocation2()
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task GlobalStatement2()
         {
-            await VerifyItemIsAbsentAsync(@"using System;
+            await VerifyItemExistsAsync(@"using System;
 Console.$$", @"Beep");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation3()
-        {
-            await VerifyItemIsAbsentAsync(@"using System.Console.$$", @"Beep");
-        }
+            => await VerifyItemIsAbsentAsync(@"using System.Console.$$", @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation4()
@@ -148,15 +153,11 @@ class C {
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation11()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"Console.$$")), @"Beep");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"Console.$$")), @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation12()
-        {
-            await VerifyItemIsAbsentAsync(@"[assembly: System.Console.$$]", @"Beep");
-        }
+            => await VerifyItemIsAbsentAsync(@"[assembly: System.Console.$$]", @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation13()
@@ -169,9 +170,7 @@ class CL {}";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation14()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<[Console.$$]T> {}"), @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation15()
@@ -185,9 +184,7 @@ class CL {}";
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation16()
-        {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<Console.$$"), @"Beep");
-        }
+            => await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<Console.$$"), @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InvalidLocation17()
@@ -242,9 +239,7 @@ class C {
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UsingDirectiveGlobal()
-        {
-            await VerifyItemExistsAsync(@"using global::$$;", @"System");
-        }
+            => await VerifyItemExistsAsync(@"using global::$$;", @"System");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsideAccessor()
@@ -309,9 +304,7 @@ class C {
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EndOfFile()
-        {
-            await VerifyItemExistsAsync(@"static class E { public static void Method() { E.$$", @"Method");
-        }
+            => await VerifyItemExistsAsync(@"static class E { public static void Method() { E.$$", @"Method");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InheritedStaticFields()
@@ -338,25 +331,25 @@ class C
         {
             Console.$$";//, @"Beep"
 
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var testDocument = workspace.Documents.Single();
-                var position = testDocument.CursorPosition.Value;
+            using var workspace = TestWorkspace.CreateCSharp(code);
+            var testDocument = workspace.Documents.Single();
+            var position = testDocument.CursorPosition.Value;
 
-                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-                var service = CompletionService.GetService(document);
-                var completions = await service.GetCompletionsAndSetItemDocumentAsync(document, position);
+            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var service = CompletionService.GetService(document);
+            var options = CompletionOptions.Default;
+            var displayOptions = SymbolDescriptionOptions.Default;
+            var completions = await service.GetCompletionsAsync(document, position, options, OptionValueSet.Empty);
 
-                var item = completions.Items.First(i => i.DisplayText == "Beep");
-                var edit = testDocument.GetTextBuffer().CreateEdit();
-                edit.Delete(Span.FromBounds(position - 10, position));
-                edit.Apply();
+            var item = completions.Items.First(i => i.DisplayText == "Beep");
+            var edit = testDocument.GetTextBuffer().CreateEdit();
+            edit.Delete(Span.FromBounds(position - 10, position));
+            edit.Apply();
 
-                document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-                Assert.NotEqual(document, item.Document);
-                var description = service.GetDescriptionAsync(item.Document, item);
-            }
+            Assert.NotEqual(currentDocument, document);
+            var description = service.GetDescriptionAsync(document, item, options, displayOptions);
         }
     }
 }

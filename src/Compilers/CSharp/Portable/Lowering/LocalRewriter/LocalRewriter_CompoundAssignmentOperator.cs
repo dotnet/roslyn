@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -85,17 +88,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // transformedLHS = storeNonEvent + loweredRight
                 rewrittenAssignment = rewriteAssignment(lhsRead);
+                Debug.Assert(rewrittenAssignment.Type is { });
 
                 // Final conditional
                 var condition = _factory.Conditional(isEvent, invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
 
-                rewrittenAssignment = new BoundSequence(node.Syntax, eventTemps.ToImmutableAndFree(), sequence.ToImmutableAndFree(), condition, condition.Type);
+                rewrittenAssignment = new BoundSequence(node.Syntax, eventTemps.ToImmutableAndFree(), sequence.ToImmutableAndFree(), condition, condition.Type!);
             }
             else
             {
                 rewrittenAssignment = rewriteAssignment(lhsRead);
             }
 
+            Debug.Assert(rewrittenAssignment.Type is { });
             BoundExpression result = (temps.Count == 0 && stores.Count == 0) ?
                 rewrittenAssignment :
                 new BoundSequence(
@@ -122,28 +127,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 // (The right hand side has already been converted to the type expected by the operator.)
 
-                BoundExpression opLHS = isDynamic ? leftRead : MakeConversionNode(
-                    syntax: syntax,
-                    rewrittenOperand: leftRead,
-                    conversion: node.LeftConversion,
-                    rewrittenType: node.Operator.LeftType,
-                    @checked: isChecked);
+                BoundExpression opLHS = leftRead;
 
-                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, isCompoundAssignment: true);
+                if (!isDynamic && node.LeftConversion is not null)
+                {
+                    Debug.Assert(node.LeftPlaceholder is not null);
 
-                BoundExpression opFinal = MakeConversionNode(
-                    syntax: syntax,
-                    rewrittenOperand: operand,
-                    conversion: node.FinalConversion,
-                    rewrittenType: node.Left.Type,
-                    explicitCastInCode: isDynamic,
-                    @checked: isChecked);
+                    AddPlaceholderReplacement(node.LeftPlaceholder, leftRead);
+                    opLHS = VisitExpression(node.LeftConversion);
+                    RemovePlaceholderReplacement(node.LeftPlaceholder);
+                }
+
+                BoundExpression operand = MakeBinaryOperator(syntax, node.Operator.Kind, opLHS, loweredRight, node.Operator.ReturnType, node.Operator.Method, node.Operator.ConstrainedToTypeOpt, isCompoundAssignment: true);
+
+                Debug.Assert(node.Left.Type is { });
+                BoundExpression opFinal = operand;
+
+                if (node.FinalConversion is not null)
+                {
+                    Debug.Assert(node.FinalPlaceholder is not null);
+
+                    AddPlaceholderReplacement(node.FinalPlaceholder, operand);
+                    opFinal = VisitExpression(node.FinalConversion);
+                    RemovePlaceholderReplacement(node.FinalPlaceholder);
+                }
 
                 return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }
         }
 
-        private BoundExpression TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private BoundExpression? TransformPropertyOrEventReceiver(Symbol propertyOrEvent, BoundExpression? receiverOpt, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(propertyOrEvent.Kind == SymbolKind.Property || propertyOrEvent.Kind == SymbolKind.Event);
 
@@ -184,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
             // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
             // SPEC VIOLATION: as value types.
+            Debug.Assert(rewrittenReceiver.Type is { });
             var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
             var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
@@ -229,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION: in a case of unconstrained generic type parameter a runtime test (default(T) == null) would be needed
                 // SPEC VIOLATION: However, for compatibility with Dev12 we will continue treating all generic type parameters, constrained or not,
                 // SPEC VIOLATION: as value types.
+                Debug.Assert(rewrittenReceiver.Type is { });
                 var variableRepresentsLocation = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter;
 
                 var receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind: variableRepresentsLocation ? RefKind.Ref : RefKind.None);
@@ -286,13 +301,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             // tempy = Y()
             // tempc[tempx, tempy, 123] = tempc[tempx, tempy, 123] + 1;
 
-            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(indexerAccess.Arguments);
-
             SyntaxNode syntax = indexerAccess.Syntax;
             PropertySymbol indexer = indexerAccess.Indexer;
-            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
-            bool expanded = indexerAccess.Expanded;
             ImmutableArray<int> argsToParamsOpt = indexerAccess.ArgsToParamsOpt;
+            ImmutableArray<RefKind> argumentRefKinds = indexerAccess.ArgumentRefKindsOpt;
+
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                indexerAccess.Arguments,
+                indexer,
+                argsToParamsOpt,
+                argumentRefKinds,
+                ref transformedReceiver!,
+                out ArrayBuilder<LocalSymbol>? argumentTemps);
+
+            if (argumentTemps != null)
+            {
+                temps.AddRange(argumentTemps);
+                argumentTemps.Free();
+            }
+
+            if (transformedReceiver is BoundSequence receiverSequence)
+            {
+                // The receiver is a store/evaluate sequence because it was used as an argument to an interpolated
+                // string handler conversion.
+                // Pick apart the sequence, add the side effects to the containing list of stores, and set the
+                // receiver to just be the final temp to ensure we don't double-evaluate the sequence.
+
+                temps.AddRange(receiverSequence.Locals);
+                stores.AddRange(receiverSequence.SideEffects);
+                transformedReceiver = receiverSequence.Value;
+            }
+
+            bool expanded = indexerAccess.Expanded;
 
             ImmutableArray<ParameterSymbol> parameters = indexer.Parameters;
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
@@ -327,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
             // compound assignments, but for deconstructions we use the setter if the getter is missing.)
             var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
-            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments, refKinds);
+            Debug.Assert(accessor is not null);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -337,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
             }
 
+            Debug.Assert(actualArguments.All(static arg => arg is not null));
             rewrittenArguments = actualArguments.AsImmutableOrNull();
 
             foreach (BoundAssignmentOperator tempAssignment in storesToTemps)
@@ -355,25 +396,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 transformedReceiver,
                 indexer,
                 rewrittenArguments,
-                default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string>),
                 argumentRefKinds,
-                false,
-                default(ImmutableArray<int>),
-                null,
-                indexerAccess.UseSetterForDefaultArgumentGeneration,
+                expanded: false,
+                argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 indexerAccess.Type);
+        }
+
+        private BoundExpression TransformImplicitIndexerAccess(
+            BoundImplicitIndexerAccess indexerAccess,
+            ArrayBuilder<BoundExpression> stores,
+            ArrayBuilder<LocalSymbol> temps,
+            bool isDynamicAssignment)
+        {
+            // An implicit indexer is fundamentally a sequence which ends in either
+            // a conventional indexer access or a method call. The lowering of an
+            // implicit indexer already lowers everything we need into temps, so
+            // the only thing we need to do is lift the stores and temps out of
+            // the sequence, and use the final expression as the new argument
+
+            var access = VisitImplicitIndexerAccess(indexerAccess, isLeftOfAssignment: true);
+
+            if (access is BoundSequence sequence)
+            {
+                stores.AddRange(sequence.SideEffects);
+                temps.AddRange(sequence.Locals);
+                access = sequence.Value;
+            }
+
+            return TransformCompoundAssignmentLHS(access, stores, temps, isDynamicAssignment);
         }
 
         /// <summary>
         /// Returns true if the <paramref name="receiver"/> was lowered and transformed.
         /// The <paramref name="receiver"/> is not changed if this function returns false. 
         /// </summary>
-        private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
+        private bool TransformCompoundAssignmentFieldOrEventAccessReceiver(Symbol fieldOrEvent, ref BoundExpression? receiver, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             Debug.Assert(fieldOrEvent.Kind == SymbolKind.Field || fieldOrEvent.Kind == SymbolKind.Event);
 
             //If the receiver is static or is the receiver is of kind "Base" or "this", then we can just generate field = field + value
-            if (fieldOrEvent.IsStatic || !CanChangeValueBetweenReads(receiver))
+            if (fieldOrEvent.IsStatic)
+            {
+                return true;
+            }
+
+            Debug.Assert(receiver is { Type: { } });
+            if (!CanChangeValueBetweenReads(receiver))
             {
                 return true;
             }
@@ -386,6 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(receiver.Kind != BoundKind.TypeExpression);
             BoundExpression rewrittenReceiver = VisitExpression(receiver);
 
+            Debug.Assert(rewrittenReceiver.Type is { });
             if (rewrittenReceiver.Type.IsTypeParameter())
             {
                 var memberContainingType = fieldOrEvent.ContainingType;
@@ -407,17 +478,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundDynamicIndexerAccess TransformDynamicIndexerAccess(BoundDynamicIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
             BoundExpression loweredReceiver;
-            if (CanChangeValueBetweenReads(indexerAccess.ReceiverOpt))
+            if (CanChangeValueBetweenReads(indexerAccess.Receiver))
             {
                 BoundAssignmentOperator assignmentToTemp;
-                var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.ReceiverOpt), out assignmentToTemp);
+                var temp = _factory.StoreToTemp(VisitExpression(indexerAccess.Receiver), out assignmentToTemp);
                 stores.Add(assignmentToTemp);
                 temps.Add(temp.LocalSymbol);
                 loweredReceiver = temp;
             }
             else
             {
-                loweredReceiver = indexerAccess.ReceiverOpt;
+                loweredReceiver = indexerAccess.Receiver;
             }
 
             var arguments = indexerAccess.Arguments;
@@ -520,6 +591,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.ImplicitIndexerAccess:
+                    {
+                        var implicitIndexerAccess = (BoundImplicitIndexerAccess)originalLHS;
+                        Debug.Assert(implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Index))
+                            || implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Range)));
+
+                        if (implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None)
+                        {
+                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
+                        }
+                    }
+                    break;
+
                 case BoundKind.FieldAccess:
                     {
                         // * If the field is static then no temporaries are needed. 
@@ -528,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //   general variable case below.
 
                         var fieldAccess = (BoundFieldAccess)originalLHS;
-                        BoundExpression receiverOpt = fieldAccess.ReceiverOpt;
+                        BoundExpression? receiverOpt = fieldAccess.ReceiverOpt;
 
                         if (TransformCompoundAssignmentFieldOrEventAccessReceiver(fieldAccess.FieldSymbol, ref receiverOpt, stores, temps))
                         {
@@ -582,6 +666,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(((BoundCall)originalLHS).Method.RefKind != RefKind.None);
                     break;
 
+                case BoundKind.FunctionPointerInvocation:
+                    Debug.Assert(((BoundFunctionPointerInvocation)originalLHS).FunctionPointer.Signature.RefKind != RefKind.None);
+                    break;
+
                 case BoundKind.ConditionalOperator:
                     Debug.Assert(((BoundConditionalOperator)originalLHS).IsRef);
                     break;
@@ -599,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var eventAccess = (BoundEventAccess)originalLHS;
                         Debug.Assert(eventAccess.IsUsableAsField);
-                        BoundExpression receiverOpt = eventAccess.ReceiverOpt;
+                        BoundExpression? receiverOpt = eventAccess.ReceiverOpt;
 
                         if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                         {
@@ -635,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return variableTemp;
         }
 
-        private static bool IsInvariantArray(TypeSymbol type)
+        private static bool IsInvariantArray(TypeSymbol? type)
         {
             return (type as ArrayTypeSymbol)?.ElementType.IsSealed == true;
         }
@@ -730,6 +818,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;
 
+                case BoundKind.TypeExpression:
+                    return false;
+
                 default:
                     return true;
             }
@@ -770,6 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectCreationExpression:
                     // common production of lowered conversions to nullable
                     // new S?(arg)
+                    Debug.Assert(expression.Type is { });
                     if (expression.Type.IsNullableType())
                     {
                         var objCreation = (BoundObjectCreationExpression)expression;
@@ -789,6 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (IsSpecialMember(method, SpecialMember.System_Nullable_T_GetValueOrDefault) ||
                             IsSpecialMember(method, SpecialMember.System_Nullable_T_get_HasValue))
                         {
+                            Debug.Assert(call.ReceiverOpt is { });
                             return ReadIsSideeffecting(call.ReceiverOpt);
                         }
                     }
@@ -809,9 +902,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // nontrivial literals do not change between reads
         // but may require re-constructing, so it is better 
         // to treat them as potentially changing.
-        private static bool ConstantValueIsTrivial(TypeSymbol type)
+        private static bool ConstantValueIsTrivial(TypeSymbol? type)
         {
-            return (object)type == null ||
+            return type is null ||
                 type.SpecialType.IsClrInteger() ||
                 type.IsReferenceType ||
                 type.IsEnumType();

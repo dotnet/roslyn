@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -9,23 +13,37 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract partial class AbstractFlowPass<TLocalState>
+    internal abstract partial class AbstractFlowPass<TLocalState, TLocalFunctionState>
     {
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
-            // visit switch header
-            VisitRvalue(node.Expression);
+            // dispatch to the switch sections
+            var afterSwitchState = VisitSwitchStatementDispatch(node);
 
-            // visit switch block
-            VisitSwitchBlock(node);
+            // visit switch sections
+            var switchSections = node.SwitchSections;
+            var iLastSection = (switchSections.Length - 1);
+            for (var iSection = 0; iSection <= iLastSection; iSection++)
+            {
+                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
+                // Even though it is illegal for the end of a switch section to be reachable, in erroneous
+                // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
+                Join(ref afterSwitchState, ref this.State);
+            }
+
+            ResolveBreaks(afterSwitchState, node.BreakLabel);
 
             return null;
         }
 
-        private void VisitSwitchBlock(BoundSwitchStatement node)
+        protected virtual TLocalState VisitSwitchStatementDispatch(BoundSwitchStatement node)
         {
-            var initialState = State.Clone();
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            // visit switch header
+            VisitRvalue(node.Expression);
+
+            TLocalState initialState = this.State.Clone();
+
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -52,24 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // visit switch sections
-            var afterSwitchState = UnreachableState();
-            var switchSections = node.SwitchSections;
-            var iLastSection = (switchSections.Length - 1);
-            for (var iSection = 0; iSection <= iLastSection; iSection++)
-            {
-                VisitSwitchSection(switchSections[iSection], iSection == iLastSection);
-                // Even though it is illegal for the end of a switch section to be reachable, in erroneous
-                // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
-                Join(ref afterSwitchState, ref this.State);
-            }
-
-            if (reachableLabels.Contains(node.BreakLabel) || node.DefaultLabel == null && IsTraditionalSwitch(node))
+            TLocalState afterSwitchState = UnreachableState();
+            if (node.ReachabilityDecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
             {
                 Join(ref afterSwitchState, ref initialState);
             }
 
-            ResolveBreaks(afterSwitchState, node.BreakLabel);
+            return afterSwitchState;
         }
 
         /// <summary>
@@ -85,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If we are in a recent enough language version, we treat the switch as a fully pattern-based switch
             // for the purposes of flow analysis.
-            if (((CSharpParseOptions)node.Syntax.SyntaxTree.Options).LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
+            if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecursivePatterns.RequiredVersion())
             {
                 return false;
             }
@@ -134,12 +142,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
+        public override BoundNode VisitConvertedSwitchExpression(BoundConvertedSwitchExpression node)
+        {
+            return this.VisitSwitchExpression(node);
+        }
+
+        public override BoundNode VisitUnconvertedSwitchExpression(BoundUnconvertedSwitchExpression node)
+        {
+            return this.VisitSwitchExpression(node);
+        }
+
+        private BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
             VisitRvalue(node.Expression);
             var dispatchState = this.State;
             var endState = UnreachableState();
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var arm in node.SwitchArms)
             {
                 SetState(dispatchState.Clone());

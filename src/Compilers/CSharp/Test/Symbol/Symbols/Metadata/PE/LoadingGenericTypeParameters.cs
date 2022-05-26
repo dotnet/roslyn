@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void Test1()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.NetFx.v4_0_21006.mscorlib);
+            var assembly = MetadataTestHelpers.GetSymbolForReference(TestMetadata.Net40.mscorlib);
             var module0 = assembly.Modules[0];
 
             var objectType = module0.GlobalNamespace.GetMembers("System").
@@ -69,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(varC1_T, varC1_T.OriginalDefinition);
             Assert.Equal(TypeKind.TypeParameter, varC1_T.TypeKind);
             Assert.Equal(VarianceKind.None, varC1_T.Variance);
-            Assert.Same(module0, varC1_T.Locations.Single().MetadataModule);
+            Assert.Same(module0, varC1_T.Locations.Single().MetadataModuleInternal);
             Assert.Equal(0, varC1_T.ConstraintTypes().Length);
 
             var varC2 = varC1.GetTypeMembers("C2").Single();

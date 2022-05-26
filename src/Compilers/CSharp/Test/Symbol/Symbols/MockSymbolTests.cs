@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -87,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssemblySymbol assem1 = new MockAssemblySymbol("goo");
 
             NamespaceExtent ne1 = new NamespaceExtent(assem1);
-            Assert.Equal(ne1.Kind, NamespaceKind.Assembly);
+            Assert.Equal(NamespaceKind.Assembly, ne1.Kind);
             Assert.Same(ne1.Assembly, assem1);
 
             CSharpCompilation compilation = CSharpCompilation.Create("Test");
@@ -140,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 throw new InvalidOperationException("Unexpected symbol kind");
             }
 
-            if (sym is NamespaceOrTypeSymbol && ((NamespaceOrTypeSymbol)sym).GetMembers().Any())
+            if (sym is NamespaceOrTypeSymbol namespaceOrType && namespaceOrType.GetMembers().Any())
             {
                 builder.AppendLine(" { ");
-                var q = from c in ((NamespaceOrTypeSymbol)sym).GetMembers()
+                var q = from c in namespaceOrType.GetMembers()
                         orderby c.Name
                         select c;
 

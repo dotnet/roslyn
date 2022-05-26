@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -295,6 +297,165 @@ End Module
 </File>
 
             Await TestAsync(markup, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable), Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function RemoveUnusedVariable_FixAllInContainingMember() As Task
+            Dim markup =
+<File>
+Module M
+    Sub Main()
+        Dim x, c as String
+        Dim {|FixAllInContainingMember:a as String|}
+    End Sub
+
+    Sub M2()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Module
+
+Class OtherType
+    Sub M3()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Module M
+    Sub Main()
+    End Sub
+
+    Sub M2()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Module
+
+Class OtherType
+    Sub M3()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable), Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function RemoveUnusedVariable_FixAllInContainingType_AcrossSingleFile() As Task
+            Dim markup =
+<File>
+Module M
+    Sub Main()
+        Dim x, c as String
+        Dim {|FixAllInContainingType:a as String|}
+    End Sub
+
+    Sub M2()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Module
+
+Class OtherType
+    Sub M3()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</File>
+            Dim expected =
+<File>
+Module M
+    Sub Main()
+    End Sub
+
+    Sub M2()
+    End Sub
+End Module
+
+Class OtherType
+    Sub M3()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable), Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
+        Public Async Function RemoveUnusedVariable_FixAllInContainingType_AcrossMultipleFiles() As Task
+            Dim markup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Partial Class C
+    Sub Main()
+        Dim x, c as String
+        Dim {|FixAllInContainingType:a as String|}
+    End Sub
+End Class
+
+Partial Class C
+    Sub M2()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+
+Class OtherType
+    Sub OtherMethod()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</Document>
+                        <Document>
+Partial Class C
+    Sub M3()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>.ToString()
+            Dim expected =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Partial Class C
+    Sub Main()
+    End Sub
+End Class
+
+Partial Class C
+    Sub M2()
+    End Sub
+End Class
+
+Class OtherType
+    Sub OtherMethod()
+        Dim x, c as String
+        Dim a as String
+    End Sub
+End Class
+</Document>
+                        <Document>
+Partial Class C
+    Sub M3()
+    End Sub
+End Class
+</Document>
+                    </Project>
+                </Workspace>.ToString()
+            Await TestInRegularAndScript1Async(markup, expected)
         End Function
     End Class
 End Namespace

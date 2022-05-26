@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -15,13 +19,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </summary>
     internal sealed class GacFileResolver : IEquatable<GacFileResolver>
     {
-        // Consider a better availability check (perhaps the presence of Assembly.GlobalAssemblyCache once CoreCLR mscorlib is cleaned up).
-        // https://github.com/dotnet/roslyn/issues/5538
-
         /// <summary>
-        /// Returns true if GAC is available on the platform.
+        /// Returns true if GAC is available on the current platform.
         /// </summary>
-        public static bool IsAvailable => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsAvailable
+            // Since mscorlib may not be loaded from the GAC on Mono, also check if the platform is Mono which supports a GAC.
+            => typeof(object).Assembly.GlobalAssemblyCache || PlatformInformation.IsRunningOnMono;
 
         /// <summary>
         /// Architecture filter used when resolving assembly references.
@@ -37,11 +40,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// Creates an instance of a <see cref="GacFileResolver"/>, if available on the platform (check <see cref="IsAvailable"/>).
         /// </summary>
         /// <param name="architectures">Supported architectures used to filter GAC assemblies.</param>
-        /// <param name="preferredCulture">A culture to use when choosing the best assembly from 
+        /// <param name="preferredCulture">A culture to use when choosing the best assembly from
         /// among the set filtered by <paramref name="architectures"/></param>
         /// <exception cref="PlatformNotSupportedException">The platform doesn't support GAC.</exception>
         public GacFileResolver(
-            ImmutableArray<ProcessorArchitecture> architectures = default(ImmutableArray<ProcessorArchitecture>),
+            ImmutableArray<ProcessorArchitecture> architectures = default,
             CultureInfo preferredCulture = null)
         {
             if (!IsAvailable)

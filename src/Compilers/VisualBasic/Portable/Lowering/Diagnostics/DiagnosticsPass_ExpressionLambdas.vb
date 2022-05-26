@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System
 Imports System.Collections.Generic
@@ -123,6 +125,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(initializer.Kind = BoundKind.AssignmentOperator)
                 Dim assignment = DirectCast(initializer, BoundAssignmentOperator)
                 Debug.Assert(assignment.LeftOnTheRightOpt Is Nothing)
+
+                Dim propertyAccess = TryCast(assignment.Left, BoundPropertyAccess)
+                If propertyAccess IsNot Nothing Then
+                    CheckRefReturningPropertyAccess(propertyAccess)
+                End If
+
                 Me.Visit(assignment.Right)
             Next
 
@@ -262,13 +270,17 @@ lSelect:
                 Me.Visit(node.ReceiverOpt)
             End If
 
-            If IsInExpressionLambda AndAlso [property].ReturnsByRef Then
-                GenerateDiagnostic(ERRID.ERR_RefReturningCallInExpressionTree, node)
-            End If
+            CheckRefReturningPropertyAccess(node)
 
             Me.VisitList(node.Arguments)
             Return Nothing
         End Function
+
+        Private Sub CheckRefReturningPropertyAccess(node As BoundPropertyAccess)
+            If IsInExpressionLambda AndAlso node.PropertySymbol.ReturnsByRef Then
+                GenerateDiagnostic(ERRID.ERR_RefReturningCallInExpressionTree, node)
+            End If
+        End Sub
 
         Public Overrides Function VisitEventAccess(node As BoundEventAccess) As BoundNode
             Dim [event] As EventSymbol = node.EventSymbol

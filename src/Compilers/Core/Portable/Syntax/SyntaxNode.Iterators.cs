@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -11,21 +14,21 @@ namespace Microsoft.CodeAnalysis
 {
     public abstract partial class SyntaxNode
     {
-        private IEnumerable<SyntaxNode> DescendantNodesImpl(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool descendIntoTrivia, bool includeSelf)
+        private IEnumerable<SyntaxNode> DescendantNodesImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool descendIntoTrivia, bool includeSelf)
         {
             return descendIntoTrivia
-                ? DescendantNodesAndTokensImpl(span, descendIntoChildren, true, includeSelf).Where(e => e.IsNode).Select(e => e.AsNode())
+                ? DescendantNodesAndTokensImpl(span, descendIntoChildren, true, includeSelf).Where(e => e.IsNode).Select(e => e.AsNode()!)
                 : DescendantNodesOnly(span, descendIntoChildren, includeSelf);
         }
 
-        private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensImpl(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool descendIntoTrivia, bool includeSelf)
+        private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool descendIntoTrivia, bool includeSelf)
         {
             return descendIntoTrivia
                 ? DescendantNodesAndTokensIntoTrivia(span, descendIntoChildren, includeSelf)
                 : DescendantNodesAndTokensOnly(span, descendIntoChildren, includeSelf);
         }
 
-        private IEnumerable<SyntaxTrivia> DescendantTriviaImpl(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren = null, bool descendIntoTrivia = false)
+        private IEnumerable<SyntaxTrivia> DescendantTriviaImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren = null, bool descendIntoTrivia = false)
         {
             return descendIntoTrivia
                 ? DescendantTriviaIntoTrivia(span, descendIntoChildren)
@@ -43,10 +46,10 @@ namespace Microsoft.CodeAnalysis
         {
             private static readonly ObjectPool<ChildSyntaxList.Enumerator[]> s_stackPool = new ObjectPool<ChildSyntaxList.Enumerator[]>(() => new ChildSyntaxList.Enumerator[16]);
 
-            private ChildSyntaxList.Enumerator[] _stack;
+            private ChildSyntaxList.Enumerator[]? _stack;
             private int _stackPtr;
 
-            public ChildSyntaxListEnumeratorStack(SyntaxNode startingNode, Func<SyntaxNode, bool> descendIntoChildren)
+            public ChildSyntaxListEnumeratorStack(SyntaxNode startingNode, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 if (descendIntoChildren == null || descendIntoChildren(startingNode))
                 {
@@ -65,6 +68,7 @@ namespace Microsoft.CodeAnalysis
 
             public bool TryGetNextInSpan(in TextSpan span, out SyntaxNodeOrToken value)
             {
+                Debug.Assert(_stack is object);
                 while (_stack[_stackPtr].TryMoveNextAndGetCurrent(out value))
                 {
                     if (IsInSpan(in span, value.FullSpan))
@@ -77,9 +81,10 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            public SyntaxNode TryGetNextAsNodeInSpan(in TextSpan span)
+            public SyntaxNode? TryGetNextAsNodeInSpan(in TextSpan span)
             {
-                SyntaxNode nodeValue;
+                Debug.Assert(_stack is object);
+                SyntaxNode? nodeValue;
                 while ((nodeValue = _stack[_stackPtr].TryMoveNextAndGetCurrentAsNode()) != null)
                 {
                     if (IsInSpan(in span, nodeValue.FullSpan))
@@ -94,6 +99,7 @@ namespace Microsoft.CodeAnalysis
 
             public void PushChildren(SyntaxNode node)
             {
+                Debug.Assert(_stack is object);
                 if (++_stackPtr >= _stack.Length)
                 {
                     // Geometric growth
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                 _stack[_stackPtr].InitializeFrom(node);
             }
 
-            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool> descendIntoChildren)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
@@ -188,9 +194,9 @@ namespace Microsoft.CodeAnalysis
 
             private ChildSyntaxListEnumeratorStack _nodeStack;
             private TriviaListEnumeratorStack _triviaStack;
-            private readonly ArrayBuilder<Which> _discriminatorStack;
+            private readonly ArrayBuilder<Which>? _discriminatorStack;
 
-            public TwoEnumeratorListStack(SyntaxNode startingNode, Func<SyntaxNode, bool> descendIntoChildren)
+            public TwoEnumeratorListStack(SyntaxNode startingNode, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 _nodeStack = new ChildSyntaxListEnumeratorStack(startingNode, descendIntoChildren);
                 _triviaStack = new TriviaListEnumeratorStack();
@@ -209,6 +215,7 @@ namespace Microsoft.CodeAnalysis
 
             public Which PeekNext()
             {
+                Debug.Assert(_discriminatorStack is object);
                 return _discriminatorStack.Peek();
             }
 
@@ -219,6 +226,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
+                Debug.Assert(_discriminatorStack is object);
                 _discriminatorStack.Pop();
                 return false;
             }
@@ -230,14 +238,16 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
+                Debug.Assert(_discriminatorStack is object);
                 _discriminatorStack.Pop();
                 return false;
             }
 
-            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool> descendIntoChildren)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
+                    Debug.Assert(_discriminatorStack is object);
                     _nodeStack.PushChildren(node);
                     _discriminatorStack.Push(Which.Node);
                 }
@@ -245,12 +255,14 @@ namespace Microsoft.CodeAnalysis
 
             public void PushLeadingTrivia(in SyntaxToken token)
             {
+                Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushLeadingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
             public void PushTrailingTrivia(in SyntaxToken token)
             {
+                Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushTrailingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
@@ -274,10 +286,10 @@ namespace Microsoft.CodeAnalysis
 
             private ChildSyntaxListEnumeratorStack _nodeStack;
             private TriviaListEnumeratorStack _triviaStack;
-            private readonly ArrayBuilder<SyntaxNodeOrToken> _tokenStack;
-            private readonly ArrayBuilder<Which> _discriminatorStack;
+            private readonly ArrayBuilder<SyntaxNodeOrToken>? _tokenStack;
+            private readonly ArrayBuilder<Which>? _discriminatorStack;
 
-            public ThreeEnumeratorListStack(SyntaxNode startingNode, Func<SyntaxNode, bool> descendIntoChildren)
+            public ThreeEnumeratorListStack(SyntaxNode startingNode, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 _nodeStack = new ChildSyntaxListEnumeratorStack(startingNode, descendIntoChildren);
                 _triviaStack = new TriviaListEnumeratorStack();
@@ -298,6 +310,7 @@ namespace Microsoft.CodeAnalysis
 
             public Which PeekNext()
             {
+                Debug.Assert(_discriminatorStack is object);
                 return _discriminatorStack.Peek();
             }
 
@@ -308,6 +321,7 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
+                Debug.Assert(_discriminatorStack is object);
                 _discriminatorStack.Pop();
                 return false;
             }
@@ -319,20 +333,24 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
+                Debug.Assert(_discriminatorStack is object);
                 _discriminatorStack.Pop();
                 return false;
             }
 
             public SyntaxNodeOrToken PopToken()
             {
+                Debug.Assert(_discriminatorStack is object);
+                Debug.Assert(_tokenStack is object);
                 _discriminatorStack.Pop();
                 return _tokenStack.Pop();
             }
 
-            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool> descendIntoChildren)
+            public void PushChildren(SyntaxNode node, Func<SyntaxNode, bool>? descendIntoChildren)
             {
                 if (descendIntoChildren == null || descendIntoChildren(node))
                 {
+                    Debug.Assert(_discriminatorStack is object);
                     _nodeStack.PushChildren(node);
                     _discriminatorStack.Push(Which.Node);
                 }
@@ -340,18 +358,22 @@ namespace Microsoft.CodeAnalysis
 
             public void PushLeadingTrivia(in SyntaxToken token)
             {
+                Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushLeadingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
             public void PushTrailingTrivia(in SyntaxToken token)
             {
+                Debug.Assert(_discriminatorStack is object);
                 _triviaStack.PushTrailingTrivia(in token);
                 _discriminatorStack.Push(Which.Trivia);
             }
 
             public void PushToken(in SyntaxNodeOrToken value)
             {
+                Debug.Assert(_discriminatorStack is object);
+                Debug.Assert(_tokenStack is object);
                 _tokenStack.Push(value);
                 _discriminatorStack.Push(Which.Token);
             }
@@ -365,7 +387,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxNode> DescendantNodesOnly(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool includeSelf)
+        private IEnumerable<SyntaxNode> DescendantNodesOnly(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
         {
             if (includeSelf && IsInSpan(in span, this.FullSpan))
             {
@@ -376,7 +398,7 @@ namespace Microsoft.CodeAnalysis
             {
                 while (stack.IsNotEmpty)
                 {
-                    SyntaxNode nodeValue = stack.TryGetNextAsNodeInSpan(in span);
+                    SyntaxNode? nodeValue = stack.TryGetNextAsNodeInSpan(in span);
                     if (nodeValue != null)
                     {
                         // PERF: Push before yield return so that "nodeValue" is 'dead' after the yield
@@ -390,7 +412,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensOnly(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool includeSelf)
+        private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensOnly(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
         {
             if (includeSelf && IsInSpan(in span, this.FullSpan))
             {
@@ -419,7 +441,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensIntoTrivia(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren, bool includeSelf)
+        private IEnumerable<SyntaxNodeOrToken> DescendantNodesAndTokensIntoTrivia(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren, bool includeSelf)
         {
             if (includeSelf && IsInSpan(in span, this.FullSpan))
             {
@@ -442,7 +464,7 @@ namespace Microsoft.CodeAnalysis
                                 if (value.IsNode)
                                 {
                                     // parent nodes come before children (prefix document order)
-                                    stack.PushChildren(value.AsNode(), descendIntoChildren);
+                                    stack.PushChildren(value.AsNode()!, descendIntoChildren);
                                 }
                                 else if (value.IsToken)
                                 {
@@ -485,10 +507,8 @@ namespace Microsoft.CodeAnalysis
                             SyntaxTrivia trivia;
                             if (stack.TryGetNext(out trivia))
                             {
-                                if (trivia.HasStructure && IsInSpan(in span, trivia.FullSpan))
+                                if (trivia.TryGetStructure(out var structureNode) && IsInSpan(in span, trivia.FullSpan))
                                 {
-                                    var structureNode = trivia.GetStructure();
-
                                     // parent nodes come before children (prefix document order)
 
                                     // PERF: Push before yield return so that "structureNode" is 'dead' after the yield
@@ -509,7 +529,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxTrivia> DescendantTriviaOnly(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren)
+        private IEnumerable<SyntaxTrivia> DescendantTriviaOnly(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren)
         {
             using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildren))
             {
@@ -518,10 +538,8 @@ namespace Microsoft.CodeAnalysis
                     SyntaxNodeOrToken value;
                     if (stack.TryGetNextInSpan(in span, out value))
                     {
-                        if (value.IsNode)
+                        if (value.AsNode(out var nodeValue))
                         {
-                            var nodeValue = value.AsNode();
-
                             stack.PushChildren(nodeValue, descendIntoChildren);
                         }
                         else if (value.IsToken)
@@ -549,7 +567,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxTrivia> DescendantTriviaIntoTrivia(TextSpan span, Func<SyntaxNode, bool> descendIntoChildren)
+        private IEnumerable<SyntaxTrivia> DescendantTriviaIntoTrivia(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren)
         {
             using (var stack = new TwoEnumeratorListStack(this, descendIntoChildren))
             {
@@ -561,9 +579,8 @@ namespace Microsoft.CodeAnalysis
                             SyntaxNodeOrToken value;
                             if (stack.TryGetNextInSpan(in span, out value))
                             {
-                                if (value.IsNode)
+                                if (value.AsNode(out var nodeValue))
                                 {
-                                    var nodeValue = value.AsNode();
                                     stack.PushChildren(nodeValue, descendIntoChildren);
                                 }
                                 else if (value.IsToken)
@@ -592,9 +609,8 @@ namespace Microsoft.CodeAnalysis
                                 // PERF: Push before yield return so that "trivia" is 'dead' after the yield
                                 // and therefore doesn't need to be stored in the iterator state machine. This
                                 // saves a field.
-                                if (trivia.HasStructure)
+                                if (trivia.TryGetStructure(out var structureNode))
                                 {
-                                    var structureNode = trivia.GetStructure();
                                     stack.PushChildren(structureNode, descendIntoChildren);
                                 }
 

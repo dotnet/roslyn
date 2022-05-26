@@ -247,7 +247,7 @@ M1((1, 2));   			// first overload is used. Identity conversion is better than i
 M1(("hi", "hello"));   // second overload is used. Implicit tuple conversion is better than no conversion. 
 ```
 
-Target typing will "see through" nullable target types. A successfull conversion from tuple expression to a nullable tuple type is classified as _ImplicitNullable_ conversion.
+Target typing will "see through" nullable target types. A successful conversion from tuple expression to a nullable tuple type is classified as _ImplicitNullable_ conversion.
 
 ```C#
 ((int x, int y, int z)?, int t)? SpaceTime()

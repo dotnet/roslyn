@@ -1,15 +1,16 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    Friend Partial Class VisualBasicIntroduceVariableService
+    Partial Friend Class VisualBasicIntroduceVariableService
         Protected Overrides Async Function IntroduceLocalAsync(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
@@ -50,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             End If
         End Function
 
-        Private Function GetContainerToGenerateInfo(
+        Private Shared Function GetContainerToGenerateInfo(
                 document As SemanticDocument,
                 expression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As SyntaxNode
@@ -95,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Return document.Document.WithSyntaxRoot(newRoot)
         End Function
 
-        Private Function GetParentLambda(expression As ExpressionSyntax,
+        Private Shared Function GetParentLambda(expression As ExpressionSyntax,
                                          lambdas As ISet(Of SingleLineLambdaExpressionSyntax)) As SingleLineLambdaExpressionSyntax
             Dim current = expression
             While current IsNot Nothing
@@ -131,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
             Dim matches = FindMatches(document, expression, document, oldOutermostBlock, allOccurrences, cancellationToken)
 
-            Dim complexified = Await ComplexifyParentingStatements(document, matches, cancellationToken).ConfigureAwait(False)
+            Dim complexified = Await ComplexifyParentingStatementsAsync(document, matches, cancellationToken).ConfigureAwait(False)
             document = complexified.newSemanticDocument
             matches = complexified.newMatches
 
@@ -142,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
             Dim innermostStatements = New HashSet(Of StatementSyntax)(matches.Select(Function(expr) expr.GetAncestorOrThis(Of StatementSyntax)()))
             If innermostStatements.Count = 1 Then
                 Return IntroduceLocalForSingleOccurrenceIntoBlock(
-                    document, expression, newLocalName, declarationStatement, localAnnotation, allOccurrences, cancellationToken)
+                    document, expression, newLocalName, declarationStatement, allOccurrences, cancellationToken)
             End If
 
             Dim oldInnerMostCommonBlock = matches.FindInnermostCommonExecutableBlock()
@@ -163,7 +164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
                 expression As ExpressionSyntax,
                 localName As NameSyntax,
                 localDeclaration As LocalDeclarationStatementSyntax,
-                localAnnotation As SyntaxAnnotation,
                 allOccurrences As Boolean,
                 cancellationToken As CancellationToken) As Document
 

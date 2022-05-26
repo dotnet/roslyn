@@ -1,4 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 #pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 using System;
@@ -28,15 +33,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </remarks>
     public abstract class ResultProvider : IDkmClrResultProvider
     {
-        static ResultProvider()
-        {
-            FatalError.Handler = FailFast.OnFatalException;
-        }
+        // TODO: There is a potential that these values will conflict with debugger defined flags in future.
+        // It'd be better if we attached these flags to the DkmClrValue object via data items, however DkmClrValue is currently mutable
+        // and we can't clone it -- in some cases we might need to attach different flags in different code paths and it wouldn't be possible
+        // to do so due to mutability.
+        // See https://github.com/dotnet/roslyn/issues/55676.
+        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)(1 << 30);
+        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)(1 << 31);
 
         // Fields should be removed and replaced with calls through DkmInspectionContext.
         // (see https://github.com/dotnet/roslyn/issues/6899).
         internal readonly IDkmClrFormatter2 Formatter2;
         internal readonly IDkmClrFullNameProvider FullNameProvider;
+
+        static ResultProvider()
+        {
+            FatalError.Handler = FailFast.Handler;
+        }
 
         internal ResultProvider(IDkmClrFormatter2 formatter2, IDkmClrFullNameProvider fullNameProvider)
         {
@@ -95,9 +108,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
-        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)0x20000;
-        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)0x40000;
 
         void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {
@@ -224,6 +234,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 var name = (typeDeclaringMember.Type == null) ?
                     row.Name :
                     GetQualifiedMemberName(row.InspectionContext, typeDeclaringMember, row.Name, FullNameProvider);
+                row.Value.SetDataItem(DkmDataCreationDisposition.CreateAlways, new FavoritesDataItem(row.CanFavorite, row.IsFavorite));
                 row.Value.GetResult(
                     workList.InnerWorkList,
                     row.DeclaredTypeAndInfo.ClrType,
@@ -459,6 +470,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // which typically appears to be set to the default value ("Other").
                 var category = (result.Category != DkmEvaluationResultCategory.Other) ? result.Category : value.Category;
 
+                var nullableMemberInfo = value.GetDataItem<NullableMemberInfo>();
+
                 // Valid value
                 return DkmSuccessEvaluationResult.Create(
                     InspectionContext: inspectionContext,
@@ -469,10 +482,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     Value: display,
                     EditableValue: result.EditableValue,
                     Type: typeName,
-                    Category: category,
-                    Access: value.Access,
-                    StorageType: value.StorageType,
-                    TypeModifierFlags: value.TypeModifierFlags,
+                    Category: nullableMemberInfo?.Category ?? category,
+                    Access: nullableMemberInfo?.Access ?? value.Access,
+                    StorageType: nullableMemberInfo?.StorageType ?? value.StorageType,
+                    TypeModifierFlags: nullableMemberInfo?.TypeModifierFlags ?? value.TypeModifierFlags,
                     Address: value.Address,
                     CustomUIVisualizers: customUIVisualizers,
                     ExternalModules: null,
@@ -528,7 +541,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ReadOnlyCollection<string> formatSpecifiers,
             DkmEvaluationResultCategory category,
             DkmEvaluationResultFlags flags,
-            DkmEvaluationFlags evalFlags)
+            DkmEvaluationFlags evalFlags,
+            bool canFavorite,
+            bool isFavorite,
+            bool supportsFavorites)
         {
             if ((evalFlags & DkmEvaluationFlags.ShowValueRaw) != 0)
             {
@@ -557,10 +573,20 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 else
                 {
+                    // nullableValue is taken from an internal field.
+                    // It may have different category, access, etc comparing the original member.
+                    // For example, the orignal member can be a property not a field.
+                    // Save original member values to restore them later.
+                    if (value != nullableValue)
+                    {
+                        var nullableMemberInfo = new NullableMemberInfo(value.Category, value.Access, value.StorageType, value.TypeModifierFlags);
+                        nullableValue.SetDataItem(DkmDataCreationDisposition.CreateAlways, nullableMemberInfo);
+                    }
+
                     value = nullableValue;
                     Debug.Assert(lmrNullableTypeArg.Equals(value.Type.GetLmrType())); // If this is not the case, add a test for includeRuntimeTypeIfNecessary.
                     // CONSIDER: The DynamicAttribute for the type argument should just be Skip(1) of the original flag array.
-                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, lmrNullableTypeArg)), value, ExpansionFlags.IncludeResultsView);
+                    expansion = this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(DkmClrType.Create(declaredTypeAndInfo.ClrType.AppDomain, lmrNullableTypeArg)), value, ExpansionFlags.IncludeResultsView, supportsFavorites: supportsFavorites);
                 }
             }
             else if (value.IsError() || (inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoExpansion) != 0)
@@ -585,8 +611,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 if (expansion == null)
                 {
                     expansion = value.HasExceptionThrown()
-                        ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags)
-                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags);
+                        ? this.GetTypeExpansion(inspectionContext, new TypeAndCustomInfo(value.Type), value, expansionFlags, supportsFavorites: false)
+                        : this.GetTypeExpansion(inspectionContext, declaredTypeAndInfo, value, expansionFlags, supportsFavorites: supportsFavorites);
                 }
             }
 
@@ -606,7 +632,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 category: category,
                 flags: flags,
                 editableValue: Formatter2.GetEditableValueString(value, inspectionContext, declaredTypeAndInfo.Info),
-                inspectionContext: inspectionContext);
+                inspectionContext: inspectionContext,
+                canFavorite: canFavorite,
+                isFavorite: isFavorite);
         }
 
         private void GetRootResultAndContinue(
@@ -726,6 +754,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var expansionFlags = (inspectionContext.EvaluationFlags & NoResults) != 0 ?
                         ExpansionFlags.IncludeBaseMembers :
                         ExpansionFlags.All;
+                    var favortiesDataItem = value.GetDataItem<FavoritesDataItem>();
                     dataItem = CreateDataItem(
                         inspectionContext,
                         name,
@@ -739,7 +768,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         formatSpecifiers: formatSpecifiers,
                         category: DkmEvaluationResultCategory.Other,
                         flags: value.EvalFlags,
-                        evalFlags: inspectionContext.EvaluationFlags);
+                        evalFlags: inspectionContext.EvaluationFlags,
+                        canFavorite: favortiesDataItem?.CanFavorite ?? false,
+                        isFavorite: favortiesDataItem?.IsFavorite ?? false,
+                        supportsFavorites: true);
                     GetResultAndContinue(dataItem, workList, declaredType, declaredTypeInfo, inspectionContext, useDebuggerDisplay, completionRoutine);
                 }
             }
@@ -755,17 +787,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             CompletionRoutine<DkmEvaluationResult> completionRoutine)
         {
             var value = result.Value; // Value may have been replaced (specifically, for Nullable<T>).
-            DebuggerDisplayInfo displayInfo;
-            if (value.TryGetDebuggerDisplayInfo(out displayInfo))
+
+            if (value.TryGetDebuggerDisplayInfo(out DebuggerDisplayInfo displayInfo))
             {
-                var targetType = displayInfo.TargetType;
-                var attribute = displayInfo.Attribute;
                 void onException(Exception e) => completionRoutine(CreateEvaluationResultFromException(e, result, inspectionContext));
 
+                if (displayInfo.Name != null)
+                {
+                    // Favorites currently dependes on the name matching the member name
+                    result = result.WithDisableCanAddFavorite();
+                }
+
                 var innerWorkList = workList.InnerWorkList;
-                EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.Name,
-                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.Value,
-                        displayValue => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, targetType, attribute.TypeName,
+                EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.Name,
+                    displayName => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.GetValue(inspectionContext),
+                        displayValue => EvaluateDebuggerDisplayStringAndContinue(value, innerWorkList, inspectionContext, displayInfo.TypeName,
                             displayType =>
                                 workList.ContinueWith(() =>
                                     completionRoutine(GetResult(inspectionContext, result, declaredType, declaredTypeInfo, displayName.Result, displayValue.Result, displayType.Result, useDebuggerDisplay))),
@@ -783,8 +819,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmClrValue value,
             DkmWorkList workList,
             DkmInspectionContext inspectionContext,
-            DkmClrType targetType,
-            string str,
+            DebuggerDisplayItemInfo displayInfo,
             CompletionRoutine<DkmEvaluateDebuggerDisplayStringAsyncResult> onCompleted,
             CompletionRoutine<Exception> onException)
         {
@@ -799,13 +834,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     onException(e);
                 }
             }
-            if (str == null)
+            if (displayInfo == null)
             {
                 completionRoutine(default(DkmEvaluateDebuggerDisplayStringAsyncResult));
             }
             else
             {
-                value.EvaluateDebuggerDisplayString(workList, inspectionContext, targetType, str, completionRoutine);
+                value.EvaluateDebuggerDisplayString(workList, inspectionContext, displayInfo.TargetType, displayInfo.Value, completionRoutine);
             }
         }
 
@@ -899,7 +934,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             DkmInspectionContext inspectionContext,
             TypeAndCustomInfo declaredTypeAndInfo,
             DkmClrValue value,
-            ExpansionFlags flags)
+            ExpansionFlags flags,
+            bool supportsFavorites)
         {
             var declaredType = declaredTypeAndInfo.Type;
             Debug.Assert(!declaredType.IsTypeVariables());
@@ -975,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 return TupleExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, cardinality);
             }
 
-            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false);
+            return MemberExpansion.CreateExpansion(inspectionContext, declaredTypeAndInfo, value, flags, TypeHelpers.IsVisibleMember, this, isProxyType: false, supportsFavorites);
         }
 
         private static DkmEvaluationResult CreateEvaluationResultFromException(Exception e, EvalResult result, DkmInspectionContext inspectionContext)
@@ -1056,6 +1092,22 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     }
                 }
                 _state = State.Executed;
+            }
+        }
+
+        private class NullableMemberInfo : DkmDataItem
+        {
+            public readonly DkmEvaluationResultCategory Category;
+            public readonly DkmEvaluationResultAccessType Access;
+            public readonly DkmEvaluationResultStorageType StorageType;
+            public readonly DkmEvaluationResultTypeModifierFlags TypeModifierFlags;
+
+            public NullableMemberInfo(DkmEvaluationResultCategory category, DkmEvaluationResultAccessType access, DkmEvaluationResultStorageType storageType, DkmEvaluationResultTypeModifierFlags typeModifierFlags)
+            {
+                Category = category;
+                Access = access;
+                StorageType = storageType;
+                TypeModifierFlags = typeModifierFlags;
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
@@ -7,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrectio
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AutomaticEndConstructCorrection
     <[UseExportProvider]>
@@ -339,7 +342,7 @@ End Class</code>.Value
             Verify(code, "Get")
         End Sub
 
-        Private Sub VerifyContinuousEdits(codeWithMarker As String,
+        Private Shared Sub VerifyContinuousEdits(codeWithMarker As String,
                                           type As String,
                                           expectedStringGetter As Func(Of String, String),
                                           removeOriginalContent As Boolean,
@@ -350,18 +353,18 @@ End Class</code>.Value
             Using workspace = TestWorkspace.CreateVisualBasic(codeWithMarker)
                 Dim document = workspace.Documents.Single()
 
-                Dim buffer = document.TextBuffer
-                Dim snapshot = buffer.CurrentSnapshot
+                Dim buffer = document.GetTextBuffer()
+                Dim initialTextSnapshot = buffer.CurrentSnapshot
 
-                Dim caretPosition = snapshot.CreateTrackingPoint(document.CursorPosition.Value,
-                                                                 PointTrackingMode.Positive,
-                                                                 TrackingFidelityMode.Backward)
-                Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
+                Dim caretPosition = initialTextSnapshot.CreateTrackingPoint(document.CursorPosition.Value,
+                                                                            PointTrackingMode.Positive,
+                                                                            TrackingFidelityMode.Backward)
+                Dim corrector = New AutomaticEndConstructCorrector(buffer, workspace.GetService(Of IUIThreadOperationExecutor))
 
                 corrector.Connect()
 
                 If removeOriginalContent Then
-                    Dim spanToRemove = document.SelectedSpans.Single(Function(s) s.Contains(caretPosition.GetPosition(snapshot)))
+                    Dim spanToRemove = document.SelectedSpans.Single(Function(s) s.Contains(caretPosition.GetPosition(initialTextSnapshot)))
                     buffer.Replace(spanToRemove.ToSpan(), "")
                 End If
 
@@ -371,14 +374,14 @@ End Class</code>.Value
 
                     Dim insertedString = type.Substring(0, i + 1)
                     For Each span In document.SelectedSpans.Skip(1)
-                        Dim trackingSpan = New LetterOnlyTrackingSpan(span.ToSnapshotSpan(document.InitialTextSnapshot))
-                        Assert.Equal(expectedStringGetter(insertedString), trackingSpan.GetText(document.TextBuffer.CurrentSnapshot))
+                        Dim trackingSpan = New LetterOnlyTrackingSpan(span.ToSnapshotSpan(initialTextSnapshot))
+                        Assert.Equal(expectedStringGetter(insertedString), trackingSpan.GetText(document.GetTextBuffer().CurrentSnapshot))
                     Next
                 Next
 
                 If split IsNot Nothing Then
                     Dim beginSpan = document.SelectedSpans.First()
-                    Dim trackingSpan = New LetterOnlyTrackingSpan(beginSpan.ToSnapshotSpan(document.InitialTextSnapshot))
+                    Dim trackingSpan = New LetterOnlyTrackingSpan(beginSpan.ToSnapshotSpan(initialTextSnapshot))
 
                     buffer.Insert(trackingSpan.GetEndPoint(buffer.CurrentSnapshot).Position - type.Trim().Length, " ")
 
@@ -389,7 +392,7 @@ End Class</code>.Value
             End Using
         End Sub
 
-        Private Sub Verify(codeWithMarker As String, keyword As String)
+        Private Shared Sub Verify(codeWithMarker As String, keyword As String)
             ' do this since xml value put only vbLf
             codeWithMarker = codeWithMarker.Replace(vbLf, vbCrLf)
 
@@ -397,7 +400,7 @@ End Class</code>.Value
             VerifyEnd(codeWithMarker, keyword)
         End Sub
 
-        Private Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
+        Private Shared Sub VerifyBegin(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
@@ -406,11 +409,11 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.First()
                 Dim spanToVerify = selectedSpans.Skip(1).Single()
 
-                Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify, workspace)
             End Using
         End Sub
 
-        Private Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
+        Private Shared Sub VerifyEnd(code As String, keyword As String, Optional expected As String = Nothing)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.Documents.Single()
 
@@ -419,13 +422,14 @@ End Class</code>.Value
                 Dim spanToReplace = selectedSpans.Skip(1).Single()
                 Dim spanToVerify = selectedSpans.First()
 
-                Verify(workspace, document, keyword, expected, spanToReplace, spanToVerify)
+                Verify(document, keyword, expected, spanToReplace, spanToVerify, workspace)
             End Using
         End Sub
 
-        Private Sub Verify(workspace As TestWorkspace, document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan)
-            Dim buffer = document.TextBuffer
-            Dim corrector = New AutomaticEndConstructCorrector(buffer, New TestWaitIndicator())
+        Private Shared Sub Verify(document As TestHostDocument, keyword As String, expected As String, spanToReplace As TextSpan, spanToVerify As TextSpan, workspace As TestWorkspace)
+            Dim buffer = document.GetTextBuffer()
+            Dim uiThreadOperationExecutor = workspace.GetService(Of IUIThreadOperationExecutor)
+            Dim corrector = New AutomaticEndConstructCorrector(buffer, uiThreadOperationExecutor)
 
             corrector.Connect()
             buffer.Replace(spanToReplace.ToSpan(), keyword)

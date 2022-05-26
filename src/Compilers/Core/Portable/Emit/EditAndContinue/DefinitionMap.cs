@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -16,33 +18,32 @@ namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class DefinitionMap
     {
-        protected struct MappedMethod
+        protected readonly struct MappedMethod
         {
-            public MappedMethod(IMethodSymbolInternal previousMethodOpt, Func<SyntaxNode, SyntaxNode> syntaxMap)
-            {
-                this.PreviousMethod = previousMethodOpt;
-                this.SyntaxMap = syntaxMap;
-            }
-
             public readonly IMethodSymbolInternal PreviousMethod;
-            public readonly Func<SyntaxNode, SyntaxNode> SyntaxMap;
+            public readonly Func<SyntaxNode, SyntaxNode?>? SyntaxMap;
+
+            public MappedMethod(IMethodSymbolInternal previousMethod, Func<SyntaxNode, SyntaxNode?>? syntaxMap)
+            {
+                PreviousMethod = previousMethod;
+                SyntaxMap = syntaxMap;
+            }
         }
 
-        protected readonly PEModule module;
-        protected readonly IReadOnlyDictionary<IMethodSymbol, MappedMethod> mappedMethods;
+        protected readonly IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> mappedMethods;
+        protected abstract SymbolMatcher MapToMetadataSymbolMatcher { get; }
+        protected abstract SymbolMatcher MapToPreviousSymbolMatcher { get; }
 
-        protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits)
+        protected DefinitionMap(IEnumerable<SemanticEdit> edits)
         {
-            Debug.Assert(module != null);
             Debug.Assert(edits != null);
 
-            this.module = module;
             this.mappedMethods = GetMappedMethods(edits);
         }
 
-        private static IReadOnlyDictionary<IMethodSymbol, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
+        private IReadOnlyDictionary<IMethodSymbolInternal, MappedMethod> GetMappedMethods(IEnumerable<SemanticEdit> edits)
         {
-            var mappedMethods = new Dictionary<IMethodSymbol, MappedMethod>();
+            var mappedMethods = new Dictionary<IMethodSymbolInternal, MappedMethod>();
             foreach (var edit in edits)
             {
                 // We should always "preserve locals" of iterator and async methods since the state machine 
@@ -64,10 +65,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 if (edit.Kind == SemanticEditKind.Update && edit.PreserveLocalVariables)
                 {
-                    var method = edit.NewSymbol as IMethodSymbol;
-                    if (method != null)
+                    RoslynDebug.AssertNotNull(edit.NewSymbol);
+                    RoslynDebug.AssertNotNull(edit.OldSymbol);
+
+                    if (GetISymbolInternalOrNull(edit.NewSymbol) is IMethodSymbolInternal newMethod &&
+                        GetISymbolInternalOrNull(edit.OldSymbol) is IMethodSymbolInternal oldMethod)
                     {
-                        mappedMethods.Add(method, new MappedMethod((IMethodSymbolInternal)edit.OldSymbol, edit.SyntaxMap));
+                        mappedMethods.Add(newMethod, new MappedMethod(oldMethod, edit.SyntaxMap));
                     }
                 }
             }
@@ -75,12 +79,25 @@ namespace Microsoft.CodeAnalysis.Emit
             return mappedMethods;
         }
 
-        internal abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
+        protected abstract ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol);
+
+        internal Cci.IDefinition? MapDefinition(Cci.IDefinition definition)
+        {
+            return MapToPreviousSymbolMatcher.MapDefinition(definition) ??
+                   (MapToMetadataSymbolMatcher != MapToPreviousSymbolMatcher ? MapToMetadataSymbolMatcher.MapDefinition(definition) : null);
+        }
+
+        internal Cci.INamespace? MapNamespace(Cci.INamespace @namespace)
+        {
+            return MapToPreviousSymbolMatcher.MapNamespace(@namespace) ??
+                   (MapToMetadataSymbolMatcher != MapToPreviousSymbolMatcher ? MapToMetadataSymbolMatcher.MapNamespace(@namespace) : null);
+        }
 
         internal bool DefinitionExists(Cci.IDefinition definition)
-        {
-            return MapDefinition(definition) != null;
-        }
+            => MapDefinition(definition) is object;
+
+        internal bool NamespaceExists(Cci.INamespace @namespace)
+            => MapNamespace(@namespace) is object;
 
         internal abstract bool TryGetTypeHandle(Cci.ITypeDefinition def, out TypeDefinitionHandle handle);
         internal abstract bool TryGetEventHandle(Cci.IEventDefinition def, out EventDefinitionHandle handle);
@@ -88,28 +105,6 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract bool TryGetMethodHandle(Cci.IMethodDefinition def, out MethodDefinitionHandle handle);
         internal abstract bool TryGetPropertyHandle(Cci.IPropertyDefinition def, out PropertyDefinitionHandle handle);
         internal abstract CommonMessageProvider MessageProvider { get; }
-    }
-
-    internal abstract class DefinitionMap<TSymbolMatcher> : DefinitionMap
-        where TSymbolMatcher : SymbolMatcher
-    {
-        protected readonly TSymbolMatcher mapToMetadata;
-        protected readonly TSymbolMatcher mapToPrevious;
-
-        protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits, TSymbolMatcher mapToMetadata, TSymbolMatcher mapToPrevious)
-            : base(module, edits)
-        {
-            Debug.Assert(mapToMetadata != null);
-
-            this.mapToMetadata = mapToMetadata;
-            this.mapToPrevious = mapToPrevious ?? mapToMetadata;
-        }
-
-        internal sealed override Cci.IDefinition MapDefinition(Cci.IDefinition definition)
-        {
-            return this.mapToPrevious.MapDefinition(definition) ??
-                   (this.mapToMetadata != this.mapToPrevious ? this.mapToMetadata.MapDefinition(definition) : null);
-        }
 
         private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodDefinitionHandle handle)
         {
@@ -118,18 +113,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 return true;
             }
 
-            def = (Cci.IMethodDefinition)this.mapToPrevious.MapDefinition(def);
-            if (def != null)
+            var mappedDef = (Cci.IMethodDefinition?)MapToPreviousSymbolMatcher.MapDefinition(def);
+            if (mappedDef != null && baseline.MethodsAdded.TryGetValue(mappedDef, out int methodIndex))
             {
-                int methodIndex;
-                if (baseline.MethodsAdded.TryGetValue(def, out methodIndex))
-                {
-                    handle = MetadataTokens.MethodDefinitionHandle(methodIndex);
-                    return true;
-                }
+                handle = MetadataTokens.MethodDefinitionHandle(methodIndex);
+                return true;
             }
 
-            handle = default(MethodDefinitionHandle);
+            handle = default;
             return false;
         }
 
@@ -145,20 +136,19 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         protected abstract void GetStateMachineFieldMapFromMetadata(
-            ITypeSymbol stateMachineType,
+            ITypeSymbolInternal stateMachineType,
             ImmutableArray<LocalSlotDebugInfo> localSlotDebugInfo,
             out IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap,
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap,
             out int awaiterSlotCount);
 
         protected abstract ImmutableArray<EncLocalInfo> GetLocalSlotMapFromMetadata(StandaloneSignatureHandle handle, EditAndContinueMethodDebugInformation debugInfo);
-        protected abstract ITypeSymbol TryGetStateMachineType(EntityHandle methodHandle);
+        protected abstract ITypeSymbolInternal? TryGetStateMachineType(EntityHandle methodHandle);
 
-        internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbol topLevelMethod, DiagnosticBag diagnostics)
+        internal VariableSlotAllocator? TryCreateVariableSlotAllocator(EmitBaseline baseline, Compilation compilation, IMethodSymbolInternal method, IMethodSymbolInternal topLevelMethod, DiagnosticBag diagnostics)
         {
             // Top-level methods are always included in the semantic edit list. Lambda methods are not.
-            MappedMethod mappedMethod;
-            if (!mappedMethods.TryGetValue(topLevelMethod, out mappedMethod))
+            if (!mappedMethods.TryGetValue(topLevelMethod, out var mappedMethod))
             {
                 return null;
             }
@@ -166,36 +156,34 @@ namespace Microsoft.CodeAnalysis.Emit
             // TODO (bug https://github.com/dotnet/roslyn/issues/2504):
             // Handle cases when the previous method doesn't exist.
 
-            MethodDefinitionHandle previousHandle;
-            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method, out previousHandle))
+            if (!TryGetMethodHandle(baseline, (Cci.IMethodDefinition)method.GetCciAdapter(), out var previousHandle))
             {
                 // Unrecognized method. Must have been added in the current compilation.
                 return null;
             }
 
             ImmutableArray<EncLocalInfo> previousLocals;
-            IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap = null;
-            IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap = null;
-            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>> lambdaMap = null;
-            IReadOnlyDictionary<int, DebugId> closureMap = null;
+            IReadOnlyDictionary<EncHoistedLocalInfo, int>? hoistedLocalMap = null;
+            IReadOnlyDictionary<Cci.ITypeReference, int>? awaiterMap = null;
+            IReadOnlyDictionary<int, KeyValuePair<DebugId, int>>? lambdaMap = null;
+            IReadOnlyDictionary<int, DebugId>? closureMap = null;
 
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
-            string stateMachineTypeNameOpt = null;
-            TSymbolMatcher symbolMap;
+            string? stateMachineTypeName = null;
+            SymbolMatcher symbolMap;
 
             int methodIndex = MetadataTokens.GetRowNumber(previousHandle);
             DebugId methodId;
 
             // Check if method has changed previously. If so, we already have a map.
-            AddedOrChangedMethodInfo addedOrChangedMethod;
-            if (baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out addedOrChangedMethod))
+            if (baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out var addedOrChangedMethod))
             {
                 methodId = addedOrChangedMethod.MethodId;
 
                 MakeLambdaAndClosureMaps(addedOrChangedMethod.LambdaDebugInfo, addedOrChangedMethod.ClosureDebugInfo, out lambdaMap, out closureMap);
 
-                if (addedOrChangedMethod.StateMachineTypeNameOpt != null)
+                if (addedOrChangedMethod.StateMachineTypeName != null)
                 {
                     // method is async/iterator kickoff method
                     GetStateMachineFieldMapFromPreviousCompilation(
@@ -211,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // We use the EnC method debug information for hoisted locals.
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
-                    stateMachineTypeNameOpt = addedOrChangedMethod.StateMachineTypeNameOpt;
+                    stateMachineTypeName = addedOrChangedMethod.StateMachineTypeName;
                 }
                 else
                 {
@@ -220,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // All types that AddedOrChangedMethodInfo refers to have been mapped to the previous generation.
                 // Therefore we don't need to fall back to metadata if we don't find the type reference, like we do in DefinitionMap.MapReference.
-                symbolMap = mapToPrevious;
+                symbolMap = MapToPreviousSymbolMatcher;
             }
             else
             {
@@ -253,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     MakeLambdaAndClosureMaps(debugInfo.Lambdas, debugInfo.Closures, out lambdaMap, out closureMap);
                 }
 
-                ITypeSymbol stateMachineType = TryGetStateMachineType(previousHandle);
+                ITypeSymbolInternal? stateMachineType = TryGetStateMachineType(previousHandle);
                 if (stateMachineType != null)
                 {
                     // method is async/iterator kickoff method
@@ -265,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     // We use the EnC method debug information for hoisted locals.
                     previousLocals = ImmutableArray<EncLocalInfo>.Empty;
 
-                    stateMachineTypeNameOpt = stateMachineType.Name;
+                    stateMachineTypeName = stateMachineType.Name;
                 }
                 else
                 {
@@ -313,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     }
                 }
 
-                symbolMap = mapToMetadata;
+                symbolMap = MapToMetadataSymbolMatcher;
             }
 
             return new EncVariableSlotAllocator(
@@ -324,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 previousLocals,
                 lambdaMap,
                 closureMap,
-                stateMachineTypeNameOpt,
+                stateMachineTypeName,
                 hoistedLocalSlotCount,
                 hoistedLocalMap,
                 awaiterSlotCount,
@@ -339,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Emit
             diagnostics.Add(MessageProvider.CreateDiagnostic(
                 MessageProvider.ERR_EncUpdateFailedMissingAttribute,
                 method.Locations.First(),
-                MessageProvider.GetErrorDisplayString(method),
+                MessageProvider.GetErrorDisplayString(method.GetISymbol()),
                 stateMachineAttributeFullName));
         }
 
@@ -370,12 +358,12 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private static void GetStateMachineFieldMapFromPreviousCompilation(
             ImmutableArray<EncHoistedLocalInfo> hoistedLocalSlots,
-            ImmutableArray<Cci.ITypeReference> hoistedAwaiters,
+            ImmutableArray<Cci.ITypeReference?> hoistedAwaiters,
             out IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap,
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap)
         {
             var hoistedLocals = new Dictionary<EncHoistedLocalInfo, int>();
-            var awaiters = new Dictionary<Cci.ITypeReference, int>();
+            var awaiters = new Dictionary<Cci.ITypeReference, int>(Cci.SymbolEquivalentEqualityComparer.Instance);
 
             for (int slotIndex = 0; slotIndex < hoistedLocalSlots.Length; slotIndex++)
             {

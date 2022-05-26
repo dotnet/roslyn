@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -23,14 +27,15 @@ namespace Microsoft.CodeAnalysis.Scripting
             filePath: string.Empty,
             references: GetDefaultMetadataReferences(),
             namespaces: ImmutableArray<string>.Empty,
-            metadataResolver: RuntimeMetadataReferenceResolver.Default,
+            metadataResolver: ScriptMetadataResolver.Default,
             sourceResolver: SourceFileResolver.Default,
             emitDebugInformation: false,
             fileEncoding: null,
             OptimizationLevel.Debug,
             checkOverflow: false,
             allowUnsafe: true,
-            warningLevel: 4);
+            warningLevel: 4,
+            parseOptions: null);
 
         private static ImmutableArray<MetadataReference> GetDefaultMetadataReferences()
         {
@@ -134,6 +139,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public int WarningLevel { get; private set; }
 
+        internal ParseOptions ParseOptions { get; private set; }
+
         internal ScriptOptions(
             string filePath,
             ImmutableArray<MetadataReference> references,
@@ -145,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Scripting
             OptimizationLevel optimizationLevel,
             bool checkOverflow,
             bool allowUnsafe,
-            int warningLevel)
+            int warningLevel,
+            ParseOptions parseOptions)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -164,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             CheckOverflow = checkOverflow;
             AllowUnsafe = allowUnsafe;
             WarningLevel = warningLevel;
+            ParseOptions = parseOptions;
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -177,7 +186,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                    optimizationLevel: other.OptimizationLevel,
                    checkOverflow: other.CheckOverflow,
                    allowUnsafe: other.AllowUnsafe,
-                   warningLevel: other.WarningLevel)
+                   warningLevel: other.WarningLevel,
+                   parseOptions: other.ParseOptions)
         {
         }
 
@@ -375,5 +385,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public ScriptOptions WithWarningLevel(int warningLevel) =>
             warningLevel == WarningLevel ? this : new ScriptOptions(this) { WarningLevel = warningLevel };
+
+        internal ScriptOptions WithParseOptions(ParseOptions parseOptions) =>
+            parseOptions == ParseOptions ? this : new ScriptOptions(this) { ParseOptions = parseOptions };
     }
 }

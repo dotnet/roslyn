@@ -1,10 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -13,101 +20,51 @@ namespace Microsoft.CodeAnalysis
     /// Checksum of data can be used later to see whether two data are same or not
     /// without actually comparing data itself
     /// </summary>
+    [DataContract]
     internal sealed partial class Checksum : IObjectWritable, IEquatable<Checksum>
     {
         /// <summary>
         /// The intended size of the <see cref="HashData"/> structure. 
         /// </summary>
-        private const int HashSize = 20;
+        public const int HashSize = 20;
 
-        public static readonly Checksum Null = new Checksum(default);
+        public static readonly Checksum Null = new(default);
 
+        [DataMember(Order = 0)]
         private readonly HashData _checksum;
 
+        public Checksum(HashData hash)
+            => _checksum = hash;
+
         /// <summary>
-        /// Create Checksum from given byte array. if byte array is bigger than
-        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
+        /// truncated to the size.
         /// </summary>
         public static Checksum From(byte[] checksum)
-        {
-            if (checksum.Length == 0)
-            {
-                return Null;
-            }
-
-            if (checksum.Length < HashSize)
-            {
-                throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
-            }
-
-            return FromWorker(checksum);
-        }
+            => From(checksum.AsSpan());
 
         /// <summary>
-        /// Create Checksum from given byte array. if byte array is bigger than
-        /// <see cref="HashSize"/>, it will be truncated to the size
+        /// Create Checksum from given byte array. if byte array is bigger than <see cref="HashSize"/>, it will be
+        /// truncated to the size.
         /// </summary>
         public static Checksum From(ImmutableArray<byte> checksum)
+            => From(checksum.AsSpan());
+
+        public static Checksum From(ReadOnlySpan<byte> checksum)
         {
             if (checksum.Length == 0)
-            {
                 return Null;
-            }
 
             if (checksum.Length < HashSize)
-            {
-                throw new ArgumentException($"{nameof(checksum)} must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
-            }
+                throw new ArgumentException($"checksum must be equal or bigger than the hash size: {HashSize}", nameof(checksum));
 
-            using (var pooled = SharedPools.ByteArray.GetPooledObject())
-            {
-                var bytes = pooled.Object;
-                checksum.CopyTo(sourceIndex: 0, bytes, destinationIndex: 0, length: HashSize);
-
-                return FromWorker(bytes);
-            }
-        }
-
-        public static Checksum FromSerialized(byte[] checksum)
-        {
-            if (checksum.Length == 0)
-            {
-                return Null;
-            }
-
-            if (checksum.Length != HashSize)
-            {
-                throw new ArgumentException($"{nameof(checksum)} must be equal to the hash size: {HashSize}", nameof(checksum));
-            }
-
-            return FromWorker(checksum);
-        }
-
-        private static unsafe Checksum FromWorker(byte[] checksum)
-        {
-            fixed (byte* data = checksum)
-            {
-                // Avoid a direct dereferencing assignment since sizeof(HashData) may be greater than HashSize.
-                //
-                // ex) "https://bugzilla.xamarin.com/show_bug.cgi?id=60298" - LayoutKind.Explicit, Size = 12 ignored with 64bit alignment
-                // or  "https://github.com/dotnet/roslyn/issues/23722" - Checksum throws on Mono 64-bit
-                return new Checksum(HashData.FromPointer((HashData*)data));
-            }
-        }
-
-        private Checksum(HashData hash)
-        {
-            _checksum = hash;
+            Contract.ThrowIfFalse(MemoryMarshal.TryRead(checksum, out HashData hash));
+            return new Checksum(hash);
         }
 
         public bool Equals(Checksum other)
         {
-            if (other == null)
-            {
-                return false;
-            }
-
-            return _checksum == other._checksum;
+            return other != null && _checksum == other._checksum;
         }
 
         public override bool Equals(object obj)
@@ -116,66 +73,93 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
             => _checksum.GetHashCode();
 
-        public override unsafe string ToString()
+        public string ToBase64String()
         {
-            var data = new byte[sizeof(HashData)];
-            fixed (byte* dataPtr = data)
+#if NETCOREAPP
+            Span<byte> bytes = stackalloc byte[HashSize];
+            this.WriteTo(bytes);
+            return Convert.ToBase64String(bytes);
+#else
+            unsafe
             {
-                *(HashData*)dataPtr = _checksum;
-            }
+                var data = new byte[HashSize];
+                fixed (byte* dataPtr = data)
+                {
+                    *(HashData*)dataPtr = _checksum;
+                }
 
-            return Convert.ToBase64String(data, 0, HashSize);
+                return Convert.ToBase64String(data, 0, HashSize);
+            }
+#endif
         }
+
+        public static Checksum FromBase64String(string value)
+            => value == null ? null : From(Convert.FromBase64String(value));
+
+        public override string ToString()
+            => ToBase64String();
 
         public static bool operator ==(Checksum left, Checksum right)
-        {
-            return EqualityComparer<Checksum>.Default.Equals(left, right);
-        }
+            => EqualityComparer<Checksum>.Default.Equals(left, right);
 
         public static bool operator !=(Checksum left, Checksum right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
+
+        public static bool operator ==(Checksum left, HashData right)
+            => left._checksum == right;
+
+        public static bool operator !=(Checksum left, HashData right)
+            => !(left == right);
 
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public void WriteTo(ObjectWriter writer)
             => _checksum.WriteTo(writer);
 
+        public void WriteTo(Span<byte> span)
+        {
+            Contract.ThrowIfFalse(span.Length >= HashSize);
+            Contract.ThrowIfFalse(MemoryMarshal.TryWrite(span, ref Unsafe.AsRef(in _checksum)));
+        }
+
         public static Checksum ReadFrom(ObjectReader reader)
-            => new Checksum(HashData.ReadFrom(reader));
+            => new(HashData.ReadFrom(reader));
 
-        public static string GetChecksumLogInfo(Checksum checksum)
-        {
-            return checksum.ToString();
-        }
+        public static Func<Checksum, string> GetChecksumLogInfo { get; }
+            = checksum => checksum.ToString();
 
-        public static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-        {
-            return string.Join("|", checksums.Select(c => c.ToString()));
-        }
+        public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
+            = checksums => string.Join("|", checksums.Select(c => c.ToString()));
 
         /// <summary>
         /// This structure stores the 20-byte hash as an inline value rather than requiring the use of
         /// <c>byte[]</c>.
         /// </summary>
+        [DataContract]
         [StructLayout(LayoutKind.Explicit, Size = HashSize)]
-        private struct HashData : IEquatable<HashData>
+        public readonly struct HashData : IEquatable<HashData>
         {
-            [FieldOffset(0)]
-            private long Data1;
+            [FieldOffset(0), DataMember(Order = 0)]
+            private readonly long Data1;
 
-            [FieldOffset(8)]
-            private long Data2;
+            [FieldOffset(8), DataMember(Order = 1)]
+            private readonly long Data2;
 
-            [FieldOffset(16)]
-            private int Data3;
+            [FieldOffset(16), DataMember(Order = 2)]
+            private readonly int Data3;
+
+            public HashData(long data1, long data2, int data3)
+            {
+                Data1 = data1;
+                Data2 = data2;
+                Data3 = data3;
+            }
 
             public static bool operator ==(HashData x, HashData y)
                 => x.Equals(y);
 
             public static bool operator !=(HashData x, HashData y)
-                => !x.Equals(y);
+                => !(x == y);
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -185,22 +169,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public static unsafe HashData FromPointer(HashData* hash)
-            {
-                HashData result = default;
-                result.Data1 = hash->Data1;
-                result.Data2 = hash->Data2;
-                result.Data3 = hash->Data3;
-                return result;
-            }
+                => new(hash->Data1, hash->Data2, hash->Data3);
 
             public static HashData ReadFrom(ObjectReader reader)
-            {
-                HashData result = default;
-                result.Data1 = reader.ReadInt64();
-                result.Data2 = reader.ReadInt64();
-                result.Data3 = reader.ReadInt32();
-                return result;
-            }
+                => new(reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt32());
 
             public override int GetHashCode()
             {

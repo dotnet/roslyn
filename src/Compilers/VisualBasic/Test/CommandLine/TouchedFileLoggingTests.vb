@@ -1,10 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.CompilerServer
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -153,48 +154,6 @@ End Class
 
             CleanupAllGeneratedFiles(sourcePath)
             CleanupAllGeneratedFiles(xml.Path)
-        End Sub
-
-        <Fact>
-        Public Sub TrivialMetadataCaching()
-            Dim folderList As New List(Of String)
-            Dim filelist As New List(Of String)
-
-            For i = 0 To 2 - 1
-                Dim source1 = Temp.CreateFile().WriteAllText(_helloWorldCS).Path
-                Dim touchedDir = Temp.CreateDirectory()
-                Dim touchedBase = Path.Combine(touchedDir.Path, "touched")
-                filelist.Add(source1)
-                folderList.Add(touchedDir.Path)
-
-                Dim outWriter = New StringWriter()
-                Dim cmd = New VisualBasicCompilerServer(
-                    DesktopCompilerServerHost.SharedAssemblyReferenceProvider,
-                    {"/nologo",
-                     "/touchedfiles:" + touchedBase,
-                     source1},
-                    New BuildPaths(Nothing, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
-                    s_libDirectory,
-                    New TestAnalyzerAssemblyLoader())
-                Dim expectedReads As List(Of String) = Nothing
-                Dim expectedWrites As List(Of String) = Nothing
-                BuildTouchedFiles(cmd,
-                                  Path.ChangeExtension(source1, "exe"),
-                                  expectedReads,
-                                  expectedWrites)
-
-                Dim exitCode = cmd.Run(outWriter, Nothing)
-                Assert.Equal(String.Empty, outWriter.ToString().Trim())
-                Assert.Equal(0, exitCode)
-
-                AssertTouchedFilesEqual(expectedReads,
-                                        expectedWrites,
-                                        touchedBase)
-            Next
-
-            For Each f In filelist
-                CleanupAllGeneratedFiles(f)
-            Next
         End Sub
 
         ''' <summary>
