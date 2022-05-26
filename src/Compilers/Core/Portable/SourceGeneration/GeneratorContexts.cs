@@ -221,8 +221,8 @@ namespace Microsoft.CodeAnalysis
 
         internal GeneratorSyntaxContext(SyntaxNode node, Lazy<SemanticModel>? semanticModel, ISyntaxHelper syntaxHelper)
         {
-            Node = node; _semanticModel = semanticModel;
-
+            Node = node;
+            _semanticModel = semanticModel;
             SyntaxHelper = syntaxHelper;
         }
 

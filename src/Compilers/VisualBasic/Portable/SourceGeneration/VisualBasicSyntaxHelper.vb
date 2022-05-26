@@ -34,16 +34,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is AttributeSyntax
         End Function
 
-        Public Overrides Function GetNameOfAttribute(attribute As SyntaxNode) As SyntaxNode
-            Return DirectCast(attribute, AttributeSyntax).Name
+        Public Overrides Function GetNameOfAttribute(node As SyntaxNode) As SyntaxNode
+            Return DirectCast(node, AttributeSyntax).Name
         End Function
 
         Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean
             Return TypeOf node Is AttributeListSyntax
         End Function
 
-        Public Overrides Function GetAttributesOfAttributeList(attributeList As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
-            Return DirectCast(attributeList, AttributeListSyntax).Attributes
+        Public Overrides Function GetAttributesOfAttributeList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
+            Return DirectCast(node, AttributeListSyntax).Attributes
         End Function
 
         Public Overrides Function GetUnqualifiedIdentifierOfName(node As SyntaxNode) As SyntaxToken

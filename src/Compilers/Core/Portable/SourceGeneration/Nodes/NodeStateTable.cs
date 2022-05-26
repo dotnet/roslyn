@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
                     (EntryState.Cached, EntryState.Cached) => IncrementalStepRunReason.Cached,
                     (EntryState.Removed, EntryState.Removed) => IncrementalStepRunReason.Removed,
                     (EntryState.Modified, EntryState.Removed) => IncrementalStepRunReason.Removed,
-                    (EntryState.Modified, EntryState.Added) => IncrementalStepRunReason.New,
+                    (EntryState.Modified, EntryState.Added) => IncrementalStepRunReason.Modified,
                     _ => throw ExceptionUtilities.UnexpectedValue((inputState, outputState))
                 };
             }

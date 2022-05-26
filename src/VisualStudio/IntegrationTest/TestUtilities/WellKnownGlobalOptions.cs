@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace,
         WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace,
         SolutionCrawlerOptions_BackgroundAnalysisScopeOption,
+        SolutionCrawlerOptions_CompilerDiagnosticsScopeOption,
     }
 
     public static class WellKnownGlobalOptions
@@ -51,6 +52,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.MetadataAsSourceOptions_NavigateToDecompiledSources => MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
                 WellKnownGlobalOption.WorkspaceConfigurationOptions_EnableOpeningSourceGeneratedFilesInWorkspace => WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace,
                 WellKnownGlobalOption.SolutionCrawlerOptions_BackgroundAnalysisScopeOption => SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+                WellKnownGlobalOption.SolutionCrawlerOptions_CompilerDiagnosticsScopeOption => SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
                 _ => throw ExceptionUtilities.Unreachable
             };
 

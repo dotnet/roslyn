@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         bool IsAnyNamespaceBlock(SyntaxNode node);
 
         bool IsAttributeList(SyntaxNode node);
-        SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode attributeList);
+        SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
-        SyntaxNode GetNameOfAttribute(SyntaxNode attribute);
+        SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
-        SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode name);
+        SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node);
 
         /// <summary>
         /// <paramref name="node"/> must be a compilation unit or namespace block.
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public abstract bool IsAnyNamespaceBlock(SyntaxNode node);
 
         public abstract bool IsAttribute(SyntaxNode node);
-        public abstract SyntaxNode GetNameOfAttribute(SyntaxNode attribute);
+        public abstract SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
         public abstract bool IsAttributeList(SyntaxNode node);
-        public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode attributeList);
+        public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
         public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);

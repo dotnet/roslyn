@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override bool IsCaseSensitive => true;
+        public override bool IsCaseSensitive
+            => true;
 
         public override bool IsValidIdentifier(string name)
             => SyntaxFacts.IsValidIdentifier(name);
@@ -31,17 +32,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsAttribute(SyntaxNode node)
             => node is AttributeSyntax;
 
-        public override SyntaxNode GetNameOfAttribute(SyntaxNode attribute)
-            => ((AttributeSyntax)attribute).Name;
+        public override SyntaxNode GetNameOfAttribute(SyntaxNode node)
+            => ((AttributeSyntax)node).Name;
 
         public override bool IsAttributeList(SyntaxNode node)
             => node is AttributeListSyntax;
 
-        public override SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode attributeList)
-            => ((AttributeListSyntax)attributeList).Attributes;
+        public override SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)
+            => ((AttributeListSyntax)node).Attributes;
 
-        public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode name)
-            => ((NameSyntax)name).GetUnqualifiedName().Identifier;
+        public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node)
+            => ((NameSyntax)node).GetUnqualifiedName().Identifier;
 
         public override void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global)
         {

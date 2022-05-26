@@ -559,7 +559,7 @@ end class
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("collectedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("groupedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationAndGroupedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
-            Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps("result_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
+            Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("result_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
         End Sub
 
         <Fact>
@@ -616,8 +616,8 @@ Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C2"))))
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("groupedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps("compilationAndGroupedNodes_ForAttributeWithMetadataName").Single().Outputs.Single().Reason)
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName").Single().Outputs,
-            Sub(t) Assert.Equal(IncrementalStepRunReason.New, t.Reason),
-            Sub(t) Assert.Equal(IncrementalStepRunReason.New, t.Reason))
+            Sub(t) Assert.Equal(IncrementalStepRunReason.Modified, t.Reason),
+            Sub(t) Assert.Equal(IncrementalStepRunReason.Modified, t.Reason))
         End Sub
 
         <Fact>
@@ -683,8 +683,8 @@ Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(IsClassStatementW
             Sub(s) Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
             Sub(s) Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason))
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(s) Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason),
-            Sub(s) Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason))
+            Sub(s) Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
+            Sub(s) Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason))
         End Sub
 
 #End Region

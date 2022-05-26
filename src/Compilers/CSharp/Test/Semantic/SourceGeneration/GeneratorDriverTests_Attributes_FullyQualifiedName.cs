@@ -528,7 +528,7 @@ class XAttribute : System.Attribute
         Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps["collectedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["groupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
-        Assert.Equal(IncrementalStepRunReason.New, runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
+        Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
     }
 
     [Fact]
@@ -584,8 +584,8 @@ class XAttribute : System.Attribute
         Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps["groupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Equal(IncrementalStepRunReason.Modified, runResult.TrackedSteps["compilationAndGroupedNodes_ForAttributeWithMetadataName"].Single().Outputs.Single().Reason);
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"].Single().Outputs,
-            t => Assert.Equal(IncrementalStepRunReason.New, t.Reason),
-            t => Assert.Equal(IncrementalStepRunReason.New, t.Reason));
+            t => Assert.Equal(IncrementalStepRunReason.Modified, t.Reason),
+            t => Assert.Equal(IncrementalStepRunReason.Modified, t.Reason));
     }
 
     [Fact]
@@ -650,8 +650,8 @@ class XAttribute : System.Attribute
             s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
             s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason));
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
-            s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason),
-            s => Assert.Equal(IncrementalStepRunReason.New, s.Outputs.Single().Reason));
+            s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason),
+            s => Assert.Equal(IncrementalStepRunReason.Modified, s.Outputs.Single().Reason));
     }
 
     #endregion
