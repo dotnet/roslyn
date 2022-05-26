@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.Cci
 {
@@ -199,6 +200,13 @@ done:
             StringBuilder mangledName = pooled.Builder;
 
             const string needsEscaping = "\\[]*.+,& ";
+            if (namedType.AssociatedFileIdentifier is string fileIdentifier)
+            {
+                Debug.Assert(namedType.MangleName);
+                Debug.Assert(needsEscaping.All(c => !fileIdentifier.Contains(c)));
+                mangledName.Append(fileIdentifier);
+            }
+
             foreach (var ch in namedType.Name)
             {
                 if (needsEscaping.IndexOf(ch) >= 0)

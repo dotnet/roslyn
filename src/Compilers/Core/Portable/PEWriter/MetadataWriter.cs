@@ -926,7 +926,7 @@ namespace Microsoft.Cci
             string unmangledName = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
 
             return namedType.MangleName
-                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount)
+                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount, namedType.AssociatedFileIdentifier)
                 : unmangledName;
         }
 

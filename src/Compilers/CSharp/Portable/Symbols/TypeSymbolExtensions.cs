@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -1359,6 +1360,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFile: true }, arg: (object?)null);
             return foundType is not null;
+        }
+
+        internal static string? AssociatedFileIdentifier(this NamedTypeSymbol type)
+        {
+            if (type is not SourceMemberContainerTypeSymbol { AssociatedSyntaxTree: SyntaxTree tree })
+            {
+                return null;
+            }
+            var ordinal = type.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
+
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            sb.Append('<');
+            AppendFileName(tree, sb);
+            sb.Append('>');
+            sb.Append((char)GeneratedNameKind.FileType);
+            sb.Append(ordinal);
+            sb.Append("__");
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        internal static string GetDisplayFileName(this SyntaxTree tree)
+        {
+            var pooledBuilder = PooledStringBuilder.GetInstance();
+            var sb = pooledBuilder.Builder;
+            AppendFileName(tree, sb);
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void AppendFileName(SyntaxTree tree, StringBuilder sb)
+        {
+            // note: a "file path" for a syntax tree can be basically any string.
+            // since methods like Path.GetFileNameWithoutExtension throw when invalid path characters are found,
+            // we implement more of a heuristic here.
+            var originalFilePath = tree.FilePath;
+            var fileNameStartIndex = Math.Max(originalFilePath.LastIndexOf('/'), originalFilePath.LastIndexOf('\\')) + 1;
+            var fileNameEndIndex = originalFilePath.LastIndexOf('.');
+            if (fileNameEndIndex < fileNameStartIndex)
+            {
+                fileNameEndIndex = originalFilePath.Length;
+            }
+
+            for (int i = fileNameStartIndex; i < fileNameEndIndex; i++)
+            {
+                var ch = originalFilePath[i];
+                switch (ch)
+                {
+                    case '_':
+                    case >= 'a' and <= 'z':
+                    case >= 'A' and <= 'Z':
+                    case >= '0' and <= '9':
+                        sb.Append(ch);
+                        break;
+                    default:
+                        sb.Append('_');
+                        break;
+                }
+            }
         }
 
         public static bool IsPointerType(this TypeSymbol type)

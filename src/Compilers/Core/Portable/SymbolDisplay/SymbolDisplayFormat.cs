@@ -202,7 +202,8 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
                     SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
-                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
+                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
+                    SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
 
         /// <summary>
         /// A verbose format for displaying symbols (useful for testing).

@@ -478,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract override string Name { get; }
 
+#nullable enable
         /// <summary>
         /// Return the name including the metadata arity suffix.
         /// </summary>
@@ -485,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity) : Name;
+                return MangleName ? MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, this.AssociatedFileIdentifier()) : Name;
             }
         }
 
@@ -498,6 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
             get;
         }
+#nullable disable
 
         /// <summary>
         /// Collection of names of members declared within this type. May return duplicates.
