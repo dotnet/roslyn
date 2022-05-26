@@ -761,13 +761,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitUtf8StringLiteral:
-                    if (_inExpressionLambda)
-                    {
-                        Error(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, node);
-                    }
-                    break;
-
                 default:
 
                     if (_inExpressionLambda && node.Conversion.Method is MethodSymbol method && (method.IsAbstract || method.IsVirtual) && method.IsStatic)
