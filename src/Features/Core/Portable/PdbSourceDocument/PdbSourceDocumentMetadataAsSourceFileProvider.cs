@@ -8,20 +8,18 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
@@ -74,18 +72,39 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (compilation.GetMetadataReference(symbol.ContainingAssembly) is not PortableExecutableReference { FilePath: not null and var dllPath })
                 return null;
 
+            _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
+
+            // There is no way to go from parameter metadata to its containing method or type, so we need use the symbol API first to
+            // get the method it belongs to.
+            var symbolToFind = symbol is IParameterSymbol parameterSymbol ? parameterSymbol.ContainingSymbol : symbol;
+            var handle = MetadataTokens.EntityHandle(symbolToFind.MetadataToken);
+
             // If this is a reference assembly then we won't have the right information available, so try to find
             // a better DLL, or bail out
-            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
-                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
-            if (isReferenceAssembly &&
-                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(dllPath, out dllPath))
+            var isReferenceAssembly = MetadataAsSourceHelpers.IsReferenceAssembly(symbol.ContainingAssembly);
+            if (isReferenceAssembly)
             {
-                _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
-                return null;
-            }
+                if (MetadataAsSourceHelpers.TryFindImplementationAssemblyPath(dllPath, out dllPath))
+                {
+                    _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
-            _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
+                    // If the original assembly was a reference assembly, we can't trust that the implementation assembly
+                    // we found actually contains the types, so we need to find it, following any type forwards
+                    var entityHandle = MetadataAsSourceHelpers.FindEntityHandle(symbolToFind, dllPath, _logger, out dllPath);
+                    if (entityHandle is null)
+                    {
+                        _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
+                        return null;
+                    }
+
+                    handle = entityHandle.Value;
+                }
+                else
+                {
+                    _logger?.Log(FeaturesResources.Source_is_a_reference_assembly);
+                    return null;
+                }
+            }
 
             ImmutableDictionary<string, string> pdbCompilationOptions;
             ImmutableArray<SourceDocument> sourceDocuments;
@@ -101,7 +120,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 pdbCompilationOptions = documentDebugInfoReader.GetCompilationOptions();
 
                 // Try to find some actual document information from the PDB
-                sourceDocuments = documentDebugInfoReader.FindSourceDocuments(symbol);
+                sourceDocuments = documentDebugInfoReader.FindSourceDocuments(handle);
                 if (sourceDocuments.Length == 0)
                 {
                     _logger?.Log(FeaturesResources.No_source_document_info_found_in_PDB);
@@ -152,7 +171,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var encoding = defaultEncoding ?? Encoding.UTF8;
             var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useExtendedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
-            if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
+            if (sourceFileInfos is not [not null, ..])
                 return null;
 
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
@@ -216,7 +235,10 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             foreach (var info in sourceFileInfos)
             {
-                Contract.ThrowIfNull(info);
+                if (info is null)
+                {
+                    continue;
+                }
 
                 // If a document has multiple symbols then we might already know about it
                 if (_fileToDocumentInfoMap.ContainsKey(info.FilePath))

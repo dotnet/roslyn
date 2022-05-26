@@ -3138,4 +3138,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Decompiled" xml:space="preserve">
     <value>decompiled</value>
   </data>
+  <data name="Could_not_find_implementation_of_symbol_0" xml:space="preserve">
+    <value>Could not find implementation of symbol '{0}'</value>
+  </data>
 </root>

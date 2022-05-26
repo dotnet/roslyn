@@ -11,13 +11,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.DecompiledSource;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -159,17 +156,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return new MetadataAsSourceFile(fileInfo.TemporaryFilePath, navigateLocation, documentName, documentTooltip);
         }
 
-        private (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
+        private static (MetadataReference? metadataReference, string? assemblyLocation, bool isReferenceAssembly) GetReferenceInfo(Compilation compilation, IAssemblySymbol containingAssembly)
         {
             var metadataReference = compilation.GetMetadataReference(containingAssembly);
             var assemblyLocation = (metadataReference as PortableExecutableReference)?.FilePath;
 
-            var isReferenceAssembly = containingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass?.Name == nameof(ReferenceAssemblyAttribute)
-                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
+            var isReferenceAssembly = MetadataAsSourceHelpers.IsReferenceAssembly(containingAssembly);
 
             if (assemblyLocation is not null &&
                 isReferenceAssembly &&
-                !MetadataAsSourceHelpers.TryGetImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
+                !MetadataAsSourceHelpers.TryFindImplementationAssemblyPath(assemblyLocation, out assemblyLocation))
             {
                 try
                 {
