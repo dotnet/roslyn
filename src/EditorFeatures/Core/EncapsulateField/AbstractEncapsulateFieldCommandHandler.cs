@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return false;
 
             // Fire and forget
-            var token = _listener.BeginAsyncOperation("EncapsulateField");
+            var token = _listener.BeginAsyncOperation(FeatureAttribute.EncapsulateField);
             _ = ExecuteAsync(args, document, spans.Single()).CompletesAsyncOperation(token);
             return true;
         }
