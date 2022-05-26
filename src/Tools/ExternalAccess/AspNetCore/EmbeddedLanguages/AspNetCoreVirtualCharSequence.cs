@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 {
+    /// <inheritdoc cref="VirtualCharSequence"/>
     internal readonly struct AspNetCoreVirtualCharSequence
     {
         private readonly VirtualCharSequence _virtualCharSequence;
@@ -15,7 +16,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
             _virtualCharSequence = virtualCharSequence;
         }
 
+        /// <inheritdoc cref="VirtualCharSequence.Length"/>
         public int Length => _virtualCharSequence.Length;
+
+        /// <inheritdoc cref="VirtualCharSequence.this"/>
         public AspNetCoreVirtualChar this[int index] => new(_virtualCharSequence[index]);
     }
 }
