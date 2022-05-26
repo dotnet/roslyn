@@ -1297,6 +1297,11 @@
         <target state="translated">在解决方案资源管理器中显示“删除未使用的引用”命令(实验性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">显示完成列表</target>
