@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // any of that work and then only have the work of rolling back to the original state of the world
                     // and applying the desired edits ourselves.
                     var factory = _workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-                    var context = factory.Create(
+                    using var context = factory.Create(
                         _triggerView, _triggerSpan, EditorFeaturesResources.Computing_Rename_information,
                         cancelOnEdit: false, cancelOnFocusLost: false);
 

@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             /// <summary>
             /// Returns non-null error message if renaming fails.
             /// </summary>
-            public (NotificationSeverity severity, string message)? TryCommit(CancellationToken cancellationToken)
+            public async Task<(NotificationSeverity severity, string message)?> TryCommitAsync(CancellationToken cancellationToken)
             {
                 _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
 
                 try
                 {
-                    return TryApplyChangesToWorkspace(cancellationToken);
+                    return await TryApplyChangesToWorkspaceAsync(cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -80,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 Contract.ThrowIfNull(document, "Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
 
                 // Get copy of solution with the original name in the place of the renamed name
-                var solutionWithOriginalName = CreateSolutionWithOriginalName(document, cancellationToken);
+                var solutionWithOriginalName = await CreateSolutionWithOriginalNameAsync(
+                    document, cancellationToken).ConfigureAwait(false);
 
                 var symbol = await TryGetSymbolAsync(solutionWithOriginalName, document.Id, cancellationToken).ConfigureAwait(false);
                 Contract.ThrowIfNull(symbol, "Invoked rename tracking smart tag but cannot find the symbol.");
@@ -93,10 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             /// <summary>
             /// Returns non-null error message if renaming fails.
             /// </summary>
-            private (NotificationSeverity, string)? TryApplyChangesToWorkspace(CancellationToken cancellationToken)
+            private async Task<(NotificationSeverity, string)?> TryApplyChangesToWorkspaceAsync(CancellationToken cancellationToken)
             {
-                _stateMachine.ThreadingContext.ThrowIfNotOnUIThread();
-
                 // Now that the necessary work has been done to create the intermediate and final
                 // solutions during PreparePreview, check one more time for cancellation before making all of the
                 // workspace changes.
@@ -119,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // final solution without updating the workspace, and then finally disallow
                 // cancellation and update the workspace twice.
 
-                var renameTrackingSolutionSet = RenameSymbolAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var renameTrackingSolutionSet = await RenameSymbolAsync(cancellationToken).ConfigureAwait(false);
 
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var newName = _snapshotSpan.GetText();
@@ -136,6 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     // When this action is undone (the user has undone twice), restore the state
                     // machine to so that they can continue their original rename tracking session.
 
+                    await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     var trackingSessionId = _stateMachine.StoreCurrentTrackingSessionAndGenerateId();
                     var result = TryUpdateWorkspaceForResetOfTypedIdentifier(workspace, renameTrackingSolutionSet.OriginalSolution, trackingSessionId);
                     if (result is not null)
@@ -153,11 +153,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     {
                         // because changes have already been made to the workspace (UpdateWorkspaceForResetOfTypedIdentifier() above),
                         // these calls can't be cancelled and must be allowed to complete.
-                        var root = renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootSynchronously(CancellationToken.None);
+                        var root = await renameTrackingSolutionSet.RenamedSolution.GetDocument(docId).GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                         finalSolution = finalSolution.WithDocumentSyntaxRoot(docId, root);
                     }
 
                     // Undo/redo on this action must always clear the state machine
+                    await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     return TryUpdateWorkspaceForGlobalIdentifierRename(
                         workspace,
                         finalSolution,
@@ -173,9 +174,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
             }
 
-            private Solution CreateSolutionWithOriginalName(Document document, CancellationToken cancellationToken)
+            private async Task<Solution> CreateSolutionWithOriginalNameAsync(
+                Document document, CancellationToken cancellationToken)
             {
-                var syntaxTree = document.GetSyntaxTreeSynchronously(cancellationToken);
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var fullText = syntaxTree.GetText(cancellationToken);
                 var textChange = new TextChange(new TextSpan(_snapshotSpan.Start, _snapshotSpan.Length), _stateMachine.TrackingSession.OriginalName);
 

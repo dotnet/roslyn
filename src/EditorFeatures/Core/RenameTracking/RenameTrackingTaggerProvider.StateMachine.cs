@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                 trackingSession.OriginalName,
                                 snapshotSpan.GetText());
 
-                            return (new RenameTrackingCodeAction(document, title, refactorNotifyServices, undoHistoryRegistry, GlobalOptions),
+                            return (new RenameTrackingCodeAction(ThreadingContext, document, title, refactorNotifyServices, undoHistoryRegistry, GlobalOptions),
                                     snapshotSpan.Span.ToTextSpan());
                         }
                     }
