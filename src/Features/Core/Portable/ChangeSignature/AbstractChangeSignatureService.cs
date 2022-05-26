@@ -817,15 +817,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         // TODO: Need to be able to specify which kind of attribute argument it is to the SyntaxGenerator.
                         // https://github.com/dotnet/roslyn/issues/43354
                         var argument = generateAttributeArguments ?
-                            Generator.AttributeArgument(
+                            (TArgumentSyntax)Generator.AttributeArgument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 expression: expression) :
-                            Generator.Argument(
+                            (TArgumentSyntax)Generator.Argument(
                                 name: seenNamedArguments || addedParameter.CallSiteKind == CallSiteKind.ValueWithName ? addedParameter.Name : null,
                                 refKind: RefKind.None,
                                 expression: expression);
 
-                        fullList.Add((TArgumentSyntax)argument);
+                        fullList.Add(argument);
                         separators.Add(CommaTokenWithElasticSpace());
                     }
                     else
