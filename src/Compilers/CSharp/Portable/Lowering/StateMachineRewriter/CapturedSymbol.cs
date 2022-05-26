@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var frame = makeFrame(this.HoistedField.ContainingType);
             var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
-            return new BoundFieldAccess(node, frame, field, default(ConstantValue));
+            return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
         }
     }
 
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var frame = makeFrame(this.HoistedField.ContainingType);
             var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
-            return new BoundFieldAccess(node, frame, field, default(ConstantValue));
+            return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
         }
     }
 

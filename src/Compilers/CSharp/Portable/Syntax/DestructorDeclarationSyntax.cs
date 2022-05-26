@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 identifier,
                 parameterList,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
     }
 }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 default(SyntaxToken));
 
         public static DestructorDeclarationSyntax DestructorDeclaration(
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken tildeToken,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            BlockSyntax body,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
             => DestructorDeclaration(
                 attributeLists,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
 
         public static DestructorDeclarationSyntax DestructorDeclaration(
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxFactory.Token(SyntaxKind.TildeToken),
                 identifier,
                 parameterList,
-                default(BlockSyntax),
+                body: null,
                 expressionBody,
                 default(SyntaxToken));
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tildeToken,
                 identifier,
                 parameterList,
-                default(BlockSyntax),
+                body: null,
                 expressionBody,
                 semicolonToken);
 

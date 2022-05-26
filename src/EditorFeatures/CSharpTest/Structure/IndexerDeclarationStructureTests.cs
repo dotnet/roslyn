@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new IndexerDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestIndexer()
+        public async Task TestIndexer1()
         {
             const string code = @"
 class C
@@ -25,6 +27,41 @@ class C
     {
         get { }
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIndexer2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string this[int index]{|textspan:
+    {
+        get { }
+    }|}|}
+    int Value => 0;
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestIndexer3()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string this[int index]{|textspan:
+    {
+        get { }
+    }|}|}
+
+    int Value => 0;
 }";
 
             await VerifyBlockSpansAsync(code,

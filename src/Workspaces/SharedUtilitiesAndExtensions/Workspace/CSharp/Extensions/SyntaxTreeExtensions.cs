@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -33,154 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntaxTree.IsInInactiveRegion(position, cancellationToken);
         }
 
-        public static bool IsInInactiveRegion(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfNull(syntaxTree);
-
-            // cases:
-            // $ is EOF
-
-            // #if false
-            //    |
-
-            // #if false
-            //    |$
-
-            // #if false
-            // |
-
-            // #if false
-            // |$
-
-            if (syntaxTree.IsPreProcessorKeywordContext(position, cancellationToken))
-            {
-                return false;
-            }
-
-            // The latter two are the hard cases we don't actually have an 
-            // DisabledTextTrivia yet. 
-            var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
-            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
-            {
-                return true;
-            }
-
-            var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
-            if (token.Kind() == SyntaxKind.EndOfFileToken)
-            {
-                var triviaList = token.LeadingTrivia;
-                foreach (var triviaTok in triviaList.Reverse())
-                {
-                    if (triviaTok.Span.Contains(position))
-                    {
-                        return false;
-                    }
-
-                    if (triviaTok.Span.End < position)
-                    {
-                        if (!triviaTok.HasStructure)
-                        {
-                            return false;
-                        }
-
-                        var structure = triviaTok.GetStructure();
-                        if (structure is BranchingDirectiveTriviaSyntax branch)
-                        {
-                            return !branch.IsActive || !branch.BranchTaken;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public static ImmutableArray<MemberDeclarationSyntax> GetFieldsAndPropertiesInSpan(
-            this SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
-        {
-            var token = root.FindTokenOnRightOfPosition(textSpan.Start);
-            var firstMember = token.GetAncestors<MemberDeclarationSyntax>().FirstOrDefault();
-            if (firstMember != null)
-            {
-                if (firstMember.Parent is TypeDeclarationSyntax containingType)
-                {
-                    return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection);
-                }
-            }
-
-            return ImmutableArray<MemberDeclarationSyntax>.Empty;
-        }
-
-        private static ImmutableArray<MemberDeclarationSyntax> GetFieldsAndPropertiesInSpan(
-            TextSpan textSpan,
-            TypeDeclarationSyntax containingType,
-            MemberDeclarationSyntax firstMember,
-            bool allowPartialSelection)
-        {
-            var members = containingType.Members;
-            var fieldIndex = members.IndexOf(firstMember);
-            if (fieldIndex < 0)
-            {
-                return ImmutableArray<MemberDeclarationSyntax>.Empty;
-            }
-
-            var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
-            for (var i = fieldIndex; i < members.Count; i++)
-            {
-                var member = members[i];
-                if (IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection))
-                {
-                    selectedMembers.Add(member);
-                }
-            }
-
-            return selectedMembers.ToImmutableAndFree();
-
-            // local functions
-            static bool IsSelectedFieldOrProperty(TextSpan textSpan, MemberDeclarationSyntax member, bool allowPartialSelection)
-            {
-                if (!member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyDeclaration))
-                {
-                    return false;
-                }
-
-                // first, check if entire member is selected
-                if (textSpan.Contains(member.Span))
-                {
-                    return true;
-                }
-
-                if (!allowPartialSelection)
-                {
-                    return false;
-                }
-
-                // next, check if identifier is at least partially selected
-                switch (member)
-                {
-                    case FieldDeclarationSyntax field:
-                        var variables = field.Declaration.Variables;
-                        foreach (var variable in variables)
-                        {
-                            if (textSpan.OverlapsWith(variable.Identifier.Span))
-                            {
-                                return true;
-                            }
-                        }
-                        return false;
-                    case PropertyDeclarationSyntax property:
-                        return textSpan.OverlapsWith(property.Identifier.Span);
-                    default:
-                        return false;
-                }
-            }
-        }
-
         public static bool IsInPartiallyWrittenGeneric(
             this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out var genericIdentifier, out var lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out _, out _);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -189,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier)
         {
-            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out var lessThanToken);
+            return syntaxTree.IsInPartiallyWrittenGeneric(position, cancellationToken, out genericIdentifier, out _);
         }
 
         public static bool IsInPartiallyWrittenGeneric(
@@ -258,13 +110,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             break;
                         }
 
-                    case SyntaxKind.GreaterThanGreaterThanToken:
-                        stack++;
-                        goto case SyntaxKind.GreaterThanToken;
-
                     // fall through
                     case SyntaxKind.GreaterThanToken:
-                        stack++;
+                    case SyntaxKind.GreaterThanGreaterThanToken:
+                    case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+
+                        // FindTokenOnLeftOfPosition returns the token that we are contained in. This means in cases like
+                        // G<G<G<int>>$$> the compiler might have parsed that final >> as a shift operator. We want to only count the
+                        // number of >s to the left of where we actually are.
+                        if (token.Span.End <= position)
+                            stack += token.Span.Length;
+                        else
+                            stack += (position - token.Span.Start);
+
                         break;
 
                     case SyntaxKind.AsteriskToken:      // for int*

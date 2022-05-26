@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.Host
 {
     internal static class HostWorkspaceServicesExtensions
@@ -23,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Host
             var languageServices = hostWorkspaceServices.GetLanguageServices(languageName);
 
 #if CODE_STYLE
-            // TODO: Uncomment the below once we enable language service detection in CodeStyle layer.
-            //languageServices = CodeStyleHostLanguageServices.GetRequiredMappedCodeStyleLanguageServices(languageServices);
+            languageServices = CodeStyleHostLanguageServices.GetRequiredMappedCodeStyleLanguageServices(languageServices);
 #endif
             return languageServices;
         }

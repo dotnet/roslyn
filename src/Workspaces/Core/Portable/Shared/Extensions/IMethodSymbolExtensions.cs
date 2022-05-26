@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,27 +53,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// Returns the methodSymbol and any partial parts.
-        /// </summary>
-        public static ImmutableArray<IMethodSymbol> GetAllMethodSymbolsOfPartialParts(this IMethodSymbol method)
-        {
-            if (method.PartialDefinitionPart != null)
-            {
-                Debug.Assert(method.PartialImplementationPart == null && !Equals(method.PartialDefinitionPart, method));
-                return ImmutableArray.Create(method, method.PartialDefinitionPart);
-            }
-            else if (method.PartialImplementationPart != null)
-            {
-                Debug.Assert(!Equals(method.PartialImplementationPart, method));
-                return ImmutableArray.Create(method.PartialImplementationPart, method);
-            }
-            else
-            {
-                return ImmutableArray.Create(method);
-            }
         }
 
         public static IMethodSymbol RenameTypeParameters(this IMethodSymbol method, ImmutableArray<string> newNames)
@@ -204,9 +181,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this IMethodSymbol method, ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            bool shouldRemoveAttribute(AttributeData a) =>
-                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) || !a.AttributeClass.IsAccessibleWithin(accessibleWithin);
-
             var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
 
             var someParameterHasAttribute = method.Parameters
@@ -230,6 +204,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
                 returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
+
+            bool shouldRemoveAttribute(AttributeData a) =>
+                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
+                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateEnumMember
         Inherits AbstractGenerateEnumMemberService(Of VisualBasicGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

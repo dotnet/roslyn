@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1036,7 +1038,7 @@ public struct S2
             verifier.VerifyDiagnostics();
         }
 
-        private static string ilreadonlyStructWithWriteableFieldIL = @"
+        private static readonly string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
 {
@@ -1858,7 +1860,7 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance definition for 'GetEnumerator'
+                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var x in this) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "this").WithArguments("S1", "GetEnumerator").WithLocation(6, 27));
         }
@@ -2044,7 +2046,7 @@ public struct S
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 15),
                 // (4,15): error CS0575: Only class types can contain destructors
                 //     readonly ~S() { }
-                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()").WithLocation(4, 15));
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithLocation(4, 15));
         }
 
         [Fact]
@@ -2146,7 +2148,7 @@ public struct S
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 24),
                 // (6,24): error CS1003: Syntax error, ',' expected
                 //         M2(readonly () => 42);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 24),
                 // (6,27): error CS1002: ; expected
                 //         M2(readonly () => 42);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "42").WithLocation(6, 27),

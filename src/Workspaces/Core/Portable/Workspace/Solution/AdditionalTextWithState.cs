@@ -9,19 +9,17 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="TextDocumentState"/>.
+    /// An implementation of <see cref="AdditionalText"/> for the compiler that wraps a <see cref="AdditionalDocumentState"/>.
     /// </summary>
     internal sealed class AdditionalTextWithState : AdditionalText
     {
-        private readonly TextDocumentState _documentState;
+        private readonly AdditionalDocumentState _documentState;
 
         /// <summary>
-        /// Create a <see cref="SourceText"/> from a <see cref="TextDocumentState"/>. <paramref name="documentState"/> should be non-null.
+        /// Create a <see cref="SourceText"/> from a <see cref="AdditionalDocumentState"/>.
         /// </summary>
-        public AdditionalTextWithState(TextDocumentState documentState)
-        {
-            _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
-        }
+        public AdditionalTextWithState(AdditionalDocumentState documentState)
+            => _documentState = documentState ?? throw new ArgumentNullException(nameof(documentState));
 
         /// <summary>
         /// Resolved path of the document.

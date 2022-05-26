@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -33,9 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<ExternalCodeParameter>(this.Parent);
-        }
+            => GetCollection<ExternalCodeParameter>(this.Parent);
 
         public override EnvDTE.vsCMElement Kind
         {
@@ -43,14 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override string GetDocComment()
-        {
-            return string.Empty;
-        }
+            => string.Empty;
 
         protected override object GetParent()
-        {
-            return _parentHandle.Value;
-        }
+            => _parentHandle.Value;
 
         public new EnvDTE.CodeElement Parent
         {

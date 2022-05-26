@@ -6,20 +6,22 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 #else
-using Microsoft.CodeAnalysis.Options;
+using OptionSet = Microsoft.CodeAnalysis.Options.OptionSet;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
     {
-        public static CSharpUseExplicitTypeHelper Instance = new CSharpUseExplicitTypeHelper();
+        public static CSharpUseExplicitTypeHelper Instance = new();
 
         private CSharpUseExplicitTypeHelper()
         {
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
         }
 
-        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             if (!variableDeclaration.Type.StripRefIfNeeded().IsVar)
             {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // The base analyzer may impose further limitations
-            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken);
         }
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -69,11 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         internal override bool TryAnalyzeVariableDeclaration(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
             // var (x, y) = e;
             // foreach (var (x, y) in e) ...
-            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax declExpression) &&
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression, out DeclarationExpressionSyntax? declExpression) &&
                 declExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
             {
                 return true;
@@ -86,14 +88,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax variableDeclaration) &&
+            if (typeName.Parent.IsKind(SyntaxKind.VariableDeclaration, out VariableDeclarationSyntax? variableDeclaration) &&
                 typeName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
             {
                 // check assignment for variable declarations.
                 var variable = variableDeclaration.Variables.First();
+                RoslynDebug.AssertNotNull(variable.Initializer);
                 if (!AssignmentSupportsStylePreference(
                         variable.Identifier, typeName, variable.Initializer.Value,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return false;
                 }
@@ -109,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 if (!AssignmentSupportsStylePreference(
                         foreachStatement.Identifier, typeName, foreachStatement.Expression,
-                        semanticModel, optionSet, cancellationToken))
+                        semanticModel, options, cancellationToken))
                 {
                     return false;
                 }
@@ -142,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             TypeSyntax typeName,
             ExpressionSyntax initializer,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             CancellationToken cancellationToken)
         {
             // is or contains an anonymous type

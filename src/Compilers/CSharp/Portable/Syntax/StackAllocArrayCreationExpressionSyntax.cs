@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class StackAllocArrayCreationExpressionSyntax
     {
         public StackAllocArrayCreationExpressionSyntax Update(SyntaxToken stackAllocKeyword, TypeSyntax type)
-            => Update(StackAllocKeyword, type, default(InitializerExpressionSyntax));
+            => Update(stackAllocKeyword, type, Initializer);
     }
 }
 
@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     public partial class SyntaxFactory
     {
         public static StackAllocArrayCreationExpressionSyntax StackAllocArrayCreationExpression(SyntaxToken stackAllocKeyword, TypeSyntax type)
-            => StackAllocArrayCreationExpression(stackAllocKeyword, type, default(InitializerExpressionSyntax));
+            => StackAllocArrayCreationExpression(stackAllocKeyword, type, initializer: null);
     }
 }

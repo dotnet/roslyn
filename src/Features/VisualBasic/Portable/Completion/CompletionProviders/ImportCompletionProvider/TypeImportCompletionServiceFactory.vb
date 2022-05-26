@@ -3,9 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportLanguageServiceFactory(GetType(ITypeImportCompletionService), LanguageNames.VisualBasic), [Shared]>
@@ -13,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -36,6 +38,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Protected Overrides ReadOnly Property IsCaseSensitive As Boolean
                 Get
                     Return False
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
                 End Get
             End Property
         End Class

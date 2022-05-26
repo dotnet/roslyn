@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 CancellationToken cancellationToken)
             {
                 var typeParameters = ComputeTypeParameters(cancellationToken);
-                return typeParameters.SelectAsArray(tp => MassageTypeParameter(tp, cancellationToken));
+                return typeParameters.SelectAsArray(tp => MassageTypeParameter(tp));
             }
 
             private ImmutableArray<ITypeParameterSymbol> ComputeTypeParameters(
@@ -53,8 +55,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             }
 
             private ITypeParameterSymbol MassageTypeParameter(
-                ITypeParameterSymbol typeParameter,
-                CancellationToken cancellationToken)
+                ITypeParameterSymbol typeParameter)
             {
                 var constraints = typeParameter.ConstraintTypes.Where(ts => !ts.IsUnexpressibleTypeParameterConstraint()).ToList();
                 var classTypes = constraints.Where(ts => ts.TypeKind == TypeKind.Class).ToList();
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     attributes: default,
                     varianceKind: typeParameter.Variance,
                     name: typeParameter.Name,
-                    constraintTypes: constraints.AsImmutable<ITypeSymbol>(),
+                    constraintTypes: constraints.AsImmutable(),
                     hasConstructorConstraint: typeParameter.HasConstructorConstraint,
                     hasReferenceConstraint: typeParameter.HasReferenceTypeConstraint,
                     hasValueConstraint: typeParameter.HasValueTypeConstraint,

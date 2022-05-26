@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -14,9 +13,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static void Push<T>(this Stack<T> stack, IEnumerable<T> values)
         {
             foreach (var v in values)
-            {
                 stack.Push(v);
-            }
+        }
+
+        public static void Push<T>(this Stack<T> stack, HashSet<T> values)
+        {
+            foreach (var v in values)
+                stack.Push(v);
+        }
+
+        public static void Push<T>(this Stack<T> stack, ImmutableArray<T> values)
+        {
+            foreach (var v in values)
+                stack.Push(v);
         }
 
         internal static void PushReverse<T, U>(this Stack<T> stack, IList<U> range)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -33,13 +35,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         }
 
         private static ObjectPool<T> Default<T>() where T : class, new()
-        {
-            return DefaultNormalPool<T>.Instance;
-        }
+            => DefaultNormalPool<T>.Instance;
 
         private static class DefaultNormalPool<T> where T : class, new()
         {
-            public static readonly ObjectPool<T> Instance = new ObjectPool<T>(() => new T(), 20);
+            public static readonly ObjectPool<T> Instance = new(() => new T(), 20);
         }
     }
 }

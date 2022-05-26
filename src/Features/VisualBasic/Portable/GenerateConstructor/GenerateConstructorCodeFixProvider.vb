@@ -4,10 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -26,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Friend Const BC30516 As String = NameOf(BC30516) ' error BC30516: Overload resolution failed because no accessible 'Blah' accepts this number of arguments.
         Friend Const BC36625 As String = NameOf(BC36625) ' error BC36625: Lambda expression cannot be converted to 'Integer' because 'Integer' is not a delegate type.
 
-        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, IDEDiagnosticIds.UnboundConstructorId, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387, BC30516)
+        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387, BC30516)
         Friend Shared ReadOnly TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057)
         Friend Shared ReadOnly CannotConvertDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30512, BC32006, BC30311, BC36625)
     End Class
@@ -37,18 +39,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Inherits AbstractGenerateMemberCodeFixProvider
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
-                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds
+                Return GenerateConstructorDiagnosticIds.AllDiagnosticIds.Concat(GenerateConstructorDiagnosticIds.TooManyArgumentsDiagnosticIds)
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, fallbackOptions As CleanCodeGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateConstructorService)()
-            Return service.GenerateConstructorAsync(document, node, cancellationToken)
+            Return service.GenerateConstructorAsync(document, node, fallbackOptions, cancellationToken)
         End Function
 
         Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode

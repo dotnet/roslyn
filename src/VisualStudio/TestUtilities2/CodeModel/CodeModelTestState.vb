@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
@@ -13,14 +14,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Public ReadOnly Workspace As TestWorkspace
         Private ReadOnly _visualStudioWorkspace As VisualStudioWorkspace
         Private ReadOnly _rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel)
-        Private ReadOnly _fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
+        Private ReadOnly _fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)?
         Private ReadOnly _codeModelService As ICodeModelService
 
         Public Sub New(
             workspace As TestWorkspace,
             visualStudioWorkspace As VisualStudioWorkspace,
             rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel),
-            fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel),
+            fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)?,
             codeModelService As ICodeModelService
         )
 
@@ -47,13 +48,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Public ReadOnly Property FileCodeModel As EnvDTE80.FileCodeModel2
             Get
-                Return _fileCodeModel.Handle
+                Return _fileCodeModel.Value.Handle
             End Get
         End Property
 
         Public ReadOnly Property FileCodeModelObject As FileCodeModel
             Get
-                Return _fileCodeModel.Object
+                Return _fileCodeModel.Value.Object
             End Get
         End Property
 
@@ -80,11 +81,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposing Then
-                Environment.FailFast("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
+                FailFast.Fail("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
             End If
 
             If Not Me._disposedValue Then
                 If disposing Then
+                    ' Ensure the existing project is removed from the ProjectCodeModelFactory; we otherwise later might try updating any state
+                    ' for it.
+                    Dim projectId = Workspace.CurrentSolution.ProjectIds.Single()
+                    Dim projectCodeModel = Workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory)().GetProjectCodeModel(projectId)
+                    projectCodeModel.OnProjectClosed()
+
                     Workspace.Dispose()
                 End If
             End If

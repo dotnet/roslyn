@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2385,7 +2387,8 @@ public class C
 }";
             // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
             var compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
-            var verifier = CompileAndVerify(compilation, verify: Verification.Fails);
+            // PEVerify: System.Enum must extend System.ValueType.
+            var verifier = CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));

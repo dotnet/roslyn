@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -31,9 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<ExternalCodeParameter>.GetCollection()
-        {
-            return this.Parameters;
-        }
+            => this.Parameters;
 
         public override EnvDTE.vsCMElement Kind
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Generic;
 
@@ -22,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         }
 
         public static T Last<T>(this IReadOnlyList<T> list)
-        {
-            return list[list.Count - 1];
-        }
+            => list[list.Count - 1];
 
         public static int IndexOf<T>(this IReadOnlyList<T> list, T value, int startIndex = 0)
         {
@@ -44,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             private readonly IList<T> _list;
 
             public ReadOnlyList(IList<T> list)
-            {
-                _list = list;
-            }
+                => _list = list;
 
             public T this[int index] => _list[index];
             public int Count => _list.Count;

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -37,12 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
             editor.ReplaceNode(
                 ForEachInfo.ForEachStatement,
-                CreateDefaultReplacementStatement(ForEachInfo, identifiersUsedInStatements, block, convertToQuery)
+                CreateDefaultReplacementStatement(identifiersUsedInStatements, block, convertToQuery)
                     .WithAdditionalAnnotations(Formatter.Annotation));
         }
 
         private StatementSyntax CreateDefaultReplacementStatement(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             IEnumerable<SyntaxToken> identifiers,
             BlockSyntax block,
             bool convertToQuery)

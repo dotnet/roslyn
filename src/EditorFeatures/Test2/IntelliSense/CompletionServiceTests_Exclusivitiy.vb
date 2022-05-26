@@ -3,9 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 
@@ -25,14 +27,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Document>
                 </Project>
             </Workspace>
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(CompletionItemNonExclusiveCompletionProvider),
+                GetType(CompletionItemExclusiveCompletionProvider),
+                GetType(CompletionItemExclusive2CompletionProvider))
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
+                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 2, "Completion List does not contain exactly two items.")
                 Assert.Equal(String.Format(CompletionItemExclusive, 2), list.Items.First.DisplayText)
@@ -53,24 +62,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 End Get
             End Property
 
-            Private Shared s_providers As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(
-                New TestCompletionProviderWithMockExclusivity(False, CompletionServiceTests_Exclusivity.CompletionItemNonExclusive, 1),
-                New TestCompletionProviderWithMockExclusivity(True, CompletionServiceTests_Exclusivity.CompletionItemExclusive, 2),
-                New TestCompletionProviderWithMockExclusivity(True, CompletionServiceTests_Exclusivity.CompletionItemExclusive, 3))
-
-            Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
-                Return s_providers
+            Friend Overrides Function GetRules(options As CompletionOptions) As CompletionRules
+                Return CompletionRules.Default
             End Function
         End Class
 
-        Private Class TestCompletionProviderWithMockExclusivity
+        Private MustInherit Class TestCompletionProviderWithMockExclusivity
             Inherits CompletionProvider
 
-            Private s_isExclusive As Boolean
-            Private s_itemText As String
-            Private s_index As Integer
+            Private ReadOnly s_isExclusive As Boolean
+            Private ReadOnly s_itemText As String
+            Private ReadOnly s_index As Integer
 
-            Public Sub New(isExclusive As Boolean, text As String, index As Integer)
+            Protected Sub New(isExclusive As Boolean, text As String, index As Integer)
                 s_isExclusive = isExclusive
                 s_itemText = text
                 s_index = index
@@ -85,6 +89,45 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 context.AddItem(CompletionItem.Create(String.Format(s_itemText, s_index)))
                 Return Task.CompletedTask
             End Function
+        End Class
+
+        <ExportCompletionProvider(NameOf(CompletionItemNonExclusiveCompletionProvider), "NoCompilation")>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class CompletionItemNonExclusiveCompletionProvider
+            Inherits TestCompletionProviderWithMockExclusivity
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(False, CompletionServiceTests_Exclusivity.CompletionItemNonExclusive, 1)
+            End Sub
+        End Class
+
+        <ExportCompletionProvider(NameOf(CompletionItemExclusiveCompletionProvider), "NoCompilation")>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class CompletionItemExclusiveCompletionProvider
+            Inherits TestCompletionProviderWithMockExclusivity
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(True, CompletionServiceTests_Exclusivity.CompletionItemExclusive, 2)
+            End Sub
+        End Class
+
+        <ExportCompletionProvider(NameOf(CompletionItemExclusive2CompletionProvider), "NoCompilation")>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class CompletionItemExclusive2CompletionProvider
+            Inherits TestCompletionProviderWithMockExclusivity
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(True, CompletionServiceTests_Exclusivity.CompletionItemExclusive, 3)
+            End Sub
         End Class
     End Class
 End Namespace

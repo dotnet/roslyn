@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,29 +25,59 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             CancellationToken cancellationToken = default)
         {
-            var semanticModel = await document.GetSemanticModelForSpanAsync(textSpan, cancellationToken).ConfigureAwait(false);
-            return GetClassifiedSpans(semanticModel, textSpan, document.Project.Solution.Workspace, cancellationToken);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            // public options do not affect classification:
+            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, document.Project, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
         }
 
+        /// <summary>
+        /// Returns classified spans in ascending <see cref="ClassifiedSpan"/> order.
+        /// <see cref="ClassifiedSpan"/>s may have the same <see cref="ClassifiedSpan.TextSpan"/>. This occurs when there are multiple
+        /// <see cref="ClassifiedSpan.ClassificationType"/>s for the same region of code. For example, a reference to a static method
+        /// will have two spans, one that designates it as a method, and one that designates it as static.
+        /// <see cref="ClassifiedSpan"/>s may also have overlapping <see cref="ClassifiedSpan.TextSpan"/>s. This occurs when there are
+        /// strings containing regex and/or escape characters.
+        /// </summary>
+        [Obsolete("Use GetClassifiedSpansAsync instead")]
         public static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             SemanticModel semanticModel,
             TextSpan textSpan,
             Workspace workspace,
             CancellationToken cancellationToken = default)
         {
-            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetRequiredService<ISyntaxClassificationService>();
+            // public options do not affect classification:
+            return GetClassifiedSpans(workspace.Services, project: null, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+        }
 
-            var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
+        internal static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
+            HostWorkspaceServices workspaceServices,
+            Project? project,
+            SemanticModel semanticModel,
+            TextSpan textSpan,
+            ClassificationOptions options,
+            CancellationToken cancellationToken)
+        {
+            var languageServices = workspaceServices.GetLanguageServices(semanticModel.Language);
+            var classsificationService = languageServices.GetRequiredService<ISyntaxClassificationService>();
+            var embeddedLanguageService = languageServices.GetRequiredService<IEmbeddedLanguageClassificationService>();
 
-            var extensionManager = workspace.Services.GetRequiredService<IExtensionManager>();
+            var syntaxClassifiers = classsificationService.GetDefaultSyntaxClassifiers();
+
+            var extensionManager = workspaceServices.GetRequiredService<IExtensionManager>();
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
             using var _1 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var syntacticClassifications);
             using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var semanticClassifications);
 
-            service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
-            service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+
+            classsificationService.AddSyntacticClassifications(root, textSpan, syntacticClassifications, cancellationToken);
+            classsificationService.AddSemanticClassifications(semanticModel, textSpan, getNodeClassifiers, getTokenClassifiers, semanticClassifications, options, cancellationToken);
+
+            // intentionally adding to the semanticClassifications array here.
+            embeddedLanguageService.AddEmbeddedLanguageClassifications(project, semanticModel, textSpan, options, semanticClassifications, cancellationToken);
 
             var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
             var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
@@ -59,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(
-            SemanticModel semanticModel, TextSpan textSpan, Workspace workspace,
+            HostWorkspaceServices workspaceServices, SemanticModel semanticModel, TextSpan textSpan, ClassificationOptions options,
             CancellationToken cancellationToken = default)
         {
-            var classifiedSpans = GetClassifiedSpans(semanticModel, textSpan, workspace, cancellationToken);
+            var classifiedSpans = GetClassifiedSpans(workspaceServices, project: null, semanticModel, textSpan, options, cancellationToken);
             var sourceText = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return ConvertClassificationsToParts(sourceText, textSpan.Start, classifiedSpans);
@@ -99,64 +130,36 @@ namespace Microsoft.CodeAnalysis.Classification
         }
 
         private static SymbolDisplayPartKind? GetClassificationKind(string type)
-        {
-            switch (type)
+            => type switch
             {
-                default:
-                    return null;
-                case ClassificationTypeNames.Identifier:
-                    return SymbolDisplayPartKind.Text;
-                case ClassificationTypeNames.Keyword:
-                    return SymbolDisplayPartKind.Keyword;
-                case ClassificationTypeNames.NumericLiteral:
-                    return SymbolDisplayPartKind.NumericLiteral;
-                case ClassificationTypeNames.StringLiteral:
-                    return SymbolDisplayPartKind.StringLiteral;
-                case ClassificationTypeNames.WhiteSpace:
-                    return SymbolDisplayPartKind.Space;
-                case ClassificationTypeNames.Operator:
-                    return SymbolDisplayPartKind.Operator;
-                case ClassificationTypeNames.Punctuation:
-                    return SymbolDisplayPartKind.Punctuation;
-                case ClassificationTypeNames.ClassName:
-                    return SymbolDisplayPartKind.ClassName;
-                case ClassificationTypeNames.StructName:
-                    return SymbolDisplayPartKind.StructName;
-                case ClassificationTypeNames.InterfaceName:
-                    return SymbolDisplayPartKind.InterfaceName;
-                case ClassificationTypeNames.DelegateName:
-                    return SymbolDisplayPartKind.DelegateName;
-                case ClassificationTypeNames.EnumName:
-                    return SymbolDisplayPartKind.EnumName;
-                case ClassificationTypeNames.TypeParameterName:
-                    return SymbolDisplayPartKind.TypeParameterName;
-                case ClassificationTypeNames.ModuleName:
-                    return SymbolDisplayPartKind.ModuleName;
-                case ClassificationTypeNames.VerbatimStringLiteral:
-                    return SymbolDisplayPartKind.StringLiteral;
-                case ClassificationTypeNames.FieldName:
-                    return SymbolDisplayPartKind.FieldName;
-                case ClassificationTypeNames.EnumMemberName:
-                    return SymbolDisplayPartKind.EnumMemberName;
-                case ClassificationTypeNames.ConstantName:
-                    return SymbolDisplayPartKind.ConstantName;
-                case ClassificationTypeNames.LocalName:
-                    return SymbolDisplayPartKind.LocalName;
-                case ClassificationTypeNames.ParameterName:
-                    return SymbolDisplayPartKind.ParameterName;
-                case ClassificationTypeNames.ExtensionMethodName:
-                    return SymbolDisplayPartKind.ExtensionMethodName;
-                case ClassificationTypeNames.MethodName:
-                    return SymbolDisplayPartKind.MethodName;
-                case ClassificationTypeNames.PropertyName:
-                    return SymbolDisplayPartKind.PropertyName;
-                case ClassificationTypeNames.LabelName:
-                    return SymbolDisplayPartKind.LabelName;
-                case ClassificationTypeNames.NamespaceName:
-                    return SymbolDisplayPartKind.NamespaceName;
-                case ClassificationTypeNames.EventName:
-                    return SymbolDisplayPartKind.EventName;
-            }
-        }
+                ClassificationTypeNames.Identifier => SymbolDisplayPartKind.Text,
+                ClassificationTypeNames.Keyword => SymbolDisplayPartKind.Keyword,
+                ClassificationTypeNames.NumericLiteral => SymbolDisplayPartKind.NumericLiteral,
+                ClassificationTypeNames.StringLiteral => SymbolDisplayPartKind.StringLiteral,
+                ClassificationTypeNames.WhiteSpace => SymbolDisplayPartKind.Space,
+                ClassificationTypeNames.Operator => SymbolDisplayPartKind.Operator,
+                ClassificationTypeNames.Punctuation => SymbolDisplayPartKind.Punctuation,
+                ClassificationTypeNames.ClassName => SymbolDisplayPartKind.ClassName,
+                ClassificationTypeNames.RecordClassName => SymbolDisplayPartKind.RecordClassName,
+                ClassificationTypeNames.StructName => SymbolDisplayPartKind.StructName,
+                ClassificationTypeNames.InterfaceName => SymbolDisplayPartKind.InterfaceName,
+                ClassificationTypeNames.DelegateName => SymbolDisplayPartKind.DelegateName,
+                ClassificationTypeNames.EnumName => SymbolDisplayPartKind.EnumName,
+                ClassificationTypeNames.TypeParameterName => SymbolDisplayPartKind.TypeParameterName,
+                ClassificationTypeNames.ModuleName => SymbolDisplayPartKind.ModuleName,
+                ClassificationTypeNames.VerbatimStringLiteral => SymbolDisplayPartKind.StringLiteral,
+                ClassificationTypeNames.FieldName => SymbolDisplayPartKind.FieldName,
+                ClassificationTypeNames.EnumMemberName => SymbolDisplayPartKind.EnumMemberName,
+                ClassificationTypeNames.ConstantName => SymbolDisplayPartKind.ConstantName,
+                ClassificationTypeNames.LocalName => SymbolDisplayPartKind.LocalName,
+                ClassificationTypeNames.ParameterName => SymbolDisplayPartKind.ParameterName,
+                ClassificationTypeNames.ExtensionMethodName => SymbolDisplayPartKind.ExtensionMethodName,
+                ClassificationTypeNames.MethodName => SymbolDisplayPartKind.MethodName,
+                ClassificationTypeNames.PropertyName => SymbolDisplayPartKind.PropertyName,
+                ClassificationTypeNames.LabelName => SymbolDisplayPartKind.LabelName,
+                ClassificationTypeNames.NamespaceName => SymbolDisplayPartKind.NamespaceName,
+                ClassificationTypeNames.EventName => SymbolDisplayPartKind.EventName,
+                _ => null,
+            };
     }
 }

@@ -63,10 +63,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If _lazyType Is Nothing Then
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim diagnostics = DiagnosticBag.GetInstance()
+                    Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim varType = ComputeType(diagnostics)
                     Debug.Assert(varType IsNot Nothing)
-                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics, CompilationStage.Declare)
+                    sourceModule.AtomicStoreReferenceAndDiagnostics(_lazyType, varType, diagnostics)
                     diagnostics.Free()
                 End If
 
@@ -74,17 +74,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private Function ComputeType(diagBag As DiagnosticBag) As TypeSymbol
+        Private Function ComputeType(diagBag As BindingDiagnosticBag) As TypeSymbol
             Dim declaredType = GetDeclaredType(diagBag)  ' needed for diagnostic creation in all cases
 
             If Not HasDeclaredType Then
-                Return GetInferredType(SymbolsInProgress(Of FieldSymbol).Empty)
+                Return GetInferredType(ConstantFieldsInProgress.Empty)
             Else
                 Return declaredType
             End If
         End Function
 
-        Private Function GetDeclaredType(diagBag As DiagnosticBag) As TypeSymbol
+        Private Function GetDeclaredType(diagBag As BindingDiagnosticBag) As TypeSymbol
             Dim modifiedIdentifier As ModifiedIdentifierSyntax = DirectCast(Syntax, ModifiedIdentifierSyntax)
             Dim declarator = DirectCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
 
@@ -113,20 +113,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' "Constants must be of an intrinsic or enumerated type, not a class, structure, type parameter, or array type."
                         If varType.IsArrayType Then
                             ' arrays get the squiggles under the identifier name
-                            Binder.ReportDiagnostic(diagBag, modifiedIdentifier.Identifier, ERRID.ERR_ConstAsNonConstant)
+                            binder.ReportDiagnostic(diagBag, modifiedIdentifier.Identifier, ERRID.ERR_ConstAsNonConstant)
                         Else
                             ' other data types get the squiggles under the type part of the as clause 
-                            Binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_ConstAsNonConstant)
+                            binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_ConstAsNonConstant)
                         End If
                     ElseIf declarator.Initializer Is Nothing Then
                         ' "Constants must have a value."
-                        Binder.ReportDiagnostic(diagBag, modifiedIdentifier, ERRID.ERR_ConstantWithNoValue)
+                        binder.ReportDiagnostic(diagBag, modifiedIdentifier, ERRID.ERR_ConstantWithNoValue)
                     End If
 
                 Else
                     Dim restrictedType As TypeSymbol = Nothing
                     If varType.IsRestrictedTypeOrArrayType(restrictedType) Then
-                        Binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_RestrictedType1, restrictedType)
+                        binder.ReportDiagnostic(diagBag, declarator.AsClause.Type, ERRID.ERR_RestrictedType1, restrictedType)
                     End If
                 End If
 
@@ -141,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Helper used for computing the type of a field.
         Private Shared Function ComputeFieldType(modifiedIdentifierSyntax As ModifiedIdentifierSyntax,
                                                  binder As Binder,
-                                                 diagnostics As DiagnosticBag,
+                                                 diagnostics As BindingDiagnosticBag,
                                                  isConst As Boolean,
                                                  isWithEvents As Boolean,
                                                  ignoreTypeSyntaxDiagnostics As Boolean) As TypeSymbol
@@ -153,13 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If asClauseOpt IsNot Nothing Then
                 If (asClauseOpt.Kind <> SyntaxKind.AsNewClause OrElse (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind <> SyntaxKind.AnonymousObjectCreationExpression)) Then
-                    If ignoreTypeSyntaxDiagnostics Then
-                        Dim ignoredDiagnostics = DiagnosticBag.GetInstance()
-                        asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, ignoredDiagnostics)
-                        ignoredDiagnostics.Free()
-                    Else
-                        asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, diagnostics)
-                    End If
+                    asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, If(ignoreTypeSyntaxDiagnostics, BindingDiagnosticBag.Discarded, diagnostics))
                 End If
                 If asClauseOpt.Kind = SyntaxKind.AsNewClause Then
                     initializerSyntax = asClauseOpt
@@ -203,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                           modifiedIdentifier As ModifiedIdentifierSyntax,
                                                           binder As Binder,
                                                           ignoreTypeSyntaxDiagnostics As Boolean,
-                                                          diagnostics As DiagnosticBag) As TypeSymbol
+                                                          diagnostics As BindingDiagnosticBag) As TypeSymbol
 
             Dim varType = ComputeFieldType(modifiedIdentifier, binder, diagnostics, isConst:=False, isWithEvents:=True, ignoreTypeSyntaxDiagnostics:=ignoreTypeSyntaxDiagnostics)
 
@@ -242,8 +236,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets the inferred type of this const field from the initialization value.
         ''' </summary>
-        ''' <param name="inProgress">The previously visited const fields; used to detect cycles.</param><returns></returns>
-        Friend Overrides Function GetInferredType(inProgress As SymbolsInProgress(Of FieldSymbol)) As TypeSymbol
+        ''' <param name="inProgress">Used to detect dependencies between constant field values.</param><returns></returns>
+        Friend Overrides Function GetInferredType(inProgress As ConstantFieldsInProgress) As TypeSymbol
             ' there are no inferred types for non const fields, simply return the type in that case
             If HasDeclaredType Then
                 Return Type
@@ -253,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' if constantType is nothing it means that there was no initializer given and a diagnostic has already been issued.
             ' In this case we'll return System.Object which is the default type for all locals that could not infer a type.
-            Dim constantType = GetInferredConstantType()
+            Dim constantType = GetInferredConstantType(inProgress)
             Debug.Assert(constantType IsNot Nothing OrElse EqualsValueOrAsNewInitOpt Is Nothing)
 
             If constantType Is Nothing Then
@@ -272,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return constantType
         End Function
 
-        Protected Overridable Function GetInferredConstantType() As TypeSymbol
+        Protected Overridable Function GetInferredConstantType(inProgress As ConstantFieldsInProgress) As TypeSymbol
             Return Nothing
         End Function
 
@@ -281,51 +275,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' such as "Dim a, b, c = d", this class is used for the first field only. (Other fields in
         ''' the declaration are instances of SourceFieldSymbolSiblingInitializer.)
         ''' </summary>
-        Private NotInheritable Class SourceFieldSymbolWithInitializer
+        Private Class SourceFieldSymbolWithInitializer
             Inherits SourceMemberFieldSymbol
 
             ' reference to the initialization syntax of this field,
             ' can be an EqualsValue or AsNew syntax node
-            Private ReadOnly _equalsValueOrAsNewInitOpt As SyntaxReference
+            Protected ReadOnly _equalsValueOrAsNewInit As SyntaxReference
 
-            ' a tuple consisting of the evaluated constant value and type
+            Public Sub New(container As SourceMemberContainerTypeSymbol,
+                           syntaxRef As SyntaxReference,
+                           name As String,
+                           memberFlags As SourceMemberFlags,
+                           equalsValueOrAsNewInit As SyntaxReference)
+                MyBase.New(container, syntaxRef, name, memberFlags)
+                Debug.Assert(equalsValueOrAsNewInit IsNot Nothing)
+                Debug.Assert(IsConst = TypeOf Me Is SourceConstFieldSymbolWithInitializer)
+                _equalsValueOrAsNewInit = equalsValueOrAsNewInit
+            End Sub
+
+            Friend NotOverridable Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
+                Get
+                    Return _equalsValueOrAsNewInit.GetVisualBasicSyntax()
+                End Get
+            End Property
+        End Class
+
+        Private NotInheritable Class SourceConstFieldSymbolWithInitializer
+            Inherits SourceFieldSymbolWithInitializer
+
+            ''' <summary>
+            ''' A tuple consisting of the evaluated constant value and type
+            ''' </summary>
             Private _constantTuple As EvaluatedConstant
 
             Public Sub New(container As SourceMemberContainerTypeSymbol,
                            syntaxRef As SyntaxReference,
                            name As String,
                            memberFlags As SourceMemberFlags,
-                           equalsValueOrAsNewInitOpt As SyntaxReference)
-                MyBase.New(container, syntaxRef, name, memberFlags)
-                _equalsValueOrAsNewInitOpt = equalsValueOrAsNewInitOpt
+                           equalsValueOrAsNewInit As SyntaxReference)
+                MyBase.New(container, syntaxRef, name, memberFlags, equalsValueOrAsNewInit)
+                Debug.Assert(IsConst)
             End Sub
 
-            Friend Overrides ReadOnly Property EqualsValueOrAsNewInitOpt As VisualBasicSyntaxNode
-                Get
-                    Return If(_equalsValueOrAsNewInitOpt IsNot Nothing, _equalsValueOrAsNewInitOpt.GetVisualBasicSyntax(), Nothing)
-                End Get
-            End Property
-
-            Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
-                If _constantTuple Is Nothing Then
-                    Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    Dim initializer = If(Me.IsConst, _equalsValueOrAsNewInitOpt, Nothing)
-
-                    If initializer IsNot Nothing Then
-                        Dim diagnostics = DiagnosticBag.GetInstance()
-                        Dim constantTuple = ConstantValueUtils.EvaluateFieldConstant(Me, initializer, inProgress, diagnostics)
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics, CompilationStage.Declare)
-                        diagnostics.Free()
-                    Else
-                        sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, EvaluatedConstant.None, Nothing, CompilationStage.Declare)
-                    End If
-                End If
-
-                Return _constantTuple.Value
+            Protected Overrides Function GetLazyConstantTuple() As EvaluatedConstant
+                Return _constantTuple
             End Function
 
-            Protected Overrides Function GetInferredConstantType() As TypeSymbol
-                Return _constantTuple.Type
+            Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
+                Return GetConstantValueImpl(inProgress)
+            End Function
+
+            Protected Overrides Function MakeConstantTuple(dependencies As ConstantFieldsInProgress.Dependencies, diagnostics As BindingDiagnosticBag) As EvaluatedConstant
+                Return ConstantValueUtils.EvaluateFieldConstant(Me, _equalsValueOrAsNewInit, dependencies, diagnostics)
+            End Function
+
+            Protected Overrides Sub SetLazyConstantTuple(constantTuple As EvaluatedConstant, diagnostics As BindingDiagnosticBag)
+                Debug.Assert(constantTuple IsNot Nothing)
+                Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                sourceModule.AtomicStoreReferenceAndDiagnostics(_constantTuple, constantTuple, diagnostics)
+            End Sub
+
+            Protected Overrides Function GetInferredConstantType(inProgress As ConstantFieldsInProgress) As TypeSymbol
+                GetConstantValueImpl(inProgress)
+
+                Dim constantTuple As EvaluatedConstant = GetLazyConstantTuple()
+                If constantTuple IsNot Nothing Then
+                    Return constantTuple.Type
+                End If
+
+                Debug.Assert(Not inProgress.IsEmpty)
+                Return New ErrorTypeSymbol()
             End Function
         End Class
 
@@ -359,12 +378,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
-            Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+            Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
                 Return _sibling.GetConstantValue(inProgress)
             End Function
 
-            Protected Overrides Function GetInferredConstantType() As TypeSymbol
-                Return _sibling.GetInferredConstantType()
+            Protected Overrides Function GetInferredConstantType(inProgress As ConstantFieldsInProgress) As TypeSymbol
+                Return _sibling.GetInferredConstantType(inProgress)
             End Function
         End Class
 
@@ -376,8 +395,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                  members As SourceNamedTypeSymbol.MembersAndInitializersBuilder,
                                  ByRef staticInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
                                  ByRef instanceInitializers As ArrayBuilder(Of FieldOrPropertyInitializer),
-                                 diagBag As DiagnosticBag)
+                                 diagBag As BindingDiagnosticBag)
 
+            Debug.Assert(diagBag.AccumulatesDiagnostics)
             ' Decode the flags.
 
             Dim validFlags = SourceMemberFlags.AllAccessibilityModifiers Or
@@ -401,26 +421,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 validFlags,
                                                 errorId,
                                                 If(container.IsValueType, Accessibility.Public, Accessibility.Private),
-                                                diagBag)
+                                                diagBag.DiagnosticBag)
 
             If container IsNot Nothing Then
                 Select Case container.DeclarationKind
                     Case DeclarationKind.Structure
                         If (modifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
-                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag, SyntaxKind.ProtectedKeyword)
+                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag.DiagnosticBag, SyntaxKind.ProtectedKeyword)
                             modifiers = New MemberModifiers(modifiers.FoundFlags And Not SourceMemberFlags.Protected,
                                                             (modifiers.ComputedFlags And Not SourceMemberFlags.AccessibilityMask) Or SourceMemberFlags.AccessibilityPrivate)
                         End If
 
                         If (modifiers.FoundFlags And SourceMemberFlags.WithEvents) <> 0 Then
-                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag, SyntaxKind.WithEventsKeyword)
+                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_StructCantUseVarSpecifier1, diagBag.DiagnosticBag, SyntaxKind.WithEventsKeyword)
                             modifiers = New MemberModifiers(modifiers.FoundFlags And Not SourceMemberFlags.WithEvents, modifiers.ComputedFlags)
                         End If
 
                     Case DeclarationKind.Module
                         ' Member variables in module are implicitly Shared, and cannot be explicitly Shared.
                         If (modifiers.FoundFlags And SourceMemberFlags.InvalidInModule) <> 0 Then
-                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_ModuleCantUseVariableSpecifier1, diagBag,
+                            binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_ModuleCantUseVariableSpecifier1, diagBag.DiagnosticBag,
                                                        SyntaxKind.SharedKeyword,
                                                        SyntaxKind.ProtectedKeyword,
                                                        SyntaxKind.DefaultKeyword,
@@ -444,19 +464,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 (modifiers.FoundFlags And FlagsNotCombinableWithConst) <> 0 Then
 
                 If (modifiers.FoundFlags And SourceMemberFlags.Shared) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.SharedKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.SharedKeyword)
                 End If
 
                 If (modifiers.FoundFlags And SourceMemberFlags.ReadOnly) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.ReadOnlyKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.ReadOnlyKeyword)
                 End If
 
                 If (modifiers.FoundFlags And SourceMemberFlags.WithEvents) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.WithEventsKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.WithEventsKeyword)
                 End If
 
                 If (modifiers.FoundFlags And SourceMemberFlags.Dim) <> 0 Then
-                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag, SyntaxKind.DimKeyword)
+                    binder.ReportModifierError(syntax.Modifiers, ERRID.ERR_BadConstFlags1, diagBag.DiagnosticBag, SyntaxKind.DimKeyword)
                 End If
 
                 modifiers = New MemberModifiers(modifiers.FoundFlags And Not FlagsNotCombinableWithConst,
@@ -496,13 +516,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If container.TypeKind = TypeKind.Structure AndAlso
                    (flags And SourceMemberFlags.Shared) = 0 Then
                     If initializerOpt IsNot Nothing Then
-                        Binder.ReportDiagnostic(diagBag,
+                        binder.ReportDiagnostic(diagBag,
                                                 If(declarator.Names.Count > 0,
                                                    declarator.Names.Last,
                                                    DirectCast(declarator, VisualBasicSyntaxNode)),
                                                 ERRID.ERR_InitializerInStruct)
                     ElseIf asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause Then
-                        Binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
+                        binder.ReportDiagnostic(diagBag, DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.NewKeyword, ERRID.ERR_SharedStructMemberCannotSpecifyNew)
                     End If
                 End If
 #End If
@@ -549,12 +569,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 perFieldFlags)
 
                         ElseIf nameIndex = 0 Then
-                            fieldSymbol = New SourceFieldSymbolWithInitializer(
-                                container,
-                                modifiedIdentifierRef,
-                                identifier.ValueText,
-                                perFieldFlags,
-                                initializerOptRef)
+                            If (perFieldFlags And SourceMemberFlags.Const) <> 0 Then
+                                fieldSymbol = New SourceConstFieldSymbolWithInitializer(
+                                    container,
+                                    modifiedIdentifierRef,
+                                    identifier.ValueText,
+                                    perFieldFlags,
+                                    initializerOptRef)
+                            Else
+                                fieldSymbol = New SourceFieldSymbolWithInitializer(
+                                    container,
+                                    modifiedIdentifierRef,
+                                    identifier.ValueText,
+                                    perFieldFlags,
+                                    initializerOptRef)
+                            End If
                         Else
                             fieldSymbol = New SourceFieldSymbolSiblingInitializer(
                                 container,

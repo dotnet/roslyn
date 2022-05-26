@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
@@ -25,19 +27,13 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         public override double GetDistance(TestNode left, TestNode right)
-        {
-            return Math.Abs((double)left.Value - right.Value) / TestNode.MaxValue;
-        }
+            => Math.Abs((double)left.Value - right.Value) / TestNode.MaxValue;
 
         public override bool ValuesEqual(TestNode oldNode, TestNode newNode)
-        {
-            return oldNode.Value == newNode.Value;
-        }
+            => oldNode.Value == newNode.Value;
 
         protected internal override IEnumerable<TestNode> GetChildren(TestNode node)
-        {
-            return node.Children;
-        }
+            => node.Children;
 
         protected internal override IEnumerable<TestNode> GetDescendants(TestNode node)
         {
@@ -53,24 +49,16 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
         }
 
         protected internal override int GetLabel(TestNode node)
-        {
-            return node.Label;
-        }
+            => node.Label;
 
         protected internal override TextSpan GetSpan(TestNode node)
-        {
-            return new TextSpan(0, 10);
-        }
+            => new TextSpan(0, 10);
 
         protected internal override int TiedToAncestor(int label)
-        {
-            return 0;
-        }
+            => 0;
 
         protected internal override bool TreesEqual(TestNode left, TestNode right)
-        {
-            return left.Root == right.Root;
-        }
+            => left.Root == right.Root;
 
         protected internal override bool TryGetParent(TestNode node, out TestNode parent)
         {

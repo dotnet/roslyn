@@ -14,19 +14,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public readonly ITextSnapshot Snapshot;
 
             public IntervalIntrospector(ITextSnapshot snapshot)
-            {
-                this.Snapshot = snapshot;
-            }
+                => this.Snapshot = snapshot;
 
             public int GetStart(TagNode value)
-            {
-                return value.GetStart(this.Snapshot);
-            }
+                => value.GetStart(this.Snapshot);
 
             public int GetLength(TagNode value)
-            {
-                return value.GetLength(this.Snapshot);
-            }
+                => value.GetLength(this.Snapshot);
         }
     }
 }

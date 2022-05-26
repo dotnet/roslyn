@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -13,14 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class PartialTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public PartialTypeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new PartialTypeCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(PartialTypeCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRecommendTypesWithoutPartial()
@@ -74,7 +69,7 @@ partial class C<Bar> { }
 
 partial class C<";
 
-            await VerifyProviderCommitAsync(text, "C<Bar>", expected, '<', "");
+            await VerifyProviderCommitAsync(text, "C<Bar>", expected, '<');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -94,7 +89,7 @@ partial class C<Bar> { }
 
 partial class C<Bar>";
 
-            await VerifyProviderCommitAsync(text, "C<Bar>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "C<Bar>", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -110,7 +105,7 @@ partial class C<T> { }
 
 partial class C<T> ";
 
-            await VerifyProviderCommitAsync(text, "C<T>", expected, ' ', "");
+            await VerifyProviderCommitAsync(text, "C<T>", expected, ' ');
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -240,7 +235,7 @@ partial class C1<T> where T : System.Exception { }
 
 partial class C1<T>";
 
-            await VerifyProviderCommitAsync(text, "C1<T>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "C1<T>", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -275,7 +270,7 @@ partial class @class { }
 
 partial class @class";
 
-            await VerifyProviderCommitAsync(text, "@class", expected, null, "");
+            await VerifyProviderCommitAsync(text, "@class", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -291,7 +286,7 @@ partial class @class<T> { }
 
 partial class @class<T>";
 
-            await VerifyProviderCommitAsync(text, "@class<T>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "@class<T>", expected, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -307,7 +302,7 @@ partial interface I<out T> { }
 
 partial interface I<out T>";
 
-            await VerifyProviderCommitAsync(text, "I<out T>", expected, null, "");
+            await VerifyProviderCommitAsync(text, "I<out T>", expected, null);
         }
     }
 }

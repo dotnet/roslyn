@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
@@ -13,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
             _outputHelper = outputHelper
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSimpleSpecialTypeAliasVariable()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSimpleSpecialTypeAliasVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -28,14 +29,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSimpleSpecialTypeDoubleAliasVariable()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSimpleSpecialTypeDoubleAliasVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -49,14 +50,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSimpleTypeAliasVariable()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSimpleTypeAliasVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -70,13 +71,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasNoConflict()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameAliasNoConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -97,15 +98,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="C1")
+                </Workspace>, host:=host, renameTo:="C1")
 
                 result.AssertLabeledSpansAre("stmt1", "Dim f As C3 = Nothing", RelatedLocationType.ResolvedReferenceConflict)
             End Using
         End Sub
 
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToSameNameNoConflict()
+        <Theory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameAliasToSameNameNoConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -122,15 +123,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Namespace
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="C1")
+                </Workspace>, host:=host, renameTo:="C1")
 
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(586743, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586743")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameOneDuplicateAliasToNoConflict()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameOneDuplicateAliasToNoConflict(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -146,14 +147,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(541393, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541393")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameNamespaceAlias()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameNamespaceAlias(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -169,14 +170,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                             End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameConstructedTypeAliasFromUse()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameConstructedTypeAliasFromUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -192,14 +193,14 @@ Module Module1
 End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameConstructedTypeAliasFromDeclaration()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameConstructedTypeAliasFromDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -215,15 +216,14 @@ Module Module1
 End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
-
         <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSimpleTypeAliasFromUse()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSimpleTypeAliasFromUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -239,14 +239,14 @@ Module Module1
 End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
 
             End Using
         End Sub
 
         <WorkItem(545614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545614")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameSimpleTypeAliasFromDeclaration()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameSimpleTypeAliasFromDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -262,13 +262,13 @@ Module Module1
 End Module
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="BarBaz")
+                </Workspace>, host:=host, renameTo:="BarBaz")
             End Using
         End Sub
 
         <WorkItem(546084, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546084")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ConflictWhenRenamingAliasToSameAsGlobalTypeName()
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub ConflictWhenRenamingAliasToSameAsGlobalTypeName(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -286,17 +286,17 @@ Class Program
 End Class
                         </Document>
                     </Project>
-                </Workspace>, renameTo:="Something")
+                </Workspace>, host:=host, renameTo:="Something")
 
                 result.AssertLabeledSpansAre("Conflict", "Something", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttribute(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -320,18 +320,18 @@ class Program
 end class
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="BarAttribute")
+                </Workspace>, host:=host, renameTo:="BarAttribute")
 
                 result.AssertLabeledSpansAre("short", "Bar", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("long", "BarAttribute", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeNoConflict1()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeNoConflict1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -356,18 +356,18 @@ class Program
 end class
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="BarAttribute")
+                </Workspace>, host:=host, renameTo:="BarAttribute")
 
                 result.AssertLabeledSpansAre("short", "Bar", RelatedLocationType.NoConflict)
                 result.AssertLabeledSpansAre("long", "BarAttribute", RelatedLocationType.NoConflict)
             End Using
         End Sub
 
-        <Fact>
+        <Theory>
         <WorkItem(633860, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/633860")>
         <WorkItem(632303, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/632303")>
-        <Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithConflict1()
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameAliasToAttributeAndEndingWithAttributeAttributeWithConflict1(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -392,7 +392,7 @@ class Program
 end class
                         ]]></Document>
                     </Project>
-                </Workspace>, renameTo:="Bar")
+                </Workspace>, host:=host, renameTo:="Bar")
 
                 result.AssertLabeledSpansAre("short", "Obsolete", type:=RelatedLocationType.ResolvedReferenceConflict)
                 result.AssertLabeledSpansAre("long", "Obsolete", type:=RelatedLocationType.ResolvedReferenceConflict)

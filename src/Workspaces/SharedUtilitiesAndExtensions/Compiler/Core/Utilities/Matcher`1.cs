@@ -20,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public abstract bool TryMatch(IList<T> sequence, ref int index);
 
         internal static Matcher<T> Repeat(Matcher<T> matcher)
-        {
-            return new RepeatMatcher(matcher);
-        }
+            => new RepeatMatcher(matcher);
 
         internal static Matcher<T> OneOrMore(Matcher<T> matcher)
         {
@@ -31,18 +29,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         }
 
         internal static Matcher<T> Choice(params Matcher<T>[] matchers)
-        {
-            return new ChoiceMatcher(matchers);
-        }
+            => new ChoiceMatcher(matchers);
 
         internal static Matcher<T> Sequence(params Matcher<T>[] matchers)
-        {
-            return new SequenceMatcher(matchers);
-        }
+            => new SequenceMatcher(matchers);
 
         internal static Matcher<T> Single(Func<T, bool> predicate, string description)
-        {
-            return new SingleMatcher(predicate, description);
-        }
+            => new SingleMatcher(predicate, description);
     }
 }

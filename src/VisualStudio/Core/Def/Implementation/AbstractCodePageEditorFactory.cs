@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,9 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly AbstractEditorFactory _editorFactory;
 
         protected AbstractCodePageEditorFactory(AbstractEditorFactory editorFactory)
-        {
-            _editorFactory = editorFactory;
-        }
+            => _editorFactory = editorFactory;
 
         int IVsEditorFactory.CreateEditorInstance(
             uint grfCreateDoc,
@@ -57,18 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         int IVsEditorFactory.MapLogicalView(ref Guid rguidLogicalView, out string pbstrPhysicalView)
-        {
-            return _editorFactory.MapLogicalView(ref rguidLogicalView, out pbstrPhysicalView);
-        }
+            => _editorFactory.MapLogicalView(ref rguidLogicalView, out pbstrPhysicalView);
 
         int IVsEditorFactory.SetSite(IOleServiceProvider psp)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         int IVsEditorFactory.Close()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
     }
 }

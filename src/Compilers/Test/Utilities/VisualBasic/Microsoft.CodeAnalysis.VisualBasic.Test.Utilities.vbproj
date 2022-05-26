@@ -5,12 +5,12 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests</RootNamespace>
     <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
@@ -22,6 +22,7 @@
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Emit" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Symbols" />
     <Import Include="Microsoft.CodeAnalysis.VisualBasic.Syntax" />
+    <Import Include="System.Xml.Linq" />
     <Import Include="Roslyn.Utilities" />
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +37,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

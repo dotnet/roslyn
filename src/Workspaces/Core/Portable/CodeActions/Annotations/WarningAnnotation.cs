@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-
 namespace Microsoft.CodeAnalysis.CodeActions
 {
     /// <summary>
@@ -13,13 +12,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const string Kind = "CodeAction_Warning";
 
         public static SyntaxAnnotation Create(string description)
-        {
-            return new SyntaxAnnotation(Kind, description);
-        }
+            => new(Kind, description);
 
-        public static string GetDescription(SyntaxAnnotation annotation)
-        {
-            return annotation.Data;
-        }
+        public static string? GetDescription(SyntaxAnnotation annotation)
+            => annotation.Data;
     }
 }

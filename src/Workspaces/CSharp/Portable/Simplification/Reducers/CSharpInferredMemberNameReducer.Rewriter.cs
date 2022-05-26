@@ -2,14 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
+    using static CSharpInferredMemberNameSimplifier;
+
     internal partial class CSharpInferredMemberNameReducer
     {
         private class Rewriter : AbstractReductionRewriter
@@ -20,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 s_simplifyTupleName = SimplifyTupleName;
             }
 
-            private readonly Func<ArgumentSyntax, SemanticModel, OptionSet, CancellationToken, ArgumentSyntax> s_simplifyTupleName;
+            private readonly Func<ArgumentSyntax, SemanticModel, SimplifierOptions, CancellationToken, ArgumentSyntax> s_simplifyTupleName;
 
-            private ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
+            private ArgumentSyntax SimplifyTupleName(ArgumentSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken cancellationToken)
             {
                 if (CanSimplifyTupleElementName(node, this.ParseOptions))
                 {
@@ -32,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return node;
             }
 
-            private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
+            private static readonly Func<AnonymousObjectMemberDeclaratorSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode> s_simplifyAnonymousTypeMemberName = SimplifyAnonymousTypeMemberName;
 
-            private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, OptionSet optionSet, CancellationToken canellationToken)
+            private static SyntaxNode SimplifyAnonymousTypeMemberName(AnonymousObjectMemberDeclaratorSyntax node, SemanticModel semanticModel, SimplifierOptions options, CancellationToken canellationToken)
             {
 
                 if (CanSimplifyAnonymousTypeMemberName(node))

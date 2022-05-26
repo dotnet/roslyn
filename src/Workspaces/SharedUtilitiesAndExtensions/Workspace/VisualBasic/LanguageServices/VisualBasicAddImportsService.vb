@@ -5,11 +5,12 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -23,10 +24,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             ImportsStatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Private Shared ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
+        Private Shared ReadOnly ImportsStatementComparer As ImportsStatementComparer = New ImportsStatementComparer(New CaseInsensitiveTokenComparer())
 
         Protected Overrides Function IsEquivalentImport(a As SyntaxNode, b As SyntaxNode) As Boolean
             Dim importsA = TryCast(a, ImportsStatementSyntax)
@@ -57,6 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                                                FirstOrDefault()?.Alias
         End Function
 
+        Public Overrides Function GetUsingDirectivePlacementCodeStyleOption(configOptions As AnalyzerConfigOptions, fallbackValue As CodeStyleOption2(Of AddImportPlacement)) As CodeStyleOption2(Of AddImportPlacement)
+            ' Visual Basic doesn't support imports inside namespaces
+            Return fallbackValue
+        End Function
+
         Protected Overrides Function IsStaticUsing(usingOrAlias As ImportsStatementSyntax) As Boolean
             ' Visual Basic doesn't support static imports
             Return False
@@ -83,19 +90,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 usingContainer As SyntaxNode,
                 staticUsingContainer As SyntaxNode,
                 aliasContainer As SyntaxNode,
-                placeSystemNamespaceFirst As Boolean,
+                options As AddImportPlacementOptions,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As SyntaxNode
 
             Dim compilationUnit = DirectCast(root, CompilationUnitSyntax)
 
-            If Not compilationUnit.CanAddImportsStatements(cancellationToken) Then
+            If Not compilationUnit.CanAddImportsStatements(options.AllowInHiddenRegions, cancellationToken) Then
                 Return compilationUnit
             End If
 
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),
-                placeSystemNamespaceFirst,
+                options.PlaceSystemNamespaceFirst,
                 Array.Empty(Of SyntaxAnnotation))
         End Function
 

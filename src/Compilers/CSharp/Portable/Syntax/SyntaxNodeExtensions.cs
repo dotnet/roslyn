@@ -49,6 +49,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static bool MayBeNameofOperator(this InvocationExpressionSyntax node)
+        {
+            if (node.Expression.Kind() == SyntaxKind.IdentifierName &&
+                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() == SyntaxKind.NameOfKeyword &&
+                node.ArgumentList.Arguments.Count == 1)
+            {
+                ArgumentSyntax argument = node.ArgumentList.Arguments[0];
+                if (argument.NameColon == null && argument.RefOrOutKeyword == default)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// This method is used to keep the code that generates binders in sync
         /// with the code that searches for binders.  We don't want the searcher
@@ -63,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxKind kind = syntax.Kind();
             switch (kind)
             {
+                case SyntaxKind.InvocationExpression when ((InvocationExpressionSyntax)syntax).MayBeNameofOperator():
+                    return true;
                 case SyntaxKind.CatchClause:
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -78,17 +96,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.BaseConstructorInitializer:
                 case SyntaxKind.ThisConstructorInitializer:
                 case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.PrimaryConstructorBaseType:
                     return true;
+
+                case SyntaxKind.RecordDeclaration:
+                    return ((RecordDeclarationSyntax)syntax).ParameterList is object;
+
+                case SyntaxKind.RecordStructDeclaration:
+                    return false;
+
                 default:
                     return syntax is StatementSyntax || IsValidScopeDesignator(syntax as ExpressionSyntax);
-
             }
         }
 
-        internal static bool IsValidScopeDesignator(this ExpressionSyntax expression)
+        internal static bool IsValidScopeDesignator(this ExpressionSyntax? expression)
         {
             // All these nodes are valid scope designators due to the pattern matching and out vars features.
-            CSharpSyntaxNode parent = expression?.Parent;
+            CSharpSyntaxNode? parent = expression?.Parent;
             switch (parent?.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
@@ -132,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = node.Parent;
             }
 
-            SyntaxNode parentNode = node.Parent;
+            SyntaxNode? parentNode = node.Parent;
 
             if (parentNode is null)
             {
@@ -144,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // In case of a declaration of a Span<T> variable
                 case SyntaxKind.EqualsValueClause:
                     {
-                        SyntaxNode variableDeclarator = parentNode.Parent;
+                        SyntaxNode? variableDeclarator = parentNode.Parent;
 
                         return variableDeclarator.IsKind(SyntaxKind.VariableDeclarator) &&
                             variableDeclarator.Parent.IsKind(SyntaxKind.VariableDeclaration);
@@ -226,9 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
-            this ExpressionSyntax syntax,
-            DiagnosticBag diagnostics,
+        internal static ExpressionSyntax? CheckAndUnwrapRefExpression(
+            this ExpressionSyntax? syntax,
+            BindingDiagnosticBag diagnostics,
             out RefKind refKind)
         {
             refKind = RefKind.None;
@@ -243,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, BindingDiagnosticBag diagnostics)
         {
             if (IsDeconstructionCompatibleArgument(expression))
             {

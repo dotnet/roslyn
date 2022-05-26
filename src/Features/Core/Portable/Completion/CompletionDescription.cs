@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.Completion
     /// </summary>
     public sealed class CompletionDescription
     {
+        private string? _text;
+
         /// <summary>
         /// The <see cref="CompletionDescription"/> used when there is no description.
         /// </summary>
-        public static readonly CompletionDescription Empty = new CompletionDescription(ImmutableArray<TaggedText>.Empty);
+        public static readonly CompletionDescription Empty = new(ImmutableArray<TaggedText>.Empty);
 
         /// <summary>
         /// The individual tagged parts of the description.
@@ -24,26 +26,20 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableArray<TaggedText> TaggedParts { get; }
 
         private CompletionDescription(ImmutableArray<TaggedText> taggedParts)
-        {
-            TaggedParts = taggedParts.NullToEmpty();
-        }
+            => TaggedParts = taggedParts.NullToEmpty();
 
         /// <summary>
         /// Creates a new instance of <see cref="CompletionDescription"/> with the specified <see cref="TaggedText"/> parts.
         /// </summary>
         /// <param name="taggedParts">The individual tagged parts of the description.</param>
         public static CompletionDescription Create(ImmutableArray<TaggedText> taggedParts)
-        {
-            return new CompletionDescription(taggedParts);
-        }
+            => new(taggedParts);
 
         /// <summary>
         /// Creates a new instance of <see cref="CompletionDescription"/> from untagged text.
         /// </summary>
         public static CompletionDescription FromText(string text)
-        {
-            return new CompletionDescription(ImmutableArray.Create(new TaggedText(TextTags.Text, text)));
-        }
+            => new(ImmutableArray.Create(new TaggedText(TextTags.Text, text)));
 
         /// <summary>
         /// Creates a copy of this <see cref="CompletionDescription"/> with the <see cref="TaggedParts"/> property changed.
@@ -75,7 +71,5 @@ namespace Microsoft.CodeAnalysis.Completion
                 return _text;
             }
         }
-
-        private string _text = null;
     }
 }

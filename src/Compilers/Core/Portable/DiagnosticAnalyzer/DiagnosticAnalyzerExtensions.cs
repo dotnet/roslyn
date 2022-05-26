@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static CompilationWithAnalyzers WithAnalyzers(this Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options = null, CancellationToken cancellationToken = default)
         {
             return new CompilationWithAnalyzers(compilation, analyzers, options, cancellationToken);
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -18,24 +16,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SourceTextExtensions
     {
-        /// <summary>
-        /// Returns the leading whitespace of the line located at the specified position in the given snapshot.
-        /// </summary>
-        public static string GetLeadingWhitespaceOfLineAtPosition(this SourceText text, int position)
-        {
-            Contract.ThrowIfNull(text);
-
-            var line = text.Lines.GetLineFromPosition(position);
-            var linePosition = line.GetFirstNonWhitespacePosition();
-            if (!linePosition.HasValue)
-            {
-                return line.ToString();
-            }
-
-            var lineText = line.ToString();
-            return lineText.Substring(0, linePosition.Value - line.Start);
-        }
-
         public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
         {
             var line = text.Lines.GetLineFromPosition(position);
@@ -144,8 +124,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool Match(char normalizedLeft, char right, bool caseSensitive)
+            => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+
+        public static bool ContentEquals(this SourceText text, int position, string value)
         {
-            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+            if (position + value.Length > text.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (text[position + i] != value[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static int IndexOfNonWhiteSpace(this SourceText text, int start, int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (!char.IsWhiteSpace(text[start + i]))
+                {
+                    return start + i;
+                }
+            }
+
+            return -1;
         }
 
         // 32KB. comes from SourceText char buffer size and less than large object size
@@ -214,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
+        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
             using var textReader = ObjectReaderTextReader.Create(reader);
 
@@ -307,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // adjust to actual char to read
-                var totalCharsToRead = Math.Min(count, (int)(Length - _position));
+                var totalCharsToRead = Math.Min(count, Length - _position);
                 count = totalCharsToRead;
 
                 var chunkIndex = GetIndexFromPosition(_position);

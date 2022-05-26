@@ -4,39 +4,32 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
 {
+    [NonDefaultable]
     internal readonly struct NextSuppressOperationAction
     {
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
         private readonly int _index;
         private readonly SyntaxNode _node;
-        private readonly OptionSet _optionSet;
         private readonly List<SuppressOperation> _list;
 
         public NextSuppressOperationAction(
             ImmutableArray<AbstractFormattingRule> formattingRules,
             int index,
             SyntaxNode node,
-            OptionSet optionSet,
             List<SuppressOperation> list)
         {
             _formattingRules = formattingRules;
             _index = index;
             _node = node;
-            _optionSet = optionSet;
             _list = list;
         }
 
         private NextSuppressOperationAction NextAction
-            => new NextSuppressOperationAction(_formattingRules, _index + 1, _node, _optionSet, _list);
+            => new(_formattingRules, _index + 1, _node, _list);
 
         public void Invoke()
         {
@@ -48,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
             else
             {
                 // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddSuppressOperations(_list, _node, _optionSet, NextAction);
+                _formattingRules[_index].AddSuppressOperations(_list, _node, NextAction);
                 return;
             }
         }

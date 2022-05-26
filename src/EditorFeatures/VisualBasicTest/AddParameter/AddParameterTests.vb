@@ -680,7 +680,6 @@ End Class
             Await TestInRegularAndScriptAsync(code, fixCascading, index:=1)
         End Function
 
-
         <WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestInvocationRecursion() As Task
@@ -716,7 +715,7 @@ End Class"
             Dim fix =
 "
 Friend Class C1
-    Private Sub M1(t1 As (Integer, Integer), p As (Integer, String))
+    Private Sub M1(t1 As (Integer, Integer), value As (Integer, String))
         Me.M1((1,1), (1,""1""))
     End Sub
 End Class"

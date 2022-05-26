@@ -2,25 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class NewLineUserSettingFormattingRule : BaseFormattingRule
+    internal sealed class NewLineUserSettingFormattingRule : BaseFormattingRule
     {
-        private bool IsControlBlock(SyntaxNode node)
-        {
-            Debug.Assert(node != null);
+        private readonly CSharpSyntaxFormattingOptions _options;
 
-            if (node.Kind() == SyntaxKind.SwitchStatement)
+        public NewLineUserSettingFormattingRule()
+            : this(CSharpSyntaxFormattingOptions.Default)
+        {
+        }
+
+        private NewLineUserSettingFormattingRule(CSharpSyntaxFormattingOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
+        {
+            var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
+
+            if (_options.NewLines == newOptions.NewLines &&
+                _options.WrappingKeepStatementsOnSingleLine == newOptions.WrappingKeepStatementsOnSingleLine)
+            {
+                return this;
+            }
+
+            return new NewLineUserSettingFormattingRule(newOptions);
+        }
+
+        private static bool IsControlBlock(SyntaxNode node)
+        {
+            RoslynDebug.Assert(node != null);
+
+            if (node.IsKind(SyntaxKind.SwitchStatement))
             {
                 return true;
             }
@@ -52,16 +73,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
-            var operation = nextOperation.Invoke();
+            RoslynDebug.AssertNotNull(currentToken.Parent);
+
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
 
             // } else in the if else context
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken)
                 && currentToken.IsKind(SyntaxKind.ElseKeyword)
-                && previousToken.Parent.Parent == currentToken.Parent.Parent)
+                && previousToken.Parent!.Parent == currentToken.Parent.Parent)
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLineForElse))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeElse))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -70,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // * catch in the try catch context
             if (currentToken.IsKind(SyntaxKind.CatchKeyword))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLineForCatch))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeCatch))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -79,34 +102,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // * finally
             if (currentToken.IsKind(SyntaxKind.FinallyKeyword))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLineForFinally))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeFinally))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // * { in the type declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax)
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInTypes))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // new { - Anonymous object creation
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null && currentToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousTypes))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
-            // new { - Object Initialization
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null && currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
+            // new { - Object Initialization, or with { - Record with initializer, or is { - property pattern clauses
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                currentToken.Parent.IsKind(
+                    SyntaxKind.ObjectInitializerExpression,
+                    SyntaxKind.CollectionInitializerExpression,
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxKind.ImplicitArrayCreationExpression,
+                    SyntaxKind.WithInitializerExpression,
+                    SyntaxKind.PropertyPatternClause))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -115,58 +145,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is MemberDeclarationSyntax)
             {
                 var option = currentTokenParentParent is BasePropertyDeclarationSyntax
-                    ? CSharpFormattingOptions.NewLinesForBracesInProperties
-                    : CSharpFormattingOptions.NewLinesForBracesInMethods;
+                    ? _options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties)
+                    : _options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods);
 
-                if (!optionSet.GetOption(option))
+                if (!option)
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is AccessorDeclarationSyntax)
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAccessors))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAccessors))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // * { - in the anonymous Method context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousMethods))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // * { - in the local function context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // * { - in the Lambda context
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent != null &&
-               (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression) || currentTokenParentParent.IsKind(SyntaxKind.ParenthesizedLambdaExpression)))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+               currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody))
+                {
+                    operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
+                }
+            }
+
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
+            {
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
             }
 
             // * { - in the control statement context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && IsControlBlock(currentToken.Parent))
             {
-                if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
+                if (!_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInControlBlocks))
                 {
                     operation = CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }
@@ -175,16 +214,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return operation;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
-            var operation = nextOperation.Invoke();
+            RoslynDebug.AssertNotNull(currentToken.Parent);
+
+            var operation = nextOperation.Invoke(in previousToken, in currentToken);
 
             // else condition is actually handled in the GetAdjustSpacesOperation()
 
             // For Object Initialization Expression
-            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression)
+            if (previousToken.IsKind(SyntaxKind.CommaToken) && previousToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForMembersInObjectInit))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeMembersInObjectInitializers))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -196,9 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Anonymous Object Creation Expression
-            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent.Kind() == SyntaxKind.AnonymousObjectCreationExpression)
+            if (previousToken.IsKind(SyntaxKind.CommaToken) && previousToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForMembersInAnonymousTypes))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -212,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // } else in the if else context
             if (previousToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.IsKind(SyntaxKind.ElseKeyword))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForElse)
-                    || previousToken.Parent.Parent != currentToken.Parent.Parent)
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeElse)
+                    || previousToken.Parent!.Parent != currentToken.Parent.Parent)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -224,9 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * catch in the try catch context
-            if (currentToken.Kind() == SyntaxKind.CatchKeyword)
+            if (currentToken.IsKind(SyntaxKind.CatchKeyword))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForCatch))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeCatch))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -237,9 +278,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * Finally
-            if (currentToken.Kind() == SyntaxKind.FinallyKeyword)
+            if (currentToken.IsKind(SyntaxKind.FinallyKeyword))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLineForFinally))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeFinally))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -250,9 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the type declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax)
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInTypes))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -263,9 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // new { - Anonymous object creation
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.Kind() == SyntaxKind.AnonymousObjectCreationExpression)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousTypes))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -277,11 +318,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // new MyObject { - Object Initialization
             // new List<int> { - Collection Initialization
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null &&
-                (currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.CollectionInitializerExpression))
+            // with { - Record with initializer
+            // is { - property pattern clauses
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.ObjectInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.WithInitializerExpression, SyntaxKind.PropertyPatternClause))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -295,9 +337,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // int[] arr = new int[] {
             //             new[] {
             //             { - Implicit Array
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent != null &&
-                (currentToken.Parent.Kind() == SyntaxKind.ArrayInitializerExpression ||
-                currentToken.Parent.Kind() == SyntaxKind.ImplicitArrayCreationExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.ArrayInitializerExpression, SyntaxKind.ImplicitArrayCreationExpression))
             {
                 return null;
             }
@@ -305,13 +346,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is MemberDeclarationSyntax)
             {
                 var option = currentTokenParentParent is BasePropertyDeclarationSyntax
-                    ? CSharpFormattingOptions.NewLinesForBracesInProperties
-                    : CSharpFormattingOptions.NewLinesForBracesInMethods;
+                    ? _options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties)
+                    : _options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods);
 
-                if (optionSet.GetOption(option))
+                if (option)
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -322,9 +363,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the property accessor context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is AccessorDeclarationSyntax)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is AccessorDeclarationSyntax)
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAccessors))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAccessors))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -335,9 +376,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the anonymous Method context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.AnonymousMethodExpression)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousMethods))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
                 }
@@ -348,9 +389,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the local function context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.LocalFunctionStatement)
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -361,10 +402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the simple Lambda context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null &&
-               (currentTokenParentParent.Kind() == SyntaxKind.SimpleLambdaExpression || currentTokenParentParent.Kind() == SyntaxKind.ParenthesizedLambdaExpression))
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+               currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLinesIfOnSingleLine);
                 }
@@ -374,10 +415,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // * { - in the control statement context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
+            // * { - in the switch expression context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.SwitchExpression))
             {
-                if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
@@ -387,12 +428,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // Wrapping - Leave statements on same line (false): 
+            // * { - in the control statement context
+            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && IsControlBlock(currentToken.Parent))
+            {
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInControlBlocks))
+                {
+                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            // Wrapping - Leave statements on same line (false):
             // Insert a newline between the previous statement and this one.
             // ; *
-            if (previousToken.Kind() == SyntaxKind.SemicolonToken
+            if (previousToken.IsKind(SyntaxKind.SemicolonToken)
                 && (previousToken.Parent is StatementSyntax && !previousToken.Parent.IsKind(SyntaxKind.ForStatement))
-                && !optionSet.GetOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine))
+                && !_options.WrappingKeepStatementsOnSingleLine)
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }

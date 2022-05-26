@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend NotInheritable Class IfBlockContext
         Inherits ExecutableStatementContext
 
-        Private _elseIfBlocks As SyntaxListBuilder(Of ElseIfBlockSyntax)
+        Private ReadOnly _elseIfBlocks As SyntaxListBuilder(Of ElseIfBlockSyntax)
         Private _optionalElseBlock As ElseBlockSyntax
 
         Friend Sub New(statement As StatementSyntax, prevContext As BlockContext)

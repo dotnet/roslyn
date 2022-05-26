@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -30,26 +32,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private sealed class WrappedValue
         {
-            public TValue Value { get; set; }
+            public WrappedValue(TValue value)
+            {
+                Value = value;
+            }
+
+            public TValue Value { get; }
         }
 
         private WrappedValue ComputeValue(TKey key)
         {
             var value = _computeValue(key);
-            return new WrappedValue { Value = value };
+            return new WrappedValue(value);
         }
 
-        internal bool TryGetValue(TKey key, out TValue value)
+        internal bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             // Catch any exceptions from the computeValue callback, which calls into user code.
             try
             {
                 value = _valueCache.GetValue(key, _valueCacheCallback).Value;
+                Debug.Assert(value is object);
                 return true;
             }
             catch (Exception)
             {
-                value = default(TValue);
+                value = default;
                 return false;
             }
         }

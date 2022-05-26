@@ -20,29 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Sub New()
             End Sub
 
-            Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
-                If syntaxTree Is Nothing Then
-                    Return False
-                End If
-
-                Return syntaxTree.IsInInactiveRegion(position, cancellationToken)
-            End Function
-
             Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
                 If syntaxTree Is Nothing Then
                     Return False
                 End If
 
                 Return syntaxTree.IsInNonUserCode(position, cancellationToken)
-            End Function
-
-            Public Function IsPossibleTupleContext(
-                syntaxTree As SyntaxTree,
-                position As Integer,
-                cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsPossibleTupleContext
-
-                Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                Return syntaxTree.IsPossibleTupleContext(token, position)
             End Function
 
             Public Sub AddFirstMissingCloseBrace(Of TContextNode As SyntaxNode)(
@@ -53,8 +36,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 newContextNode = contextNode
             End Sub
 
-            Public Function GetSelectedFieldsAndProperties(root As SyntaxNode, textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of SyntaxNode) Implements ISyntaxFactsService.GetSelectedFieldsAndProperties
-                Return ImmutableArray(Of SyntaxNode).CastUp(root.GetSelectedFieldsAndPropertiesInSpan(textSpan, allowPartialSelection))
+            Public Function GetSelectedFieldsAndPropertiesAsync(tree As SyntaxTree, textSpan As TextSpan, allowPartialSelection As Boolean, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxNode)) Implements ISyntaxFactsService.GetSelectedFieldsAndPropertiesAsync
+                Return VisualBasicSelectedMembers.Instance.GetSelectedFieldsAndPropertiesAsync(tree, textSpan, allowPartialSelection, cancellationToken)
             End Function
         End Class
     End Class

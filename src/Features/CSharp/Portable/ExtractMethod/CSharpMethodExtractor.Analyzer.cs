@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Operations;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override ITypeSymbol GetRangeVariableType(SemanticModel model, IRangeVariableSymbol symbol)
             {
-                var info = model.GetSpeculativeTypeInfo(this.SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
+                var info = model.GetSpeculativeTypeInfo(SelectionResult.FinalSpan.Start, SyntaxFactory.ParseName(symbol.Name), SpeculativeBindingOption.BindAsExpression);
                 if (Microsoft.CodeAnalysis.Shared.Extensions.ISymbolExtensions.IsErrorType(info.Type))
                 {
                     return null;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             protected override Tuple<SyntaxNode, SyntaxNode> GetFlowAnalysisNodeRange()
             {
-                var csharpSelectionResult = this.SelectionResult as CSharpSelectionResult;
+                var csharpSelectionResult = SelectionResult as CSharpSelectionResult;
 
                 var first = csharpSelectionResult.GetFirstStatement();
                 var last = csharpSelectionResult.GetLastStatement();
@@ -124,53 +124,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             protected override bool ContainsReturnStatementInSelectedCode(IEnumerable<SyntaxNode> jumpOutOfRegionStatements)
-            {
-                return jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
-            }
+                => jumpOutOfRegionStatements.Where(n => n is ReturnStatementSyntax).Any();
 
             protected override bool ReadOnlyFieldAllowed()
             {
-                var scope = this.SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
+                var scope = SelectionResult.GetContainingScopeOf<ConstructorDeclarationSyntax>();
                 return scope == null;
             }
 
             protected override ITypeSymbol GetSymbolType(SemanticModel semanticModel, ISymbol symbol)
             {
-                var selectionOperation = semanticModel.GetOperation(this.SelectionResult.GetContainingScope());
+                var selectionOperation = semanticModel.GetOperation(SelectionResult.GetContainingScope());
 
-                switch (symbol)
+                // Check if null is possibly assigned to the symbol. If it is, leave nullable annotation as is, otherwise
+                // we can modify the annotation to be NotAnnotated to code that more likely matches the user's intent.
+                if (selectionOperation is not null &&
+                    NullableHelpers.IsSymbolAssignedPossiblyNullValue(semanticModel, selectionOperation, symbol) == false)
                 {
-                    case ILocalSymbol localSymbol when localSymbol.NullableAnnotation == NullableAnnotation.Annotated:
-                    case IParameterSymbol parameterSymbol when parameterSymbol.NullableAnnotation == NullableAnnotation.Annotated:
-
-                        // For local symbols and parameters, we can check what the flow state 
-                        // for refences to the symbols are and determine if we can change 
-                        // the nullability to a less permissive state.
-                        var references = selectionOperation.DescendantsAndSelf()
-                            .Where(IsSymbolReferencedByOperation);
-
-                        if (AreAllReferencesNotNull(references))
-                        {
-                            return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
-                        }
-
-                        return base.GetSymbolType(semanticModel, symbol);
-
-                    default:
-                        return base.GetSymbolType(semanticModel, symbol);
+                    return base.GetSymbolType(semanticModel, symbol).WithNullableAnnotation(NullableAnnotation.NotAnnotated);
                 }
 
-                bool AreAllReferencesNotNull(IEnumerable<IOperation> references)
-                => references.All(r => semanticModel.GetTypeInfo(r.Syntax).Nullability.FlowState == NullableFlowState.NotNull);
-
-                bool IsSymbolReferencedByOperation(IOperation operation)
-                    => operation switch
-                    {
-                        ILocalReferenceOperation localReference => localReference.Local.Equals(symbol),
-                        IParameterReferenceOperation parameterReference => parameterReference.Parameter.Equals(symbol),
-                        IAssignmentOperation assignment => IsSymbolReferencedByOperation(assignment.Target),
-                        _ => false
-                    };
+                return base.GetSymbolType(semanticModel, symbol);
             }
         }
     }

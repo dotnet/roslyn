@@ -3,14 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -26,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Formatting
 
             private readonly bool _treatAsElastic;
 
-            public AbstractComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
-                : base(optionSet, token1.Language)
+            public AbstractComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+                : base(options, token1.Language)
             {
                 Contract.ThrowIfNull(treeInfo);
 
@@ -76,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     return this;
                 }
 
-                return Contract.FailWithReturn<TriviaData>("Can not reach here");
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override TriviaData WithLine(
@@ -118,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     }
                 }
 
-                return Contract.FailWithReturn<TriviaData>("Can not reach here");
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override TriviaData WithIndentation(
@@ -155,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return CreateComplexTrivia(lineBreaks, spaces, indentation);
             }
 
-            private string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
+            private static string CreateString(TriviaDataWithList triviaData, CancellationToken cancellationToken)
             {
                 // create string from given trivia data
                 var sb = StringBuilderPool.Allocate();

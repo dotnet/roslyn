@@ -2,9 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -26,7 +27,7 @@ namespace Roslyn.Utilities
             _bkTree = bKTree;
         }
 
-        public SpellChecker(Checksum checksum, IEnumerable<StringSlice> corpus)
+        public SpellChecker(Checksum checksum, IEnumerable<ReadOnlyMemory<char>> corpus)
             : this(checksum, BKTree.Create(corpus))
         {
         }

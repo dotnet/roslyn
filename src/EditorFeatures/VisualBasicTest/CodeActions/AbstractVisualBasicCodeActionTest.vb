@@ -18,11 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return TestOptions.Script
         End Function
 
-        Protected Overrides Function CreateWorkspaceFromFile(initialMarkup As String, parameters As TestParameters) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(
-                initialMarkup,
-                parameters.parseOptions,
-                If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
+        Protected Overrides Function SetParameterDefaults(parameters As TestParameters) As TestParameters
+            Return parameters.WithCompilationOptions(If(parameters.compilationOptions, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)))
         End Function
 
         Protected Shared Function NewLines(input As String) As String

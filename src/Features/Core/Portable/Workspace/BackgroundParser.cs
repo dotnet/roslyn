@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -21,15 +22,15 @@ namespace Microsoft.CodeAnalysis.Host
     /// but certain host such as VS, we have this (BackgroundParser) which preemptively 
     /// trying to realize such trees for open/active files expecting users will use them soonish.
     /// </summary>
-    internal class BackgroundParser
+    internal sealed class BackgroundParser
     {
         private readonly Workspace _workspace;
-        private readonly IWorkspaceTaskScheduler _taskScheduler;
+        private readonly TaskQueue _taskQueue;
         private readonly IDocumentTrackingService _documentTrackingService;
 
-        private readonly ReaderWriterLockSlim _stateLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _stateLock = new(LockRecursionPolicy.NoRecursion);
 
-        private readonly object _parseGate = new object();
+        private readonly object _parseGate = new();
         private ImmutableDictionary<DocumentId, CancellationTokenSource> _workMap = ImmutableDictionary.Create<DocumentId, CancellationTokenSource>();
 
         public bool IsStarted { get; private set; }
@@ -38,10 +39,11 @@ namespace Microsoft.CodeAnalysis.Host
         {
             _workspace = workspace;
 
-            var taskSchedulerFactory = workspace.Services.GetService<IWorkspaceTaskSchedulerFactory>();
-            _taskScheduler = taskSchedulerFactory.CreateBackgroundTaskScheduler();
+            var listenerProvider = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            _taskQueue = new TaskQueue(listenerProvider.GetListener(), TaskScheduler.Default);
 
-            _documentTrackingService = workspace.Services.GetService<IDocumentTrackingService>();
+            _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
+            _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
 
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
@@ -49,15 +51,14 @@ namespace Microsoft.CodeAnalysis.Host
             workspace.DocumentClosed += OnDocumentClosed;
         }
 
+        private void OnActiveDocumentChanged(object sender, DocumentId activeDocumentId)
+            => Parse(_workspace.CurrentSolution.GetDocument(activeDocumentId));
+
         private void OnDocumentOpened(object sender, DocumentEventArgs args)
-        {
-            Parse(args.Document);
-        }
+            => Parse(args.Document);
 
         private void OnDocumentClosed(object sender, DocumentEventArgs args)
-        {
-            CancelParse(args.Document.Id);
-        }
+            => CancelParse(args.Document.Id);
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
         {
@@ -166,17 +167,6 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     CancelParse(document.Id);
 
-                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile &&
-                        _documentTrackingService?.TryGetActiveDocument() != document.Id)
-                    {
-                        // Avoid performing any background parsing for non-active files
-                        // if the user has explicitly set the background analysis scope
-                        // to only analyze active files.
-                        // Note that we bail out after executing CancelParse to ensure
-                        // all the current background parsing tasks are cancelled.
-                        return;
-                    }
-
                     if (IsStarted)
                     {
                         _ = ParseDocumentAsync(document);
@@ -212,26 +202,30 @@ namespace Microsoft.CodeAnalysis.Host
             // By not cancelling, we can reuse the useful results of previous tasks when performing later steps in the chain.
             //
             // we still cancel whole task if the task didn't start yet. we just don't cancel if task is started but not finished yet.
-            var task = _taskScheduler.ScheduleTask(
-                () => document.GetSyntaxTreeAsync(CancellationToken.None),
+            return _taskQueue.ScheduleTask(
                 "BackgroundParser.ParseDocumentAsync",
-                cancellationToken);
-
-            // Always ensure that we mark this work as done from the workmap.
-            return task.SafeContinueWith(
-                _ =>
+                async () =>
                 {
-                    using (_stateLock.DisposableWrite())
+                    try
                     {
-                        // Check that we are still the active parse in the workmap before we remove it.
-                        // Concievably if this continuation got delayed and another parse was put in, we might
-                        // end up removing the tracking for another in-flight task.
-                        if (_workMap.TryGetValue(document.Id, out var sourceInMap) && sourceInMap == cancellationTokenSource)
+                        await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        // Always ensure that we mark this work as done from the workmap.
+                        using (_stateLock.DisposableWrite())
                         {
-                            _workMap = _workMap.Remove(document.Id);
+                            // Check that we are still the active parse in the workmap before we remove it.
+                            // Concievably if this continuation got delayed and another parse was put in, we might
+                            // end up removing the tracking for another in-flight task.
+                            if (_workMap.TryGetValue(document.Id, out var sourceInMap) && sourceInMap == cancellationTokenSource)
+                            {
+                                _workMap = _workMap.Remove(document.Id);
+                            }
                         }
                     }
-                }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                },
+                cancellationToken);
         }
     }
 }

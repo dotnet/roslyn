@@ -2,33 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    /// <summary>
-    /// A class that reports the current progress made when finding references to symbols.  
-    /// </summary>
-    internal class StreamingFindReferencesProgress : IStreamingFindReferencesProgress
-    {
-        public static readonly IStreamingFindReferencesProgress Instance =
-            new StreamingFindReferencesProgress();
-
-        private StreamingFindReferencesProgress()
-        {
-        }
-
-        public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
-
-        public Task OnCompletedAsync() => Task.CompletedTask;
-        public Task OnStartedAsync() => Task.CompletedTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => Task.CompletedTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => Task.CompletedTask;
-        public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
-        public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
-    }
-
     /// <summary>
     /// Wraps an <see cref="IFindReferencesProgress"/> into an <see cref="IStreamingFindReferencesProgress"/>
     /// so it can be used from the new streaming find references APIs.
@@ -37,51 +21,61 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         private readonly IFindReferencesProgress _progress;
 
+        public IStreamingProgressTracker ProgressTracker { get; }
+
         public StreamingFindReferencesProgressAdapter(IFindReferencesProgress progress)
         {
             _progress = progress;
+            ProgressTracker = new StreamingProgressTracker((current, max, ct) =>
+            {
+                _progress.ReportProgress(current, max);
+                return default;
+            });
         }
 
-        public Task OnCompletedAsync()
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
         {
             _progress.OnCompleted();
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId)
-        {
-            _progress.OnDefinitionFound(symbolAndProjectId.Symbol);
-            return Task.CompletedTask;
-        }
-
-        public Task OnFindInDocumentCompletedAsync(Document document)
+        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken)
         {
             _progress.OnFindInDocumentCompleted(document);
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnFindInDocumentStartedAsync(Document document)
+        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken)
         {
             _progress.OnFindInDocumentStarted(document);
-            return Task.CompletedTask;
+            return default;
         }
 
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location)
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken)
         {
-            _progress.OnReferenceFound(symbolAndProjectId.Symbol, location);
-            return Task.CompletedTask;
+            try
+            {
+                foreach (var symbol in group.Symbols)
+                    _progress.OnDefinitionFound(symbol);
+
+                return default;
+            }
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
-        public Task OnStartedAsync()
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken)
+        {
+            _progress.OnReferenceFound(symbol, location);
+            return default;
+        }
+
+        public ValueTask OnStartedAsync(CancellationToken cancellationToken)
         {
             _progress.OnStarted();
-            return Task.CompletedTask;
-        }
-
-        public Task ReportProgressAsync(int current, int maximum)
-        {
-            _progress.ReportProgress(current, maximum);
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

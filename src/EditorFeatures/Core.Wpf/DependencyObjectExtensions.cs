@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         public static void SetDefaultTextProperties(this DependencyObject dependencyObject, IClassificationFormatMap formatMap)
-        {
-            dependencyObject.SetTextProperties(formatMap.DefaultTextProperties);
-        }
+            => dependencyObject.SetTextProperties(formatMap.DefaultTextProperties);
     }
 }

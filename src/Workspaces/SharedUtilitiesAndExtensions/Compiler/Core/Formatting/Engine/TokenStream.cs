@@ -6,16 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -31,16 +27,16 @@ namespace Microsoft.CodeAnalysis.Formatting
         private const int MagicTextLengthToTokensRatio = 10;
 
         // caches token information within given formatting span to improve perf
-        private readonly List<SyntaxToken> _tokens;
+        private readonly SegmentedList<SyntaxToken> _tokens;
 
         // caches original trivia info to improve perf
-        private readonly TriviaData[] _cachedOriginalTriviaInfo;
+        private readonly SegmentedArray<TriviaData> _cachedOriginalTriviaInfo;
 
         // formatting engine can be used either with syntax tree or without
         // this will reconstruct information that reside in syntax tree from root node
         // if syntax tree is not given
         private readonly TreeData _treeData;
-        private readonly OptionSet _optionSet;
+        private readonly SyntaxFormattingOptions _options;
 
         // hold onto information that are made to original trivia info
         private Changes _changes;
@@ -52,24 +48,24 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly Func<TokenData, TokenData, TriviaData> _getTriviaData;
         private readonly Func<TokenData, TokenData, TriviaData> _getOriginalTriviaData;
 
-        public TokenStream(TreeData treeData, OptionSet optionSet, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
+        public TokenStream(TreeData treeData, SyntaxFormattingOptions options, TextSpan spanToFormat, AbstractTriviaDataFactory factory)
         {
             using (Logger.LogBlock(FunctionId.Formatting_TokenStreamConstruction, CancellationToken.None))
             {
                 // initialize basic info
                 _factory = factory;
                 _treeData = treeData;
-                _optionSet = optionSet;
+                _options = options;
 
                 // use some heuristics to get initial size of list rather than blindly start from default size == 4
                 var sizeOfList = spanToFormat.Length / MagicTextLengthToTokensRatio;
-                _tokens = new List<SyntaxToken>(sizeOfList);
+                _tokens = new SegmentedList<SyntaxToken>(sizeOfList);
                 _tokens.AddRange(_treeData.GetApplicableTokens(spanToFormat));
 
                 Debug.Assert(this.TokenCount > 0);
 
                 // initialize trivia related info
-                _cachedOriginalTriviaInfo = new TriviaData[this.TokenCount - 1];
+                _cachedOriginalTriviaInfo = new SegmentedArray<TriviaData>(this.TokenCount - 1);
 
                 // Func Cache
                 _getTriviaData = this.GetTriviaData;
@@ -198,14 +194,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public bool TwoTokensOriginallyOnSameLine(SyntaxToken token1, SyntaxToken token2)
-        {
-            return TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
-        }
+            => TwoTokensOnSameLineWorker(token1, token2, _getOriginalTriviaData);
 
         public bool TwoTokensOnSameLine(SyntaxToken token1, SyntaxToken token2)
-        {
-            return TwoTokensOnSameLineWorker(token1, token2, _getTriviaData);
-        }
+            => TwoTokensOnSameLineWorker(token1, token2, _getTriviaData);
 
         private bool TwoTokensOnSameLineWorker(SyntaxToken token1, SyntaxToken token2, Func<TokenData, TokenData, TriviaData> triviaDataGetter)
         {
@@ -277,9 +269,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public int GetCurrentColumn(TokenData tokenData)
-        {
-            return GetColumn(tokenData, _getTriviaData);
-        }
+            => GetColumn(tokenData, _getTriviaData);
 
         public int GetOriginalColumn(SyntaxToken token)
         {
@@ -335,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;
-                length = text.GetTextColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn: 0);
+                length = text.GetTextColumn(_options.TabSize, initialColumn: 0);
                 return;
             }
 
@@ -345,8 +335,8 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (text.ContainsTab())
             {
                 // do expansive calculation
-                var initialColumn = _treeData.GetOriginalColumn(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), token);
-                length = text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, _treeData.Root.Language), initialColumn, text.Length);
+                var initialColumn = _treeData.GetOriginalColumn(_options.TabSize, token);
+                length = text.ConvertTabToSpace(_options.TabSize, initialColumn, text.Length);
                 return;
             }
 
@@ -560,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             return -1;
         }
 
-        public IEnumerable<ValueTuple<int, SyntaxToken, SyntaxToken>> TokenIterator
+        public IEnumerable<(int index, SyntaxToken currentToken, SyntaxToken nextToken)> TokenIterator
         {
             get
             {
@@ -570,14 +560,12 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         private sealed class TokenOrderComparer : IComparer<SyntaxToken>
         {
-            public static readonly TokenOrderComparer Instance = new TokenOrderComparer();
+            public static readonly TokenOrderComparer Instance = new();
 
             private TokenOrderComparer() { }
 
             public int Compare(SyntaxToken x, SyntaxToken y)
-            {
-                return x.FullSpan.CompareTo(y.FullSpan);
-            }
+                => x.FullSpan.CompareTo(y.FullSpan);
         }
     }
 }

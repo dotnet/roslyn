@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -29,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
         private const string CS0118 = nameof(CS0118); // error CS0118: 'C' is a type but is used like a variable
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpGenerateVariableCodeFixProvider()
         {
         }
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
             ImmutableArray.Create(CS1061, CS0103, CS0117, CS0539, CS0246, CS0120, CS0118);
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
-            => node is SimpleNameSyntax || node is PropertyDeclarationSyntax || node is MemberBindingExpressionSyntax;
+            => node is SimpleNameSyntax or PropertyDeclarationSyntax or MemberBindingExpressionSyntax;
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
@@ -54,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable
         }
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IGenerateVariableService>();
-            return service.GenerateVariableAsync(document, node, cancellationToken);
+            return service.GenerateVariableAsync(document, node, fallbackOptions, cancellationToken);
         }
     }
 }

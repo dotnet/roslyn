@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Options.Converters;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -20,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         internal readonly OptionStore OptionStore;
         private readonly List<BindingExpressionBase> _bindingExpressions = new List<BindingExpressionBase>();
 
-        public AbstractOptionPageControl(OptionStore optionStore)
+        protected AbstractOptionPageControl(OptionStore optionStore)
         {
             InitializeStyles();
 
@@ -61,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             Resources.Add(typeof(ComboBox), comboBoxStyle);
         }
 
-        protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
+        private protected void BindToOption(CheckBox checkbox, Option2<bool> optionKey)
         {
             var binding = new Binding()
             {
@@ -74,7 +77,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(CheckBox checkbox, PerLanguageOption<bool> optionKey, string languageName)
+        private protected void BindToOption(CheckBox checkbox, Option2<bool?> nullableOptionKey, Func<bool> onNullValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<bool?>(OptionStore, nullableOptionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new NullableBoolOptionConverter(onNullValue)
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -87,7 +104,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(TextBox textBox, Option<int> optionKey)
+        private protected void BindToOption(CheckBox checkbox, PerLanguageOption2<bool?> nullableOptionKey, string languageName, Func<bool> onNullValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new PerLanguageOptionBinding<bool?>(OptionStore, nullableOptionKey, languageName),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Default,
+                Converter = new NullableBoolOptionConverter(onNullValue)
+            };
+
+            var bindingExpression = checkbox.SetBinding(CheckBox.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
+        private protected void BindToOption(TextBox textBox, Option2<int> optionKey)
         {
             var binding = new Binding()
             {
@@ -100,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(TextBox textBox, PerLanguageOption<int> optionKey, string languageName)
+        private protected void BindToOption(TextBox textBox, PerLanguageOption2<int> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -113,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption<T>(ComboBox comboBox, Option<T> optionKey)
+        private protected void BindToOption<T>(ComboBox comboBox, Option2<T> optionKey)
         {
             var binding = new Binding()
             {
@@ -127,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption<T> optionKey, string languageName)
+        private protected void BindToOption<T>(ComboBox comboBox, PerLanguageOption2<T> optionKey, string languageName)
         {
             var binding = new Binding()
             {
@@ -141,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
+        private protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption2<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
             {

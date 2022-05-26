@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -70,18 +68,19 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             return result;
         }
 
-        internal static GreenNode List(GreenNode[] nodes)
+        internal static GreenNode List(GreenNode?[] nodes)
         {
             return List(nodes, nodes.Length);
         }
 
-        internal static GreenNode List(GreenNode[] nodes, int count)
+        internal static GreenNode List(GreenNode?[] nodes, int count)
         {
             var array = new ArrayElement<GreenNode>[count];
             for (int i = 0; i < count; i++)
             {
-                Debug.Assert(nodes[i] != null);
-                array[i].Value = nodes[i];
+                var node = nodes[i];
+                Debug.Assert(node is object);
+                array[i].Value = node;
             }
 
             return List(array);

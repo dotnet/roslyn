@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -15,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             SyntaxKind.StructDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
+            SyntaxKind.RecordStructDeclaration,
             SyntaxKind.EnumDeclaration,
         };
 
@@ -24,8 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         }
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            return context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken);
-        }
+            => context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken);
     }
 }

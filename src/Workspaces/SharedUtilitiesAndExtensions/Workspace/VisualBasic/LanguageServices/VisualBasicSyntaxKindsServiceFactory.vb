@@ -12,6 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
     Friend Class VisualBasicSyntaxKindsServiceFactory
         Implements ILanguageServiceFactory
 
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
             Return VisualBasicSyntaxKindsService.Instance
         End Function

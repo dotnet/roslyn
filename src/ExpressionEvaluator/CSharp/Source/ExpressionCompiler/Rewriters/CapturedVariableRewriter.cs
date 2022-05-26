@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            var rewrittenLocals = node.Locals.WhereAsArray(local => local.IsCompilerGenerated || local.Name == null || this.GetVariable(local.Name) == null);
+            var rewrittenLocals = node.Locals.WhereAsArray((local, rewriter) => local.IsCompilerGenerated || local.Name == null || rewriter.GetVariable(local.Name) == null, this);
             var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
             return node.Update(rewrittenLocals, rewrittenLocalFunctions, rewrittenStatements);
@@ -93,9 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var syntax = node.Syntax;
             var rewrittenThis = GenerateThisReference(node);
             var baseType = node.Type;
-            HashSet<DiagnosticInfo> unusedUseSiteDiagnostics = null;
-            var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenThis, baseType, ref unusedUseSiteDiagnostics);
-            Debug.Assert(unusedUseSiteDiagnostics == null || !conversion.IsValid || unusedUseSiteDiagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
+            CompoundUseSiteInfo<AssemblySymbol> discardedSiteInfo =
+#if DEBUG
+                default;
+#else
+                CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+#endif
+            var conversion = _conversions.ClassifyImplicitConversionFromExpression(rewrittenThis, baseType, ref discardedSiteInfo);
+            Debug.Assert(discardedSiteInfo.Diagnostics == null || !conversion.IsValid || discardedSiteInfo.Diagnostics.All(d => d.Severity < DiagnosticSeverity.Error));
 
             // It would be nice if we could just call BoundConversion.Synthesized, but it doesn't seem worthwhile to
             // introduce a bunch of new overloads to accommodate isBaseConversion.

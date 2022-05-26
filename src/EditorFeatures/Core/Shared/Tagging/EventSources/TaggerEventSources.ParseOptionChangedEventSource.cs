@@ -4,8 +4,10 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
@@ -13,36 +15,37 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
     {
         private class ParseOptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
         {
-            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(subjectBuffer, delay)
+            public ParseOptionChangedEventSource(ITextBuffer subjectBuffer)
+                : base(subjectBuffer)
             {
             }
 
             protected override void ConnectToWorkspace(Workspace workspace)
-            {
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
-            }
+                => workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                workspace.WorkspaceChanged -= OnWorkspaceChanged;
-            }
+                => workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
-            private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
             {
                 if (e.Kind == WorkspaceChangeKind.ProjectChanged)
                 {
-                    var oldProject = e.OldSolution.GetProject(e.ProjectId);
-                    var newProject = e.NewSolution.GetProject(e.ProjectId);
+                    RoslynDebug.AssertNotNull(e.ProjectId);
+                    var oldProject = e.OldSolution.GetRequiredProject(e.ProjectId);
+                    var newProject = e.NewSolution.GetRequiredProject(e.ProjectId);
 
                     if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                     {
                         var workspace = e.NewSolution.Workspace;
-                        var documentIds = workspace.GetRelatedDocumentIds(SubjectBuffer.AsTextContainer());
-
-                        if (documentIds.Any(d => d.ProjectId == e.ProjectId))
+                        var documentId = workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+                        if (documentId != null)
                         {
-                            this.RaiseChanged();
+                            var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
+
+                            if (relatedDocumentIds.Any(d => d.ProjectId == e.ProjectId))
+                            {
+                                RaiseChanged();
+                            }
                         }
                     }
                 }

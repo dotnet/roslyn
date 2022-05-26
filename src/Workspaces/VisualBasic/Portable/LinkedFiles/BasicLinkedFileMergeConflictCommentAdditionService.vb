@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits AbstractLinkedFileMergeConflictCommentAdditionService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -56,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Private Function GetCommentedText(text As String) As String
+        Private Shared Function GetCommentedText(text As String) As String
             Dim lines = Regex.Split(text, "\r\n|\r|\n")
             If Not lines.Any() Then
                 Return text

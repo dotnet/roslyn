@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
         private const string CS0616 = nameof(CS0616); // error CS0616: 'x' is not an attribute class
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GenerateTypeCodeFixProvider()
         {
         }
@@ -46,27 +47,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType
         {
             switch (node)
             {
-                case QualifiedNameSyntax qualified:
+                case QualifiedNameSyntax _:
                     return true;
                 case SimpleNameSyntax simple:
                     return !simple.IsParentKind(SyntaxKind.QualifiedName);
-                case MemberAccessExpressionSyntax memberAccess:
+                case MemberAccessExpressionSyntax _:
                     return true;
             }
 
             return false;
         }
 
-        protected override SyntaxNode GetTargetNode(SyntaxNode node)
-        {
-            return ((ExpressionSyntax)node).GetRightmostName();
-        }
+        protected override SyntaxNode? GetTargetNode(SyntaxNode node)
+            => ((ExpressionSyntax)node).GetRightmostName();
 
         protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-            Document document, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IGenerateTypeService>();
-            return service.GenerateTypeAsync(document, node, cancellationToken);
+            return service.GenerateTypeAsync(document, node, fallbackOptions, cancellationToken);
         }
     }
 }

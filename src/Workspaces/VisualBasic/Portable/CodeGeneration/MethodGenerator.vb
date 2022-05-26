@@ -2,9 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Shared Function AddMethodTo(destination As NamespaceBlockSyntax,
                                            method As IMethodSymbol,
-                                           options As CodeGenerationOptions,
+                                           options As CodeGenerationContextInfo,
                                            availableIndices As IList(Of Boolean)) As NamespaceBlockSyntax
 
             Dim declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, options)
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Shared Function AddMethodTo(destination As CompilationUnitSyntax,
                                            method As IMethodSymbol,
-                                           options As CodeGenerationOptions,
+                                           options As CodeGenerationContextInfo,
                                            availableIndices As IList(Of Boolean)) As CompilationUnitSyntax
 
             Dim declaration = GenerateMethodDeclaration(method, CodeGenerationDestination.Namespace, options)
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Shared Function AddMethodTo(destination As TypeBlockSyntax,
                                            method As IMethodSymbol,
-                                           options As CodeGenerationOptions,
+                                           options As CodeGenerationContextInfo,
                                            availableIndices As IList(Of Boolean)) As TypeBlockSyntax
 
             Dim methodDeclaration = GenerateMethodDeclaration(method, GetDestination(destination), options)
@@ -51,8 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Shared Function GenerateMethodDeclaration(method As IMethodSymbol,
                                                          destination As CodeGenerationDestination,
-                                                         options As CodeGenerationOptions) As StatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)(method, options)
+                                                         options As CodeGenerationContextInfo) As StatementSyntax
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)(method, options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
             End If
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function GenerateMethodDeclarationWorker(method As IMethodSymbol,
                                                                 destination As CodeGenerationDestination,
-                                                                options As CodeGenerationOptions) As StatementSyntax
+                                                                options As CodeGenerationContextInfo) As StatementSyntax
             Dim isSub = method.ReturnType.SpecialType = SpecialType.System_Void
             Dim kind = If(isSub, SyntaxKind.SubStatement, SyntaxKind.FunctionStatement)
             Dim keyword = If(isSub, SyntaxKind.SubKeyword, SyntaxKind.FunctionKeyword)
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     WithImplementsClause(implementsClauseOpt).
                     WithHandlesClause(handlesClauseOpt)
 
-            Dim hasNoBody = Not options.GenerateMethodBodies OrElse
+            Dim hasNoBody = Not options.Context.GenerateMethodBodies OrElse
                             method.IsAbstract OrElse
                             destination = CodeGenerationDestination.InterfaceType
 
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endSubOrFunctionStatement:=endConstruct)
         End Function
 
-        Private Shared Function GenerateAsClause(method As IMethodSymbol, isSub As Boolean, options As CodeGenerationOptions) As SimpleAsClauseSyntax
+        Private Shared Function GenerateAsClause(method As IMethodSymbol, isSub As Boolean, options As CodeGenerationContextInfo) As SimpleAsClauseSyntax
             If isSub Then
                 Return Nothing
             End If
@@ -140,41 +140,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function GenerateModifiers(method As IMethodSymbol,
                                                   destination As CodeGenerationDestination,
-                                                  options As CodeGenerationOptions) As SyntaxTokenList
-            Dim result = New List(Of SyntaxToken)()
-            If destination <> CodeGenerationDestination.InterfaceType Then
-                AddAccessibilityModifiers(method.DeclaredAccessibility, result, destination, options, Accessibility.Public)
+                                                  options As CodeGenerationContextInfo) As SyntaxTokenList
+            Dim result As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(result)
+                If destination <> CodeGenerationDestination.InterfaceType Then
+                    AddAccessibilityModifiers(method.DeclaredAccessibility, result, destination, options, Accessibility.Public)
 
-                If method.IsAbstract Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                    If method.IsAbstract Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                    End If
+
+                    If method.IsSealed Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
+                    End If
+
+                    If method.IsVirtual Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.OverridableKeyword))
+                    End If
+
+                    If method.IsOverride Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
+                    End If
+
+                    If method.IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    End If
+
+                    If CodeGenerationMethodInfo.GetIsNew(method) Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
+                    End If
+
+                    If CodeGenerationMethodInfo.GetIsAsyncMethod(method) Then
+                        result.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))
+                    End If
                 End If
 
-                If method.IsSealed Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
-                End If
-
-                If method.IsVirtual Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.OverridableKeyword))
-                End If
-
-                If method.IsOverride Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
-                End If
-
-                If method.IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
-                End If
-
-                If CodeGenerationMethodInfo.GetIsNew(method) Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
-                End If
-
-                If CodeGenerationMethodInfo.GetIsAsyncMethod(method) Then
-                    result.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))
-                End If
-            End If
-
-            Return SyntaxFactory.TokenList(result)
+                Return SyntaxFactory.TokenList(result)
+            End Using
         End Function
     End Class
 End Namespace

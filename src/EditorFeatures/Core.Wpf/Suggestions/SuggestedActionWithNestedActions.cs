@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -9,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -46,5 +49,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
         public sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
             => Task.FromResult<IEnumerable<SuggestedActionSet>>(NestedActionSets);
+
+        protected override Task InnerInvokeAsync(IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            // A code action with nested actions is itself never invokable.  So just do nothing if this ever gets asked.
+            // Report a message in debug and log a watson exception so that if this is hit we can try to narrow down how
+            // this happened.
+            Debug.Fail($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}");
+            FatalError.ReportAndCatch(new InvalidOperationException($"{nameof(InnerInvokeAsync)} should not be called on a {nameof(SuggestedActionWithNestedActions)}"), ErrorSeverity.Critical);
+
+            return Task.CompletedTask;
+        }
     }
 }

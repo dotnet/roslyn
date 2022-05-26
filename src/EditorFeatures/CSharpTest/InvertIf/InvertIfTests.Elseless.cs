@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
@@ -303,6 +304,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
                 f();
                 return 2;
         }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(40909, "https://github.com/dotnet/roslyn/issues/40909")]
+        public async Task IfWithoutElse_MoveIfBodyToElseClause8()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Diagnostics;
+class C
+{
+    private static bool IsFalse(bool val)
+    {
+        {
+            [|if|] (!val)
+            {
+                return true;
+            }
+            Debug.Assert(val);
+        }
+        return false;
+    }
+}",
+@"using System.Diagnostics;
+class C
+{
+    private static bool IsFalse(bool val)
+    {
+        {
+            if (val)
+            {
+            }
+            else
+            {
+                return true;
+            }
+            Debug.Assert(val);
+        }
+        return false;
     }
 }");
         }
@@ -749,6 +790,50 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertIf
         }
     }
 }");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task IfWithoutElse_InPropertyAccessors(string accessor)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    private bool _b;
+
+    public string Prop
+    {{
+        {accessor}
+        {{
+            [||]if (_b)
+            {{
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine();
+            }}
+        }}
+    }}
+}}",
+$@"class C
+{{
+    private bool _b;
+
+    public string Prop
+    {{
+        {accessor}
+        {{
+            if (!_b)
+            {{
+                return;
+            }}
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+        }}
+    }}
+}}");
         }
     }
 }

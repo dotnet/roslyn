@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 bool useExplicitInterfaceSymbol,
                 string memberName)
             {
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 var updatedMethod = method.EnsureNonConflictingNames(State.ClassOrStructType, syntaxFacts);
 
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)
             {
-                var factory = Document.GetLanguageService<SyntaxGenerator>();
+                var factory = Document.GetRequiredLanguageService<SyntaxGenerator>();
                 return ThroughMember == null
                     ? factory.CreateThrowNotImplementedStatement(compilation)
                     : factory.GenerateDelegateThroughMemberStatement(method, ThroughMember);

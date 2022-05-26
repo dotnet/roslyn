@@ -13,11 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicMetadataAsSourceService(provider)
+            Return VisualBasicMetadataAsSourceService.Instance
         End Function
     End Class
 End Namespace

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -20,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
 
             protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
-            {
-                return _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
-            }
+                => _match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
 
             internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
             {

@@ -2,12 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 {
     internal static class EmbeddedLanguageUtilities
     {
+        internal static void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
+        {
+            var triviaList = SyntaxFactory.TriviaList(
+                SyntaxFactory.Comment($"/*{commentContents}*/"),
+                SyntaxFactory.ElasticSpace);
+            var newStringLiteral = stringLiteral.WithLeadingTrivia(
+                stringLiteral.LeadingTrivia.AddRange(triviaList));
+            editor.ReplaceNode(stringLiteral.Parent, stringLiteral.Parent.ReplaceToken(stringLiteral, newStringLiteral));
+        }
+
         public static string EscapeText(string text, SyntaxToken token)
         {
             // This function is called when Completion needs to escape something its going to

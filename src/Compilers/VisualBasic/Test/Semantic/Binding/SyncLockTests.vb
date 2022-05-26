@@ -87,7 +87,7 @@ Class Program
     End Sub
 End Class
     </file>
-</compilation>, {SystemCoreRef}).VerifyDiagnostics()
+</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact()>
@@ -179,7 +179,7 @@ Module StringExtensions
     End Sub
 End Module
     </file>
-</compilation>, {SystemCoreRef}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
+</compilation>, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_SyncLockRequiresReferenceType1, "syncroot.PrintInt()").WithArguments("Integer"),
                                 Diagnostic(ERRID.ERR_VoidValue, "syncroot.PrintVoid"),
                                 Diagnostic(ERRID.WRN_DefAsgUseNullRef, "syncroot").WithArguments("syncroot"))
         End Sub

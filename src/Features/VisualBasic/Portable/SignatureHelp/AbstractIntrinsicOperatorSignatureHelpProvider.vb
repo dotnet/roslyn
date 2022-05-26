@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 node)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim node As TSyntaxNode = Nothing
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim items As New List(Of SignatureHelpItem)
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.ReuseExistingSpeculativeModelAsync(node, cancellationToken).ConfigureAwait(False)
             For Each documentation In Await GetIntrinsicOperatorDocumentationAsync(node, document, cancellationToken).ConfigureAwait(False)
                 Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(document, semanticModel, node.SpanStart, documentation, cancellationToken)
                 items.Add(signatureHelpItem)
@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken), selectedItem:=Nothing)
         End Function
 
-        Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
+        Friend Shared Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem
             Dim parameters As New List(Of SignatureHelpSymbolParameter)
 
             For i = 0 To documentation.ParameterCount - 1
@@ -67,12 +67,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim suffixParts = documentation.GetSuffix(semanticModel, position, Nothing, cancellationToken)
 
-            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
-            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim structuralTypeDisplayService = document.GetLanguageService(Of IStructuralTypeDisplayService)()
 
             Return CreateItem(
                 Nothing, semanticModel, position,
-                symbolDisplayService, anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 isVariadic:=False,
                 documentationFactory:=Function(c) SpecializedCollections.SingletonEnumerable(New TaggedText(TextTags.Text, documentation.DocumentationText)),
                 prefixParts:=documentation.PrefixParts,
@@ -101,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 argumentName:=Nothing, argumentNames:=Nothing)
         End Function
 
-        Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
+        Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim node As TSyntaxNode = Nothing
             If TryGetSyntaxNode(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, node) AndAlso
                 currentSpan.Start = node.SpanStart Then

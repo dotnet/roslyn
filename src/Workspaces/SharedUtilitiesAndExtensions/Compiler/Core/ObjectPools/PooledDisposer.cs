@@ -3,28 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
-    internal struct PooledDisposer<TPoolable> : IDisposable
-        where TPoolable : IPooled
+    [NonCopyable]
+    internal readonly struct PooledDisposer<TPoolable> : IDisposable
+        where TPoolable : class, IPooled
     {
-        private TPoolable _pooledObject;
+        private readonly TPoolable _pooledObject;
 
         public PooledDisposer(TPoolable instance)
-        {
-            _pooledObject = instance;
-        }
+            => _pooledObject = instance;
 
-        public void Dispose()
-        {
-            var pooledObject = _pooledObject;
-            if (pooledObject != null)
-            {
-                pooledObject.Free();
-                _pooledObject = default;
-            }
-        }
+        void IDisposable.Dispose()
+            => _pooledObject?.Free();
     }
-
 }

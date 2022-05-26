@@ -4,16 +4,19 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.IO;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.CSharp.Interactive;
-using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
 using Microsoft.VisualStudio.LanguageServices.Interactive;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids;
@@ -24,61 +27,59 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
     internal sealed class CSharpVsInteractiveWindowProvider : VsInteractiveWindowProvider
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly IGlobalOptionService _globalOptions;
+        private readonly ITextDocumentFactoryService _textDocumentFactoryService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVsInteractiveWindowProvider(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IVsInteractiveWindowFactory interactiveWindowFactory,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,
             IInteractiveWindowCommandsFactory commandsFactory,
-            [ImportMany]IInteractiveWindowCommand[] commands,
+            [ImportMany] IInteractiveWindowCommand[] commands,
+            IGlobalOptionService globalOptions,
+            ITextDocumentFactoryService textDocumentFactoryService,
             VisualStudioWorkspace workspace)
             : base(serviceProvider, interactiveWindowFactory, classifierAggregator, contentTypeRegistry, commandsFactory, commands, workspace)
         {
             _threadingContext = threadingContext;
+            _listener = listenerProvider.GetListener(FeatureAttribute.InteractiveEvaluator);
+            _globalOptions = globalOptions;
+            _textDocumentFactoryService = textDocumentFactoryService;
         }
 
-        protected override Guid LanguageServiceGuid
-        {
-            get { return LanguageServiceGuids.CSharpLanguageServiceId; }
-        }
+        protected override Guid LanguageServiceGuid => LanguageServiceGuids.CSharpLanguageServiceId;
 
-        protected override Guid Id
-        {
-            get { return CSharpVsInteractiveWindowPackage.Id; }
-        }
+        protected override Guid Id => CSharpVsInteractiveWindowPackage.Id;
 
-        protected override string Title
-        {
-            // Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
-            get { return "C# Interactive"; }
-        }
+        // Note: intentionally left unlocalized (we treat these words as if they were unregistered trademarks)
+        protected override string Title => "C# Interactive";
 
-        protected override InteractiveEvaluator CreateInteractiveEvaluator(
+        protected override FunctionId InteractiveWindowFunctionId => FunctionId.CSharp_Interactive_Window;
+
+        protected override CSharpInteractiveEvaluator CreateInteractiveEvaluator(
             SVsServiceProvider serviceProvider,
             IViewClassifierAggregatorService classifierAggregator,
             IContentTypeRegistryService contentTypeRegistry,
             VisualStudioWorkspace workspace)
         {
             return new CSharpInteractiveEvaluator(
+                _globalOptions,
                 _threadingContext,
+                _listener,
+                contentTypeRegistry.GetContentType(ContentTypeNames.CSharpContentType),
                 workspace.Services.HostServices,
                 classifierAggregator,
                 CommandsFactory,
                 Commands,
-                contentTypeRegistry,
+                _textDocumentFactoryService,
+                CSharpInteractiveEvaluatorLanguageInfoProvider.Instance,
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-        }
-
-        protected override FunctionId InteractiveWindowFunctionId
-        {
-            get
-            {
-                return FunctionId.CSharp_Interactive_Window;
-            }
         }
     }
 }

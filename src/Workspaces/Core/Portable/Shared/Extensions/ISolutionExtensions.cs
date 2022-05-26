@@ -2,14 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -40,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static TextDocumentKind? GetDocumentKind(this Solution solution, DocumentId documentId)
-        {
-            return solution.GetTextDocument(documentId)?.Kind;
-        }
+            => solution.GetTextDocument(documentId)?.Kind;
 
         public static Solution WithTextDocumentText(this Solution solution, DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveIdentity)
         {
@@ -66,16 +60,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static IEnumerable<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
-        {
-            foreach (var documentId in documentIds)
-            {
-                var document = solution.GetDocument(documentId);
-                if (document != null && document.Project.Language == language)
-                {
-                    yield return documentId;
-                }
-            }
-        }
+        public static ImmutableArray<DocumentId> FilterDocumentIdsByLanguage(this Solution solution, ImmutableArray<DocumentId> documentIds, string language)
+            => documentIds.WhereAsArray(
+                (documentId, args) => args.solution.GetDocument(documentId)?.Project.Language == args.language,
+                (solution, language));
     }
 }

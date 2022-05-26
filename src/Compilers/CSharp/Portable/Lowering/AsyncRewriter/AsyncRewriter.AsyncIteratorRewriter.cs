@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine stateMachineType,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                DiagnosticBag diagnostics)
+                BindingDiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 
@@ -149,15 +152,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produces:
                 // .ctor(int state)
                 // {
+                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 //     this.state = state;
                 //     this.initialThreadId = {managedThreadId};
-                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 // }
                 Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
                 F.CurrentFunction = stateMachineType.Constructor;
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 bodyBuilder.Add(F.BaseInitialization());
+
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
+
                 bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
                 var managedThreadId = MakeCurrentThreadId();
@@ -167,8 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
-                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
-                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
@@ -248,10 +253,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
             {
+                var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+                bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
                 // return local;
-                return F.Block(F.Return(F.Local(stateMachineVariable)));
+                bodyBuilder.Add(
+                    F.Return(
+                        F.Local(stateMachineVariable)));
+
+                return F.Block(bodyBuilder.ToImmutableAndFree());
             }
 
             /// <summary>
@@ -662,13 +675,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
             {
                 MethodSymbol setResultMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult, isOptional: true);
-                if ((object)setResultMethod != null)
+                if (setResultMethod is { })
                 {
                     setResultMethod = (MethodSymbol)setResultMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }
 
                 MethodSymbol setExceptionMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException, isOptional: true);
-                if ((object)setExceptionMethod != null)
+                if (setExceptionMethod is { })
                 {
                     setExceptionMethod = (MethodSymbol)setExceptionMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }

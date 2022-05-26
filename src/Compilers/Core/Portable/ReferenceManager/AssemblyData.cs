@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
             /// The AssemblySymbol to check.
             /// </param>
             /// <returns>Boolean.</returns>
-            public abstract bool IsMatchingAssembly(TAssemblySymbol assembly);
+            public abstract bool IsMatchingAssembly(TAssemblySymbol? assembly);
 
             /// <summary>
             /// Resolve assembly references against assemblies described by provided AssemblyData objects. 
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             /// Get the source compilation backing this assembly, if one exists.
             /// Returns null otherwise.
             /// </summary>
-            public abstract Compilation SourceCompilation { get; }
+            public abstract Compilation? SourceCompilation { get; }
 
             private string GetDebuggerDisplay() => $"{GetType().Name}: [{Identity.GetDisplayName()}]";
         }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +9,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
@@ -76,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         // An empty dictionary we keep around to simplify certain operations (like "Keys")
         // when we don't have an underlying dictionary of our own.
-        private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new Dictionary<K, ValueSet>();
+        private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new();
 
         // The underlying dictionary we store our data in.  null if we are empty.
         private PooledDictionary<K, ValueSet>? _dictionary;
@@ -109,6 +106,18 @@ namespace Microsoft.CodeAnalysis.Collections
                 this.EnsureDictionary();
                 _dictionary![k] = new ValueSet(v);
             }
+        }
+
+        public bool TryGetValue<TArg>(K key, Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+        {
+            if (_dictionary is not null && _dictionary.TryGetValue(key, out var valueSet))
+            {
+                Debug.Assert(valueSet.Count >= 1);
+                return valueSet.TryGetValue(predicate, arg, out value);
+            }
+
+            value = default;
+            return false;
         }
 
         public Dictionary<K, ValueSet>.Enumerator GetEnumerator()
@@ -206,6 +215,35 @@ namespace Microsoft.CodeAnalysis.Collections
                         return arrayBuilder[index];
                     }
                 }
+            }
+
+            public bool TryGetValue<TArg>(Func<V, TArg, bool> predicate, TArg arg, [MaybeNullWhen(false)] out V value)
+            {
+                Debug.Assert(this.Count >= 1);
+                var arrayBuilder = _value as ArrayBuilder<V>;
+                if (arrayBuilder is not null)
+                {
+                    foreach (var v in arrayBuilder)
+                    {
+                        if (predicate(v, arg))
+                        {
+                            value = v;
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    var singleValue = (V)_value;
+                    if (predicate(singleValue, arg))
+                    {
+                        value = singleValue;
+                        return true;
+                    }
+                }
+
+                value = default;
+                return false;
             }
 
             internal bool Contains(V item)

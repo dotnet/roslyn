@@ -7,56 +7,48 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IEventSymbol>
     {
         protected override bool CanFind(IEventSymbol symbol)
-        {
-            return true;
-        }
+            => true;
 
-        protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<IEventSymbol> symbolAndProjectId,
+        protected sealed override Task<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+            IEventSymbol symbol,
             Solution solution,
-            IImmutableSet<Project> projects,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(
-                symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
-
-            var symbol = symbolAndProjectId.Symbol;
             var backingFields = symbol.ContainingType.GetMembers()
                                                      .OfType<IFieldSymbol>()
                                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                                     .Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s))
-                                                     .ToImmutableArray();
+                                                     .ToImmutableArray<ISymbol>();
 
             var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
-                                                            .Where(n => symbol.Equals(n.AssociatedSymbol))
-                                                            .Select(s => (SymbolAndProjectId)symbolAndProjectId.WithSymbol(s))
-                                                            .ToImmutableArray();
+                                                            .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol))
+                                                            .CastArray<ISymbol>();
 
-            return baseSymbols.Concat(backingFields)
-                              .Concat(associatedNamedTypes);
+            return Task.FromResult(backingFields.Concat(associatedNamedTypes));
         }
 
-        protected override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+        protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
             IEventSymbol symbol,
+            HashSet<string>? globalAliases,
             Project project,
-            IImmutableSet<Document> documents,
+            IImmutableSet<Document>? documents,
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
+            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            return documentsWithName.Concat(documentsWithGlobalAttributes);
         }
 
-        protected override Task<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
             IEventSymbol symbol,
+            HashSet<string>? globalAliases,
             Document document,
             SemanticModel semanticModel,
             FindReferencesSearchOptions options,

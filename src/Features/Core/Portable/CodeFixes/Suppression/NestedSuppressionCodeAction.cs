@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -9,12 +11,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal abstract class NestedSuppressionCodeAction : CodeAction
     {
         protected NestedSuppressionCodeAction(string title)
-        {
-            Title = title;
-        }
+            => Title = title;
 
         // Put suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
+        internal override CodeActionPriority Priority => CodeActionPriority.Lowest;
 
         public sealed override string Title { get; }
 

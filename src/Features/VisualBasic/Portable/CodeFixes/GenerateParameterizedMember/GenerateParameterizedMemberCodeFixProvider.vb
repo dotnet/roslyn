@@ -4,10 +4,12 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -39,6 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
         Friend Const BC30111 As String = "BC30111" ' error BC30111: 'Foo' is an interface type and cannot be used as an expression.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -48,9 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, fallbackOptions As CleanCodeGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateParameterizedMemberService)()
-            Return service.GenerateMethodAsync(document, node, cancellationToken)
+            Return service.GenerateMethodAsync(document, node, fallbackOptions, cancellationToken)
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean

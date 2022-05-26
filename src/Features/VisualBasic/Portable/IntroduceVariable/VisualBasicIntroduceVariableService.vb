@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
         Inherits AbstractIntroduceVariableService(Of VisualBasicIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeBlockSyntax, QueryExpressionSyntax, NameSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

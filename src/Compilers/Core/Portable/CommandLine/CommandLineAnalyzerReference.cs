@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is CommandLineAnalyzerReference && base.Equals((CommandLineAnalyzerReference)obj);
         }

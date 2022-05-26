@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -20,7 +22,6 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
         public static bool TryGetVariableStyle(
             bool bestEffort,
-            bool captured,
             bool dataFlowIn,
             bool dataFlowOut,
             bool alwaysAssigned,
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             // Some combination we didn't anticipate.  Can't do anything here.  Log the issue
             // and bail out.
-            FatalError.ReportWithoutCrash(new Exception($"extract method encountered unknown states: {key.ToString()}"));
+            FatalError.ReportAndCatch(new Exception($"extract method encountered unknown states: {key.ToString()}"), ErrorSeverity.Critical);
 
             return false;
         }

@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             arity As Integer,
             options As LookupOptions,
             originalBinder As Binder,
-            <[In]> <Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
+            <[In]> <Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol))
 
             If (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly Or LookupOptions.MustNotBeLocalOrParameter)) <> 0 Then
                 Return
@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim local As LocalSymbol = Nothing
             If _implicitDeclarations.TryGetValue(name, local) Then
-                result.SetFrom(CheckViability(local, arity, options, Nothing, useSiteDiagnostics))
+                result.SetFrom(CheckViability(local, arity, options, Nothing, useSiteInfo))
             End If
         End Sub
 
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Public Overrides Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As DiagnosticBag) As LocalSymbol
+        Public Overrides Function DeclareImplicitLocalVariable(nameSyntax As IdentifierNameSyntax, diagnostics As BindingDiagnosticBag) As LocalSymbol
             Debug.Assert(_allowImplicitDeclarations)
             Debug.Assert(_implicitDeclarations IsNot Nothing)
 

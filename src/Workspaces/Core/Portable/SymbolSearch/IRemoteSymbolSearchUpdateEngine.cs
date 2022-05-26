@@ -2,19 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal interface IRemoteSymbolSearchUpdateEngine
+    internal interface IRemoteSymbolSearchUpdateService
     {
-        Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory);
+        internal interface ICallback
+        {
+            ValueTask LogExceptionAsync(RemoteServiceCallbackId callbackId, string exception, string text, CancellationToken cancellationToken);
+            ValueTask LogInfoAsync(RemoteServiceCallbackId callbackId, string text, CancellationToken cancellationToken);
+        }
 
-        Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken);
-        Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string name, CancellationToken cancellationToken);
-        Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken);
+        ValueTask UpdateContinuouslyAsync(RemoteServiceCallbackId callbackId, string sourceName, string localSettingsDirectory, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string name, CancellationToken cancellationToken);
+        ValueTask<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken);
     }
 }

@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public FeedbackItemDotNetEntry(EventRecord eventLogRecord)
         {
-            EventTime = eventLogRecord.TimeCreated.Value.ToUniversalTime();
+            EventTime = eventLogRecord.TimeCreated?.ToUniversalTime() ?? DateTime.MinValue;
             EventId = eventLogRecord.Id;
             Data = string.Join(";", eventLogRecord.Properties.Select(pr => pr.Value ?? string.Empty));
         }

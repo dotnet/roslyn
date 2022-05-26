@@ -164,6 +164,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Return -1
+            End Get
+        End Property
+
         ''' <summary>
         ''' True if the argument value must be included in the marshalled arguments passed to a remote callee only if it is different from the default value (if there is one).
         ''' </summary>
@@ -240,8 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             Dim compilation = Me.DeclaringCompilation
             If Type.ContainsTupleNames() AndAlso
-                compilation.HasTupleNamesAttributes AndAlso
-                compilation.CanEmitSpecialType(SpecialType.System_String) Then
+                compilation.HasTupleNamesAttributes Then
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeTupleNamesAttribute(Type))
             End If
         End Sub

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -18,39 +16,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static IFormattingResult Format(
             SyntaxTrivia trivia,
             int initialColumn,
-            OptionSet optionSet,
+            SyntaxFormattingOptions options,
             ChainedFormattingRules formattingRules,
             CancellationToken cancellationToken)
         {
-            var root = trivia.GetStructure();
-            var formatter = new CSharpStructuredTriviaFormatEngine(trivia, initialColumn, optionSet, formattingRules, root.GetFirstToken(includeZeroWidth: true), root.GetLastToken(includeZeroWidth: true));
+            var root = trivia.GetStructure() ?? throw new ArgumentException();
+            var formatter = new CSharpStructuredTriviaFormatEngine(trivia, initialColumn, options, formattingRules, root.GetFirstToken(includeZeroWidth: true), root.GetLastToken(includeZeroWidth: true));
             return formatter.Format(cancellationToken);
         }
 
         private CSharpStructuredTriviaFormatEngine(
             SyntaxTrivia trivia,
             int initialColumn,
-            OptionSet optionSet,
+            SyntaxFormattingOptions options,
             ChainedFormattingRules formattingRules,
-            SyntaxToken token1,
-            SyntaxToken token2)
+            SyntaxToken startToken,
+            SyntaxToken endToken)
             : base(TreeData.Create(trivia, initialColumn),
-                   optionSet,
+                   options,
                    formattingRules,
-                   token1,
-                   token2)
+                   startToken,
+                   endToken)
         {
         }
+
+        internal override IHeaderFacts HeaderFacts => CSharpHeaderFacts.Instance;
 
         protected override AbstractTriviaDataFactory CreateTriviaFactory()
-        {
-            return new TriviaDataFactory(this.TreeData, this.OptionSet);
-        }
+            => new TriviaDataFactory(this.TreeData, this.Options);
 
         protected override FormattingContext CreateFormattingContext(TokenStream tokenStream, CancellationToken cancellationToken)
-        {
-            return new FormattingContext(this, tokenStream, LanguageNames.CSharp);
-        }
+            => new(this, tokenStream);
 
         protected override NodeOperations CreateNodeOperations(CancellationToken cancellationToken)
         {
@@ -59,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
-        {
-            return new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
-        }
+            => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
     }
 }

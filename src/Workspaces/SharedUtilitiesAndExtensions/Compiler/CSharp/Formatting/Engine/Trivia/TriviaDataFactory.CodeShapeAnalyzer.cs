@@ -5,15 +5,10 @@
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -22,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private struct CodeShapeAnalyzer
         {
             private readonly FormattingContext _context;
-            private readonly OptionSet _optionSet;
+            private readonly SyntaxFormattingOptions _options;
             private readonly TriviaList _triviaList;
 
             private int _indentation;
@@ -82,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 foreach (var trivia in list)
                 {
-                    if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia ||
-                        trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
+                    if (trivia.Kind() is SyntaxKind.SkippedTokensTrivia or
+                        SyntaxKind.PreprocessingMessageTrivia)
                     {
                         return true;
                     }
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private CodeShapeAnalyzer(FormattingContext context, bool firstTriviaInTree, TriviaList triviaList)
             {
                 _context = context;
-                _optionSet = context.OptionSet;
+                _options = context.Options;
                 _triviaList = triviaList;
 
                 _indentation = 0;
@@ -109,8 +104,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 get { return _lastLineBreakIndex >= 0; }
             }
 
-            private bool OnElastic(SyntaxTrivia trivia)
+            private static bool OnElastic(SyntaxTrivia trivia)
             {
+                // if this is structured trivia then we need to check for elastic trivia in any descendant
+                if (trivia.GetStructure() is { ContainsAnnotations: true } structure)
+                {
+                    foreach (var t in structure.DescendantTrivia())
+                    {
+                        if (t.IsElastic())
+                        {
+                            return true;
+                        }
+                    }
+                }
+
                 // if it contains elastic trivia, always format
                 return trivia.IsElastic();
             }
@@ -139,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                _indentation += text.ConvertTabToSpace(_optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), _indentation, text.Length);
+                _indentation += text.ConvertTabToSpace(_options.TabSize, _indentation, text.Length);
 
                 return false;
             }
@@ -195,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 // go deep down for single line documentation comment
                 if (trivia.IsSingleLineDocComment() &&
-                    ShouldFormatSingleLineDocumentationComment(_indentation, _optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), trivia))
+                    ShouldFormatSingleLineDocumentationComment(_indentation, _options.TabSize, trivia))
                 {
                     return true;
                 }
@@ -203,21 +210,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return false;
             }
 
-            private bool OnSkippedTokensOrText(SyntaxTrivia trivia)
+            private static bool OnSkippedTokensOrText(SyntaxTrivia trivia)
             {
-                if (trivia.Kind() != SyntaxKind.SkippedTokensTrivia &&
-                    trivia.Kind() != SyntaxKind.PreprocessingMessageTrivia)
+                if (trivia.Kind() is not SyntaxKind.SkippedTokensTrivia and
+                    not SyntaxKind.PreprocessingMessageTrivia)
                 {
                     return false;
                 }
 
-                return Contract.FailWithReturn<bool>("This can't happen");
+                throw ExceptionUtilities.Unreachable;
             }
 
             private bool OnRegion(SyntaxTrivia trivia, int currentIndex)
             {
-                if (trivia.Kind() != SyntaxKind.RegionDirectiveTrivia &&
-                    trivia.Kind() != SyntaxKind.EndRegionDirectiveTrivia)
+                if (trivia.Kind() is not SyntaxKind.RegionDirectiveTrivia and
+                    not SyntaxKind.EndRegionDirectiveTrivia)
                 {
                     return false;
                 }
@@ -315,7 +322,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             private static bool ShouldFormatSingleLineDocumentationComment(int indentation, int tabSize, SyntaxTrivia trivia)
             {
-                var xmlComment = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
+                Debug.Assert(trivia.HasStructure);
+
+                var xmlComment = (DocumentationCommentTriviaSyntax)trivia.GetStructure()!;
 
                 var sawFirstOne = false;
                 foreach (var token in xmlComment.DescendantTokens())

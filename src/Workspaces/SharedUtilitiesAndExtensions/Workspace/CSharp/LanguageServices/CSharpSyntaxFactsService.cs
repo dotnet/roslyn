@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
@@ -20,17 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private sealed class CSharpSyntaxFactsService : CSharpSyntaxFacts, ISyntaxFactsService
         {
-            internal static readonly new CSharpSyntaxFactsService Instance = new CSharpSyntaxFactsService();
-
-            public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            {
-                if (syntaxTree == null)
-                {
-                    return false;
-                }
-
-                return syntaxTree.IsInInactiveRegion(position, cancellationToken);
-            }
+            internal static new readonly CSharpSyntaxFactsService Instance = new();
 
             public bool IsInNonUserCode(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
             {
@@ -42,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return syntaxTree.IsInNonUserCode(position, cancellationToken);
             }
 
-            private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+            private static readonly SyntaxAnnotation s_annotation = new();
 
             public void AddFirstMissingCloseBrace<TContextNode>(
                 SyntaxNode root, TContextNode contextNode,
@@ -52,12 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newContextNode = (TContextNode)newRoot.GetAnnotatedNodes(s_annotation).Single();
             }
 
-            public bool IsPossibleTupleContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            {
-                var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-                return syntaxTree.IsPossibleTupleContext(token, position);
-            }
-
             private class AddFirstMissingCloseBraceRewriter : CSharpSyntaxRewriter
             {
                 private readonly SyntaxNode _contextNode;
@@ -65,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private bool _addedFirstCloseCurly = false;
 
                 public AddFirstMissingCloseBraceRewriter(SyntaxNode contextNode)
-                {
-                    _contextNode = contextNode;
-                }
+                    => _contextNode = contextNode;
 
                 public override SyntaxNode Visit(SyntaxNode node)
                 {
@@ -128,8 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
-                => ImmutableArray<SyntaxNode>.CastUp(root.GetFieldsAndPropertiesInSpan(textSpan, allowPartialSelection));
+            public Task<ImmutableArray<SyntaxNode>> GetSelectedFieldsAndPropertiesAsync(SyntaxTree tree, TextSpan textSpan, bool allowPartialSelection, CancellationToken cancellationToken)
+                => CSharpSelectedMembers.Instance.GetSelectedFieldsAndPropertiesAsync(tree, textSpan, allowPartialSelection, cancellationToken);
         }
     }
 }

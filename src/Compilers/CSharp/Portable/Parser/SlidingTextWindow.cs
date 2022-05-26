@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -269,6 +271,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public void AdvanceChar(int n)
         {
             _offset += n;
+        }
+
+        /// <summary>
+        /// Moves past the newline that the text window is currently pointing at.  The text window must be pointing at a
+        /// newline.  If the newline is <c>\r\n</c> then that entire sequence will be skipped.  Otherwise, the text
+        /// window will only advance past a single character.
+        /// </summary>
+        public void AdvancePastNewLine()
+        {
+            AdvanceChar(GetNewLineWidth());
+        }
+
+        /// <summary>
+        /// Gets the length of the newline the text window must be pointing at here.  For <c>\r\n</c> this is <c>2</c>,
+        /// for everything else, this is <c>1</c>.
+        /// </summary>
+        public int GetNewLineWidth()
+        {
+            Debug.Assert(SyntaxFacts.IsNewLine(this.PeekChar()));
+            return GetNewLineWidth(this.PeekChar(), this.PeekChar(1));
+        }
+
+        public static int GetNewLineWidth(char currentChar, char nextChar)
+        {
+            Debug.Assert(SyntaxFacts.IsNewLine(currentChar));
+            return currentChar == '\r' && nextChar == '\n' ? 2 : 1;
         }
 
         /// <summary>

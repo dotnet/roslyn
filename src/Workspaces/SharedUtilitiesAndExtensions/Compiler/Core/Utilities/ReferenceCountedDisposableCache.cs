@@ -1,6 +1,10 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace Roslyn.Utilities
 {
@@ -10,16 +14,16 @@ namespace Roslyn.Utilities
     /// will return a new value, and the existing holders of the evicted value will still dispose it once they're done with it.
     /// </summary>
     internal sealed class ReferenceCountedDisposableCache<TKey, TValue> where TValue : class, IDisposable
+        where TKey : notnull
     {
-        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache =
-            new Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference>();
-        private readonly object _gate = new object();
+        private readonly Dictionary<TKey, ReferenceCountedDisposable<Entry>.WeakReference> _cache = new();
+        private readonly object _gate = new();
 
-        public IReferenceCountedDisposable<ICacheEntry<TKey, TValue>> GetOrCreate(TKey key, Func<TKey, TValue> valueCreator)
+        public IReferenceCountedDisposable<ICacheEntry<TKey, TValue>> GetOrCreate<TArg>(TKey key, Func<TKey, TArg, TValue> valueCreator, TArg arg)
         {
             lock (_gate)
             {
-                ReferenceCountedDisposable<Entry> disposable = null;
+                ReferenceCountedDisposable<Entry>? disposable = null;
 
                 // If we already have one in the map to hand out, great
                 if (_cache.TryGetValue(key, out var weakReference))
@@ -37,7 +41,7 @@ namespace Roslyn.Utilities
                     //    because the disposal isn't processed under this lock.
 
                     // In either case, we'll create a new entry and add it to the map
-                    disposable = new ReferenceCountedDisposable<Entry>(new Entry(this, key, valueCreator(key)));
+                    disposable = new ReferenceCountedDisposable<Entry>(new Entry(this, key, valueCreator(key, arg)));
                     _cache[key] = new ReferenceCountedDisposable<Entry>.WeakReference(disposable);
                 }
 

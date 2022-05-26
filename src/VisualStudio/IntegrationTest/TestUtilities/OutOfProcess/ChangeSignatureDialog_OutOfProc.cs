@@ -41,6 +41,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickUpButton()
             => _inProc.ClickUpButton();
 
+        public void ClickAddButton()
+            => _inProc.ClickAddButton();
+
         public void ClickRemoveButton()
             => _inProc.ClickRemoveButton();
 

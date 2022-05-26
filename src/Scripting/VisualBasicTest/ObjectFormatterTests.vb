@@ -77,6 +77,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting.UnitTests
         End Sub
 
         <Fact>
+        Public Sub ArrayMethodParameters()
+            Dim result = New TestVisualBasicObjectFormatter(maximumLineLength:=100).FormatMethodSignature(Signatures.Arrays)
+            Assert.Equal("ObjectFormatterFixtures.Signatures.ArrayParameters(Integer(), Integer(,), Integer(,,))", result)
+        End Sub
+
+        <Fact>
         Public Sub EscapeWithoutQuotes()
             Dim primitiveFormatter As New TestPrimitiveObjectFormatter()
             Assert.Throws(Of ArgumentException)(Sub() primitiveFormatter.TestEscapeStringWithoutQuotes())

@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsTypeParameterConstraintContext(context);
         }
 
-        private bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
+        private static bool IsTypeParameterConstraintContext(CSharpSyntaxContext context)
         {
             // cases:
             //   class C<T> |
@@ -110,14 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             // class C<T> where T : IGoo |
             // delegate void D<T> where T : IGoo |
-            var constraintClause = token.GetAncestor<TypeParameterConstraintClauseSyntax>();
-
-            if (constraintClause != null)
+            if (token.IsLastTokenOfNode<TypeParameterConstraintSyntax>())
             {
-                if (constraintClause.Constraints.Any(c => token == c.GetLastToken(includeSkipped: true)))
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;

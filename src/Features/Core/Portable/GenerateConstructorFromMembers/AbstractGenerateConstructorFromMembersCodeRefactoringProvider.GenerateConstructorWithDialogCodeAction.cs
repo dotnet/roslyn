@@ -8,9 +8,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
@@ -20,38 +24,44 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
         {
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
+            private readonly Accessibility? _desiredAccessibility;
             private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
             private readonly TextSpan _textSpan;
-            private readonly ImmutableArray<ISymbol> _viableMembers;
-            private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
-            private bool? _addNullCheckOptionValue;
+            internal ImmutableArray<ISymbol> ViableMembers { get; }
+            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; }
 
             public override string Title => FeaturesResources.Generate_constructor;
 
             public GenerateConstructorWithDialogCodeAction(
                 AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document, TextSpan textSpan,
+                Document document,
+                TextSpan textSpan,
                 INamedTypeSymbol containingType,
+                Accessibility? desiredAccessibility,
                 ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions)
+                ImmutableArray<PickMembersOption> pickMembersOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions)
             {
                 _service = service;
                 _document = document;
                 _textSpan = textSpan;
                 _containingType = containingType;
-                _viableMembers = viableMembers;
-                _pickMembersOptions = pickMembersOptions;
+                _desiredAccessibility = desiredAccessibility;
+                ViableMembers = viableMembers;
+                PickMembersOptions = pickMembersOptions;
+                _fallbackOptions = fallbackOptions;
             }
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
-                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetService<IPickMembersService>();
+                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetRequiredService<IPickMembersService>();
 
                 return service.PickMembers(
                     FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
-                    _viableMembers, _pickMembersOptions);
+                    ViableMembers, PickMembersOptions);
             }
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
@@ -60,7 +70,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
@@ -69,17 +79,18 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     // If we presented the 'Add null check' option, then persist whatever value
                     // the user chose.  That way we'll keep that as the default for the next time
                     // the user opens the dialog.
-                    _addNullCheckOptionValue = addNullChecksOption.Value;
+                    var globalOptions = _document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+                    globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, addNullChecksOption.Value);
                 }
 
-                var addNullChecks = (addNullChecksOption?.Value).GetValueOrDefault();
+                var addNullChecks = (addNullChecksOption?.Value ?? false);
                 var state = await State.TryGenerateAsync(
-                    _service, _document, _textSpan, _containingType,
-                    result.Members, cancellationToken).ConfigureAwait(false);
+                    _service, _document, _textSpan, _containingType, _desiredAccessibility,
+                    result.Members, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
                 if (state == null)
                 {
-                    return default;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 // There was an existing constructor that matched what the user wants to create.
@@ -89,40 +100,25 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                 {
                     if (state.MatchingConstructor.IsImplicitlyDeclared)
                     {
-                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
+                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
                         return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
                     var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                     var constructorTree = constructorSyntax.SyntaxTree;
-                    var constructorDocument = _document.Project.Solution.GetDocument(constructorTree);
+                    var constructorDocument = _document.Project.Solution.GetRequiredDocument(constructorTree);
                     return ImmutableArray.Create<CodeActionOperation>(new DocumentNavigationOperation(
                         constructorDocument.Id, constructorSyntax.SpanStart));
                 }
                 else
                 {
                     var codeAction = state.DelegatedConstructor != null
-                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks)
-                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
+                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
+                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
 
                     return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
                 }
-            }
-
-            protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                var solution = await base.GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-
-                if (_addNullCheckOptionValue.HasValue)
-                {
-                    solution = solution.WithOptions(solution.Options.WithChangedOption(
-                        GenerateConstructorFromMembersOptions.AddNullChecks,
-                        _document.Project.Language,
-                        _addNullCheckOptionValue.Value));
-                }
-
-                return solution;
             }
         }
     }

@@ -6,8 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- This component is deployed with remote debugger tools. It needs to work on .NET Framework 4.5 and Core CLR 1.0 (Windows OneCore) -->
-    <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
@@ -37,6 +36,15 @@
     <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs">
       <Link>CSharp\Compiler\SyntaxKindFacts.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameKind.cs">
+      <Link>CSharp\Compiler\GeneratedNameKind.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameParser.cs">
+      <Link>CSharp\Compiler\GeneratedNameParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\Compilers\CSharp\Portable\Symbols\Synthesized\GeneratedNameConstants.cs">
+      <Link>CSharp\Compiler\GeneratedNameConstants.cs</Link>
+    </Compile>
     <Compile Include="..\ExpressionCompiler\DkmExceptionUtilities.cs">
       <Link>ExpressionCompiler\DkmExceptionUtilities.cs</Link>
     </Compile>
@@ -54,6 +62,8 @@
       <Version>$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)</Version>
       <ExcludeAssets>compile</ExcludeAssets>
     </PackageReference>
+    <!-- Remove once https://github.com/dotnet/sdk/issues/19506 is resolved -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="$(MicrosoftNETFrameworkReferenceAssembliesVersion)" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

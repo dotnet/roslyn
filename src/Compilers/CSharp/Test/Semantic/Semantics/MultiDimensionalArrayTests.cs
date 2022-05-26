@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -200,7 +203,7 @@ Diagnostic(ErrorCode.ERR_ArrayInitializerExpected, "null")
                 );
         }
 
-        private static string s_arraysOfRank1IlSource = @"
+        private static readonly string s_arraysOfRank1IlSource = @"
 .class public auto ansi beforefieldinit Test
        extends [mscorlib]System.Object
 {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
@@ -16,9 +14,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     [ExportLanguageService(typeof(IProjectExistsUIContextProviderLanguageService), LanguageNames.CSharp), Shared]
     internal sealed class CSharpProjectExistsUIContextProviderLanguageService : IProjectExistsUIContextProviderLanguageService
     {
-        public UIContext GetUIContext()
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpProjectExistsUIContextProviderLanguageService()
         {
-            return UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
         }
+
+        public UIContext GetUIContext()
+            => UIContext.FromUIContextGuid(Guids.CSharpProjectExistsInWorkspaceUIContext);
     }
 }

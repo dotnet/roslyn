@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Host;
@@ -9,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
-    [ExportWorkspaceService(typeof(IPreviewDialogService), "Test"), Shared]
+    [ExportWorkspaceService(typeof(IPreviewDialogService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class MockPreviewDialogService : IPreviewDialogService, IWorkspaceServiceFactory
     {
         public bool ReturnsNull;
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         public bool ShowCheckBoxes;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public MockPreviewDialogService()
         {
         }
@@ -40,8 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return this;
-        }
+            => this;
     }
 }

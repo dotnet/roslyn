@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
@@ -17,12 +21,17 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal abstract partial class MethodExtractor
     {
         protected readonly SelectionResult OriginalSelectionResult;
+        protected readonly ExtractMethodGenerationOptions Options;
         protected readonly bool LocalFunction;
 
-        public MethodExtractor(SelectionResult selectionResult, bool localFunction)
+        public MethodExtractor(
+            SelectionResult selectionResult,
+            ExtractMethodGenerationOptions options,
+            bool localFunction)
         {
             Contract.ThrowIfNull(selectionResult);
             OriginalSelectionResult = selectionResult;
+            Options = options;
             LocalFunction = localFunction;
         }
 
@@ -31,10 +40,10 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         protected abstract Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken);
         protected abstract Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken);
 
-        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken);
+        protected abstract Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         protected abstract SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames);
-        protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+        protected abstract ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document);
 
         protected abstract Task<OperationStatus> CheckTypeAsync(Document document, SyntaxNode contextNode, Location location, ITypeSymbol type, CancellationToken cancellationToken);
 
@@ -60,13 +69,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             cancellationToken.ThrowIfCancellationRequested();
 
             var expandedDocument = await ExpandAsync(OriginalSelectionResult.With(triviaResult.SemanticDocument), cancellationToken).ConfigureAwait(false);
-            var options = await analyzeResult.SemanticDocument.Document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var generatedCode = await GenerateCodeAsync(
                 insertionPoint.With(expandedDocument),
                 OriginalSelectionResult.With(expandedDocument),
                 analyzeResult.With(expandedDocument),
-                options,
+                Options.CodeGenerationOptions,
                 cancellationToken).ConfigureAwait(false);
 
             var applied = await triviaResult.ApplyAsync(generatedCode, cancellationToken).ConfigureAwait(false);
@@ -76,42 +84,41 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             if (afterTriviaRestored.Status.FailedWithNoBestEffortSuggestion())
             {
                 return await CreateExtractMethodResultAsync(
-                    operationStatus, generatedCode.SemanticDocument, generatedCode.MethodNameAnnotation, generatedCode.MethodDefinitionAnnotation, cancellationToken).ConfigureAwait(false);
+                    operationStatus, generatedCode.SemanticDocument, ImmutableArray<AbstractFormattingRule>.Empty, generatedCode.MethodNameAnnotation, generatedCode.MethodDefinitionAnnotation, cancellationToken).ConfigureAwait(false);
             }
 
-            var finalDocument = afterTriviaRestored.Data.Document;
-            finalDocument = await Formatter.FormatAsync(
-                finalDocument,
-                Formatter.Annotation,
-                options: null,
-                rules: GetFormattingRules(finalDocument),
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var documentWithoutFinalFormatting = afterTriviaRestored.Data.Document;
 
             cancellationToken.ThrowIfCancellationRequested();
             return await CreateExtractMethodResultAsync(
                 operationStatus.With(generatedCode.Status),
-                await SemanticDocument.CreateAsync(finalDocument, cancellationToken).ConfigureAwait(false),
+                await SemanticDocument.CreateAsync(documentWithoutFinalFormatting, cancellationToken).ConfigureAwait(false),
+                GetFormattingRules(documentWithoutFinalFormatting),
                 generatedCode.MethodNameAnnotation,
                 generatedCode.MethodDefinitionAnnotation,
                 cancellationToken).ConfigureAwait(false);
         }
 
+        private ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+            => GetCustomFormattingRules(document).AddRange(Formatter.GetDefaultFormattingRules(document));
+
         private async Task<ExtractMethodResult> CreateExtractMethodResultAsync(
-            OperationStatus status, SemanticDocument semanticDocument,
+            OperationStatus status, SemanticDocument semanticDocumentWithoutFinalFormatting,
+            ImmutableArray<AbstractFormattingRule> formattingRules,
             SyntaxAnnotation invocationAnnotation, SyntaxAnnotation methodAnnotation,
             CancellationToken cancellationToken)
         {
-            var newRoot = semanticDocument.Root;
+            var newRoot = semanticDocumentWithoutFinalFormatting.Root;
             var methodName = GetMethodNameAtInvocation(newRoot.GetAnnotatedNodesAndTokens(invocationAnnotation));
             var methodDefinition = newRoot.GetAnnotatedNodesAndTokens(methodAnnotation).FirstOrDefault().AsNode();
 
             if (LocalFunction && status.Succeeded())
             {
-                var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocument.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
-                return new SimpleExtractMethodResult(status, result.document, result.methodName, result.methodDefinition);
+                var result = await InsertNewLineBeforeLocalFunctionIfNecessaryAsync(semanticDocumentWithoutFinalFormatting.Document, methodName, methodDefinition, cancellationToken).ConfigureAwait(false);
+                return new SimpleExtractMethodResult(status, result.document, formattingRules, result.methodName, result.methodDefinition);
             }
 
-            return new SimpleExtractMethodResult(status, semanticDocument.Document, methodName, methodDefinition);
+            return new SimpleExtractMethodResult(status, semanticDocumentWithoutFinalFormatting.Document, formattingRules, methodName, methodDefinition);
         }
 
         private async Task<OperationStatus> CheckVariableTypesAsync(
@@ -185,12 +192,12 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
             if (camelCase && !prefix.IsEmpty())
             {
-                prefix = char.ToLowerInvariant(prefix[0]) + prefix.Substring(1);
+                prefix = char.ToLowerInvariant(prefix[0]) + prefix[1..];
             }
 
             return char.IsUpper(name[0]) ?
                 prefix + name :
-                prefix + char.ToUpper(name[0]).ToString() + name.Substring(1);
+                prefix + char.ToUpper(name[0]).ToString() + name[1..];
         }
     }
 }

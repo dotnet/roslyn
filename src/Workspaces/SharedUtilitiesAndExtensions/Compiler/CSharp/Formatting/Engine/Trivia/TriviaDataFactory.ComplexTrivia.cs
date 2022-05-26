@@ -6,19 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -30,30 +21,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         /// </summary>
         private class ComplexTrivia : AbstractComplexTrivia
         {
-            public ComplexTrivia(OptionSet optionSet, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
-                : base(optionSet, treeInfo, token1, token2)
+            public ComplexTrivia(SyntaxFormattingOptions options, TreeData treeInfo, SyntaxToken token1, SyntaxToken token2)
+                : base(options, treeInfo, token1, token2)
             {
             }
 
             protected override void ExtractLineAndSpace(string text, out int lines, out int spaces)
-            {
-                text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp), out lines, out spaces);
-            }
+                => text.ProcessTextBetweenTokens(this.TreeInfo, this.Token1, this.Options.TabSize, out lines, out spaces);
 
             protected override TriviaData CreateComplexTrivia(int line, int space)
-            {
-                return CreateModifiedComplexTrivia(line, space);
-            }
+                => CreateModifiedComplexTrivia(line, space);
 
             protected override TriviaData CreateComplexTrivia(int line, int space, int indentation)
-            {
-                return CreateModifiedComplexTrivia(line, space);
-            }
+                => CreateModifiedComplexTrivia(line, space);
 
             private TriviaData CreateModifiedComplexTrivia(int line, int space)
-            {
-                return new ModifiedComplexTrivia(this.OptionSet, this, line, space);
-            }
+                => new ModifiedComplexTrivia(this.Options, this, line, space);
 
             protected override TriviaDataWithList Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken)
@@ -62,9 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             protected override bool ContainsSkippedTokensOrText(TriviaList list)
-            {
-                return CodeShapeAnalyzer.ContainsSkippedTokensOrText(list);
-            }
+                => CodeShapeAnalyzer.ContainsSkippedTokensOrText(list);
 
             private bool ShouldFormat(FormattingContext context)
             {
@@ -94,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 Debug.Assert(this.SecondTokenIsFirstTokenOnLine);
 
-                if (this.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp))
+                if (Options.UseTabs)
                 {
                     return true;
                 }
@@ -119,15 +100,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 formattingResultApplier(tokenPairIndex, context.TokenStream, Format(context, formattingRules, this.LineBreaks, this.Spaces, cancellationToken));
             }
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

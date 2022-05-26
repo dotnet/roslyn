@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.MakeMethodAsynchronous.AbstractMakeMethodAsynchronousCodeFixProvider
 Imports Microsoft.CodeAnalysis.MakeMethodSynchronous
@@ -20,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
         Private Shared ReadOnly s_diagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC42356)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -37,11 +39,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                 node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
 
-                Return FixSingleLineLambdaExpression(DirectCast(node, SingleLineLambdaExpressionSyntax))
+                Return RemoveAsyncModifierHelpers.FixSingleLineLambdaExpression(DirectCast(node, SingleLineLambdaExpressionSyntax))
             ElseIf node.IsKind(SyntaxKind.MultiLineSubLambdaExpression) OrElse
                     node.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) Then
 
-                Return FixMultiLineLambdaExpression(DirectCast(node, MultiLineLambdaExpressionSyntax))
+                Return RemoveAsyncModifierHelpers.FixMultiLineLambdaExpression(DirectCast(node, MultiLineLambdaExpressionSyntax))
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
                 Return FixSubBlock(DirectCast(node, MethodBlockSyntax))
             Else
@@ -49,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             End If
         End Function
 
-        Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
+        Private Shared Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax, knownTypes As KnownTypes) As SyntaxNode
             Dim functionStatement = node.SubOrFunctionStatement
 
             ' if this returns Task(of T), then we want to convert this to a T returning function.
@@ -57,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
             If methodSymbol.ReturnType.OriginalDefinition.Equals(knownTypes._taskOfTType) Then
                 Dim newAsClause = functionStatement.AsClause.WithType(methodSymbol.ReturnType.GetTypeArguments()(0).GenerateTypeSyntax())
                 Dim newFunctionStatement = functionStatement.WithAsClause(newAsClause)
-                newFunctionStatement = RemoveAsyncKeyword(newFunctionStatement)
+                newFunctionStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(newFunctionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
             ElseIf Equals(methodSymbol.ReturnType.OriginalDefinition, knownTypes._taskType) Then
                 ' Convert this to a 'Sub' method.
@@ -73,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
                     functionStatement.ImplementsClause)
 
                 subStatement = subStatement.RemoveNode(subStatement.AsClause, SyntaxRemoveOptions.KeepTrailingTrivia)
-                subStatement = RemoveAsyncKeyword(subStatement)
+                subStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(subStatement)
 
                 Dim endSubStatement = SyntaxFactory.EndSubStatement(
                     node.EndSubOrFunctionStatement.EndKeyword,
@@ -81,60 +83,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodSynchronous
 
                 Return SyntaxFactory.SubBlock(subStatement, node.Statements, endSubStatement)
             Else
-                Dim newFunctionStatement = RemoveAsyncKeyword(functionStatement)
+                Dim newFunctionStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(functionStatement)
                 Return node.WithSubOrFunctionStatement(newFunctionStatement)
             End If
         End Function
 
-        Private Function FixSubBlock(node As MethodBlockSyntax) As SyntaxNode
-            Dim newSubStatement = RemoveAsyncKeyword(node.SubOrFunctionStatement)
+        Private Shared Function FixSubBlock(node As MethodBlockSyntax) As SyntaxNode
+            Dim newSubStatement = RemoveAsyncModifierHelpers.RemoveAsyncKeyword(node.SubOrFunctionStatement)
             Return node.WithSubOrFunctionStatement(newSubStatement)
-        End Function
-
-        Private Shared Function RemoveAsyncKeyword(subOrFunctionStatement As MethodStatementSyntax) As MethodStatementSyntax
-            Dim modifiers = subOrFunctionStatement.Modifiers
-            Dim asyncTokenIndex = modifiers.IndexOf(SyntaxKind.AsyncKeyword)
-
-            Dim newSubOrFunctionKeyword = subOrFunctionStatement.SubOrFunctionKeyword
-            Dim newModifiers As SyntaxTokenList
-            If asyncTokenIndex = 0 Then
-                ' Have to move the trivia on the async token appropriately.
-                Dim asyncLeadingTrivia = modifiers(0).LeadingTrivia
-
-                If modifiers.Count > 1 Then
-                    ' Move the trivia to the next modifier;
-                    newModifiers = modifiers.Replace(
-                        modifiers(1),
-                        modifiers(1).WithPrependedLeadingTrivia(asyncLeadingTrivia))
-                    newModifiers = newModifiers.RemoveAt(0)
-                Else
-                    ' move it to the 'sub' or 'function' keyword.
-                    newModifiers = modifiers.RemoveAt(0)
-                    newSubOrFunctionKeyword = newSubOrFunctionKeyword.WithPrependedLeadingTrivia(asyncLeadingTrivia)
-                End If
-            Else
-                newModifiers = modifiers.RemoveAt(asyncTokenIndex)
-            End If
-
-            Dim newSubOrFunctionStatement = subOrFunctionStatement.WithModifiers(newModifiers).WithSubOrFunctionKeyword(newSubOrFunctionKeyword)
-            Return newSubOrFunctionStatement
-        End Function
-
-        Private Function FixMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax) As SyntaxNode
-            Dim header As LambdaHeaderSyntax = GetNewHeader(node)
-            Return node.WithSubOrFunctionHeader(header).WithLeadingTrivia(node.GetLeadingTrivia())
-        End Function
-
-        Private Function FixSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax) As SingleLineLambdaExpressionSyntax
-            Dim header As LambdaHeaderSyntax = GetNewHeader(node)
-            Return node.WithSubOrFunctionHeader(header).WithLeadingTrivia(node.GetLeadingTrivia())
-        End Function
-
-        Private Shared Function GetNewHeader(node As LambdaExpressionSyntax) As LambdaHeaderSyntax
-            Dim header = DirectCast(node.SubOrFunctionHeader, LambdaHeaderSyntax)
-            Dim asyncKeywordIndex = header.Modifiers.IndexOf(SyntaxKind.AsyncKeyword)
-            Dim newHeader = header.WithModifiers(header.Modifiers.RemoveAt(asyncKeywordIndex))
-            Return newHeader
         End Function
     End Class
 End Namespace

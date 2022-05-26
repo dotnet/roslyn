@@ -5,7 +5,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Enumerates the elements of a <see cref="ChildSyntaxList" />.</summary>
         public struct Enumerator
         {
-            private SyntaxNode _node;
+            private SyntaxNode? _node;
             private int _count;
             private int _childIndex;
 
@@ -36,12 +37,14 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>Advances the enumerator to the next element of the <see cref="ChildSyntaxList" />.</summary>
             /// <returns>true if the enumerator was successfully advanced to the next element; false if the enumerator has passed the end of the collection.</returns>
+            [MemberNotNullWhen(true, nameof(_node))]
             public bool MoveNext()
             {
                 var newIndex = _childIndex + 1;
                 if (newIndex < _count)
                 {
                     _childIndex = newIndex;
+                    Debug.Assert(_node != null);
                     return true;
                 }
 
@@ -54,6 +57,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
+                    Debug.Assert(_node is object);
                     return ItemInternal(_node, _childIndex);
                 }
             }
@@ -76,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            internal SyntaxNode TryMoveNextAndGetCurrentAsNode()
+            internal SyntaxNode? TryMoveNextAndGetCurrentAsNode()
             {
                 while (MoveNext())
                 {

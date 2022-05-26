@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio;
@@ -24,9 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         internal virtual Snapshot CreateSnapshot()
-        {
-            return new CodeElementSnapshot(this);
-        }
+            => new CodeElementSnapshot(this);
 
         protected abstract bool TryGetItemByName(string name, out EnvDTE.CodeElement element);
         protected abstract bool TryGetItemByIndex(int index, out EnvDTE.CodeElement element);
@@ -41,8 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         public int Item(object index, out EnvDTE.CodeElement element)
         {
-            var elementIndex = -1;
-
             if (index is string elementName)
             {
                 if (TryGetItemByName(elementName, out element))
@@ -52,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             }
             else if (index is int i)
             {
-                elementIndex = i - 1;
+                var elementIndex = i - 1;
                 if (elementIndex >= 0 && TryGetItemByIndex(elementIndex, out element))
                 {
                     return VSConstants.S_OK;
@@ -72,18 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         public bool CreateUniqueID(string prefix, ref string newName)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void Reserved1(object element)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public virtual System.Collections.IEnumerator GetEnumerator()
-        {
-            return Enumerator.Create(CreateSnapshot());
-        }
+            => Enumerator.Create(CreateSnapshot());
     }
 }

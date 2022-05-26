@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -18,22 +15,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SynthesizedParameterSymbolBase : ParameterSymbol
     {
-        private readonly MethodSymbol _container;
+        private readonly MethodSymbol? _container;
         private readonly TypeWithAnnotations _type;
         private readonly int _ordinal;
         private readonly string _name;
         private readonly RefKind _refKind;
 
         public SynthesizedParameterSymbolBase(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
-            string name = "")
+            string name)
         {
-            RoslynDebug.Assert(type.HasType);
-            RoslynDebug.Assert(name != null);
-            RoslynDebug.Assert(ordinal >= 0);
+            Debug.Assert(type.HasType);
+            Debug.Assert(name != null);
+            Debug.Assert(ordinal >= 0);
 
             _container = container;
             _type = type;
@@ -86,27 +83,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsIDispatchConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsIUnknownConstant
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerLineNumber
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerFilePath
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         internal override bool IsCallerMemberName
         {
-            get { return false; }
+            get { throw ExceptionUtilities.Unreachable; }
+        }
+
+        internal override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
         }
 
         internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get { return _container; }
         }
@@ -145,13 +147,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // adversely effect the compilation or potentially change overload resolution.  
             var compilation = this.DeclaringCompilation;
             var type = this.TypeWithAnnotations;
-            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes() && compilation.CanEmitBoolean())
+            if (type.Type.ContainsDynamic() && compilation.HasDynamicEmitAttributes(BindingDiagnosticBag.Discarded, Location.None) && compilation.CanEmitBoolean())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + this.RefCustomModifiers.Length, this.RefKind));
             }
 
+            if (compilation.ShouldEmitNativeIntegerAttributes(type.Type))
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNativeIntegerAttribute(this, type.Type));
+            }
+
             if (type.Type.ContainsTupleNames() &&
-                compilation.HasTupleNamesAttributes &&
+                compilation.HasTupleNamesAttributes(BindingDiagnosticBag.Discarded, Location.None) &&
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
@@ -168,12 +175,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
         }
+
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => false;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase
     {
         private SynthesizedParameterSymbol(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -183,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public static ParameterSymbol Create(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -253,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SourceComplexParameterSymbol? _baseParameterForAttributes;
 
         public SynthesizedComplexParameterSymbol(
-            MethodSymbol container,
+            MethodSymbol? container,
             TypeWithAnnotations type,
             int ordinal,
             RefKind refKind,
@@ -282,5 +293,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasEnumeratorCancellationAttribute => _baseParameterForAttributes?.HasEnumeratorCancellationAttribute ?? false;
 
         internal override MarshalPseudoCustomAttributeData? MarshallingInformation => _baseParameterForAttributes?.MarshallingInformation;
+
+        internal override bool IsMetadataOptional => _baseParameterForAttributes?.IsMetadataOptional == true;
+
+        internal override ConstantValue? ExplicitDefaultConstantValue => _baseParameterForAttributes?.ExplicitDefaultConstantValue;
+
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.FlowAnalysisAnnotations;
+            }
+        }
+
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get
+            {
+                Debug.Assert(_baseParameterForAttributes is null);
+                return base.NotNullIfParameterNotNull;
+            }
+        }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,5 +17,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullableAttribute = 0x08,
         NullableContextAttribute = 0x10,
         NullablePublicOnlyAttribute = 0x20,
+        NativeIntegerAttribute = 0x40,
     }
 }

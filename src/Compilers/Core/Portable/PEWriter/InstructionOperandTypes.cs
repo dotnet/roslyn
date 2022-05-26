@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Collections.Immutable;
 using System.Reflection.Emit;
 
@@ -25,7 +24,7 @@ namespace Microsoft.Cci
         }
 
         // internal for testing
-        internal static readonly byte[] OneByte = new byte[]
+        internal static ReadOnlySpan<byte> OneByte => new byte[]
         {
             (byte)OperandType.InlineNone,           // nop
             (byte)OperandType.InlineNone,           // break
@@ -285,7 +284,7 @@ namespace Microsoft.Cci
         };
 
         // internal for testing
-        internal static readonly byte[] TwoByte = new byte[]
+        internal static ReadOnlySpan<byte> TwoByte => new byte[]
         {
             (byte)OperandType.InlineNone,           // arglist           (0xfe 0x00)
             (byte)OperandType.InlineNone,           // ceq

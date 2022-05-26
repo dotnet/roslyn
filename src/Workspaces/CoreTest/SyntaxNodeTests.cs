@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var root = tree.GetRoot();
 
-            var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax || n is ClassDeclarationSyntax).ToList();
+            var nodes = root.DescendantNodes().Where(n => n is VariableDeclaratorSyntax or ClassDeclarationSyntax).ToList();
             var computations = 0;
             var newRoot = await root.ReplaceNodesAsync(nodes, (o, n, c) =>
             {
@@ -97,8 +99,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var trackedRoot = root.TrackNodes(classDecl, methodDecl);
 
             // use some fancy document centric rewrites
-            var comp = await doc.Project.GetCompilationAsync();
-
             var gen = SyntaxGenerator.GetGenerator(doc);
             var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private);
 

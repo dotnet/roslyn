@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
 {
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
             {
-                var isOrAsNode = node.Kind() == SyntaxKind.AsExpression || node.Kind() == SyntaxKind.IsExpression;
+                var isOrAsNode = node.Kind() is SyntaxKind.AsExpression or SyntaxKind.IsExpression;
 
                 var result = (ExpressionSyntax)base.VisitBinaryExpression(node);
 

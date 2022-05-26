@@ -4,7 +4,7 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.EmbeddedLanguages
-Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
 
-        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
-            Return EmbeddedLanguageUtilities.EscapeText(text, token)
+        Public Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+            Return EmbeddedLanguageUtilities.EscapeText(text)
         End Function
     End Class
 End Namespace

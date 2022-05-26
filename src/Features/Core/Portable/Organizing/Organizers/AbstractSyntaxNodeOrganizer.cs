@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,9 +20,7 @@ namespace Microsoft.CodeAnalysis.Organizing.Organizers
         }
 
         public SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return Organize((TSyntaxNode)node, cancellationToken);
-        }
+            => Organize((TSyntaxNode)node, cancellationToken);
 
         protected abstract TSyntaxNode Organize(TSyntaxNode node, CancellationToken cancellationToken);
     }

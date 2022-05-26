@@ -2,20 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class KeywordCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New KeywordCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(KeywordCompletionProvider)
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -40,6 +34,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             Dim markup = "$$"
             Await VerifyAnyItemExistsAsync(markup)
+        End Function
+
+        <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Async Function TestNoTypeKeywordsInAsyncMemberDeclaration() As Task
+            Dim code = <Text>
+Class C
+    Public Async Function Test() As $$
+        
+    End Function
+End Class
+</Text>.Value
+
+            Await VerifyItemIsAbsentAsync(code, "Boolean")
+            Await VerifyItemIsAbsentAsync(code, "Byte")
+            Await VerifyItemIsAbsentAsync(code, "Char")
+            Await VerifyItemIsAbsentAsync(code, "Date")
+            Await VerifyItemIsAbsentAsync(code, "Decimal")
+            Await VerifyItemIsAbsentAsync(code, "Double")
+            Await VerifyItemIsAbsentAsync(code, "Integer")
+            Await VerifyItemIsAbsentAsync(code, "Long")
+            Await VerifyItemIsAbsentAsync(code, "Object")
+            Await VerifyItemIsAbsentAsync(code, "SByte")
+            Await VerifyItemIsAbsentAsync(code, "Short")
+            Await VerifyItemIsAbsentAsync(code, "Single")
+            Await VerifyItemIsAbsentAsync(code, "String")
+            Await VerifyItemIsAbsentAsync(code, "UInteger")
+            Await VerifyItemIsAbsentAsync(code, "ULong")
+            Await VerifyItemIsAbsentAsync(code, "UShort")
         End Function
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -69,7 +91,6 @@ End Class
 
             Await VerifyNoItemsExistAsync(code)
         End Function
-
 
         <Fact(), Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function TestNotInUnterminatedString() As Task

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if CODE_STYLE
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         private readonly CSharpTypeStyleHelper _helper;
         private readonly TypeSyntax _typeName;
         private readonly SemanticModel _semanticModel;
-        private readonly OptionSet _optionSet;
+        private readonly CSharpSimplifierOptions _options;
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
@@ -39,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public readonly bool IsStylePreferred;
         public readonly ReportDiagnostic Severity;
 
-        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, bool isStylePreferred, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
+        public TypeStyleResult(CSharpTypeStyleHelper helper, TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, bool isStylePreferred, ReportDiagnostic severity, CancellationToken cancellationToken) : this()
         {
             _helper = helper;
             _typeName = typeName;
             _semanticModel = semanticModel;
-            _optionSet = optionSet;
+            _options = options;
             _cancellationToken = cancellationToken;
 
             IsStylePreferred = isStylePreferred;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         public bool CanConvert()
-            => _helper.TryAnalyzeVariableDeclaration(_typeName, _semanticModel, _optionSet, _cancellationToken);
+            => _helper.TryAnalyzeVariableDeclaration(_typeName, _semanticModel, _options, _cancellationToken);
     }
 
     internal abstract partial class CSharpTypeStyleHelper
@@ -61,37 +62,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         public virtual TypeStyleResult AnalyzeTypeName(
             TypeSyntax typeName, SemanticModel semanticModel,
-            OptionSet optionSet, CancellationToken cancellationToken)
+            CSharpSimplifierOptions options, CancellationToken cancellationToken)
         {
-            var declaration = typeName?.FirstAncestorOrSelf<SyntaxNode>(
-                a => a.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement));
-
-            if (declaration == null)
+            if (typeName?.FirstAncestorOrSelf<SyntaxNode>(a => a.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement)) is not { } declaration)
             {
                 return default;
             }
 
             var state = new State(
-                declaration, semanticModel, optionSet, cancellationToken);
+                declaration, semanticModel, options, cancellationToken);
             var isStylePreferred = this.IsStylePreferred(in state);
             var severity = state.GetDiagnosticSeverityPreference();
 
             return new TypeStyleResult(
-                this, typeName, semanticModel, optionSet, isStylePreferred, severity, cancellationToken);
+                this, typeName, semanticModel, options, isStylePreferred, severity, cancellationToken);
         }
 
         internal abstract bool TryAnalyzeVariableDeclaration(
-            TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+            TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken);
 
-        protected abstract bool AssignmentSupportsStylePreference(SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract bool AssignmentSupportsStylePreference(
+            SyntaxToken identifier, TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken);
 
-        internal TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        internal TypeSyntax? FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             Debug.Assert(node.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
             return node switch
             {
-                VariableDeclarationSyntax variableDeclaration => ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken)
+                VariableDeclarationSyntax variableDeclaration => ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken)
                     ? variableDeclaration.Type
                     : null,
                 ForEachStatementSyntax forEachStatement => ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken)
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             };
         }
 
-        protected virtual bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public virtual bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             // implicit type is applicable only for local variables and
             // such declarations cannot have multiple declarators and

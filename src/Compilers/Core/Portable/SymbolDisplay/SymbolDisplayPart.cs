@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly SymbolDisplayPartKind _kind;
         private readonly string _text;
-        private readonly ISymbol _symbol;
+        private readonly ISymbol? _symbol;
 
         /// <summary>
         /// Gets the kind of this display part.
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// For example, the <see cref="ITypeSymbol"/> associated with a class name.
         /// </summary>
         /// <returns></returns>
-        public ISymbol Symbol { get { return _symbol; } }
+        public ISymbol? Symbol { get { return _symbol; } }
 
         /// <summary>
         /// Construct a non-formattable <see cref="SymbolDisplayPart"/> (i.e. with a fixed string value).
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="kind">The kind of the display part.</param>
         /// <param name="symbol">An optional associated symbol.</param>
         /// <param name="text">The fixed string value of the part.</param>
-        public SymbolDisplayPart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
+        public SymbolDisplayPart(SymbolDisplayPartKind kind, ISymbol? symbol, string text)
         {
             if (!kind.IsValid())
             {

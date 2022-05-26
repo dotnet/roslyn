@@ -2,26 +2,34 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.VisualStudio.Text
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
     <[UseExportProvider]>
     Public Class SmartIndenterTests
         Inherits VisualBasicFormatterTestBase
 
-        Private Shared s_htmlMarkup As String = <text>
+        Private Shared ReadOnly s_compositionWithTestFormattingRules As TestComposition = EditorTestCompositions.EditorFeatures.
+            AddParts(GetType(TestFormattingRuleFactoryServiceFactory))
+
+        Private Shared ReadOnly s_htmlMarkup As String = <text>
 &lt;html&gt;
     &lt;body&gt;
         &lt;%{|S1:|}%&gt;
     &lt;/body&gt;
 &lt;/html&gt;
 </text>.NormalizedValue
-        Private Shared s_baseIndentationOfNugget As Integer = 8
+        Private Shared ReadOnly s_baseIndentationOfNugget As Integer = 8
+
+        Public Sub New(output As ITestOutputHelper)
+            MyBase.New(output)
+        End Sub
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -167,7 +175,7 @@ End Module
             AssertSmartIndent(
                 code,
                 indentationLine:=1,
-                expectedIndentation:=12)
+                expectedIndentation:=8)
         End Sub
 
         <WpfFact>
@@ -883,7 +891,6 @@ End Class</Code>.Value
                 expectedIndentation:=12)
         End Sub
 
-
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestWithStatement()
@@ -989,7 +996,6 @@ End Class</Code>.Value
                 indentationLine:=6,
                 expectedIndentation:=16)
         End Sub
-
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
@@ -2092,13 +2098,6 @@ End Module</text>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TestSmartIndenterConstructorThrows1()
-            Assert.Throws(Of ArgumentNullException)(
-                Function() New SmartIndent(Nothing))
-        End Sub
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestParameter1()
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer,
@@ -2554,7 +2553,7 @@ End Namespace
                 code,
                 indentationLine:=2,
                 expectedIndentation:=4,
-                indentStyle:=FormattingOptions.IndentStyle.Block)
+                indentStyle:=FormattingOptions2.IndentStyle.Block)
         End Sub
 
         <WpfFact>
@@ -2569,7 +2568,7 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=8,
-                indentStyle:=FormattingOptions.IndentStyle.Block)
+                indentStyle:=FormattingOptions2.IndentStyle.Block)
         End Sub
 
         <WpfFact>
@@ -2584,7 +2583,7 @@ End Namespace
                 code,
                 indentationLine:=3,
                 expectedIndentation:=0,
-                indentStyle:=FormattingOptions.IndentStyle.None)
+                indentStyle:=FormattingOptions2.IndentStyle.None)
         End Sub
 
         <WpfFact>
@@ -2975,7 +2974,7 @@ End Class
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub IndentationOfReturnInFileWithTabs1()
-            dim code = "
+            Dim code = "
 public class Example
 	public sub Test(session as object)
 		if (session is nothing)
@@ -2989,28 +2988,26 @@ end class"
                 indentationLine:=4,
                 expectedIndentation:=12,
                 useTabs:=True,
-                indentStyle:=FormattingOptions.IndentStyle.Smart)
-        End sub
+                indentStyle:=FormattingOptions2.IndentStyle.Smart)
+        End Sub
 
-        Private Sub AssertSmartIndentIndentationInProjection(
+        Private Shared Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
                 expectedIndentation As Integer)
-            Using workspace = TestWorkspace.CreateVisualBasic(markup)
+            Using workspace = TestWorkspace.CreateVisualBasic(markup, composition:=s_compositionWithTestFormattingRules)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents)
 
-                Dim factory = TryCast(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
+                Dim factory = CType(workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)(),
                                     TestFormattingRuleFactoryServiceFactory.Factory)
-                If factory IsNot Nothing Then
-                    factory.BaseIndentation = s_baseIndentationOfNugget
-                    factory.TextSpan = subjectDocument.SelectedSpans.Single()
-                End If
+                factory.BaseIndentation = s_baseIndentationOfNugget
+                factory.TextSpan = subjectDocument.SelectedSpans.Single()
 
                 Dim indentationLine = projectedDocument.GetTextBuffer().CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value)
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
 
                 TestIndentation(
-                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions)
             End Using
         End Sub
 
@@ -3018,7 +3015,7 @@ end class"
         Private Sub AssertSmartIndent(
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
-                Optional indentStyle As FormattingOptions.IndentStyle = FormattingOptions.IndentStyle.Smart)
+                Optional indentStyle As FormattingOptions2.IndentStyle = FormattingOptions2.IndentStyle.Smart)
             AssertSmartIndent(code, indentationLine, expectedIndentation, useTabs:=False, indentStyle)
             AssertSmartIndent(code.Replace("    ", vbTab), indentationLine, expectedIndentation, useTabs:=True, indentStyle)
         End Sub
@@ -3028,13 +3025,9 @@ end class"
                 code As String, indentationLine As Integer,
                 expectedIndentation As Integer?,
                 useTabs As Boolean,
-                indentStyle As FormattingOptions.IndentStyle)
+                indentStyle As FormattingOptions2.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
-                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)))
-
-                TestIndentation(workspace, indentationLine, expectedIndentation)
+                TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs)
             End Using
         End Sub
     End Class

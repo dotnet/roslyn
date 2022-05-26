@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -17,16 +15,32 @@ namespace Microsoft.CodeAnalysis.Text
         /// Gets the documents from the corresponding workspace's current solution that are associated with the source text's container,
         /// updated to contain the same text as the source if necessary.
         /// </summary>
-        public static IEnumerable<Document> GetRelatedDocumentsWithChanges(this SourceText text)
+        public static ImmutableArray<Document> GetRelatedDocumentsWithChanges(this SourceText text)
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
-                var ids = workspace.GetRelatedDocumentIds(text.Container);
-                var sol = workspace.CurrentSolution.WithDocumentText(ids, text, PreservationMode.PreserveIdentity);
-                return ids.Select(id => sol.GetDocument(id)).WhereNotNull();
+                var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
+                if (documentId == null)
+                {
+                    return ImmutableArray<Document>.Empty;
+                }
+
+                var solution = workspace.CurrentSolution;
+
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(documentId, out var documentIdentity))
+                {
+                    // For source generated documents, we won't count them as linked across multiple projects; this is because
+                    // the generated documents in each target may have different source so other features might be surprised if we
+                    // return the same documents but with different text. So in this case, we'll just return a single document.
+                    return ImmutableArray.Create(solution.WithFrozenSourceGeneratedDocument(documentIdentity, text));
+                }
+
+                var relatedIds = solution.GetRelatedDocumentIds(documentId);
+                solution = solution.WithDocumentText(relatedIds, text, PreservationMode.PreserveIdentity);
+                return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
             }
 
-            return SpecializedCollections.EmptyEnumerable<Document>();
+            return ImmutableArray<Document>.Empty;
         }
 
         /// <summary>
@@ -39,9 +53,14 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 var solution = workspace.CurrentSolution;
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !solution.ContainsDocument(id))
+                if (id == null)
                 {
                     return null;
+                }
+
+                if (workspace.TryGetOpenSourceGeneratedDocumentIdentity(id, out var documentIdentity))
+                {
+                    return solution.WithFrozenSourceGeneratedDocument(documentIdentity, text);
                 }
 
                 // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
@@ -57,16 +76,20 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Gets the documents from the corresponding workspace's current solution that are associated with the text container. 
         /// </summary>
-        public static IEnumerable<Document> GetRelatedDocuments(this SourceTextContainer container)
+        public static ImmutableArray<Document> GetRelatedDocuments(this SourceTextContainer container)
         {
             if (Workspace.TryGetWorkspace(container, out var workspace))
             {
-                var sol = workspace.CurrentSolution;
-                var ids = workspace.GetRelatedDocumentIds(container);
-                return ids.Select(id => sol.GetDocument(id)).WhereNotNull();
+                var solution = workspace.CurrentSolution;
+                var documentId = workspace.GetDocumentIdInCurrentContext(container);
+                if (documentId != null)
+                {
+                    var relatedIds = solution.GetRelatedDocumentIds(documentId);
+                    return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
+                }
             }
 
-            return SpecializedCollections.EmptyEnumerable<Document>();
+            return ImmutableArray<Document>.Empty;
         }
 
         /// <summary>
@@ -82,6 +105,19 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Tries to get the document corresponding to the text from the current partial solution 
+        /// associated with the text's container. If the document does not contain the exact text a document 
+        /// from a new solution containing the specified text is constructed. If no document is associated
+        /// with the specified text's container, or the text's container isn't associated with a workspace,
+        /// then the method returns false.
+        /// </summary>
+        internal static Document? GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
+        {
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            return document?.WithFrozenPartialSemantics(cancellationToken);
         }
     }
 }

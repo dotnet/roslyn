@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
         : AbstractSimplifyThisOrMeCodeFixProvider<MemberAccessExpressionSyntax>
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpSimplifyThisOrMeCodeFixProvider()
         {
         }
@@ -29,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyThisOrMe
 
         private class Rewriter : CSharpSyntaxRewriter
         {
-            private readonly ISet<MemberAccessExpressionSyntax> memberAccessNodes;
+            private readonly ISet<MemberAccessExpressionSyntax> _memberAccessNodes;
 
             public Rewriter(ISet<MemberAccessExpressionSyntax> memberAccessNodes)
-                => this.memberAccessNodes = memberAccessNodes;
+                => _memberAccessNodes = memberAccessNodes;
 
-            public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-                => memberAccessNodes.Contains(node)
+            public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+                => _memberAccessNodes.Contains(node)
                     ? node.GetNameWithTriviaMoved()
                     : base.VisitMemberAccessExpression(node);
         }

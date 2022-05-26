@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Remote;
@@ -12,7 +14,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests
 {
     internal static class TestUtils
     {
-        public static void VerifyAssetStorage<T>(IEnumerable<KeyValuePair<Checksum, T>> items, AssetStorage storage)
+        public static void VerifyAssetStorage<T>(IEnumerable<KeyValuePair<Checksum, T>> items, SolutionAssetCache storage)
         {
             foreach (var kv in items)
             {
@@ -27,7 +29,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests
                     continue;
                 }
 
-                Assert.True(storage.TryGetAsset(kv.Key, out object data));
+                Assert.True(storage.TryGetAsset(kv.Key, out object _));
             }
         }
     }

@@ -1,6 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -10,11 +10,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ProjectDependencyGraph
+    public partial class ProjectDependencyGraph
     {
-        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyList<ProjectId> referencedProjectIds)
+        internal ProjectDependencyGraph WithAdditionalProjectReferences(ProjectId projectId, IReadOnlyCollection<ProjectReference> projectReferences)
         {
             Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+
+            if (projectReferences.Count == 0)
+            {
+                return this;
+            }
+
+            // only add references to projects that are contained in the solution/graph
+            var referencedProjectIds = projectReferences
+                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Select(r => r.ProjectId)
+                .ToList();
 
             if (referencedProjectIds.Count == 0)
             {
@@ -76,14 +87,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var referencedProject in referencedProjectIds)
             {
-                if (builder.TryGetValue(referencedProject, out var reverseReferences))
-                {
-                    builder[referencedProject] = reverseReferences.Add(projectId);
-                }
-                else
-                {
-                    builder[referencedProject] = ImmutableHashSet.Create(projectId);
-                }
+                builder.MultiAdd(referencedProject, projectId);
             }
 
             return builder.ToImmutable();
@@ -101,7 +105,7 @@ namespace Microsoft.CodeAnalysis
             // of projects. First, let's just compute the new set of transitive references. It's possible while doing so we'll discover that we don't
             // know the transitive project references for one of our new references. In that case, we'll use null as a sentinel to mean "we don't know" and
             // we propagate the not-knowingness. But let's not worry about that yet. First, let's just get the new transitive reference set.
-            HashSet<ProjectId>? newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
+            var newTransitiveReferences = new HashSet<ProjectId>(referencedProjectIds);
 
             foreach (var referencedProjectId in referencedProjectIds)
             {

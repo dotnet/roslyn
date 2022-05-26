@@ -5,7 +5,11 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -28,26 +32,24 @@ namespace Microsoft.CodeAnalysis.Wrapping
             _wrappers = wrappers;
         }
 
+        protected abstract SyntaxWrappingOptions GetWrappingOptions(AnalyzerConfigOptions options, CodeActionOptions ideOptions);
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
             if (!span.IsEmpty)
-            {
                 return;
-            }
 
             var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            foreach (var node in token.Parent.AncestorsAndSelf())
+            var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = GetWrappingOptions(configOptions, context.Options.GetOptions(document.Project.LanguageServices));
+
+            foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
             {
-                // Make sure we don't have any syntax errors here.  Don't want to format if we don't
-                // really understand what's going on.
-                if (node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error))
-                {
-                    return;
-                }
+                var containsSyntaxError = node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
 
                 // Check if any wrapper can handle this node.  If so, then we're done, otherwise
                 // keep walking up.
@@ -56,22 +58,23 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var computer = await wrapper.TryCreateComputerAsync(
-                        document, position, node, cancellationToken).ConfigureAwait(false);
+                        document, position, node, options, containsSyntaxError, cancellationToken).ConfigureAwait(false);
 
                     if (computer == null)
-                    {
                         continue;
-                    }
 
                     var actions = await computer.GetTopLevelCodeActionsAsync().ConfigureAwait(false);
                     if (actions.IsDefaultOrEmpty)
-                    {
                         continue;
-                    }
 
                     context.RegisterRefactorings(actions);
                     return;
                 }
+
+                // if we hit a syntax error and the computer couldn't handle it, then bail out.  Don't want to format if
+                // we don't really understand what's going on.
+                if (containsSyntaxError)
+                    return;
             }
         }
     }

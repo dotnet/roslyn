@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray(type => type.Arity == arity);
+            return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
         }
 
         public sealed override ImmutableArray<Location> Locations

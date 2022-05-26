@@ -151,6 +151,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return GetLineVisibility(index)
         End Function
 
+        Protected Overrides Function GetUnknownStateVisibility(index As Integer) As LineVisibility
+            Return GetLineVisibility(index)
+        End Function
+
         Private Overloads Function GetLineVisibility(index As Integer) As LineVisibility
             ' #ExternalSource is used primarily for ASP.NET (formerly XSP) or Venus. The requirement is that only spans marked
             ' with the directive should add sequence points. This is because the XSP guys don't want the user debugging into 

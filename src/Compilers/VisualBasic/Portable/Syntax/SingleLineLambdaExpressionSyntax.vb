@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
     End Class
 
-    Public Partial Class LambdaExpressionSyntax
+    Partial Public Class LambdaExpressionSyntax
 
         <EditorBrowsable(EditorBrowsableState.Never)>
         <Obsolete("This member is obsolete. Use SubOrFunctionHeader instead.", True)>

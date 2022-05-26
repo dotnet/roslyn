@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -2868,7 +2872,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] finally { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try", "finally").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "finally").WithArguments("try").WithLocation(6, 21),
                 // (6,21): error CS1514: { expected
                 //         try { } [A] finally { }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "finally").WithLocation(6, 21),
@@ -3056,7 +3060,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 17),
                 // (6,21): error CS1003: Syntax error, 'try' expected
                 //         try { } [A] catch { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try", "catch").WithLocation(6, 21),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "catch").WithArguments("try").WithLocation(6, 21),
                 // (6,21): error CS1514: { expected
                 //         try { } [A] catch { }
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "catch").WithLocation(6, 21),
@@ -6228,9 +6232,9 @@ class C
                 // (6,12): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         [A]a switch { };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "a switch { }").WithLocation(6, 12),
-                // (6,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive).
+                // (6,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
                 //         [A]a switch { };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 14),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(6, 14),
                 // (6,14): error CS8506: No best type was found for the switch expression.
                 //         [A]a switch { };
                 Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 14));
@@ -6691,7 +6695,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 21),
                 // (6,25): error CS1003: Syntax error, ',' expected
                 //         [A]int this[int i] => 0;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",", "").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "i").WithArguments(",").WithLocation(6, 25),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
                 //         [A]int this[int i] => 0;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25),
@@ -7249,9 +7253,6 @@ class C
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]await using var i = d;
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,12): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         [A]await using var i = d;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 12),
                 // (6,12): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         [A]await using var i = d;
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod, "await").WithLocation(6, 12));
@@ -7360,10 +7361,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncDisposable").WithArguments("IAsyncDisposable", "System").WithLocation(4, 27),
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]await using var i = d;
-                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9),
-                // (6,12): error CS0518: Predefined type 'System.IAsyncDisposable' is not defined or imported
-                //         [A]await using var i = d;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "await").WithArguments("System.IAsyncDisposable").WithLocation(6, 12));
+                Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9));
         }
 
         [Fact]

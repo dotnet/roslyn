@@ -3,8 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
+    <UseExportProvider>
     Public Class ActiveStatementTests
         Inherits EditingTestBase
 
@@ -39,7 +42,73 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2)"))
+        End Sub
+
+        <Fact>
+        Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
+            Dim src1 = "
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>' comment
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifySemanticDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub Update_Inner_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Shared Sub Main()
+        <AS:1>Goo(1)</AS:1>
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Shared Sub Main()
+        While True
+            <AS:1>Goo(2)</AS:1>
+        End While
+    End Sub
+
+    Shared Sub Goo(a As Integer)
+        <AS:0>Console.WriteLine(a)</AS:0>
+    End Sub
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Goo(2)"))
         End Sub
 
@@ -73,7 +142,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -104,36 +173,50 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
+        ' <summary>
+        ' CreateNewOnMetadataUpdate has no effect in presence of active statements (in break mode).
+        ' </summary>
         <Fact>
-        Public Sub Update_Inner_NewCommentAtEndOfActiveStatement()
-            Dim src1 = "
+        Public Sub Update_Leaf_Reloadable()
+
+            Dim src1 = ReloadableAttributeSrc + "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
         <AS:1>Goo(1)</AS:1>
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>System.Console.WriteLine(a)</AS:0>
     End Sub
 End Class
 "
-            Dim src2 = "
+            Dim src2 = ReloadableAttributeSrc + "
+<CreateNewOnMetadataUpdate>
 Class C
     Shared Sub Main()
-        <AS:1>Goo(1)</AS:1>' comment
+        While True
+            <AS:1>Goo(1)</AS:1>
+        End While
     End Sub
 
     Shared Sub Goo(a As Integer)
-        <AS:0>Console.WriteLine(a)</AS:0>
+        <AS:0>Console.WriteLine(a + 1)</AS:0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+
+            edits.VerifySemantics(active,
+                semanticEdits:=
+                {
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"), preserveLocalVariables:=True),
+                    SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Goo"), preserveLocalVariables:=True)
+                })
         End Sub
 
         <Fact>
@@ -173,7 +256,7 @@ Class C
         <AS:22>Me.value = a</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a</AS:25>
         Return 0
     <AS:26>End Function</AS:26>
@@ -215,7 +298,7 @@ Class C
         <AS:22>Me.value = a*8</AS:22>
     <AS:23>End Sub</AS:23>
 
-    <AS:24>Function F(a As C, b As C) As Integer</AS:24>
+    <AS:24>Function G(a As C, b As C) As Integer</AS:24>
         <AS:25>Me.value = a*8</AS:25>
     <AS:26>End Function</AS:26>
 End Class
@@ -223,7 +306,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Me.value = a*6"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Me.value = a*7"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Me.value = a*8"),
@@ -261,8 +344,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.method))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.method, "Goo(a As Integer)")))
         End Sub
 
         <Fact>
@@ -281,8 +364,8 @@ End Class
             Dim src2 = ""
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, Nothing, FeaturesResources.class_))
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(FeaturesResources.class_, "C")))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -314,8 +397,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()", FeaturesResources.code))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -419,22 +502,22 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case 1, 2"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case Else"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "While True"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do Until True"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True Then"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "For i = 0 To 10"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "For Each i In {1, 2}"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Using z = New C()"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "With expr"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()"),
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "SyncLock Nothing"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case 1, 2", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Case Else", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "While True", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Do Until True", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If True Then", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Else", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "For i = 0 To 10", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "For Each i In {1, 2}", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Using z = New C()", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "With expr", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Shared Sub Main()", FeaturesResources.code),
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "SyncLock Nothing", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -474,8 +557,8 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -511,8 +594,8 @@ End Class
 ]]>.Value
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "If c1 Then", FeaturesResources.code))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -542,7 +625,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -577,7 +660,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -615,7 +698,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -646,8 +729,8 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub Main()"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub Main()", FeaturesResources.code))
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -677,7 +760,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -694,8 +777,8 @@ End Module
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, Nothing, "module"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, Nothing, DeletedSymbolDisplay(VBFeaturesResources.module_, "Module1")))
         End Sub
 #End Region
 
@@ -735,7 +818,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                                         Diagnostic(RudeEditKind.ActiveStatementUpdate, "f As Goo = New Goo(5*2)"))
         End Sub
 
@@ -775,7 +858,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -813,7 +896,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 2", FeaturesResources.parameter))
         End Sub
 
@@ -848,7 +931,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InitializerUpdate, "Optional a As Integer = 42", FeaturesResources.parameter))
         End Sub
 
@@ -884,7 +967,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <WorkItem(742334, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/742334")>
@@ -938,7 +1021,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -969,7 +1052,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1015,7 +1098,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "MyClass.New(False)"))
         End Sub
 
@@ -1045,7 +1128,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(755959, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755959")>
@@ -1073,7 +1156,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1101,7 +1184,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
 #End Region
@@ -1132,7 +1215,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1159,7 +1242,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1186,7 +1269,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1213,7 +1296,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1240,7 +1323,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1267,7 +1350,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1293,7 +1376,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(836523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836523")>
@@ -1319,7 +1402,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1346,9 +1429,8 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
-
 
         <Fact>
         Public Sub InstancePropertyAsNewInitializer_Update()
@@ -1374,14 +1456,14 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
         Public Sub InstancePropertyInitializer_Delete()
             Dim src1 = "
 Class C
-    <AS:0>Property P As Integer = 1</AS:0>
+    Property <AS:0>P As Integer = 1</AS:0>
 
     Sub Main
         Dim <AS:1>c = New C()</AS:1>
@@ -1401,7 +1483,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
@@ -1428,7 +1510,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c = 2"))
         End Sub
 
@@ -1456,8 +1538,36 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "d = 3"))
+        End Sub
+
+        <Fact>
+        Public Sub Initializer_SemanticError()
+            Dim src1 = "
+Class C
+    Dim <AS:0>a</AS:0>, <AS:1>b</AS:1> = 2
+
+    Sub Main
+        Dim <AS:2>a</AS:2>, <AS:3>b</AS:3> = 2
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Dim a, b = 20
+
+    Sub Main
+        Dim <AS:2>a</AS:2>, <AS:3>b</AS:3> = 20
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            ' Since the code is semantically incorrect it's acceptable to misreport active statements.
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
@@ -1474,18 +1584,18 @@ End Class
 
             Dim src2 = "
 Class C
-    Dim <AS:0>a = 0</AS:0>
+    Dim <AS:0>a As Integer = 0</AS:0>
 
     Sub Main
-        Dim <AS:1>b = 0</AS:1>
+        Dim <AS:1>b As Integer = 0</AS:1>
     End Sub
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b = 0"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b As Integer = 0"))
         End Sub
 
         <Fact>
@@ -1504,18 +1614,17 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Insert, "As Integer", VBFeaturesResources.as_clause))
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
         Public Sub Initializer_InitToAsNew()
             Dim src1 = "
 Class C
-    Dim <AS:0>a = 0</AS:0>
+    Dim <AS:0>a As Integer = 0</AS:0>
 
     Sub Main
-        Dim <AS:1>b = 0</AS:1>
+        Dim <AS:1>b As Integer = 0</AS:1>
     End Sub
 End Class
 "
@@ -1532,7 +1641,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "b As New Integer"))
         End Sub
 
@@ -1540,56 +1649,36 @@ End Class
         Public Sub Initializer_AsNewMulti_Update1()
             Dim src1 = "
 Class C
-    Dim <AS:0>a</AS:0>, b As New D(1)
+    Dim <AS:1>a</AS:1>, b As New D(1)
+    Dim c, <AS:2>d</AS:2> As New D(1)
+    Dim <AS:3>e</AS:3>, <AS:4>f</AS:4> As New D(1)
 
     Sub Main
-        Dim <AS:1>c</AS:1>, d As New D(1)
-    End Sub
+        Dim <AS:5>x</AS:5>, y As New D(1)
+    <AS:0>End Sub</AS:0>
 End Class
 "
 
             Dim src2 = "
 Class C
-    Dim <AS:0>a</AS:0>, b As New D(2)
+    Dim <AS:1>a</AS:1>, b As New D(2)
+    Dim c, <AS:2>d</AS:2> As New D(2)
+    Dim <AS:3>e</AS:3>, <AS:4>f</AS:4> As New D(2)
 
     Sub Main
-        Dim <AS:1>c</AS:1>, d As New D(2)
-    End Sub
+        Dim <AS:5>x</AS:5>, y As New D(2)
+    <AS:0>End Sub</AS:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c"))
-        End Sub
-
-        <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
-        Public Sub Initializer_AsNewMulti_Update2()
-            Dim src1 = "
-Class C
-    Dim a, <AS:0>b</AS:0> As New D(1)
-
-    Sub Main
-        Dim c, <AS:1>d</AS:1> As New D(1)
-    End Sub
-End Class
-"
-
-            Dim src2 = "
-Class C
-    Dim a, <AS:0>b</AS:0> As New D(2)
-
-    Sub Main
-        Dim c, <AS:1>d</AS:1> As New D(2)
-    End Sub
-End Class
-"
-
-            Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "a"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "e"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "f"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "x"))
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
@@ -1618,7 +1707,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e"))
         End Sub
@@ -1649,11 +1738,11 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c As New D(2)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e As New D(2)"),
-                Diagnostic(RudeEditKind.Delete, "a As New D(2)", FeaturesResources.field),
-                Diagnostic(RudeEditKind.Delete, "e As New D(2)", FeaturesResources.field))
+                Diagnostic(RudeEditKind.Delete, "a As New D(2)", DeletedSymbolDisplay(FeaturesResources.field, "b")),
+                Diagnostic(RudeEditKind.Delete, "e As New D(2)", DeletedSymbolDisplay(FeaturesResources.field, "f")))
         End Sub
 
         <Fact>
@@ -1672,7 +1761,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(815933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/815933")>
@@ -1693,7 +1782,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1712,7 +1801,38 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub Initializer_Array_SemanticError()
+            Dim src1 = "
+Class C
+    Dim <AS:0>a(1)</AS:0>, <AS:1>b(2)</AS:1> = 3
+
+    Sub Main
+        Dim <AS:2>c(1)</AS:2>, <AS:3>d(2)</AS:3> = 3</AS:1>
+    End Sub
+End Class
+"
+
+            Dim src2 = "
+Class C
+    Dim <AS:0>a(10)</AS:0>, <AS:1>b(20)</AS:1> = 30
+
+    Sub Main
+        Dim <AS:2>c(10)</AS:2>, <AS:3>d(20)</AS:3> = 30
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+
+            ' since the code is semantically incorrect we only care about not crashing
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(10)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "d(20)"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "b(20)"))
         End Sub
 
         <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
@@ -1739,7 +1859,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(2)"))
         End Sub
 
@@ -1767,7 +1887,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "d(2)"))
         End Sub
 
@@ -1775,19 +1895,19 @@ End Class
         Public Sub Initializer_Array_Update3()
             Dim src1 = "
 Class C
-    Private <AS:0>a(1)</AS:0>
-    Private <AS:1>e(1)</AS:1>
-    Private f(1)
+    Private <AS:0>a(1,1)</AS:0>
+    Private <AS:1>e(1,0)</AS:1>
+    Private f(1,0)
 
     Sub Main
-        Dim <AS:2>c(1)</AS:2>
+        Dim <AS:2>c(1,0)</AS:2>
     End Sub
 End Class
 "
 
             Dim src2 = "
 Class C
-    Private <AS:0>a(1,2)</AS:0>
+    Private <AS:0>a(1,0)</AS:0>
     Private <AS:1>e(1,2)</AS:1>
     Private f(1,2)
 
@@ -1799,12 +1919,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(1,2)"),
-                Diagnostic(RudeEditKind.TypeUpdate, "a(1,2)", FeaturesResources.field),
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "e(1,2)"),
-                Diagnostic(RudeEditKind.TypeUpdate, "e(1,2)", FeaturesResources.field),
-                Diagnostic(RudeEditKind.TypeUpdate, "f(1,2)", FeaturesResources.field))
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "c(1,2)"))
         End Sub
 
         <Fact, WorkItem(849649, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849649")>
@@ -1823,7 +1940,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "3"))
         End Sub
 
@@ -1845,7 +1962,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1864,7 +1981,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1887,7 +2004,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1907,7 +2024,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1", FeaturesResources.const_field))
         End Sub
 
@@ -1932,7 +2049,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -1952,7 +2069,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field),
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Private Const a As Integer = 1, b As Integer = 2", FeaturesResources.const_field))
         End Sub
 
@@ -1977,7 +2095,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2005,7 +2123,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2031,7 +2149,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2061,7 +2179,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2090,8 +2208,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "Class C", FeaturesResources.field))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "Class C", DeletedSymbolDisplay(FeaturesResources.field, "a")))
         End Sub
 
         <Fact>
@@ -2107,7 +2225,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Dim a</AS:0>
+    <AS:0>Dim a As D</AS:0>
 
     Sub New
     End Sub
@@ -2117,7 +2235,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2143,8 +2261,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", FeaturesResources.field))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "a,      c        As New D()", DeletedSymbolDisplay(FeaturesResources.field, "b")))
         End Sub
 
         <Fact>
@@ -2170,8 +2288,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", FeaturesResources.field))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "a,      b        As New D()", DeletedSymbolDisplay(FeaturesResources.field, "c")))
         End Sub
 
         <Fact>
@@ -2188,7 +2306,7 @@ End Class
 
             Dim src2 = "
 Class C
-    <AS:0>Dim a</AS:0>
+    <AS:0>Dim a As D</AS:0>
 
     Sub New
     End Sub
@@ -2198,7 +2316,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2224,8 +2342,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.Delete, "a,b As Integer", FeaturesResources.field))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.Delete, "a,b As Integer", DeletedSymbolDisplay(FeaturesResources.field, "c")))
         End Sub
 
         <Fact>
@@ -2251,7 +2369,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.TypeUpdate, "c", FeaturesResources.field))
         End Sub
 
@@ -2275,7 +2393,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2296,10 +2414,9 @@ Class C
 End Class
 "
 
-
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2320,7 +2437,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2329,7 +2446,7 @@ End Class
 Class C
     Dim <AS:0>a As Integer = 1</AS:0>
     Shared b As Integer = 1
-    Dim c(1) As Integer = 1
+    Dim c(1) As Integer
 End Class
 "
 
@@ -2343,14 +2460,14 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
         Public Sub PropertyInitializer_Delete_StaticInstanceMix()
             Dim src1 = "
 Class C
-    <AS:0>Shared Property a As Integer = 1</AS:0>
+    Shared Property <AS:0>a As Integer = 1</AS:0>
     Property  b As Integer = 1
 End Class
 "
@@ -2364,7 +2481,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2387,7 +2504,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2410,7 +2527,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 #End Region
 
@@ -2437,7 +2554,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "SyncLock lockThis", VBFeaturesResources.SyncLock_block))
         End Sub
 
@@ -2473,7 +2590,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "SyncLock d", VBFeaturesResources.SyncLock_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "SyncLock e", VBFeaturesResources.SyncLock_block))
         End Sub
@@ -2510,7 +2627,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock d", VBFeaturesResources.SyncLock_statement))
         End Sub
 
@@ -2537,7 +2654,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock ""test""", VBFeaturesResources.SyncLock_statement))
         End Sub
 
@@ -2565,7 +2682,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2588,7 +2705,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2613,7 +2730,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2638,7 +2755,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "SyncLock G(Function(a) a)", VBFeaturesResources.SyncLock_statement))
         End Sub
 
@@ -2678,7 +2795,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2711,7 +2828,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2739,7 +2856,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", VBFeaturesResources.For_Each_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each c In e1", VBFeaturesResources.For_Each_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each a In e1", VBFeaturesResources.For_Each_block))
@@ -2774,7 +2891,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2807,7 +2924,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2838,7 +2955,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2860,7 +2977,7 @@ Class Test
         For Each b In e1
             For Each c In e1
                 Dim a = Sub()
-                    For Each a In e1
+                    For Each z In e1
                         <AS:0>System.Console.Write()</AS:0>
                     Next
                 End Sub
@@ -2874,8 +2991,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each a In e1", VBFeaturesResources.For_Each_block),
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each z In e1", VBFeaturesResources.For_Each_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", VBFeaturesResources.For_Each_block))
         End Sub
 
@@ -2901,7 +3018,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -2926,7 +3043,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "For Each a In G(Function(a) a)", VBFeaturesResources.For_Each_statement))
         End Sub
 
@@ -2962,7 +3079,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active, Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", VBFeaturesResources.Using_block))
+            edits.VerifySemanticDiagnostics(active, Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", VBFeaturesResources.Using_block))
         End Sub
 
         <Fact>
@@ -3002,7 +3119,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Using c", VBFeaturesResources.Using_block))
         End Sub
 
@@ -3028,7 +3145,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3053,7 +3170,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Using G(Function(a) a)", VBFeaturesResources.Using_statement))
         End Sub
 
@@ -3089,7 +3206,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", VBFeaturesResources.With_block))
         End Sub
 
@@ -3130,7 +3247,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", VBFeaturesResources.With_block))
         End Sub
 
@@ -3156,7 +3273,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3181,7 +3298,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "With G(Function(a) a)", VBFeaturesResources.With_statement))
         End Sub
 
@@ -3220,7 +3337,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Try", VBFeaturesResources.Try_block))
         End Sub
 
@@ -3254,7 +3371,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3264,8 +3381,8 @@ Class C
     Sub Main()
         Try
             <AS:1>Goo()</AS:1>
-        Catch 
-        End Try
+        <ER:1.0>Catch 
+        End Try</ER:1.0>
     End Sub
 
     Sub Goo()
@@ -3286,7 +3403,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Try_block))
         End Sub
 
@@ -3320,7 +3437,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3330,8 +3447,8 @@ Class C
     Sub Main()
         Try
             <AS:1>Goo()</AS:1>
-        Catch
-        End Try
+        <ER:1.0>Catch
+        End Try</ER:1.0>
     End Sub
 
     Sub Goo()
@@ -3356,7 +3473,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Try", VBFeaturesResources.Try_block))
         End Sub
 
@@ -3393,7 +3510,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3429,7 +3546,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3464,7 +3581,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3497,8 +3614,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -3527,7 +3644,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Finally", VBFeaturesResources.Finally_clause))
         End Sub
 
@@ -3540,9 +3657,9 @@ Class C
 
         Try
             <AS:1>Console.WriteLine(1)</AS:1>
-        Finally
+        <ER:1.0>Finally
             Console.WriteLine(2)
-        End Try
+        End Try</ER:1.0>
     End Sub
 End Class
 "
@@ -3561,8 +3678,8 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Try", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -3593,7 +3710,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -3625,7 +3742,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3660,7 +3777,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3670,8 +3787,8 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch 
-            <AS:1>Goo()</AS:1>
+        <ER:1.0>Catch 
+            <AS:1>Goo()</AS:1></ER:1.0>
         End Try
     End Sub
 
@@ -3695,7 +3812,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3709,8 +3826,8 @@ Class C
 
     Sub Goo()
         Try
-        Catch
-            <AS:0>Console.WriteLine(1)</AS:0>
+        <ER:0.0>Catch
+            <AS:0>Console.WriteLine(1)</AS:0></ER:0.0>
         End Try
     End Sub
 End Class
@@ -3728,7 +3845,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1)", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3738,8 +3855,8 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch
-            <AS:1>Goo()</AS:1>
+        <ER:1.0>Catch
+            <AS:1>Goo()</AS:1></ER:1.0>
         End Try
     End Sub
 
@@ -3753,8 +3870,8 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch e As IOException
-            <AS:1>Goo()</AS:1>
+        <ER:1.0>Catch e As IOException
+            <AS:1>Goo()</AS:1></ER:1.0>
         End Try
     End Sub
 
@@ -3765,7 +3882,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3779,8 +3896,8 @@ Class C
 
     Sub Goo()
         Try
-        Catch
-            <AS:0>Console.WriteLine(1)</AS:0>
+        <ER:0.0>Catch
+            <AS:0>Console.WriteLine(1)</AS:0></ER:0.0>
         End Try
     End Sub
 End Class
@@ -3794,15 +3911,15 @@ Class C
 
     Sub Goo()
         Try
-        Catch e As IOException
-            <AS:0>Console.WriteLine(1)</AS:0>
-        End try
+        <ER:0.0>Catch e As IOException
+            <AS:0>Console.WriteLine(1)</AS:0></ER:0.0>
+        End Try
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3816,8 +3933,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:1>Catch e As IOException When Goo(1)</AS:1>
-            Console.WriteLine(1)
+        <ER:1.0><AS:1>Catch e As IOException When Goo(1)</AS:1>
+            Console.WriteLine(1)</ER:1.0>
         End Try
     End Sub
 End Class
@@ -3831,15 +3948,15 @@ Class C
 
     Sub Goo()
         Try
-        <AS:1>Catch e As IOException When Goo(2)</AS:1>
-            Console.WriteLine(1)
+        <ER:1.0><AS:1>Catch e As IOException When Goo(2)</AS:1>
+            Console.WriteLine(1)</ER:1.0>
         End Try
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Catch e As IOException When Goo(2)"),
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
@@ -3854,8 +3971,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Goo(1)</AS:0>
-            Console.WriteLine(1)
+        <ER:0.0><AS:0>Catch e As IOException When Goo(1)</AS:0>
+            Console.WriteLine(1)</ER:0.0>
         End Try
     End Sub
 End Class
@@ -3869,15 +3986,15 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Goo(2)</AS:0>
+        <ER:0.0><AS:0>Catch e As IOException When Goo(2)</AS:0>
             Console.WriteLine(1)
-        End Try
+        End Try</ER:0.0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3891,8 +4008,8 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As IOException When Goo(1)</AS:0>
-            Console.WriteLine(1)
+        <ER:0.0><AS:0>Catch e As IOException When Goo(1)</AS:0>
+            Console.WriteLine(1)</ER:0.0>
         End Try
     End Sub
 End Class
@@ -3906,16 +4023,16 @@ Class C
 
     Sub Goo()
         Try
-        <AS:0>Catch e As Exception When Goo(1)</AS:0>
+        <ER:0.0><AS:0>Catch e As Exception When Goo(1)</AS:0>
             Console.WriteLine(1)
-        End Try
+        End Try<ER:0.0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause))
         End Sub
 
@@ -3949,7 +4066,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.Finally_clause))
         End Sub
 
@@ -3983,7 +4100,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active, Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.Finally_clause))
+            edits.VerifySemanticDiagnostics(active, Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Finally", VBFeaturesResources.Finally_clause))
         End Sub
 
         <Fact>
@@ -3991,10 +4108,10 @@ End Class
             Dim src1 = "
 Class C
     Sub Main()
-        Try
+        <ER:1.0>Try
         Finally 
             <AS:1>Goo()</AS:1>
-        End Try
+        End Try</ER:1.0>
     End Sub
 
     Sub Goo()
@@ -4016,7 +4133,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Finally_clause))
         End Sub
 
@@ -4029,10 +4146,10 @@ Class C
     End Sub
 
     Sub Goo()
-        Try
+        <ER:0.0>Try
         Finally
             <AS:0>Console.WriteLine(1)</AS:0>
-        End Try
+        End Try</ER:0.0>
     End Sub
 End Class
 "
@@ -4051,7 +4168,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Console.WriteLine(1)", VBFeaturesResources.Finally_clause))
         End Sub
 
@@ -4061,7 +4178,7 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch e As IOException
+        <ER:1.0>Catch e As IOException
             Try
                 Try
                     Try
@@ -4071,7 +4188,7 @@ Class C
                 Catch Exception
                 End Try
             Finally
-            End Try
+            End Try</ER:1.0>
         End Try
     End Sub
 
@@ -4084,7 +4201,7 @@ End Class
 Class C
     Sub Main()
         Try
-        Catch e As Exception
+        <ER:1.0>Catch e As Exception
             Try
                 Try
                 Finally
@@ -4094,7 +4211,7 @@ Class C
                     End Try
                 End Try
             Catch e As Exception
-            End Try
+            End Try</ER:1.0>
         End Try
     End Sub
 
@@ -4105,7 +4222,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Catch", VBFeaturesResources.Catch_clause),
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Try", VBFeaturesResources.Try_block),
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Goo()", VBFeaturesResources.Try_block),
@@ -4153,7 +4270,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4190,7 +4307,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4205,8 +4322,8 @@ Class C
         Dim f = Function(x) 
                     Try
                         <AS:1>Return 1 + Goo(x)</AS:1>
-                    Catch
-                    End Try
+                    <ER:1.0>Catch
+                    End Try</ER:1.0>
                 End Function
 
         <AS:2>Console.Write(f(2))</AS:2>
@@ -4230,7 +4347,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteAroundActiveStatement, "Return 1 + Goo(x)", VBFeaturesResources.Try_block))
         End Sub
 
@@ -4271,7 +4388,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ComplexQueryExpression, "Join", FeaturesResources.method))
         End Sub
 
@@ -4316,7 +4433,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ComplexQueryExpression, "Join", FeaturesResources.method))
         End Sub
 #End Region
@@ -4343,7 +4460,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4367,7 +4484,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4391,7 +4508,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4415,7 +4532,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4439,7 +4556,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4468,7 +4585,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", VBFeaturesResources.Lambda))
         End Sub
 
@@ -4496,7 +4613,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Function(b)", VBFeaturesResources.Lambda))
         End Sub
 
@@ -4537,7 +4654,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b)", VBFeaturesResources.Lambda))
         End Sub
 
@@ -4564,7 +4681,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.Lambda),
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.Lambda))
         End Sub
@@ -4589,7 +4706,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Where_clause))
         End Sub
 
@@ -4616,7 +4733,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Let_clause))
         End Sub
 
@@ -4643,7 +4760,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Join_condition))
         End Sub
 
@@ -4670,7 +4787,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Ordering_clause))
         End Sub
 
@@ -4697,7 +4814,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Ordering_clause))
         End Sub
 
@@ -4724,7 +4841,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "From", VBFeaturesResources.Ordering_clause))
         End Sub
 
@@ -4748,7 +4865,7 @@ End Class
 "
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4768,7 +4885,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4788,7 +4905,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4804,7 +4921,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4820,7 +4937,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -4836,7 +4953,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
@@ -4858,7 +4975,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact, WorkItem(1359, "https://github.com/dotnet/roslyn/issues/1359")>
@@ -4880,7 +4997,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "G(Function(a)       1       )"))
         End Sub
 
@@ -4912,7 +5029,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Yield 1", VBFeaturesResources.Yield_statement))
         End Sub
 
@@ -4939,7 +5056,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function F()"))
         End Sub
 
@@ -4970,7 +5087,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -4998,7 +5117,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5026,7 +5147,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "Await", VBFeaturesResources.Await_expression))
         End Sub
 
@@ -5055,7 +5176,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
@@ -5084,7 +5205,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
@@ -5113,7 +5234,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5143,7 +5266,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function F()"))
         End Sub
 
@@ -5172,7 +5295,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub()"))
         End Sub
 
@@ -5201,7 +5324,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function()"))
         End Sub
 
@@ -5230,7 +5353,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(
+                active,
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
         <Fact>
@@ -5258,7 +5383,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -5284,7 +5409,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Sub()"))
         End Sub
 
@@ -5295,7 +5420,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim f = Function(a) <AS:0>Function(b) a + b</AS:0>
+        Dim f = Function(a) <AS:0>Task.FromResult(Function(b) 1)</AS:0>
     End Sub
 End Class
 "
@@ -5304,7 +5429,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim f = Async Function(a) <AS:0>Function(b) a + b</AS:0>
+        Dim f = Async Function(a) <AS:0>Function(b) 1</AS:0>
     End Sub
 End Class
 "
@@ -5312,7 +5437,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             ' Rude edit since the AS is within the outer function.
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Async Function(a)"))
         End Sub
 
@@ -5323,7 +5448,7 @@ Imports System
 Imports System.Threading.Tasks
 Class C
     Sub F()
-        Dim f = Function(a) <AS:0>Function(b)</AS:0> a + b
+        Dim f = Function(a) Task.FromResult(<AS:0>Function(b)</AS:0> a + b)
     End Sub
 End Class
 "
@@ -5340,7 +5465,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             ' No rude edit since the AS is within the nested function.
-            edits.VerifyRudeDiagnostics(active)
+            edits.VerifySemanticDiagnostics(active)
         End Sub
 
         <Fact>
@@ -5363,7 +5488,7 @@ Class C
     End Function
  
     Sub F()
-        Dim f = <AS:0>Iterator Function()</AS:0>
+        Dim f = <AS:0>Iterator Function() As IEnumerable(Of Integer)</AS:0>
                   G()
                 End Function
     End Sub
@@ -5372,15 +5497,15 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function()"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.UpdatingStateMachineMethodAroundActiveStatement, "Iterator Function() As IEnumerable(Of Integer)"))
         End Sub
 
         <Fact>
         Public Sub AsyncLambdaToLambda_WithoutActiveStatement_NoAwait()
             Dim src1 = "
 Class C
-    Function G() As Task(Of Integer)
+    Shared Function G() As Task(Of Integer)
         Return Nothing
     End Function
  
@@ -5392,7 +5517,7 @@ End Class
 "
             Dim src2 = "
 Class C
-    Function G() As Task(Of Integer)
+    Shared Function G() As Task(Of Integer)
         Return Nothing
     End Function
  
@@ -5406,7 +5531,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ChangingFromAsynchronousToSynchronous, "Function() As Task(Of Integer)", VBFeaturesResources.Lambda))
         End Sub
 
@@ -5416,7 +5541,7 @@ End Class
 Imports System
 Imports System.Threading.Tasks
 Class C
-    Function G() As IEnumerable(Of Integer)
+    Shared Function G() As IEnumerable(Of Integer)
         Return Nothing
     End Function
  
@@ -5430,7 +5555,7 @@ End Class
 Imports System
 Imports System.Threading.Tasks
 Class C
-    Function G() As IEnumerable(Of Integer)
+    Shared Function G() As IEnumerable(Of Integer)
         Return Nothing
     End Function
  
@@ -5444,7 +5569,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.ModifiersUpdate, "Function() As IEnumerable(Of Integer)", VBFeaturesResources.Lambda))
         End Sub
 
@@ -5511,7 +5636,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error GoTo label", VBFeaturesResources.On_Error_statement))
         End Sub
 
@@ -5522,7 +5647,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error GoTo 0", VBFeaturesResources.On_Error_statement))
         End Sub
 
@@ -5533,7 +5658,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error GoTo -1", VBFeaturesResources.On_Error_statement))
         End Sub
 
@@ -5544,7 +5669,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "On Error Resume Next", VBFeaturesResources.On_Error_statement))
         End Sub
 
@@ -5555,7 +5680,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Resume", VBFeaturesResources.Resume_statement))
         End Sub
 
@@ -5566,7 +5691,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Resume Next", VBFeaturesResources.Resume_statement))
         End Sub
 
@@ -5577,84 +5702,9 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
 
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Resume label", VBFeaturesResources.Resume_statement))
         End Sub
-#End Region
-
-#Region "Unmodified Documents"
-
-        <Fact>
-        Public Sub UnmodifiedDocument1()
-            Dim src1 = "
-Module C
-    Sub Main(args As String())
-        Try
-        Catch As IOException
-            Goo<AS:1>(</AS:1>)
-            Goo()
-        End Try
-    End Sub
-
-    Sub Goo()
-        Console.WriteLine(<AS:0>1</AS:0>)
-    End Sub
-End Module"
-            Dim src2 = "
-Module C
-    Sub Main(args As String())
-        Try
-        <ER:1.0>Catch e As IOException
-            <AS:1>Goo()</AS:1>
-            Goo()</ER:1.0>
-        End Try
-    End Sub
-
-    Sub Goo()
-        <AS:0>Console.WriteLine(1)</AS:0>
-    End Sub
-End Module"
-
-            Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
-        End Sub
-
-        <Fact>
-        Public Sub UnmodifiedDocument_BadSpans1()
-            Dim src1 = "
-Module C
-    <AS:2>Const a As Integer = 1</AS:2>
- 
-    Sub Main(args As String())
-        Goo()
-    End Sub
-<AS:1>
-    Sub</AS:1> Goo()
-        <AS:3>Console.WriteLine(1)</AS:3>
-    End Sub
-End Module
-
-<AS:0></AS:0>
-"
-            Dim src2 = "
-Module C
-    Const a As Integer = 1
-
-    Sub Main(args As String())
-       Goo()
-    End Sub
-
-    <AS:1>Sub Goo()</AS:1>
-        <AS:3>Console.WriteLine(1)</AS:3>
-    End Sub
-End Module"
-
-            Dim active = GetActiveStatements(src1, src2)
-            Extensions.VerifyUnchangedDocument(src2, active)
-        End Sub
-
-
-
 #End Region
 
         <Fact>
@@ -5682,15 +5732,16 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
+            Dim active = GetActiveStatements(src1, src2,
+            {
+                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.LeafFrame,
+                ActiveStatementFlags.NonLeafFrame,
+                ActiveStatementFlags.NonLeafFrame Or ActiveStatementFlags.LeafFrame
+            })
 
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
-            active.OldStatements(1) = active.OldStatements(1).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsNonLeafFrame)
-            active.OldStatements(2) = active.OldStatements(2).WithFlags(ActiveStatementFlags.IsLeafFrame)
-            active.OldStatements(3) = active.OldStatements(3).WithFlags(ActiveStatementFlags.IsNonLeafFrame)
-            active.OldStatements(4) = active.OldStatements(4).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
-
-            edits.VerifyRudeDiagnostics(active,
+            edits.VerifySemanticDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20)"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40)"),
@@ -5713,12 +5764,10 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
+            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.LeafFrame})
 
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.PartiallyExecuted Or ActiveStatementFlags.IsLeafFrame)
-
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "Sub F()", FeaturesResources.code))
         End Sub
 
         <Fact>
@@ -5737,12 +5786,10 @@ Class C
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            Dim active = GetActiveStatements(src1, src2)
+            Dim active = GetActiveStatements(src1, src2, {ActiveStatementFlags.NonLeafFrame Or ActiveStatementFlags.LeafFrame})
 
-            active.OldStatements(0) = active.OldStatements(0).WithFlags(ActiveStatementFlags.IsNonLeafFrame Or ActiveStatementFlags.IsLeafFrame)
-
-            edits.VerifyRudeDiagnostics(active,
-                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()"))
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "Sub F()", FeaturesResources.code))
         End Sub
     End Class
 End Namespace

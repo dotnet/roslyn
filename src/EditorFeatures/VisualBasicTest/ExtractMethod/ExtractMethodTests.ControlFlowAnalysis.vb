@@ -2,7 +2,6 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
         ''' <summary>
@@ -85,16 +84,18 @@ End Class</text>
         Dim x As Integer = 5
         Console.Write(x)
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
         Return x
     End Function
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Do
             Console.Write(i)
             i = i + 1
-        Loop Until i > 5
-    End Sub
+        Loop Until i &gt; 5
+
+        Return i
+    End Function
 End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)
@@ -120,16 +121,18 @@ End Class</text>
         Dim x As Integer = 5
         Console.Write(x)
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
         Return x
     End Function
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Do
             Console.Write(i)
             i = i + 1
-        Loop Until i > 5
-    End Sub
+        Loop Until i &gt; 5
+
+        Return i
+    End Function
 End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)
@@ -157,18 +160,20 @@ End Class</text>
         Dim x As Integer = 5
         Console.Write(x)
         Dim i As Integer
-        NewMethod(i)
+        i = NewMethod(i)
         Return x
     End Function
 
-    Private Shared Sub NewMethod(i As Integer)
+    Private Shared Function NewMethod(i As Integer) As Integer
         Do
             Console.Write(i)
             i = i + 1
             Continue Do
             'Blah
         Loop Until i > 5
-    End Sub
+
+        Return i
+    End Function
 End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)

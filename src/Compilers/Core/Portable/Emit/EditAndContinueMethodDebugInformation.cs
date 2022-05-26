@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private const byte SyntaxOffsetBaseline = 0xff;
 
         /// <exception cref="InvalidDataException">Invalid data.</exception>
-        private unsafe static ImmutableArray<LocalSlotDebugInfo> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
+        private static unsafe ImmutableArray<LocalSlotDebugInfo> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
         {
             if (compressedSlotMap.IsDefaultOrEmpty)
             {
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         #region Lambdas
 
-        private unsafe static void UncompressLambdaMap(
+        private static unsafe void UncompressLambdaMap(
             ImmutableArray<byte> compressedLambdaMap,
             out int methodOrdinal,
             out ImmutableArray<ClosureDebugInfo> closures,

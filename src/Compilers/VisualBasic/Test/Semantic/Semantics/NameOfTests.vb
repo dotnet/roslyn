@@ -2339,7 +2339,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -2416,7 +2416,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
 
             AssertTheseDiagnostics(comp,
 <expected>
@@ -2667,12 +2667,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
-            AssertTheseDiagnostics(comp,
-<expected>
-BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        System.Console.WriteLine(NameOf(x.E1))
-                                        ~~~~
-</expected>)
+            AssertNoDiagnostics(comp)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -2690,6 +2685,7 @@ Module Module1
         Dim x As New C2()
         System.Console.WriteLine(NameOf(x.T1))
         System.Console.WriteLine(NameOf(x.P1.T2))
+        System.Console.WriteLine(NameOf(x.P1))
     End Sub
 End Module
 
@@ -2726,6 +2722,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
             <![CDATA[
 T1
 T2
+P1
 ]]>)
         End Sub
 
@@ -3227,7 +3224,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {TestMetadata.Net40.SystemCore}, TestOptions.DebugExe)
 
             CompileAndVerify(comp, expectedOutput:=
             <![CDATA[
@@ -3635,6 +3632,33 @@ BC30469: Reference to a non-shared member requires an object reference.
         X = NameOf(C(Of Integer).MyInstance.Length)
                    ~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
+        End Sub
+
+        <Fact, WorkItem(23019, "https://github.com/dotnet/roslyn/issues/23019")>
+        Public Sub NameOfInAsync()
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Sub Main()
+        M().GetAwaiter().GetResult()
+    End Sub
+    Async Function M() As Task
+        Console.WriteLine(NameOf(M))
+        Await Task.CompletedTask
+    End Function
+End Module
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilation(compilationDef, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp, expectedOutput:=
+            <![CDATA[
+M
+]]>).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

@@ -5,12 +5,6 @@
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-#If CODE_STYLE Then
-Imports OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions
-#Else
-Imports Microsoft.CodeAnalysis.Options
-#End If
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Friend Class AlignTokensFormattingRule
         Inherits BaseFormattingRule
@@ -19,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAlignTokensOperationAction)
+        Public Overrides Sub AddAlignTokensOperationsSlow(operations As List(Of AlignTokensOperation), node As SyntaxNode, ByRef nextOperation As NextAlignTokensOperationAction)
             nextOperation.Invoke()
 
             Dim queryExpression = TryCast(node, QueryExpressionSyntax)
@@ -30,6 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 If tokens.Count > 1 Then
                     AddAlignIndentationOfTokensToBaseTokenOperation(operations, queryExpression, tokens(0), tokens.Skip(1))
                 End If
+
                 Return
             End If
         End Sub

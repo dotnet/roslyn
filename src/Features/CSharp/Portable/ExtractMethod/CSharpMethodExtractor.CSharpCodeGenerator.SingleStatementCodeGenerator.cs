@@ -2,12 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
@@ -16,13 +21,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
     {
         private partial class CSharpCodeGenerator
         {
-            public class SingleStatementCodeGenerator : CSharpCodeGenerator
+            public sealed class SingleStatementCodeGenerator : CSharpCodeGenerator
             {
                 public SingleStatementCodeGenerator(
                     InsertionPoint insertionPoint,
                     SelectionResult selectionResult,
                     AnalyzerResult analyzerResult,
-                    OptionSet options,
+                    CSharpCodeGenerationOptions options,
                     bool localFunction)
                     : base(insertionPoint, selectionResult, analyzerResult, options, localFunction)
                 {
@@ -39,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 protected override SyntaxToken CreateMethodName() => GenerateMethodNameForStatementGenerators();
 
-                protected override IEnumerable<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+                protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
                 {
-                    Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(this.CSharpSelectionResult));
+                    Contract.ThrowIfFalse(IsExtractMethodOnSingleStatement(CSharpSelectionResult));
 
-                    return SpecializedCollections.SingletonEnumerable<StatementSyntax>(this.CSharpSelectionResult.GetFirstStatement());
+                    return ImmutableArray.Create(CSharpSelectionResult.GetFirstStatement());
                 }
 
                 protected override SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken)
@@ -55,28 +60,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     }
                     else
                     {
-                        var firstStatement = this.CSharpSelectionResult.GetFirstStatement();
+                        var firstStatement = CSharpSelectionResult.GetFirstStatement();
                         return firstStatement.Parent;
                     }
                 }
 
                 protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                {
-                    return this.CSharpSelectionResult.GetFirstStatement();
-                }
+                    => CSharpSelectionResult.GetFirstStatement();
 
                 protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
                 {
                     // it is a single statement case. either first statement is same as last statement or
                     // last statement belongs (embedded statement) to the first statement.
-                    return this.CSharpSelectionResult.GetFirstStatement();
+                    return CSharpSelectionResult.GetFirstStatement();
                 }
 
-                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(
-                    SyntaxAnnotation callSiteAnnotation, CancellationToken cancellationToken)
+                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
                 {
                     var statement = GetStatementContainingInvocationToExtractedMethodWorker();
-                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(callSiteAnnotation));
+                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
                 }
             }
         }

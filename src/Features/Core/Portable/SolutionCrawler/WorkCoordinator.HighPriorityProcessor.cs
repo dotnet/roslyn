@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
-        private sealed partial class WorkCoordinator
+        internal sealed partial class WorkCoordinator
         {
             private sealed partial class IncrementalAnalyzerProcessor
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
-                    private readonly object _gate;
+                    private readonly object _gate = new();
 
                     private Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
 
@@ -35,18 +35,21 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
                         Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
-                        int backOffTimeSpanInMs,
+                        TimeSpan backOffTimeSpan,
                         CancellationToken shutdownToken)
-                        : base(listener, backOffTimeSpanInMs, shutdownToken)
+                        : base(listener, backOffTimeSpan, shutdownToken)
                     {
                         _processor = processor;
                         _lazyAnalyzers = lazyAnalyzers;
-                        _gate = new object();
 
                         _running = Task.CompletedTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
+                    }
+
+                    protected override void OnPaused()
+                    {
                     }
 
                     public ImmutableArray<IIncrementalAnalyzer> Analyzers
@@ -79,7 +82,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.ThrowIfFalse(item.DocumentId != null, "can only enqueue a document work item");
 
                         // Don't enqueue item if we don't have any high priority analyzers
-                        if (this.Analyzers.IsEmpty)
+                        if (Analyzers.IsEmpty)
                         {
                             return;
                         }
@@ -92,9 +95,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
+                        if (!_processor._documentTracker.SupportsDocumentTracking
+                            && _processor._registration.Workspace.Kind is WorkspaceKind.RemoteWorkspace)
+                        {
+                            Debug.Fail($"Unexpected use of '{nameof(ExportIncrementalAnalyzerProviderAttribute.HighPriorityForActiveFile)}' in workspace kind '{_processor._registration.Workspace.Kind}' that cannot support active file tracking.");
+                        }
+
                         // check whether given item is for active document, otherwise, nothing to do here
-                        if (_processor._documentTracker == null ||
-                            _processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
+                        if (_processor._documentTracker.TryGetActiveDocument() != item.DocumentId)
                         {
                             return;
                         }
@@ -105,6 +113,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private void EnqueueActiveFileItem(WorkItem item)
                     {
+                        Contract.ThrowIfNull(item.DocumentId);
+
                         UpdateLastAccessTime();
                         var added = _workItemQueue.AddOrReplace(item);
 
@@ -113,9 +123,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
-                    {
-                        return _workItemQueue.WaitAsync(cancellationToken);
-                    }
+                        => _workItemQueue.WaitAsync(cancellationToken);
 
                     protected override async Task ExecuteAsync()
                     {
@@ -126,7 +134,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             return;
                         }
 
-                        var source = new TaskCompletionSource<object>();
+                        var source = new TaskCompletionSource<object?>();
                         try
                         {
                             // mark it as running
@@ -135,12 +143,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // see whether we have work item for the document
                             Contract.ThrowIfFalse(GetNextWorkItem(out var workItem, out var documentCancellation));
 
-                            var solution = _processor.CurrentSolution;
+                            var solution = _processor._registration.GetSolutionToAnalyze();
 
                             // okay now we have work to do
                             await ProcessDocumentAsync(solution, Analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -173,6 +181,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     private async Task ProcessDocumentAsync(Solution solution, ImmutableArray<IIncrementalAnalyzer> analyzers, WorkItem workItem, CancellationToken cancellationToken)
                     {
+                        Contract.ThrowIfNull(workItem.DocumentId);
+
                         if (CancellationToken.IsCancellationRequested)
                         {
                             return;
@@ -197,7 +207,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 }
                             }
                         }
-                        catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                         {
                             throw ExceptionUtilities.Unreachable;
                         }
@@ -220,9 +230,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     public void Shutdown()
-                    {
-                        _workItemQueue.Dispose();
-                    }
+                        => _workItemQueue.Dispose();
                 }
             }
         }

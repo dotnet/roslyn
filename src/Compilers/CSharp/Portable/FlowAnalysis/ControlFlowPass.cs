@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -67,11 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState)
+                : base(unreachableState.Clone(), unreachableState.Clone())
             { }
         }
 
-        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
+        protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol) => new LocalFunctionState(UnreachableState());
 
         protected override bool Meet(ref LocalState self, ref LocalState other)
         {
@@ -292,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldPending2 = SavePending(); // track only the branches out of the finally block
             base.VisitFinallyBlock(finallyBlock, ref endState);
             RestorePending(oldPending2); // resolve branches that remain within the finally block
-            foreach (var branch in PendingBranches)
+            foreach (var branch in PendingBranches.AsEnumerable())
             {
                 if (branch.Branch == null) continue; // a tracked exception
                 var location = new SourceLocation(branch.Branch.Syntax.GetFirstToken());
@@ -370,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check for switch section fall through error
             if (this.State.Alive)
             {
-                var syntax = node.SwitchLabels.Last().Pattern.Syntax;
+                var syntax = node.SwitchLabels.Last().Syntax;
                 Diagnostics.Add(isLastSection ? ErrorCode.ERR_SwitchFallOut : ErrorCode.ERR_SwitchFallThrough,
                                 new SourceLocation(syntax), syntax.ToString());
             }

@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -7,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class LocalDeclarationStatementSyntax
     {
         public LocalDeclarationStatementSyntax Update(SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-            => Update(awaitKeyword: default, usingKeyword: default, modifiers, declaration, semicolonToken);
+            => Update(AwaitKeyword, UsingKeyword, modifiers, declaration, semicolonToken);
 
         public LocalDeclarationStatementSyntax Update(SyntaxToken awaitKeyword, SyntaxToken usingKeyword, SyntaxTokenList modifiers, VariableDeclarationSyntax declaration, SyntaxToken semicolonToken)
-            => Update(attributeLists: default, awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
+            => Update(AttributeLists, awaitKeyword, usingKeyword, modifiers, declaration, semicolonToken);
     }
 }
 

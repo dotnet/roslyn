@@ -69,7 +69,6 @@ Friend Class GreenNodeWriter
         Console.WriteLine()
     End Sub
 
-
     Private Sub GenerateNodeStructures()
         For Each nodeStructure In _parseTree.NodeStructures.Values
             If Not nodeStructure.NoFactory Then
@@ -78,7 +77,7 @@ Friend Class GreenNodeWriter
         Next
     End Sub
 
-    ' Generate an constant value
+    ' Generate a constant value
     Private Function GetConstantValue(val As Long) As String
         Return val.ToString()
     End Function
@@ -86,7 +85,7 @@ Friend Class GreenNodeWriter
     ' Generate a class declaration for a node structure.
     Private Sub GenerateNodeStructureClass(nodeStructure As ParseNodeStructure)
         ' XML comment
-        GenerateXmlComment(_writer, nodeStructure, 4)
+        GenerateXmlComment(_writer, nodeStructure, 4, includeRemarks:=False)
 
         ' Class name
         _writer.Write("    ")
@@ -295,7 +294,6 @@ Friend Class GreenNodeWriter
         _writer.WriteLine()
     End Sub
 
-
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetChild(nodeStructure As ParseNodeStructure)
         If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
@@ -321,8 +319,8 @@ Friend Class GreenNodeWriter
                 _writer.WriteLine("                    Return Me.{0}", ChildVarName(children(i)))
             Next
             _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Debug.Assert(false, ""child index out of range"")")
-            _writer.WriteLine("                     Return Nothing")
+            _writer.WriteLine("                    Debug.Assert(false, ""child index out of range"")")
+            _writer.WriteLine("                    Return Nothing")
             _writer.WriteLine("            End Select")
         Else
             _writer.WriteLine("            If i = 0 Then")
@@ -378,7 +376,7 @@ Friend Class GreenNodeWriter
         End If
 
         _writer.WriteLine("        Friend Sub New(reader as ObjectReader)")
-        _writer.WriteLine("          MyBase.New(reader)")
+        _writer.WriteLine("            MyBase.New(reader)")
 
         If Not nodeStructure.Abstract Then
             Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
@@ -389,20 +387,20 @@ Friend Class GreenNodeWriter
         End If
 
         For Each child In nodeStructure.Children
-            _writer.WriteLine("          Dim {0} = DirectCast(reader.ReadValue(), {1})", ChildVarName(child), ChildFieldTypeRef(child, isGreen:=True))
-            _writer.WriteLine("          If {0} isnot Nothing ", ChildVarName(child))
-            _writer.WriteLine("             AdjustFlagsAndWidth({0})", ChildVarName(child))
-            _writer.WriteLine("             Me.{0} = {0}", ChildVarName(child))
-            _writer.WriteLine("          End If")
+            _writer.WriteLine("            Dim {0} = DirectCast(reader.ReadValue(), {1})", ChildVarName(child), ChildFieldTypeRef(child, isGreen:=True))
+            _writer.WriteLine("            If {0} isnot Nothing", ChildVarName(child))
+            _writer.WriteLine("                AdjustFlagsAndWidth({0})", ChildVarName(child))
+            _writer.WriteLine("                Me.{0} = {0}", ChildVarName(child))
+            _writer.WriteLine("            End If")
         Next
 
         For Each field In nodeStructure.Fields
-            _writer.WriteLine("          Me.{0} = CType(reader.{1}(), {2})", FieldVarName(field), ReaderMethod(FieldTypeRef(field)), FieldTypeRef(field))
+            _writer.WriteLine("            Me.{0} = CType(reader.{1}(), {2})", FieldVarName(field), ReaderMethod(FieldTypeRef(field)), FieldTypeRef(field))
         Next
 
         'TODO: BLUE
         If StructureTypeName(nodeStructure) = "DirectiveTriviaSyntax" Then
-            _writer.WriteLine("          SetFlags(NodeFlags.ContainsDirectives)")
+            _writer.WriteLine("            SetFlags(NodeFlags.ContainsDirectives)")
         End If
 
         _writer.WriteLine("        End Sub")
@@ -417,14 +415,14 @@ Friend Class GreenNodeWriter
         If nodeStructure.Children.Count > 0 OrElse nodeStructure.Fields.Count > 0 Then
             _writer.WriteLine()
             _writer.WriteLine("        Friend Overrides Sub WriteTo(writer as ObjectWriter)")
-            _writer.WriteLine("          MyBase.WriteTo(writer)")
+            _writer.WriteLine("            MyBase.WriteTo(writer)")
 
             For Each child In nodeStructure.Children
-                _writer.WriteLine("          writer.WriteValue(Me.{0})", ChildVarName(child))
+                _writer.WriteLine("            writer.WriteValue(Me.{0})", ChildVarName(child))
             Next
 
             For Each field In nodeStructure.Fields
-                _writer.WriteLine("          writer.{0}(Me.{1})", WriterMethod(FieldTypeRef(field)), FieldVarName(field))
+                _writer.WriteLine("            writer.{0}(Me.{1})", WriterMethod(FieldTypeRef(field)), FieldVarName(field))
             Next
 
             _writer.WriteLine("        End Sub")
@@ -433,7 +431,7 @@ Friend Class GreenNodeWriter
         If Not _parseTree.IsAbstract(nodeStructure) Then
             _writer.WriteLine()
             _writer.WriteLine("        Shared Sub New()")
-            _writer.WriteLine("          ObjectBinder.RegisterTypeReader(GetType({0}), Function(r) New {0}(r))", StructureTypeName(nodeStructure))
+            _writer.WriteLine("            ObjectBinder.RegisterTypeReader(GetType({0}), Function(r) New {0}(r))", StructureTypeName(nodeStructure))
             _writer.WriteLine("        End Sub")
         End If
 
@@ -548,7 +546,6 @@ Friend Class GreenNodeWriter
             End If
         End If
 
-
         ' Generate code to initialize this class
 
         If contextual Then
@@ -564,7 +561,6 @@ Friend Class GreenNodeWriter
         If nodeStructure.Children.Count > 0 Then
             '_writer.WriteLine("            Dim fullWidth as integer")
             _writer.WriteLine()
-
 
             For Each child In nodeStructure.Children
                 Dim indent = ""
@@ -590,9 +586,8 @@ Friend Class GreenNodeWriter
 
         'TODO: BLUE
         If StructureTypeName(nodeStructure) = "DirectiveTriviaSyntax" Then
-            _writer.WriteLine("             SetFlags(NodeFlags.ContainsDirectives)")
+            _writer.WriteLine("            SetFlags(NodeFlags.ContainsDirectives)")
         End If
-
 
         ' Generate End Sub
         _writer.WriteLine("        End Sub")
@@ -650,9 +645,9 @@ Friend Class GreenNodeWriter
         ' Is this overridable or an override?
         Dim modifiers = ""
         'If isOverride Then
-        '    modifiers = "Overrides"
+        '    modifiers = "Overrides "
         'ElseIf containingStructure.HasDerivedStructure Then
-        '    modifiers = "Overridable"
+        '    modifiers = "Overridable "
         'End If
 
         ' Put Shadows modifier on if useful.
@@ -669,7 +664,7 @@ Friend Class GreenNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, field, 8)
 
-        _writer.WriteLine("        Friend {2} ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.ContainingStructure, isOverride, field.Name))
+        _writer.WriteLine("        Friend {2}ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.ContainingStructure, isOverride, field.Name))
         _writer.WriteLine("            Get")
         _writer.WriteLine("                Return Me.{0}", FieldVarName(field))
         _writer.WriteLine("            End Get")
@@ -684,7 +679,7 @@ Friend Class GreenNodeWriter
 
         Dim isToken = KindTypeStructure(child.ChildKind).IsToken
 
-        _writer.WriteLine("        Friend {2} ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child, True), GetModifiers(child.ContainingStructure, False, child.Name))
+        _writer.WriteLine("        Friend {2}ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child, True), GetModifiers(child.ContainingStructure, False, child.Name))
         _writer.WriteLine("            Get")
         If Not child.IsList Then
             _writer.WriteLine("                Return Me.{0}", ChildVarName(child))
@@ -714,7 +709,7 @@ Friend Class GreenNodeWriter
             If Not isAbstract Then
                 ' XML comment
                 GenerateWithXmlComment(_writer, withChild, 8)
-                _writer.WriteLine("        Friend {2} Function {0}({3} as {4}) As {1}", ChildWithFunctionName(withChild), StructureTypeName(withChild.ContainingStructure), GetModifiers(withChild.ContainingStructure, isOverride, withChild.Name), Ident(UpperFirstCharacter(withChild.Name)), ChildConstructorTypeRef(withChild))
+                _writer.WriteLine("        Friend {2}Function {0}({3} as {4}) As {1}", ChildWithFunctionName(withChild), StructureTypeName(withChild.ContainingStructure), GetModifiers(withChild.ContainingStructure, isOverride, withChild.Name), Ident(UpperFirstCharacter(withChild.Name)), ChildConstructorTypeRef(withChild))
                 _writer.WriteLine("            Ensures(Result(Of {0}) IsNot Nothing)", StructureTypeName(withChild.ContainingStructure))
                 _writer.Write("            return New {0}(", StructureTypeName(nodeStructure))
 
@@ -748,7 +743,6 @@ Friend Class GreenNodeWriter
 
     ' Generate public properties for a child that is a separated list
 
-
     Private Sub GenerateAccept(nodeStructure As ParseNodeStructure)
         If nodeStructure.ParentStructure IsNot Nothing AndAlso (_parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken OrElse nodeStructure.IsTrivia) Then
             Return
@@ -759,13 +753,11 @@ Friend Class GreenNodeWriter
         _writer.WriteLine()
     End Sub
 
-
     ' Generate special methods and properties for the root node. These only appear in the root node.
     Private Sub GenerateRootNodeSpecialMethods(nodeStructure As ParseNodeStructure)
 
         _writer.WriteLine()
     End Sub
-
 
     ' Generate the Visitor class definition
     Private Sub GenerateVisitorClass()
@@ -812,7 +804,6 @@ Friend Class GreenNodeWriter
         _writer.WriteLine("        End Function")
     End Sub
 
-
     ' Generate the RewriteVisitor class definition
     Private Sub GenerateRewriteVisitorClass()
         _writer.WriteLine("    Friend MustInherit Class {0}", Ident(_parseTree.RewriteVisitorName))
@@ -857,15 +848,15 @@ Friend Class GreenNodeWriter
         ' visit all children
         For i = 0 To allChildren.Count - 1
             If allChildren(i).IsList Then
-                _writer.WriteLine("            Dim {0} = VisitList(node.{1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = VisitList(node.{1})" + Environment.NewLine +
                                   "            If node.{2} IsNot {0}.Node Then anyChanges = True",
                                   ChildNewVarName(allChildren(i)), ChildPropertyName(allChildren(i)), ChildVarName(allChildren(i)))
             ElseIf KindTypeStructure(allChildren(i).ChildKind).IsToken Then
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + Environment.NewLine +
                                   "            If node.{3} IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(allChildren(i)), BaseTypeReference(allChildren(i)), ChildPropertyName(allChildren(i)), ChildVarName(allChildren(i)))
             Else
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
+                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + Environment.NewLine +
                                   "            If node.{2} IsNot {0} Then anyChanges = True",
                                   ChildNewVarName(allChildren(i)), ChildPropertyTypeRef(nodeStructure, allChildren(i)), ChildVarName(allChildren(i)))
             End If
@@ -900,9 +891,6 @@ Friend Class GreenNodeWriter
         _writer.WriteLine("        End Function")
         _writer.WriteLine()
     End Sub
-
-
-
 
 End Class
 

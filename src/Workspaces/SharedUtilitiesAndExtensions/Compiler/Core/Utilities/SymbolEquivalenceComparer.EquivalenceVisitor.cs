@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 #if TRACKDEPTH
             private int depth = 0;
 #endif
-            public bool AreEquivalent(ISymbol x, ISymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            public bool AreEquivalent(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
 #if TRACKDEPTH
                 try
@@ -45,20 +45,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     throw new InvalidOperationException("Stack too deep.");
                 }
 #endif
-
-                // https://github.com/dotnet/roslyn/issues/39643 This is a temporary workaround sufficient to get existing tests passing.
-                // This component should be modified to properly deal with differences caused by nullability.
-                if (x is ITypeSymbol xType && y is ITypeSymbol yType && xType.IsDefinition != yType.IsDefinition)
-                {
-                    if (x.IsDefinition)
-                    {
-                        y = yType.WithNullableAnnotationFrom(xType);
-                    }
-                    else
-                    {
-                        x = xType.WithNullableAnnotationFrom(yType);
-                    }
-                }
 
                 if (ReferenceEquals(x, y))
                 {
@@ -79,9 +65,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // Special case.  If we're comparing signatures then we want to compare 'object'
                     // and 'dynamic' as the same.  However, since they're different types, we don't
                     // want to bail out using the above check.
-                    return _objectAndDynamicCompareEqually &&
-                           ((yKind == SymbolKind.DynamicType && xKind == SymbolKind.NamedType && ((ITypeSymbol)x).SpecialType == SpecialType.System_Object) ||
-                            (xKind == SymbolKind.DynamicType && yKind == SymbolKind.NamedType && ((ITypeSymbol)y).SpecialType == SpecialType.System_Object));
+                    if (_objectAndDynamicCompareEqually)
+                    {
+                        return (xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
+                               (yKind == SymbolKind.DynamicType && IsObjectType(x));
+                    }
+
+                    return false;
                 }
 
                 return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
@@ -95,12 +85,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 #endif
             }
 
-            internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
-            {
-                return x.IsOptional == y.IsOptional && AreEquivalent(x.Modifier, y.Modifier, equivalentTypesWithDifferingAssemblies);
-            }
+            internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
+                => x.IsOptional == y.IsOptional && AreEquivalent(x.Modifier, y.Modifier, equivalentTypesWithDifferingAssemblies);
 
-            internal bool AreEquivalent(ImmutableArray<CustomModifier> x, ImmutableArray<CustomModifier> y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            internal bool AreEquivalent(ImmutableArray<CustomModifier> x, ImmutableArray<CustomModifier> y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(!x.IsDefault && !y.IsDefault);
                 if (x.Length != y.Length)
@@ -119,70 +107,50 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool NullableAnnotationsEquivalent(ITypeSymbol x, ITypeSymbol y)
+                => _symbolEquivalenceComparer._ignoreNullableAnnotations || x.NullableAnnotation == y.NullableAnnotation;
+
+            private bool AreEquivalentWorker(ISymbol x, ISymbol y, SymbolKind k, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(x.Kind == y.Kind && x.Kind == k);
-                switch (k)
+                return k switch
                 {
-                    case SymbolKind.ArrayType:
-                        return ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Assembly:
-                        return AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y);
-                    case SymbolKind.DynamicType:
-                        return DynamicTypesAreEquivalent((IDynamicTypeSymbol)x, (IDynamicTypeSymbol)y);
-                    case SymbolKind.Event:
-                        return EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Field:
-                        return FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Label:
-                        return LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y);
-                    case SymbolKind.Local:
-                        return LocalsAreEquivalent((ILocalSymbol)x, (ILocalSymbol)y);
-                    case SymbolKind.Method:
-                        return MethodsAreEquivalent((IMethodSymbol)x, (IMethodSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.NetModule:
-                        return ModulesAreEquivalent((IModuleSymbol)x, (IModuleSymbol)y);
-                    case SymbolKind.NamedType:
-                    case SymbolKind.ErrorType: // ErrorType is handled in NamedTypesAreEquivalent
-                        return NamedTypesAreEquivalent((INamedTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Namespace:
-                        return NamespacesAreEquivalent((INamespaceSymbol)x, (INamespaceSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Parameter:
-                        return ParametersAreEquivalent((IParameterSymbol)x, (IParameterSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.PointerType:
-                        return PointerTypesAreEquivalent((IPointerTypeSymbol)x, (IPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Property:
-                        return PropertiesAreEquivalent((IPropertySymbol)x, (IPropertySymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.RangeVariable:
-                        return RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y);
-                    case SymbolKind.TypeParameter:
-                        return TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies);
-                    case SymbolKind.Preprocessing:
-                        return PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y);
-                    default:
-                        return false;
-                }
+                    SymbolKind.ArrayType => ArrayTypesAreEquivalent((IArrayTypeSymbol)x, (IArrayTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Assembly => AssembliesAreEquivalent((IAssemblySymbol)x, (IAssemblySymbol)y),
+                    SymbolKind.DynamicType => NullableAnnotationsEquivalent((IDynamicTypeSymbol)x, (IDynamicTypeSymbol)y),
+                    SymbolKind.Event => EventsAreEquivalent((IEventSymbol)x, (IEventSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Field => FieldsAreEquivalent((IFieldSymbol)x, (IFieldSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Label => LabelsAreEquivalent((ILabelSymbol)x, (ILabelSymbol)y),
+                    SymbolKind.Local => LocalsAreEquivalent((ILocalSymbol)x, (ILocalSymbol)y),
+                    SymbolKind.Method => MethodsAreEquivalent((IMethodSymbol)x, (IMethodSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.NetModule => ModulesAreEquivalent((IModuleSymbol)x, (IModuleSymbol)y),
+                    SymbolKind.NamedType => NamedTypesAreEquivalent((INamedTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.ErrorType => NamedTypesAreEquivalent((INamedTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Namespace => NamespacesAreEquivalent((INamespaceSymbol)x, (INamespaceSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Parameter => ParametersAreEquivalent((IParameterSymbol)x, (IParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.PointerType => PointerTypesAreEquivalent((IPointerTypeSymbol)x, (IPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Property => PropertiesAreEquivalent((IPropertySymbol)x, (IPropertySymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.RangeVariable => RangeVariablesAreEquivalent((IRangeVariableSymbol)x, (IRangeVariableSymbol)y),
+                    SymbolKind.TypeParameter => TypeParametersAreEquivalent((ITypeParameterSymbol)x, (ITypeParameterSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    SymbolKind.Preprocessing => PreprocessingSymbolsAreEquivalent((IPreprocessingSymbol)x, (IPreprocessingSymbol)y),
+                    SymbolKind.FunctionPointerType => FunctionPointerTypesAreEquivalent((IFunctionPointerTypeSymbol)x, (IFunctionPointerTypeSymbol)y, equivalentTypesWithDifferingAssemblies),
+                    _ => false,
+                };
             }
 
-            private bool ArrayTypesAreEquivalent(IArrayTypeSymbol x, IArrayTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool ArrayTypesAreEquivalent(IArrayTypeSymbol x, IArrayTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 return
                     x.Rank == y.Rank &&
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
-                    AreEquivalent(x.ElementType, y.ElementType, equivalentTypesWithDifferingAssemblies);
+                    AreEquivalent(x.ElementType, y.ElementType, equivalentTypesWithDifferingAssemblies) &&
+                    NullableAnnotationsEquivalent(x, y);
             }
 
             private bool AssembliesAreEquivalent(IAssemblySymbol x, IAssemblySymbol y)
-            {
-                return _symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
-            }
+                => _symbolEquivalenceComparer._assemblyComparerOpt?.Equals(x, y) ?? true;
 
-            private bool DynamicTypesAreEquivalent(IDynamicTypeSymbol x, IDynamicTypeSymbol y)
-            {
-                return true;
-            }
-
-            private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool FieldsAreEquivalent(IFieldSymbol x, IFieldSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 return
                     x.Name == y.Name &&
@@ -190,19 +158,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
+            private static bool LabelsAreEquivalent(ILabelSymbol x, ILabelSymbol y)
             {
                 return
                     x.Name == y.Name &&
                     HaveSameLocation(x, y);
             }
 
-            private bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
-            {
-                return HaveSameLocation(x, y);
-            }
+            private static bool LocalsAreEquivalent(ILocalSymbol x, ILocalSymbol y)
+                => HaveSameLocation(x, y);
 
-            private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool MethodsAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies, bool considerReturnRefKinds = false)
             {
                 if (!AreCompatibleMethodKinds(x.MethodKind, y.MethodKind))
                 {
@@ -228,8 +194,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
                 else
                 {
-                    if (x.MethodKind == MethodKind.AnonymousFunction ||
-                        x.MethodKind == MethodKind.LocalFunction)
+                    if (x.MethodKind is MethodKind.AnonymousFunction or
+                        MethodKind.LocalFunction)
                     {
                         // Treat local and anonymous functions just like we do ILocalSymbols.  
                         // They're only equivalent if they have the same location.
@@ -265,6 +231,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     {
                         return false;
                     }
+
+                    if (considerReturnRefKinds && !AreRefKindsEquivalent(x.RefKind, y.RefKind, distinguishRefFromOut: false))
+                    {
+                        return false;
+                    }
                 }
 
                 // If it's an unconstructed method, then we don't need to check the type arguments.
@@ -276,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)
+            private static bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)
             {
                 if (kind1 == kind2)
                 {
@@ -306,11 +277,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private bool ModulesAreEquivalent(IModuleSymbol x, IModuleSymbol y)
-            {
-                return AssembliesAreEquivalent(x.ContainingAssembly, y.ContainingAssembly) && x.Name == y.Name;
-            }
+                => AssembliesAreEquivalent(x.ContainingAssembly, y.ContainingAssembly) && x.Name == y.Name;
 
-            private bool NamedTypesAreEquivalent(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool NamedTypesAreEquivalent(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 // PERF: Avoid multiple virtual calls to fetch the TypeKind property
                 var xTypeKind = GetTypeKind(x);
@@ -330,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return xTypeKind == yTypeKind && HandleNamedTypesWorker(x, y, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool NamedTypesAreEquivalentError(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool NamedTypesAreEquivalentError(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 foreach (var type1 in Unwrap(x))
                 {
@@ -359,67 +328,70 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             /// This map is populated only if we are ignoring assemblies for symbol equivalence comparison, i.e. <see cref="_assemblyComparerOpt"/> is true.
             /// </param>
             /// <returns>True if the two types are equivalent.</returns>
-            private bool HandleNamedTypesWorker(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool HandleNamedTypesWorker(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(GetTypeKind(x) == GetTypeKind(y));
 
-                if (x.IsTupleType || y.IsTupleType)
-                {
-                    if (x.IsTupleType != y.IsTupleType)
-                    {
-                        return false;
-                    }
+                if (x.IsTupleType != y.IsTupleType)
+                    return false;
 
-                    var xElements = x.TupleElements;
-                    var yElements = y.TupleElements;
+                if (x.IsNativeIntegerType != y.IsNativeIntegerType)
+                    return false;
 
-                    if (xElements.Length != yElements.Length)
-                    {
-                        return false;
-                    }
+                if (x.IsTupleType)
+                    return HandleTupleTypes(x, y, equivalentTypesWithDifferingAssemblies);
 
-                    for (var i = 0; i < xElements.Length; i++)
-                    {
-                        if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }
-
-                if (x.IsDefinition != y.IsDefinition ||
-                    IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
+                if (IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
                     x.Name != y.Name ||
                     x.IsAnonymousType != y.IsAnonymousType ||
-                    x.IsUnboundGenericType != y.IsUnboundGenericType)
+                    x.IsUnboundGenericType != y.IsUnboundGenericType ||
+                    !NullableAnnotationsEquivalent(x, y))
                 {
                     return false;
                 }
 
-                if (!AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies))
+                if (x.Kind == SymbolKind.ErrorType &&
+                    x.ContainingSymbol is INamespaceSymbol xNamespace &&
+                    y.ContainingSymbol is INamespaceSymbol yNamespace)
                 {
-                    return false;
-                }
+                    Debug.Assert(y.Kind == SymbolKind.ErrorType);
 
-                // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
-                // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
-                // to equivalentTypesWithDifferingAssemblies map.
-                if (equivalentTypesWithDifferingAssemblies != null &&
-                    x.ContainingType == null &&
-                    x.ContainingAssembly != null &&
-                    !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) &&
-                    !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
+                    // For error types, we just ensure that the containing namespaces are equivalent up to the root.
+                    while (true)
+                    {
+                        if (xNamespace.Name != yNamespace.Name)
+                            return false;
+
+                        // Error namespaces don't set the IsGlobalNamespace bit unfortunately.  So we just do the
+                        // nominal check to see if we've actually hit the root.
+                        if (xNamespace.Name == "")
+                            break;
+
+                        xNamespace = xNamespace.ContainingNamespace;
+                        yNamespace = yNamespace.ContainingNamespace;
+                    }
+                }
+                else
                 {
-                    equivalentTypesWithDifferingAssemblies.Add(x, y);
+                    if (!AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies))
+                        return false;
+
+                    // Above check makes sure that the containing assemblies are considered the same by the assembly comparer being used.
+                    // If they are in fact not the same (have different name) and the caller requested to know about such types add {x, y} 
+                    // to equivalentTypesWithDifferingAssemblies map.
+                    if (equivalentTypesWithDifferingAssemblies != null &&
+                        x.ContainingType == null &&
+                        x.ContainingAssembly != null &&
+                        !AssemblyIdentityComparer.SimpleNameComparer.Equals(x.ContainingAssembly.Name, y.ContainingAssembly.Name) &&
+                        !equivalentTypesWithDifferingAssemblies.ContainsKey(x))
+                    {
+                        equivalentTypesWithDifferingAssemblies.Add(x, y);
+                    }
                 }
 
                 if (x.IsAnonymousType)
-                {
                     return HandleAnonymousTypes(x, y, equivalentTypesWithDifferingAssemblies);
-                }
 
                 // They look very similar at this point.  In the case of non constructed types, we're
                 // done.  However, if they are constructed, then their type arguments have to match
@@ -430,10 +402,52 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
             }
 
+            private bool HandleTupleTypes(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
+            {
+                Debug.Assert(y.IsTupleType);
+
+                var xElements = x.TupleElements;
+                var yElements = y.TupleElements;
+
+                if (xElements.Length != yElements.Length)
+                    return false;
+
+                // Check names first if necessary.
+                if (_symbolEquivalenceComparer._tupleNamesMustMatch)
+                {
+                    for (var i = 0; i < xElements.Length; i++)
+                    {
+                        var xElement = xElements[i];
+                        var yElement = yElements[i];
+                        if (xElement.Name != yElement.Name)
+                            return false;
+                    }
+                }
+
+                // If we're validating the actual unconstructed ValueTuple type itself, we're done at this point.  No
+                // need to check field types.
+                //
+                // For VB we have to unwrap tuples to their underlying types to do this check.
+                // https://github.com/dotnet/roslyn/issues/42860
+                if (IsConstructedFromSelf(x.TupleUnderlyingType ?? x))
+                    return true;
+
+                for (var i = 0; i < xElements.Length; i++)
+                {
+                    var xElement = xElements[i];
+                    var yElement = yElements[i];
+
+                    if (!AreEquivalent(xElement.Type, yElement.Type, equivalentTypesWithDifferingAssemblies))
+                        return false;
+                }
+
+                return true;
+            }
+
             private bool ParametersAreEquivalent(
                 ImmutableArray<IParameterSymbol> xParameters,
                 ImmutableArray<IParameterSymbol> yParameters,
-                Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies,
+                Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies,
                 bool compareParameterName = false,
                 bool isParameterNameCaseSensitive = false)
             {
@@ -456,13 +470,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            internal bool ReturnTypesAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies = null)
+            internal bool ReturnTypesAreEquivalent(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies = null)
             {
                 return _symbolEquivalenceComparer.SignatureTypeEquivalenceComparer.Equals(x.ReturnType, y.ReturnType, equivalentTypesWithDifferingAssemblies) &&
                        AreEquivalent(x.ReturnTypeCustomModifiers, y.ReturnTypeCustomModifiers, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool TypeArgumentsAreEquivalent(ImmutableArray<ITypeSymbol> xTypeArguments, ImmutableArray<ITypeSymbol> yTypeArguments, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool TypeArgumentsAreEquivalent(ImmutableArray<ITypeSymbol> xTypeArguments, ImmutableArray<ITypeSymbol> yTypeArguments, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 var count = xTypeArguments.Length;
                 if (yTypeArguments.Length != count)
@@ -481,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            private bool HandleAnonymousTypes(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool HandleAnonymousTypes(INamedTypeSymbol x, INamedTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 if (x.TypeKind == TypeKind.Delegate)
                 {
@@ -517,7 +531,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
             }
 
-            private bool NamespacesAreEquivalent(INamespaceSymbol x, INamespaceSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool NamespacesAreEquivalent(INamespaceSymbol x, INamespaceSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 if (x.IsGlobalNamespace != y.IsGlobalNamespace ||
                     x.Name != y.Name)
@@ -534,7 +548,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool ParametersAreEquivalent(IParameterSymbol x, IParameterSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool ParametersAreEquivalent(IParameterSymbol x, IParameterSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 return
                     x.IsRefOrOut() == y.IsRefOrOut() &&
@@ -544,14 +558,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool PointerTypesAreEquivalent(IPointerTypeSymbol x, IPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool PointerTypesAreEquivalent(IPointerTypeSymbol x, IPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 return
                     AreEquivalent(x.CustomModifiers, y.CustomModifiers, equivalentTypesWithDifferingAssemblies) &&
                     AreEquivalent(x.PointedAtType, y.PointedAtType, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool FunctionPointerTypesAreEquivalent(IFunctionPointerTypeSymbol x, IFunctionPointerTypeSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
+                => MethodsAreEquivalent(x.Signature, y.Signature, equivalentTypesWithDifferingAssemblies);
+
+            private bool PropertiesAreEquivalent(IPropertySymbol x, IPropertySymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 if (x.ContainingType.IsAnonymousType && y.ContainingType.IsAnonymousType)
                 {
@@ -573,21 +590,21 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool EventsAreEquivalent(IEventSymbol x, IEventSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool EventsAreEquivalent(IEventSymbol x, IEventSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 return
                     x.Name == y.Name &&
                     AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool TypeParametersAreEquivalent(ITypeParameterSymbol x, ITypeParameterSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol> equivalentTypesWithDifferingAssemblies)
+            private bool TypeParametersAreEquivalent(ITypeParameterSymbol x, ITypeParameterSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
             {
                 Debug.Assert(
-                    (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod)) ||
+                    (x.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(x.DeclaringMethod!)) ||
                     (x.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(x.ContainingType)) ||
                     x.TypeParameterKind == TypeParameterKind.Cref);
                 Debug.Assert(
-                    (y.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(y.DeclaringMethod)) ||
+                    (y.TypeParameterKind == TypeParameterKind.Method && IsConstructedFromSelf(y.DeclaringMethod!)) ||
                     (y.TypeParameterKind == TypeParameterKind.Type && IsConstructedFromSelf(y.ContainingType)) ||
                     y.TypeParameterKind == TypeParameterKind.Cref);
 
@@ -620,15 +637,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
             }
 
-            private bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
-            {
-                return HaveSameLocation(x, y);
-            }
+            private static bool RangeVariablesAreEquivalent(IRangeVariableSymbol x, IRangeVariableSymbol y)
+                => HaveSameLocation(x, y);
 
-            private bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
-            {
-                return x.Name == y.Name;
-            }
+            private static bool PreprocessingSymbolsAreEquivalent(IPreprocessingSymbol x, IPreprocessingSymbol y)
+                => x.Name == y.Name;
         }
     }
 }

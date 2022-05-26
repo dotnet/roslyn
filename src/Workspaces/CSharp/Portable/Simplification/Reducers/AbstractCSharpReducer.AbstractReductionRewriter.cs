@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             private readonly ObjectPool<IReductionRewriter> _pool;
 
-            protected CSharpParseOptions ParseOptions { get; private set; }
-            protected OptionSet OptionSet { get; private set; }
+            protected CSharpParseOptions? ParseOptions { get; private set; }
+            protected CSharpSimplifierOptions? Options { get; private set; }
             protected CancellationToken CancellationToken { get; private set; }
-            protected SemanticModel SemanticModel { get; private set; }
+            protected SemanticModel? SemanticModel { get; private set; }
 
             public bool HasMoreWork { get; private set; }
 
@@ -32,22 +32,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             // This is e.g. useful in the name simplification, where a whole qualified name is annotated
             protected bool alwaysSimplify;
 
-            private readonly HashSet<SyntaxNode> _processedParentNodes = new HashSet<SyntaxNode>();
+            private readonly HashSet<SyntaxNode> _processedParentNodes = new();
 
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
                 => _pool = pool;
 
-            public void Initialize(ParseOptions parseOptions, OptionSet optionSet, CancellationToken cancellationToken)
+            public void Initialize(ParseOptions parseOptions, SimplifierOptions options, CancellationToken cancellationToken)
             {
+                Contract.ThrowIfNull(options);
+
                 ParseOptions = (CSharpParseOptions)parseOptions;
-                OptionSet = optionSet;
+                Options = (CSharpSimplifierOptions)options;
                 CancellationToken = cancellationToken;
             }
 
             public void Dispose()
             {
                 ParseOptions = null;
-                OptionSet = null;
+                Options = null;
                 CancellationToken = CancellationToken.None;
                 _processedParentNodes.Clear();
                 SemanticModel = null;
@@ -57,25 +59,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 _pool.Free(this);
             }
 
-            private static SyntaxNode GetParentNode(SyntaxNode node)
+            [MemberNotNull(nameof(Options), nameof(ParseOptions), nameof(SemanticModel))]
+            public void RequireInitialized()
             {
-                if (node is ExpressionSyntax expression)
-                {
-                    return GetParentNode(expression);
-                }
-
-                if (node is CrefSyntax cref)
-                {
-                    return GetParentNode(cref);
-                }
-
-                return null;
+                Contract.ThrowIfNull(ParseOptions);
+                Contract.ThrowIfNull(Options);
+                Contract.ThrowIfNull(SemanticModel);
             }
+
+            private static SyntaxNode? GetParentNode(SyntaxNode node)
+                => node switch
+                {
+                    ExpressionSyntax expression => GetParentNode(expression),
+                    PatternSyntax pattern => GetParentNode(pattern),
+                    CrefSyntax cref => GetParentNode(cref),
+                    _ => null
+                };
 
             private static SyntaxNode GetParentNode(ExpressionSyntax expression)
             {
                 var lastExpression = expression;
-                for (SyntaxNode current = expression; current != null; current = current.Parent)
+                for (SyntaxNode? current = expression; current != null; current = current.Parent)
                 {
                     if (current is ExpressionSyntax currentExpression)
                     {
@@ -83,7 +87,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     }
                 }
 
+                Contract.ThrowIfNull(lastExpression.Parent);
                 return lastExpression.Parent;
+            }
+
+            private static SyntaxNode GetParentNode(PatternSyntax pattern)
+            {
+                var lastPattern = pattern;
+                for (SyntaxNode? current = pattern; current != null; current = current.Parent)
+                {
+                    if (current is PatternSyntax currentPattern)
+                    {
+                        lastPattern = currentPattern;
+                    }
+                }
+
+                Contract.ThrowIfNull(lastPattern.Parent);
+                return lastPattern.Parent;
             }
 
             private static SyntaxNode GetParentNode(CrefSyntax cref)
@@ -93,25 +113,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     .OfType<CrefSyntax>()
                     .LastOrDefault();
 
+                Contract.ThrowIfNull(topMostCref.Parent);
                 return topMostCref.Parent;
-            }
-
-            private static SyntaxNode GetParentNode(StatementSyntax statement)
-            {
-                return statement
-                    .AncestorsAndSelf()
-                    .OfType<StatementSyntax>()
-                    .LastOrDefault();
             }
 
             protected SyntaxNode SimplifyNode<TNode>(
                 TNode node,
                 SyntaxNode newNode,
                 SyntaxNode parentNode,
-                Func<TNode, SemanticModel, OptionSet, CancellationToken, SyntaxNode> simplifier)
+                Func<TNode, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TNode : SyntaxNode
             {
-                Debug.Assert(parentNode != null);
+                RequireInitialized();
 
                 this.CancellationToken.ThrowIfCancellationRequested();
 
@@ -128,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 if (!node.HasAnnotation(SimplificationHelpers.DontSimplifyAnnotation))
                 {
-                    var simplifiedNode = simplifier(node, this.SemanticModel, this.OptionSet, this.CancellationToken);
+                    var simplifiedNode = simplifier(node, this.SemanticModel, this.Options, this.CancellationToken);
                     if (simplifiedNode != node)
                     {
                         _processedParentNodes.Add(parentNode);
@@ -143,24 +156,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             protected SyntaxNode SimplifyExpression<TExpression>(
                 TExpression expression,
                 SyntaxNode newNode,
-                Func<TExpression, SemanticModel, OptionSet, CancellationToken, SyntaxNode> simplifier)
+                Func<TExpression, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> simplifier)
                 where TExpression : SyntaxNode
             {
                 var parentNode = GetParentNode(expression);
                 if (parentNode == null)
-                {
                     return newNode;
-                }
 
                 return SimplifyNode(expression, newNode, parentNode, simplifier);
             }
 
-            protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken> simplifier)
+            protected SyntaxToken SimplifyToken(SyntaxToken token, Func<SyntaxToken, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxToken> simplifier)
             {
+                RequireInitialized();
+
                 this.CancellationToken.ThrowIfCancellationRequested();
 
                 return token.HasAnnotation(Simplifier.Annotation)
-                    ? simplifier(token, this.SemanticModel, this.OptionSet, this.CancellationToken)
+                    ? simplifier(token, this.SemanticModel, this.Options, this.CancellationToken)
                     : token;
             }
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 
@@ -14,19 +16,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private readonly Compilation _compilation;
 
             public UnnamedErrorTypeRemover(Compilation compilation)
-            {
-                _compilation = compilation;
-            }
+                => _compilation = compilation;
 
             public override ITypeSymbol DefaultVisit(ISymbol node)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
 
             public override ITypeSymbol VisitArrayType(IArrayTypeSymbol symbol)
             {
@@ -37,6 +33,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 return _compilation.CreateArrayTypeSymbol(elementType, symbol.Rank);
+            }
+
+            public override ITypeSymbol VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                // TODO(https://github.com/dotnet/roslyn/issues/43890): implement this
+                return symbol;
             }
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
@@ -67,9 +69,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override ITypeSymbol VisitTypeParameter(ITypeParameterSymbol symbol)
-            {
-                return symbol;
-            }
+                => symbol;
         }
     }
 }

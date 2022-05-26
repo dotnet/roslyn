@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Descriptor);
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-        }
+            => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
 
         public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {

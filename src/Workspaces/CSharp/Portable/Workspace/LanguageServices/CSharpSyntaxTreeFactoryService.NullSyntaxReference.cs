@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -23,9 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 private readonly SyntaxTree _tree;
 
                 public NullSyntaxReference(SyntaxTree tree)
-                {
-                    _tree = tree;
-                }
+                    => _tree = tree;
 
                 public override SyntaxTree SyntaxTree
                 {
@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 public override SyntaxNode GetSyntax(CancellationToken cancellationToken)
-                {
-                    return null;
-                }
+                    => null;
 
                 public override TextSpan Span
                 {

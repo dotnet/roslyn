@@ -13,9 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             private readonly Matcher<T> _matcher;
 
             public RepeatMatcher(Matcher<T> matcher)
-            {
-                _matcher = matcher;
-            }
+                => _matcher = matcher;
 
             public override bool TryMatch(IList<T> sequence, ref int index)
             {
@@ -27,9 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             public override string ToString()
-            {
-                return string.Format("({0}*)", _matcher);
-            }
+                => string.Format("({0}*)", _matcher);
         }
     }
 }

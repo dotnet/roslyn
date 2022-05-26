@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,16 +17,12 @@ namespace Roslyn.Utilities
         private Task<T>? _task;
 
         public ConstantValueSource(T value)
-        {
-            _value = value;
-        }
+            => _value = value;
 
         public override T GetValue(CancellationToken cancellationToken = default)
-        {
-            return _value;
-        }
+            => _value;
 
-        public override bool TryGetValue([MaybeNullWhen(false)]out T value)
+        public override bool TryGetValue([MaybeNullWhen(false)] out T value)
         {
             value = _value;
             return true;

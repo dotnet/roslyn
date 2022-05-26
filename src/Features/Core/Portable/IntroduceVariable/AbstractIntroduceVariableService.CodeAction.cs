@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
@@ -12,12 +15,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             internal IntroduceVariableCodeAction(
                 TService service,
                 SemanticDocument document,
+                CodeCleanupOptions options,
                 TExpressionSyntax expression,
                 bool allOccurrences,
                 bool isConstant,
                 bool isLocal,
                 bool isQueryLocal)
-                : base(service, document, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
+                : base(service, document, options, expression, allOccurrences, isConstant, isLocal, isQueryLocal)
             {
             }
         }

@@ -12,7 +12,7 @@ Friend Class MockVbi
     Inherits VisualBasicCompiler
 
     Public Sub New(responseFile As String, workingDirectory As String, args As String())
-        MyBase.New(VisualBasicCommandLineParser.Script, responseFile, args, CreateBuildPaths(workingDirectory), Nothing, RuntimeUtilities.CreateAnalyzerAssemblyLoader())
+        MyBase.New(VisualBasicCommandLineParser.Script, responseFile, args, CreateBuildPaths(workingDirectory), Nothing, New DefaultAnalyzerAssemblyLoader())
     End Sub
 
     Private Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths

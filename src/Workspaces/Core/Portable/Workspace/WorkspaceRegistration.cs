@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis
 {
     public sealed class WorkspaceRegistration
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         internal WorkspaceRegistration()
         {
@@ -27,9 +25,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal void SetWorkspace(Workspace? workspace)
-        {
-            Workspace = workspace;
-        }
+            => Workspace = workspace;
 
         internal void RaiseEvents()
         {

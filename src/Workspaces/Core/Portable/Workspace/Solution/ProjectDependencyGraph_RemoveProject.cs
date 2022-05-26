@@ -1,13 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-#nullable enable
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ProjectDependencyGraph
+    public partial class ProjectDependencyGraph
     {
         internal ProjectDependencyGraph WithProjectRemoved(ProjectId projectId)
         {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         /// omitted without impacting correctness.</param>
         /// <param name="removedProjectId">The ID of the project which is being removed.</param>
         /// <returns>The <see cref="_referencesMap"/> for the project dependency graph once the project is removed.</returns>
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProject(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProject(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId removedProjectId)
@@ -63,15 +63,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     foreach (var id in referencingProjects)
                     {
-                        var forwardReferences = builder[id].Remove(removedProjectId);
-                        if (forwardReferences.IsEmpty)
-                        {
-                            builder.Remove(id);
-                        }
-                        else
-                        {
-                            builder[id] = forwardReferences;
-                        }
+                        builder.MultiRemove(id, removedProjectId);
                     }
                 }
             }
@@ -79,17 +71,9 @@ namespace Microsoft.CodeAnalysis
             {
                 // We don't know which projects reference 'projectId', so iterate over all known projects and remove
                 // 'projectId' from the set of references if it exists.
-                foreach (var (id, references) in existingForwardReferencesMap)
+                foreach (var (id, _) in existingForwardReferencesMap)
                 {
-                    var forwardReferences = references.Remove(removedProjectId);
-                    if (forwardReferences.IsEmpty)
-                    {
-                        builder.Remove(id);
-                    }
-                    else
-                    {
-                        builder[id] = forwardReferences;
-                    }
+                    builder.MultiRemove(id, removedProjectId);
                 }
             }
 
@@ -126,15 +110,7 @@ namespace Microsoft.CodeAnalysis
             // reverse references map for the project to no longer include 'removedProjectId' in the list.
             foreach (var referencedProjectId in forwardReferences)
             {
-                var reverseReferences = existingReverseReferencesMap[referencedProjectId].Remove(removedProjectId);
-                if (reverseReferences.IsEmpty)
-                {
-                    builder.Remove(referencedProjectId);
-                }
-                else
-                {
-                    builder[referencedProjectId] = reverseReferences;
-                }
+                builder.MultiRemove(referencedProjectId, removedProjectId);
             }
 
             // Finally, remove 'removedProjectId' itself.
@@ -153,12 +129,12 @@ namespace Microsoft.CodeAnalysis
             var builder = existingTransitiveReferencesMap.ToBuilder();
 
             // Iterate over each project and invalidate the transitive references for the project if the project has an
-            // existing transitive reference to 'projectId'.
+            // existing transitive reference to 'removedProjectId'.
             foreach (var (project, references) in existingTransitiveReferencesMap)
             {
                 if (references.Contains(removedProjectId))
                 {
-                    // The project transitively referenced 'projectId', so any transitive references brought in
+                    // The project transitively referenced 'removedProjectId', so any transitive references brought in
                     // exclusively through this reference are no longer valid. Remove the project from the map and the
                     // new transitive references will be recomputed the first time they are needed.
                     builder.Remove(project);
@@ -180,11 +156,16 @@ namespace Microsoft.CodeAnalysis
         {
             var builder = existingReverseTransitiveReferencesMap.ToBuilder();
 
+            // Iterate over each project and invalidate the transitive reverse references for the project if the project
+            // has an existing transitive reverse reference to 'removedProjectId'.
             foreach (var (project, references) in existingReverseTransitiveReferencesMap)
             {
                 if (references.Contains(removedProjectId))
                 {
-                    // Invalidate the cache for projects that reference the removed project
+                    // 'removedProjectId' transitively referenced the project, so any transitive reverse references
+                    // brought in exclusively through this reverse reference are no longer valid. Remove the project
+                    // from the map and the new transitive reverse references will be recomputed the first time they are
+                    // needed.
                     builder.Remove(project);
                 }
             }

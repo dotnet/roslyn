@@ -3,19 +3,25 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.IntroduceVariable
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.IntroduceLocalForExpression), [Shared]>
     Friend Class VisualBasicIntroduceLocalForExpressionCodeRefactoringProvider
         Inherits AbstractIntroduceLocalForExpressionCodeRefactoringProvider(Of
             ExpressionSyntax,
             StatementSyntax,
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax)
+
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
 
         Protected Overrides Function IsValid(expressionStatement As ExpressionStatementSyntax, span As TextSpan) As Boolean
             ' Expression is likely too simple to want to offer to generate a local for.

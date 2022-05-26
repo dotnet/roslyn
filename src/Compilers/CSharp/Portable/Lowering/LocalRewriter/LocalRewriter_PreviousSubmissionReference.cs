@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var targetType = (ImplicitNamedTypeSymbol)node.Type;
             Debug.Assert(targetType.TypeKind == TypeKind.Submission);
-            Debug.Assert(!_factory.TopLevelMethod.IsStatic);
+            Debug.Assert(_factory.TopLevelMethod is { IsStatic: false });
+            Debug.Assert(_factory.CurrentType is { });
 
             Debug.Assert(_previousSubmissionFields != null);
 

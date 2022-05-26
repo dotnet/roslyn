@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
@@ -47,13 +48,13 @@ namespace Microsoft.CodeAnalysis
             // to return the children in order, while also keeping their offset
             // correct.
 
-            private readonly SyntaxNode _parent;
-            private readonly GreenNode _singleNodeOrList;
+            private readonly SyntaxNode? _parent;
+            private readonly GreenNode? _singleNodeOrList;
             private readonly int _baseIndex;
             private readonly int _count;
 
             private int _index;
-            private GreenNode _current;
+            private GreenNode? _current;
             private int _position;
 
             internal Enumerator(in SyntaxTokenList list)
@@ -91,8 +92,9 @@ namespace Microsoft.CodeAnalysis
                     _position += _current.FullWidth;
                 }
 
+                Debug.Assert(_singleNodeOrList is object);
                 _current = GetGreenNodeAt(_singleNodeOrList, _index);
-                System.Diagnostics.Debug.Assert(_current != null);
+                Debug.Assert(_current is object);
                 return true;
             }
 
@@ -115,7 +117,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             get { return _properties; }
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is CommandLineReference && base.Equals((CommandLineReference)obj);
         }

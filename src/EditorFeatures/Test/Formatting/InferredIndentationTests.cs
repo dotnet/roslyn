@@ -1,4 +1,11 @@
-﻿using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
@@ -16,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         {
             using var testWorkspace = CreateWithLines(
                 "");
-            var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetOptionsAsync();
+            var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
 
-            Assert.Equal(FormattingOptions.UseTabs.DefaultValue, options.GetOption(FormattingOptions.UseTabs));
+            Assert.Equal(FormattingOptions.UseTabs.DefaultValue, options.UseTabs);
         }
 
         [Fact]
@@ -29,9 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 "{",
                 "\tvoid M() { }",
                 "}");
-            var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetOptionsAsync();
+            var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
 
-            Assert.True(options.GetOption(FormattingOptions.UseTabs));
+            Assert.True(options.UseTabs);
         }
 
         [Fact]
@@ -42,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 "{",
                 "    void M() { }",
                 "}");
-            var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetOptionsAsync();
+            var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
 
-            Assert.False(options.GetOption(FormattingOptions.UseTabs));
-            Assert.Equal(4, options.GetOption(FormattingOptions.IndentationSize));
+            Assert.False(options.UseTabs);
+            Assert.Equal(4, options.IndentationSize);
         }
 
-        private TestWorkspace CreateWithLines(params string[] lines)
+        private static TestWorkspace CreateWithLines(params string[] lines)
         {
             var workspace = TestWorkspace.CreateCSharp(string.Join("\r\n", lines), openDocuments: true);
             var editorOptionsFactoryService = workspace.ExportProvider.GetExportedValue<IEditorOptionsFactoryService>();

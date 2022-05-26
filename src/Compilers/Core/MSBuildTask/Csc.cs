@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Globalization;
@@ -84,6 +82,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(ErrorReport)] = value; }
             get { return (string?)_store[nameof(ErrorReport)]; }
+        }
+
+        public string? GeneratedFilesOutputPath
+        {
+            set { _store[nameof(GeneratedFilesOutputPath)] = value; }
+            get { return (string?)_store[nameof(GeneratedFilesOutputPath)]; }
         }
 
         public bool GenerateFullPaths
@@ -169,9 +173,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         #region Tool Members
 
-        private static readonly string[] s_separators = { Environment.NewLine };
+        // Same separators as those used by Process.OutputDataReceived to maintain consistency between csc and VBCSCompiler
+        private static readonly string[] s_separators = { "\r\n", "\r", "\n" };
 
-        internal override void LogMessages(string output, MessageImportance messageImportance)
+        internal override void LogCompilerOutput(string output, MessageImportance messageImportance)
         {
             var lines = output.Split(s_separators, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
@@ -187,7 +192,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Return the name of the tool to execute.
         /// </summary>
-        override protected string ToolNameWithoutExtension
+        protected override string ToolNameWithoutExtension
         {
             get
             {
@@ -204,6 +209,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/unsafe", _store, nameof(AllowUnsafeBlocks));
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
+            commandLine.AppendSwitchIfNotNull("/generatedfilesout:", GeneratedFilesOutputPath);
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
@@ -391,7 +397,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Then we look at the resulting list of strings, and remove any that are
         /// illegal identifiers, and pass the remaining ones through to the compiler.
         /// 
-        /// Note that CSharp does support assigning a value to the constants ... in
+        /// Note that CSharp doesn't support assigning a value to the constants ... in
         /// other words, a constant is either defined or not defined ... it can't have
         /// an actual value.
         /// </summary>

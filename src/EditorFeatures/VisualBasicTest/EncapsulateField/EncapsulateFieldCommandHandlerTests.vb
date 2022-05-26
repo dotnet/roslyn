@@ -2,13 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -136,10 +136,6 @@ End Class
         <Trait(Traits.Feature, Traits.Features.EncapsulateField)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub EncapsulateFieldCommandDisabledInSubmission()
-            Dim exportProvider = ExportProviderCache _
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService))) _
-                .CreateExportProvider()
-
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
@@ -149,7 +145,7 @@ End Class
                     </Submission>
                 </Workspace>,
                 workspaceKind:=WorkspaceKind.Interactive,
-                exportProvider:=exportProvider)
+                composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 ' Force initialization.
                 workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
@@ -159,6 +155,7 @@ End Class
                 Dim handler = New EncapsulateFieldCommandHandler(
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ITextBufferUndoManagerProvider),
+                    workspace.GlobalOptions,
                     workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))

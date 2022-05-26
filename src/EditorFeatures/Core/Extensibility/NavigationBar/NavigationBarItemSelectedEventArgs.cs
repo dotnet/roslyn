@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         public NavigationBarItemSelectedEventArgs(NavigationBarItem item)
         {
-            this.Item = item;
+            Item = item;
         }
     }
 }

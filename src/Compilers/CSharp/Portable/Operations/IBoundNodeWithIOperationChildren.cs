@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// An array of child bound nodes.
         /// </summary>
         /// <remarks>Note that any of the child nodes may be null.</remarks>
-        ImmutableArray<BoundNode> Children { get; }
+        ImmutableArray<BoundNode?> Children { get; }
     }
 }

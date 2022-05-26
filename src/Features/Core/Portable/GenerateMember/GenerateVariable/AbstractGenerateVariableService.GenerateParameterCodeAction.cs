@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
 {
@@ -16,12 +17,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             private readonly Document _document;
             private readonly State _state;
             private readonly bool _includeOverridesAndImplementations;
+            private readonly int _parameterIndex;
 
-            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations)
+            public GenerateParameterCodeAction(Document document, State state, bool includeOverridesAndImplementations, int parameterIndex)
             {
                 _document = document;
                 _state = state;
                 _includeOverridesAndImplementations = includeOverridesAndImplementations;
+                _parameterIndex = parameterIndex;
             }
 
             public override string Title
@@ -38,17 +41,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
             }
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
-                return AddParameterService.Instance.AddParameterAsync(
+                return AddParameterService.AddParameterAsync(
                     _document,
                     _state.ContainingMethod,
                     _state.LocalType,
                     RefKind.None,
                     _state.IdentifierToken.ValueText,
-                    newParameterIndex: null,
+                    _parameterIndex,
                     _includeOverridesAndImplementations,
-                    cancellationToken);
+                    cancellationToken).AsNullable();
             }
         }
     }

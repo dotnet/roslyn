@@ -30,7 +30,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        internal static BKTree ReadFrom(ObjectReader reader)
+        internal static BKTree? ReadFrom(ObjectReader reader)
         {
             try
             {

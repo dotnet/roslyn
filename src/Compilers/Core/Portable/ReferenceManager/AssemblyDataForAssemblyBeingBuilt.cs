@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
                 return boundReferences;
             }
 
-            public override bool IsMatchingAssembly(TAssemblySymbol assembly)
+            public override bool IsMatchingAssembly(TAssemblySymbol? assembly)
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public override Compilation SourceCompilation => null;
+            public override Compilation? SourceCompilation => null;
         }
     }
 }

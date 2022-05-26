@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis
 {
     // Members of well known types
@@ -56,6 +54,7 @@ namespace Microsoft.CodeAnalysis
         System_Type__GetTypeFromCLSID,
         System_Type__GetTypeFromHandle,
         System_Type__Missing,
+        System_Type__op_Equality,
 
         System_Reflection_AssemblyKeyFileAttribute__ctor,
         System_Reflection_AssemblyKeyNameAttribute__ctor,
@@ -151,6 +150,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+        System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -435,11 +435,13 @@ namespace Microsoft.CodeAnalysis
 
         System_ObsoleteAttribute__ctor,
 
-        System_Span_T__ctor,
+        System_Span_T__ctor_Pointer,
+        System_Span_T__ctor_Array,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
 
-        System_ReadOnlySpan_T__ctor,
+        System_ReadOnlySpan_T__ctor_Pointer,
+        System_ReadOnlySpan_T__ctor_Array,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 
@@ -504,6 +506,22 @@ namespace Microsoft.CodeAnalysis
         System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
+
+        System_ArgumentNullException__ctorString,
+
+        System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
+        System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags,
+
+        System_Text_StringBuilder__AppendString,
+        System_Text_StringBuilder__AppendChar,
+        System_Text_StringBuilder__AppendObject,
+        System_Text_StringBuilder__ctor,
+
+        System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
+
+        System_MemoryExtensions__SequenceEqual_Span_T,
+        System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
+        System_MemoryExtensions__AsSpan_String,
 
         Count
 

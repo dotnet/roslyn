@@ -2,16 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SourceTextExtensions
     {
+        /// <summary>
+        /// Returns the leading whitespace of the line located at the specified position in the given snapshot.
+        /// </summary>
+        public static string GetLeadingWhitespaceOfLineAtPosition(this SourceText text, int position)
+        {
+            Contract.ThrowIfNull(text);
+
+            var line = text.Lines.GetLineFromPosition(position);
+            var linePosition = line.GetFirstNonWhitespacePosition();
+            if (!linePosition.HasValue)
+            {
+                return line.ToString();
+            }
+
+            var lineText = line.ToString();
+            return lineText.Substring(0, linePosition.Value - line.Start);
+        }
+
         public static bool OverlapsHiddenPosition(
             this SourceText text, TextSpan span, Func<int, CancellationToken, bool> isPositionHidden, CancellationToken cancellationToken)
         {
@@ -64,10 +81,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool AreOnSameLine(this SourceText text, SyntaxToken token1, SyntaxToken token2)
-        {
-            return token1.RawKind != 0 &&
-                token2.RawKind != 0 &&
-                text.Lines.IndexOf(token1.Span.End) == text.Lines.IndexOf(token2.SpanStart);
-        }
+            => token1.RawKind != 0 &&
+               token2.RawKind != 0 &&
+               text.AreOnSameLine(token1.Span.End, token2.SpanStart);
+
+        public static bool AreOnSameLine(this SourceText text, int pos1, int pos2)
+            => text.Lines.IndexOf(pos1) == text.Lines.IndexOf(pos2);
     }
 }

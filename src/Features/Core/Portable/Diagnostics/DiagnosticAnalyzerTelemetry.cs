@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
@@ -6,7 +10,10 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
+
+#if NETSTANDARD2_0
 using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -18,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public readonly int CompilationEndActionsCount;
             public readonly int CompilationActionsCount;
             public readonly int SyntaxTreeActionsCount;
+            public readonly int AdditionalFileActionsCount;
             public readonly int SemanticModelActionsCount;
             public readonly int SymbolActionsCount;
             public readonly int SymbolStartActionsCount;
@@ -46,6 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 SymbolActionsCount = analyzerTelemetryInfo.SymbolActionsCount;
                 SyntaxNodeActionsCount = analyzerTelemetryInfo.SyntaxNodeActionsCount;
                 SyntaxTreeActionsCount = analyzerTelemetryInfo.SyntaxTreeActionsCount;
+                AdditionalFileActionsCount = analyzerTelemetryInfo.AdditionalFileActionsCount;
                 OperationActionsCount = analyzerTelemetryInfo.OperationActionsCount;
                 OperationBlockActionsCount = analyzerTelemetryInfo.OperationBlockActionsCount;
                 OperationBlockEndActionsCount = analyzerTelemetryInfo.OperationBlockEndActionsCount;
@@ -58,13 +67,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
         private ImmutableDictionary<Type, Data> _analyzerInfoMap;
 
         public DiagnosticAnalyzerTelemetry()
-        {
-            _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
-        }
+            => _analyzerInfoMap = ImmutableDictionary<Type, Data>.Empty;
 
         public void UpdateAnalyzerActionsTelemetry(DiagnosticAnalyzer analyzer, AnalyzerTelemetryInfo analyzerTelemetryInfo, bool isTelemetryCollectionAllowed)
         {
@@ -111,6 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     m["Analyzer.SemanticModel"] = analyzerInfo.SemanticModelActionsCount;
                     m["Analyzer.SyntaxNode"] = analyzerInfo.SyntaxNodeActionsCount;
                     m["Analyzer.SyntaxTree"] = analyzerInfo.SyntaxTreeActionsCount;
+                    m["Analyzer.AdditionalFile"] = analyzerInfo.AdditionalFileActionsCount;
                     m["Analyzer.Operation"] = analyzerInfo.OperationActionsCount;
                     m["Analyzer.OperationBlock"] = analyzerInfo.OperationBlockActionsCount;
                     m["Analyzer.OperationBlockStart"] = analyzerInfo.OperationBlockStartActionsCount;

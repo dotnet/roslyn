@@ -9,10 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var queryExpression = await FindNodeToRefactorAsync(context).ConfigureAwait(false);
             if (queryExpression == null)
@@ -42,14 +40,15 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
             if (TryConvert(queryExpression, semanticModel, semanticFacts, cancellationToken, out var documentUpdateInfo))
             {
                 context.RegisterRefactoring(
-                    new MyCodeAction(
+                    CodeAction.Create(
                         Title,
-                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root)))),
+                        c => Task.FromResult(document.WithSyntaxRoot(documentUpdateInfo.UpdateRoot(root))),
+                        Title),
                     queryExpression.Span);
             }
         }
@@ -88,14 +87,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
                 {
                     return root.ReplaceNode(Source, Destinations);
                 }
-            }
-        }
-
-        protected sealed class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
-            {
             }
         }
     }

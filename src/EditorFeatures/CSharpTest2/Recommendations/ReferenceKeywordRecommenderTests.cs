@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -46,6 +49,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -101,10 +111,26 @@ using System;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeGlobalUsing()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Script,
+@"#$$
+global using System;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterUsing()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"using System;
+#$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"global using System;
 #$$");
         }
     }

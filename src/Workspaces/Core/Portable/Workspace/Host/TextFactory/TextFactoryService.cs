@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.IO;
 using System.Text;
@@ -16,17 +17,18 @@ namespace Microsoft.CodeAnalysis.Host
     internal class TextFactoryService : ITextFactoryService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TextFactoryService()
         {
         }
 
-        public SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             return EncodedStringText.Create(stream, defaultEncoding);
         }
 
-        public SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default)
+        public SourceText CreateText(TextReader reader, Encoding? encoding, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

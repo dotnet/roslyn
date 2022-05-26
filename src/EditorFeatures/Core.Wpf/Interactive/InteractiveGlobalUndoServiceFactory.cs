@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -10,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
+namespace Microsoft.CodeAnalysis.Interactive
 {
     [ExportWorkspaceServiceFactory(typeof(IGlobalUndoService), WorkspaceKind.Interactive), Shared]
     internal sealed class InteractiveGlobalUndoServiceFactory : IWorkspaceServiceFactory
@@ -18,34 +20,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private readonly GlobalUndoService _singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InteractiveGlobalUndoServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
-        {
-            _singleton = new GlobalUndoService(undoHistoryRegistry);
-        }
+            => _singleton = new GlobalUndoService(undoHistoryRegistry);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
 
         private class GlobalUndoService : IGlobalUndoService
         {
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
             public bool IsGlobalTransactionOpen(Workspace workspace)
-            {
-                return GetHistory(workspace).CurrentTransaction != null;
-            }
+                => GetHistory(workspace).CurrentTransaction != null;
 
             public GlobalUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
-            {
-                _undoHistoryRegistry = undoHistoryRegistry;
-            }
+                => _undoHistoryRegistry = undoHistoryRegistry;
 
             public bool CanUndo(Workspace workspace)
             {
                 // only primary workspace supports global undo
-                return workspace is InteractiveWorkspace;
+                return workspace is InteractiveWindowWorkspace;
             }
 
             public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
@@ -64,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
             private ITextUndoHistory GetHistory(Workspace workspace)
             {
-                var interactiveWorkspace = (InteractiveWorkspace)workspace;
+                var interactiveWorkspace = (InteractiveWindowWorkspace)workspace;
                 var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
 
                 Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));
@@ -77,9 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 private readonly ITextUndoTransaction _transaction;
 
                 public InteractiveGlobalUndoTransaction(ITextUndoTransaction transaction)
-                {
-                    _transaction = transaction;
-                }
+                    => _transaction = transaction;
 
                 public void AddDocument(DocumentId id)
                 {
@@ -87,14 +80,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
                 }
 
                 public void Commit()
-                {
-                    _transaction.Complete();
-                }
+                    => _transaction.Complete();
 
                 public void Dispose()
-                {
-                    _transaction.Dispose();
-                }
+                    => _transaction.Dispose();
             }
         }
     }

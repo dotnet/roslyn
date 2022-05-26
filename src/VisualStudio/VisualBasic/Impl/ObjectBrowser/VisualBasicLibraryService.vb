@@ -26,6 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(Guids.VisualBasicLibraryId, __SymbolToolLanguage.SymbolToolLanguage_VB, s_typeDisplayFormat, s_memberDisplayFormat)
         End Sub

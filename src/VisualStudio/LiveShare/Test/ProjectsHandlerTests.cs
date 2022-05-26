@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -15,10 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests
         [Fact]
         public async Task TestProjectsAsync()
         {
-            var (solution, ranges) = CreateTestSolution(string.Empty);
+            using var testLspServer = await CreateTestLspServerAsync(string.Empty);
+            var solution = testLspServer.GetCurrentSolution();
             var expected = solution.Projects.Select(p => CreateLspProject(p)).ToArray();
 
-            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null);
+            var results = (CustomProtocol.Project[])await TestHandleAsync<object, object[]>(solution, null, CustomProtocol.RoslynMethods.ProjectsName);
             AssertJsonEquals(expected, results);
         }
 

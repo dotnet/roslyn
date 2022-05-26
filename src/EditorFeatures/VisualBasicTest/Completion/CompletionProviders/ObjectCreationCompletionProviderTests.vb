@@ -2,20 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class ObjectCreationCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New ObjectCreationCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(ObjectCreationCompletionProvider)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

@@ -32,9 +32,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             public override string ToString()
-            {
-                return _description;
-            }
+                => _description;
         }
     }
 }

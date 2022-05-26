@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -20,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
         public const string CS0219 = nameof(CS0219);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpRemoveUnusedVariableCodeFixProvider()
         {
         }
@@ -49,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
             return null;
         }
 
-        protected override void RemoveOrReplaceNode(SyntaxEditor editor, SyntaxNode node, ISyntaxFactsService syntaxFacts)
+        protected override void RemoveOrReplaceNode(SyntaxEditor editor, SyntaxNode node, IBlockFactsService blockFacts)
         {
             switch (node.Kind())
             {
@@ -57,12 +62,25 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
                     editor.ReplaceNode(node, ((AssignmentExpressionSyntax)node).Right);
                     return;
                 default:
-                    RemoveNode(editor, node, syntaxFacts);
+                    RemoveNode(editor, node.IsParentKind(SyntaxKind.GlobalStatement) ? node.Parent : node, blockFacts);
                     return;
             }
         }
 
         protected override SeparatedSyntaxList<SyntaxNode> GetVariables(LocalDeclarationStatementSyntax localDeclarationStatement)
             => localDeclarationStatement.Declaration.Variables;
+
+        protected override bool ShouldOfferFixForLocalDeclaration(IBlockFactsService blockFacts, SyntaxNode node)
+        {
+            // If the fix location is not for a local declaration then we can allow it (eg, when inside a for
+            // or catch).
+            if (node.Parent?.Parent is not LocalDeclarationStatementSyntax localDeclaration)
+                return true;
+
+            // Local declarations must be parented by an executable block, or global statement, otherwise
+            // removing them would be invalid (and more than likely crash the fixer)
+            return localDeclaration.Parent is GlobalStatementSyntax ||
+                blockFacts.IsExecutableBlock(localDeclaration.Parent);
+        }
     }
 }

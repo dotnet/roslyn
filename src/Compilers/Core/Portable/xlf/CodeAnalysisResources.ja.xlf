@@ -12,6 +12,16 @@
         <target state="translated">このオプションの言語名を指定する必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyReferencesNetFramework">
+        <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
+        <target state="translated">型 '{0}' を含むアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ChangesMustBeWithinBoundsOfSourceText">
+        <source>Changes must be within bounds of SourceText</source>
+        <target state="translated">変更は SourceText の範囲内でなければなりません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging">
         <source>Changing the version of an assembly reference is not allowed during debugging: '{0}' changed version to '{1}'.</source>
         <target state="translated">デバッグ中にアセンブリ参照のバージョンを変更することはできません: '{0}' のバージョンが '{1}' に変更されました。</target>
@@ -26,8 +36,23 @@
       </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
-        <target state="new">Suppress the following diagnostics to disable this analyzer: {0}</target>
+        <target state="translated">次の診断を抑制して、このアナライザーを無効にします: {0}</target>
         <note>{0}: Comma-separated list of diagnostic IDs</note>
+      </trans-unit>
+      <trans-unit id="HintNameInvalidChar">
+        <source>The hintName '{0}' contains an invalid character '{1}' at position {2}.</source>
+        <target state="translated">hintName {0} の位置 {2} に無効な文字 '{1}' が含まれています。</target>
+        <note>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</note>
+      </trans-unit>
+      <trans-unit id="HintNameUniquePerGenerator">
+        <source>The hintName '{0}' of the added source file must be unique within a generator.</source>
+        <target state="translated">追加されたソース ファイルの hintName '{0}' は、ジェネレーター内で一意である必要があります。</target>
+        <note>{0}: the provided hintname</note>
+      </trans-unit>
+      <trans-unit id="InvalidAdditionalFile">
+        <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
+        <target state="translated">追加ファイルは、基になる 'CompilationWithAnalyzers' に属していません。</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSuppressionReported">
         <source>Suppressed diagnostic ID '{0}' does not match suppressable ID '{1}' for the given suppression descriptor.</source>
@@ -93,6 +118,16 @@
         <source>Module copy can't be used to create an assembly metadata.</source>
         <target state="translated">モジュールのコピーは、アセンブリ メタデータの作成には使用できません。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Single_type_per_generator_0">
+        <source>Only a single {0} can be registered per generator.</source>
+        <target state="translated">ジェネレーターごとに登録できるのは 1 つの {0} のみです。</target>
+        <note>{0}: type name</note>
+      </trans-unit>
+      <trans-unit id="SourceTextRequiresEncoding">
+        <source>The SourceText with hintName '{0}' must have an explicit encoding set.</source>
+        <target state="translated">hintName '{0}' の SourceText は、明示的なエンコード セットを含んでいる必要があります。</target>
+        <note>'SourceText' is not localizable. {0}: the provided hintname</note>
       </trans-unit>
       <trans-unit id="SupportedDiagnosticsHasNullDescriptor">
         <source>Analyzer '{0}' contains a null descriptor in its 'SupportedDiagnostics'.</source>
@@ -539,6 +574,16 @@
         <target state="translated">無効なカルチャ名: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName">
+        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="translated">グローバル アナライザー構成セクション名 '{0}' は、絶対パスではないため無効です。セクションは無視されます。セクションはファイル '{1}' で宣言されました。</target>
+        <note>{0}: invalid section name, {1} path to global config</note>
+      </trans-unit>
+      <trans-unit id="WRN_InvalidGlobalSectionName_Title">
+        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
+        <target state="translated">グローバル アナライザー構成セクション名は、絶対パスではないため無効です。セクションは無視されます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
         <source>The diagnostic '{0}' was given an invalid severity '{1}' in the analyzer config file at '{2}'.</source>
         <target state="translated">アナライザー構成ファイルの '{2}' で、診断 '{0}' に無効な重要度 '{1}' が指定されました。</target>
@@ -547,6 +592,16 @@
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig_Title">
         <source>Invalid severity in analyzer config file.</source>
         <target state="translated">アナライザー構成ファイルの重大度が無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys">
+        <source>Multiple global analyzer config files set the same key '{0}' in section '{1}'. It has been unset. Key was set by the following files: '{2}'</source>
+        <target state="translated">複数のグローバル アナライザー構成ファイルで、セクション '{1}' に同じキー '{0}' が設定されています。設定は解除されました。キーは次のファイルによって設定されました: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_MultipleGlobalAnalyzerKeys_Title">
+        <source>Multiple global analyzer config files set the same key. It has been unset.</source>
+        <target state="translated">複数のグローバル アナライザー構成ファイルで同じキーが設定されている。設定が解除された。</target>
         <note />
       </trans-unit>
       <trans-unit id="WinRTIdentityCantBeRetargetable">
@@ -581,7 +636,7 @@
       </trans-unit>
       <trans-unit id="CompilerAnalyzerFailure">
         <source>Analyzer Failure</source>
-        <target state="needs-review-translation">アナライザー エラー</target>
+        <target state="translated">アナライザー エラー</target>
         <note>{0}: Analyzer name
 {1}: Type name
 {2}: Localized exception message
@@ -590,7 +645,7 @@
       <trans-unit id="CompilerAnalyzerThrows">
         <source>Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
 {3}</source>
-        <target state="new">Analyzer '{0}' threw an exception of type '{1}' with message '{2}'.
+        <target state="translated">アナライザー '{0}' が型 '{1}' の例外をメッセージ '{2}' 付きでスローしました。
 {3}</target>
         <note />
       </trans-unit>
@@ -654,11 +709,6 @@
       <trans-unit id="ArgumentElementCannotBeNull">
         <source>Argument cannot have a null element.</source>
         <target state="translated">引数に null 要素は指定できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AsyncAnalyzerActionCannotBeRegistered">
-        <source>Analyzer attempted to register an 'async' action, which is not supported.</source>
-        <target state="translated">アナライザーが "非同期" アクションを登録しようとしましたが、それはサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedDiagnosticReported">
@@ -798,7 +848,7 @@
       </trans-unit>
       <trans-unit id="NoAnalyzersFound">
         <source>No analyzers found</source>
-        <target state="translated">アナライザーが見つかりません。</target>
+        <target state="translated">アナライザーが見つかりません</target>
         <note />
       </trans-unit>
       <trans-unit id="DuplicateAnalyzerInstances">
@@ -915,12 +965,12 @@
       </trans-unit>
       <trans-unit id="ElementIsExpected">
         <source>element is expected</source>
-        <target state="translated">要素が必要です。</target>
+        <target state="translated">要素が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="SeparatorIsExpected">
         <source>separator is expected</source>
-        <target state="translated">区切り記号が必要です。</target>
+        <target state="translated">区切り記号が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="TheStreamCannotBeReadFrom">
@@ -930,7 +980,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
+        <target state="translated">'{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">

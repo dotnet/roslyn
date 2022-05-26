@@ -50,6 +50,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -99,9 +106,7 @@ $$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterExpression()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(@"_ = expr $$"));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod(@"_ = expr $$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterExpression_InMethodWithArrowBody()
@@ -115,15 +120,11 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterForeachVar()
-        {
-            await VerifyAbsenceAsync(AddInsideMethod(@"foreach (var $$)"));
-        }
+            => await VerifyAbsenceAsync(AddInsideMethod(@"foreach (var $$)"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterTuple()
-        {
-            await VerifyKeywordAsync(AddInsideMethod(@"_ = (expr, expr) $$"));
-        }
+            => await VerifyKeywordAsync(AddInsideMethod(@"_ = (expr, expr) $$"));
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSwitch2()
@@ -201,6 +202,102 @@ using System;
 class C {
     void M() {
         Action b = () => {} $$");
+        }
+
+        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterNumericLiteral()
+        {
+            await VerifyAbsenceAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = 1$$
+    }
+}");
+        }
+
+        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterNumericLiteralAndDot()
+        {
+            await VerifyAbsenceAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = 1.$$
+    }
+}");
+        }
+
+        [WorkItem(48573, "https://github.com/dotnet/roslyn/issues/48573")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingAfterNumericLiteralDotAndSpace()
+        {
+            await VerifyAbsenceAsync(
+@"
+class C
+{
+    void M()
+    {
+        var x = 1. $$
+    }
+}");
+        }
+
+        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingInCaseClause1()
+        {
+            await VerifyAbsenceAsync(
+@"
+class A
+{
+
+}
+
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case A $$
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(31367, "https://github.com/dotnet/roslyn/issues/31367")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestMissingInCaseClause2()
+        {
+            await VerifyAbsenceAsync(
+@"
+namespace N
+{
+    class A
+    {
+
+    }
+}
+
+class C
+{
+    void M(object o)
+    {
+        switch (o)
+        {
+            case N.A $$
+        }
+    }
+}
+");
         }
     }
 }

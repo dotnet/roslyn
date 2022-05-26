@@ -30,14 +30,18 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         }
 
         protected override HistogramCounter CreateCounter()
-        {
-            return new HistogramCounter(_bucketSize, _maxBucketValue, _bucketCount);
-        }
+            => new(_bucketSize, _maxBucketValue, _bucketCount);
 
         public void IncreaseCount(object key, decimal value)
         {
             var counter = GetCounter(key);
             counter.IncreaseCount(value);
+        }
+
+        public HistogramCounter? GetValue(object key)
+        {
+            TryGetCounter(key, out var counter);
+            return counter;
         }
 
         internal sealed class HistogramCounter

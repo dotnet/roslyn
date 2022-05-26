@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -26,11 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         private ExternalCodeAccessorFunction(CodeModelState state, ProjectId projectId, IMethodSymbol symbol, AbstractExternalCodeMember parent)
             : base(state, projectId, symbol)
         {
-            Debug.Assert(symbol.MethodKind == MethodKind.EventAdd ||
-                         symbol.MethodKind == MethodKind.EventRaise ||
-                         symbol.MethodKind == MethodKind.EventRemove ||
-                         symbol.MethodKind == MethodKind.PropertyGet ||
-                         symbol.MethodKind == MethodKind.PropertySet);
+            Debug.Assert(symbol.MethodKind is MethodKind.EventAdd or
+                         MethodKind.EventRaise or
+                         MethodKind.EventRemove or
+                         MethodKind.PropertyGet or
+                         MethodKind.PropertySet);
 
             _parentHandle = new ParentHandle<AbstractExternalCodeMember>(parent);
         }
@@ -43,14 +45,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         private bool IsPropertyAccessor()
         {
             var methodKind = MethodSymbol.MethodKind;
-            return methodKind == MethodKind.PropertyGet
-                || methodKind == MethodKind.PropertySet;
+            return methodKind is MethodKind.PropertyGet
+                or MethodKind.PropertySet;
         }
 
         protected override EnvDTE.vsCMAccess GetAccess()
-        {
-            return _parentHandle.Value.Access;
-        }
+            => _parentHandle.Value.Access;
 
         protected override bool GetCanOverride()
         {
@@ -60,34 +60,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected override string GetDocComment()
-        {
-            return string.Empty;
-        }
+            => string.Empty;
 
         protected override string GetFullName()
-        {
-            return _parentHandle.Value.FullName;
-        }
+            => _parentHandle.Value.FullName;
 
         protected override bool GetIsShared()
-        {
-            return _parentHandle.Value.IsShared;
-        }
+            => _parentHandle.Value.IsShared;
 
         protected override bool GetMustImplement()
-        {
-            return _parentHandle.Value.MustImplement;
-        }
+            => _parentHandle.Value.MustImplement;
 
         protected override string GetName()
-        {
-            return _parentHandle.Value.Name;
-        }
+            => _parentHandle.Value.Name;
 
         protected override object GetParent()
-        {
-            return _parentHandle.Value;
-        }
+            => _parentHandle.Value;
 
         public override EnvDTE.vsCMElement Kind
         {

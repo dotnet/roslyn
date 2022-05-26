@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public IntegrationService()
         {
+            AppContext.SetSwitch("Switch.System.Diagnostics.IgnorePortablePDBsInStackTraces", false);
+
             PortName = GetPortName(Process.GetCurrentProcess().Id);
             BaseUri = "ipc://" + this.PortName;
         }
@@ -45,7 +47,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (IntegrationService)Activator.GetObject(typeof(IntegrationService), uri);
         }
 
-        public string Execute(string assemblyFilePath, string typeFullName, string methodName)
+        public string? Execute(string assemblyFilePath, string typeFullName, string methodName)
         {
             var assembly = Assembly.LoadFrom(assemblyFilePath);
             var type = assembly.GetType(typeFullName);
@@ -72,7 +74,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         // Ensure InProcComponents live forever
-        public override object InitializeLifetimeService()
+        public override object? InitializeLifetimeService()
             => null;
     }
 }

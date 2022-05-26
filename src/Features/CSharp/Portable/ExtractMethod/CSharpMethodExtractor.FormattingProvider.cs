@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
@@ -17,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
             }
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // for extract method case, for a hybrid case, don't force rule, but preserve user style
-                var operation = base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
+                var operation = base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
                 if (operation == null)
                 {
                     return null;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return operation;
             }
 
-            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
+            public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
             {
                 if (node.IsKind(SyntaxKind.SimpleLambdaExpression) || node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.AnonymousMethodExpression))
                 {

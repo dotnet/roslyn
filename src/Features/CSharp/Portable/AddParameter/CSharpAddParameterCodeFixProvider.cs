@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.AddParameter;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         ArgumentListSyntax,
         AttributeArgumentListSyntax,
         InvocationExpressionSyntax,
-        ObjectCreationExpressionSyntax>
+        BaseObjectCreationExpressionSyntax>
     {
 
         private const string CS1501 = nameof(CS1501); // error CS1501: No overload for method 'M' takes 1 arguments
@@ -32,10 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
         private const string CS1739 = nameof(CS1739); // error CS1739: The best overload for 'M' does not have a parameter named 'x'
 
         private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds = ImmutableArray.Create(
-            CS1501, CS1503, CS1660, CS1729, CS1739,
-            IDEDiagnosticIds.UnboundConstructorId);
+            CS1501, CS1503, CS1660, CS1729, CS1739);
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddParameterCodeFixProvider()
         {
         }

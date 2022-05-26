@@ -5,7 +5,6 @@
 Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.Host
@@ -28,7 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
         Protected Overrides Sub AddReplacements(semanticModel As SemanticModel,
                                                 root As SyntaxNode,
                                                 spans As ImmutableArray(Of TextSpan),
-                                                workspace As Workspace,
                                                 replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken),
                                                 cancellationToken As CancellationToken)
             For Each span In spans
@@ -56,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             End If
         End Sub
 
-        Private Sub Rewrite(token As SyntaxToken, rewriter As Rewriter, replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken))
+        Private Shared Sub Rewrite(token As SyntaxToken, rewriter As Rewriter, replacements As ConcurrentDictionary(Of SyntaxToken, SyntaxToken))
             Dim newToken = rewriter.VisitToken(token)
             If newToken <> token Then
                 replacements(token) = newToken

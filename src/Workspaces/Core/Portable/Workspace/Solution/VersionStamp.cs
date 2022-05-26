@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -68,17 +66,13 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new instance of a VersionStamp.
         /// </summary>
         public static VersionStamp Create()
-        {
-            return new VersionStamp(DateTime.UtcNow);
-        }
+            => new(DateTime.UtcNow);
 
         /// <summary>
         /// Creates a new instance of a version stamp based on the specified DateTime.
         /// </summary>
         public static VersionStamp Create(DateTime utcTimeLastModified)
-        {
-            return new VersionStamp(utcTimeLastModified);
-        }
+            => new(utcTimeLastModified);
 
         /// <summary>
         /// compare two different versions and return either one of the versions if there is no collision, otherwise, create a new version
@@ -146,9 +140,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_utcLastModified.GetHashCode(), _localIncrement);
-        }
+            => Hash.Combine(_utcLastModified.GetHashCode(), _localIncrement);
 
         public override bool Equals(object? obj)
         {
@@ -171,17 +163,13 @@ namespace Microsoft.CodeAnalysis
         }
 
         public static bool operator ==(VersionStamp left, VersionStamp right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(VersionStamp left, VersionStamp right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
 
         /// <summary>
-        /// check whether given persisted version is re-usable
+        /// Check whether given persisted version is re-usable. Used by VS for Mac
         /// </summary>
         internal static bool CanReusePersistedVersion(VersionStamp baseVersion, VersionStamp persistedVersion)
         {
@@ -202,9 +190,7 @@ namespace Microsoft.CodeAnalysis
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            WriteTo(writer);
-        }
+            => WriteTo(writer);
 
         internal void WriteTo(ObjectWriter writer)
         {
@@ -244,16 +230,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly VersionStamp _versionStamp;
 
             public TestAccessor(in VersionStamp versionStamp)
-            {
-                _versionStamp = versionStamp;
-            }
+                => _versionStamp = versionStamp;
 
             /// <summary>
             /// True if this VersionStamp is newer than the specified one.

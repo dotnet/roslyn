@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddAnonymousTypeMemberName;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAnonymousTypeMemberName), Shared]
     internal class CSharpAddAnonymousTypeMemberNameCodeFixProvider
         : AbstractAddAnonymousTypeMemberNameCodeFixProvider<
             ExpressionSyntax,
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
         private const string CS0746 = nameof(CS0746); // Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddAnonymousTypeMemberNameCodeFixProvider()
         {
         }
@@ -41,6 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAnonymousTypeMemberName
                     SyntaxFactory.IdentifierName(name)));
 
         protected override IEnumerable<string> GetAnonymousObjectMemberNames(AnonymousObjectCreationExpressionSyntax initializer)
-            => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals.Name.Identifier.ValueText);
+            => initializer.Initializers.Where(i => i.NameEquals != null).Select(i => i.NameEquals!.Name.Identifier.ValueText);
     }
 }

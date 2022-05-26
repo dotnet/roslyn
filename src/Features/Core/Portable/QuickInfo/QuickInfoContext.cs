@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
@@ -24,6 +23,8 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// </summary>
         public int Position { get; }
 
+        public SymbolDescriptionOptions Options { get; }
+
         /// <summary>
         /// The cancellation token to use for this operation.
         /// </summary>
@@ -35,10 +36,12 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public QuickInfoContext(
             Document document,
             int position,
+            SymbolDescriptionOptions options,
             CancellationToken cancellationToken)
         {
             Document = document ?? throw new ArgumentNullException(nameof(document));
             Position = position;
+            Options = options;
             CancellationToken = cancellationToken;
         }
     }

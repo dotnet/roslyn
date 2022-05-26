@@ -6,10 +6,12 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -19,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")>
         <Fact()>
         Public Sub Bug776642a()
+            ' ILVerify: Unexpected type on the stack. { Offset = 16, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -49,7 +52,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -128,6 +131,7 @@ End Class
 
         <Fact()>
         Public Sub Bug776642a_ref()
+            ' ILVerify: Unexpected type on the stack. { Offset = 30, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -162,7 +166,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -628,10 +632,9 @@ expectedOutput:=<![CDATA[
         <WorkItem(568520, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568520")>
         <WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")>
         <WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")>
-        <ConditionalFact(GetType(DesktopOnly))>
+        <Fact>
         Public Sub DecimalLiteral_BreakingChange()
-
-            CompileAndVerify(
+            Dim source =
 <compilation>
     <file name="c.vb"><![CDATA[
 Imports System
@@ -652,7 +655,9 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, references:=XmlReferences, expectedOutput:=<![CDATA[
+</compilation>
+            If (ExecutionConditionUtil.IsDesktop) Then
+                CompileAndVerify(source, references:=XmlReferences, expectedOutput:=<![CDATA[
 0.0000000000000000000000000031
 0.0000000000000000000000000030
 
@@ -664,7 +669,20 @@ End Module
 
 0.1000000000000000000000000000
 ]]>)
+            ElseIf ExecutionConditionUtil.IsCoreClr Then
+                CompileAndVerify(source, references:=XmlReferences, expectedOutput:=<![CDATA[
+0.0000000000000000000000000031
+0.0000000000000000000000000031
 
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+]]>)
+            End If
         End Sub
 
         <Fact()>
@@ -6045,7 +6063,8 @@ End Module
         <WorkItem(538865, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538865")>
         <Fact>
         Public Sub TestGetObjectValueCalls()
-
+            ' ILVerify null ref
+            ' Tracked by https//github.com/dotnet/roslyn/issues/58652
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -6270,7 +6289,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef})
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef}, verify:=Verification.FailsILVerify)
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[
@@ -10323,7 +10342,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10340,7 +10359,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10381,7 +10400,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_21006.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10408,7 +10427,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -11624,7 +11643,7 @@ End Class
                                                                  Assert.True(typeB.IsComImport())
                                                                  Assert.Equal(1, typeB.GetAttributes().Length)
                                                                  Dim ctorB = typeB.InstanceConstructors.First()
-                                                                 Assert.True(DirectCast(ctorB, Cci.IMethodDefinition).IsExternal)
+                                                                 Assert.True(DirectCast(ctorB.GetCciAdapter(), Cci.IMethodDefinition).IsExternal)
                                                                  Assert.Equal(expectedMethodImplAttributes, ctorB.ImplementationAttributes)
                                                              End Sub
 
@@ -13489,7 +13508,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[
@@ -13711,7 +13730,12 @@ End Class
 5180801")
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly))>
+        ' Temporarily disabling in release builds due to the following item:
+        ' https://github.com/dotnet/roslyn/issues/60472
+#If DEBUG Then
+        ' Restricting to English as there are different tolerance limits on non-English cultures. The test
+        ' is to prevent regressions and single language should be sufficient here
+        <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
@@ -13755,7 +13779,7 @@ End Structure
     Diagnostic(ERRID.ERR_TooLongOrComplexExpression, "a").WithLocation(7, 16)
                 )
         End Sub
-
+#End If
 
         <Fact()>
         Public Sub InplaceCtorUsesLocal()
@@ -13824,7 +13848,7 @@ End Module
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
@@ -13870,7 +13894,7 @@ End Class
 ]]>)
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()

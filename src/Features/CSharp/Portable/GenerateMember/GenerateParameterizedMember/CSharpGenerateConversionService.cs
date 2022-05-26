@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         AbstractGenerateConversionService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpGenerateConversionService()
         {
         }
@@ -35,14 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         }
 
         protected override bool IsExplicitConversionGeneration(SyntaxNode node)
-        {
-            return node is CastExpressionSyntax;
-        }
+            => node is CastExpressionSyntax;
 
         protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
-        {
-            return containingType.ContainingTypesOrSelfHasUnsafeKeyword();
-        }
+            => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 
         protected override AbstractInvocationInfo CreateInvocationMethodInfo(
             SemanticDocument document, AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
@@ -51,14 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         }
 
         protected override bool AreSpecialOptionsActive(SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive(semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.AreSpecialOptionsActive();
 
         protected override bool IsValidSymbol(ISymbol symbol, SemanticModel semanticModel)
-        {
-            return CSharpCommonGenerationServiceMethods.IsValidSymbol(symbol, semanticModel);
-        }
+            => CSharpCommonGenerationServiceMethods.IsValidSymbol();
 
         protected override bool TryInitializeImplicitConversionState(
            SemanticDocument document,
@@ -112,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             return false;
         }
 
-        private bool TryGetConversionMethodAndTypeToGenerateIn(
+        private static bool TryGetConversionMethodAndTypeToGenerateIn(
             SemanticDocument document,
             SyntaxNode expression,
             ISet<TypeKind> classInterfaceModuleStructTypes,
@@ -140,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                     out typeToGenerateIn);
         }
 
-        private bool TryGetExplicitConversionMethodAndTypeToGenerateIn(
+        private static bool TryGetExplicitConversionMethodAndTypeToGenerateIn(
             SemanticDocument document,
             CastExpressionSyntax castExpression,
             ISet<TypeKind> classInterfaceModuleStructTypes,
@@ -151,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type as INamedTypeSymbol;
             if (typeToGenerateIn == null
-                || !(document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || document.SemanticModel.GetTypeInfo(castExpression.Expression, cancellationToken).Type is not INamedTypeSymbol parameterSymbol
                 || typeToGenerateIn.IsErrorType()
                 || parameterSymbol.IsErrorType())
             {
@@ -161,7 +157,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol);
 
             if (!ValidateTypeToGenerateIn(
-                    document.Project.Solution,
                     typeToGenerateIn,
                     true,
                     classInterfaceModuleStructTypes))
@@ -172,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             return true;
         }
 
-        private bool TryGetImplicitConversionMethodAndTypeToGenerateIn(
+        private static bool TryGetImplicitConversionMethodAndTypeToGenerateIn(
             SemanticDocument document,
             SyntaxNode expression,
             ISet<TypeKind> classInterfaceModuleStructTypes,
@@ -183,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = null;
             typeToGenerateIn = document.SemanticModel.GetTypeInfo(expression, cancellationToken).ConvertedType as INamedTypeSymbol;
             if (typeToGenerateIn == null
-                || !(document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is INamedTypeSymbol parameterSymbol)
+                || document.SemanticModel.GetTypeInfo(expression, cancellationToken).Type is not INamedTypeSymbol parameterSymbol
                 || typeToGenerateIn.IsErrorType()
                 || parameterSymbol.IsErrorType())
             {
@@ -193,7 +188,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
             methodSymbol = GenerateMethodSymbol(typeToGenerateIn, parameterSymbol);
 
             if (!ValidateTypeToGenerateIn(
-                    document.Project.Solution,
                     typeToGenerateIn,
                     true,
                     classInterfaceModuleStructTypes))
@@ -227,13 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
         }
 
         protected override string GetImplicitConversionDisplayText(AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
-        {
-            return string.Format(CSharpFeaturesResources.Generate_implicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
-        }
+            => string.Format(CSharpFeaturesResources.Generate_implicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
 
         protected override string GetExplicitConversionDisplayText(AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
-        {
-            return string.Format(CSharpFeaturesResources.Generate_explicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
-        }
+            => string.Format(CSharpFeaturesResources.Generate_explicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
     }
 }

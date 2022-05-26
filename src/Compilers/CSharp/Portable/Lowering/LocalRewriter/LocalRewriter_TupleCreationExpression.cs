@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
         {
+            Debug.Assert(node.Type is { });
             return MakeTupleCreationExpression(node.Syntax, (NamedTypeSymbol)node.Type, rewrittenArguments);
         }
 
@@ -53,26 +54,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundExpression> smallestCtorArguments = ImmutableArray.Create(rewrittenArguments,
                                                                                               underlyingTupleTypeChain.Count * (NamedTypeSymbol.ValueTupleRestPosition - 1),
                                                                                               smallestType.Arity);
-                var smallestCtor = (MethodSymbol)NamedTypeSymbol.GetWellKnownMemberInType(smallestType.OriginalDefinition,
+                var smallestCtor = (MethodSymbol?)NamedTypeSymbol.GetWellKnownMemberInType(smallestType.OriginalDefinition,
                                                                                             NamedTypeSymbol.GetTupleCtor(smallestType.Arity),
                                                                                             _diagnostics,
                                                                                             syntax);
-                if ((object)smallestCtor == null)
+                if (smallestCtor is null)
                 {
                     return _factory.BadExpression(type);
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
-                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, null, smallestCtorArguments);
+                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments);
 
                 if (underlyingTupleTypeChain.Count > 0)
                 {
                     NamedTypeSymbol tuple8Type = underlyingTupleTypeChain.Peek();
-                    var tuple8Ctor = (MethodSymbol)NamedTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
+                    var tuple8Ctor = (MethodSymbol?)NamedTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
                                                                                             NamedTypeSymbol.GetTupleCtor(NamedTypeSymbol.ValueTupleRestPosition),
                                                                                             _diagnostics,
                                                                                             syntax);
-                    if ((object)tuple8Ctor == null)
+                    if (tuple8Ctor is null)
                     {
                         return _factory.BadExpression(type);
                     }
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                       .Add(currentCreation);
 
                         MethodSymbol constructor = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop());
-                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, null, ctorArguments);
+                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, ctorArguments);
                     }
                     while (underlyingTupleTypeChain.Count > 0);
                 }
@@ -98,9 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentCreation.ArgumentRefKindsOpt,
                     currentCreation.Expanded,
                     currentCreation.ArgsToParamsOpt,
+                    currentCreation.DefaultArguments,
                     currentCreation.ConstantValue,
                     currentCreation.InitializerExpressionOpt,
-                    currentCreation.BinderOpt,
                     type);
 
                 return currentCreation;

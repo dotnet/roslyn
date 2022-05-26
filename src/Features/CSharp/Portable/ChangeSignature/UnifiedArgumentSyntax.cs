@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -20,14 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public static IUnifiedArgumentSyntax Create(ArgumentSyntax argument)
-        {
-            return new UnifiedArgumentSyntax(argument);
-        }
+            => new UnifiedArgumentSyntax(argument);
 
         public static IUnifiedArgumentSyntax Create(AttributeArgumentSyntax argument)
-        {
-            return new UnifiedArgumentSyntax(argument);
-        }
+            => new UnifiedArgumentSyntax(argument);
 
         public SyntaxNode NameColon
         {
@@ -49,9 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public string GetName()
-        {
-            return NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
-        }
+            => NameColon == null ? string.Empty : ((NameColonSyntax)NameColon).Name.Identifier.ToString();
 
         public IUnifiedArgumentSyntax WithName(string name)
         {
@@ -61,9 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public IUnifiedArgumentSyntax WithAdditionalAnnotations(SyntaxAnnotation annotation)
-        {
-            return new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
-        }
+            => new UnifiedArgumentSyntax(_argument.WithAdditionalAnnotations(annotation));
 
         public SyntaxNode Expression
         {
@@ -92,8 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         }
 
         public static explicit operator SyntaxNode(UnifiedArgumentSyntax unified)
-        {
-            return unified._argument;
-        }
+            => unified._argument;
     }
 }

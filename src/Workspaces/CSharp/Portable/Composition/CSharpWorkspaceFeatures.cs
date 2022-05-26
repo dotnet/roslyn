@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Recommendations;
-using Microsoft.CodeAnalysis.LanguageServices;
+#nullable disable
 
 namespace Microsoft.CodeAnalysis.Composition
 {

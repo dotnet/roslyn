@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -10,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,12 +23,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+        private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeEverywhere()
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestArray1()
@@ -1584,6 +1588,30 @@ class C
         Action<int> myLambda = v => { };
     }
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNotWhenIteratingDifferentLists()
+        {
+            await TestMissingAsync(
+@"using System;
+using System.Collection.Generic;
+
+class Item { public string Value; }
+
+class C
+{
+    static void Test()
+    {
+        var first = new { list = new List<Item>() };
+        var second = new { list = new List<Item>() };
+
+        [||]for (var i = 0; i < first.list.Count; i++)
+        {
+            first.list[i].Value = second.list[i].Value;
+        }
+    }
+}");
         }
     }
 }

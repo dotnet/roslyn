@@ -7,11 +7,63 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax)
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Protected Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
+
+        Public Overrides Function IsBetweenTypeMembers(sourceText As SourceText, root As SyntaxNode, position As Integer, ByRef typeDeclaration As SyntaxNode) As Boolean
+            Dim token = root.FindToken(position)
+            Dim typeDecl = token.GetAncestor(Of TypeBlockSyntax)
+            typeDeclaration = typeDecl
+
+            If typeDecl IsNot Nothing Then
+                Dim start = If(typeDecl.Implements.LastOrDefault()?.Span.End,
+                               If(typeDecl.Inherits.LastOrDefault()?.Span.End,
+                                  typeDecl.BlockStatement.Span.End))
+
+                If position >= start AndAlso
+                   position <= typeDecl.EndBlockStatement.Span.Start Then
+
+                    Dim line = sourceText.Lines.GetLineFromPosition(position)
+                    If Not line.IsEmptyOrWhitespace() Then
+                        Return False
+                    End If
+
+                    Dim member = typeDecl.Members.FirstOrDefault(Function(d) d.FullSpan.Contains(position))
+                    If member Is Nothing Then
+                        ' There are no members, Or we're after the last member.
+                        Return True
+                    Else
+                        ' We're within a member.  Make sure we're in the leading whitespace of
+                        ' the member.
+                        If position < member.SpanStart Then
+                            For Each trivia In member.GetLeadingTrivia()
+                                If Not trivia.IsWhitespaceOrEndOfLine() Then
+                                    Return False
+                                End If
+
+                                If trivia.FullSpan.Contains(position) Then
+                                    Return True
+                                End If
+                            Next
+                        End If
+                    End If
+                End If
+            End If
+
+            Return False
+        End Function
 
         Protected Overrides Iterator Function ExtractNodesSimple(node As SyntaxNode, syntaxFacts As ISyntaxFactsService) As IEnumerable(Of SyntaxNode)
             For Each baseExtraction In MyBase.ExtractNodesSimple(node, syntaxFacts)
@@ -49,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
 
         End Function
 
-        Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
+        Public Shared Function IsIdentifierOfParameter(node As SyntaxNode) As Boolean
             Return (TypeOf node Is ModifiedIdentifierSyntax) AndAlso (TypeOf node.Parent Is ParameterSyntax) AndAlso (CType(node.Parent, ParameterSyntax).Identifier Is node)
         End Function
     End Class

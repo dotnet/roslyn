@@ -4,13 +4,8 @@
 
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -18,16 +13,16 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected class ModifiedWhitespace : Whitespace
         {
-            private readonly Whitespace _original;
+            private readonly Whitespace? _original;
 
-            public ModifiedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, bool elastic, string language)
-                : base(optionSet, lineBreaks, indentation, elastic, language)
+            public ModifiedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic, string language)
+                : base(options, lineBreaks, indentation, elastic, language)
             {
                 _original = null;
             }
 
-            public ModifiedWhitespace(OptionSet optionSet, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
-                : base(optionSet, lineBreaks, indentation, elastic, language)
+            public ModifiedWhitespace(SyntaxFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
+                : base(options, lineBreaks, indentation, elastic, language)
             {
                 Contract.ThrowIfNull(original);
                 _original = original;
@@ -88,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 CancellationToken cancellationToken,
                 int tokenPairIndex = TokenPairIndexNotNeeded)
             {
-                formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.OptionSet, this.LineBreaks, this.Spaces, this.Language));
+                formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.Options, this.LineBreaks, this.Spaces, this.Language));
             }
         }
     }

@@ -1,15 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    partial class ProjectDependencyGraph
+    public partial class ProjectDependencyGraph
     {
         internal ProjectDependencyGraph WithProjectReferenceRemoved(ProjectId projectId, ProjectId referencedProjectId)
         {
@@ -35,15 +34,12 @@ namespace Microsoft.CodeAnalysis
                 dependencySets: default);
         }
 
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProjectReference(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingForwardReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
-            var references = existingForwardReferencesMap[projectId].Remove(referencedProjectId);
-            return references.IsEmpty
-                ? existingForwardReferencesMap.Remove(projectId)
-                : existingForwardReferencesMap.SetItem(projectId, references);
+            return existingForwardReferencesMap.MultiRemove(projectId, referencedProjectId);
         }
 
         /// <summary>
@@ -55,18 +51,17 @@ namespace Microsoft.CodeAnalysis
         /// <param name="referencedProjectId">The target of the project reference which is being removed.</param>
         /// <returns>The updated (complete) reverse references map, or <see langword="null"/> if the reverse references
         /// map could not be incrementally updated.</returns>
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? ComputeNewReverseReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>>? existingReverseReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)
         {
             if (existingReverseReferencesMap is null)
+            {
                 return null;
+            }
 
-            var referencingProjects = existingReverseReferencesMap[referencedProjectId].Remove(projectId);
-            return referencingProjects.IsEmpty
-                ? existingReverseReferencesMap.Remove(referencedProjectId)
-                : existingReverseReferencesMap.SetItem(referencedProjectId, referencingProjects);
+            return existingReverseReferencesMap.MultiRemove(referencedProjectId, projectId);
         }
 
         private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewTransitiveReferencesMapForRemovedProjectReference(
@@ -96,7 +91,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        private ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(
+        private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> ComputeNewReverseTransitiveReferencesMapForRemovedProjectReference(
             ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> existingReverseTransitiveReferencesMap,
             ProjectId projectId,
             ProjectId referencedProjectId)

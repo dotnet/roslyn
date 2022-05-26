@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -46,6 +49,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -99,6 +109,14 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInRecordStruct()
+        {
+            await VerifyAbsenceAsync(
+@"record struct S {
+    $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInUnsafeStruct()
         {
             await VerifyKeywordAsync(
@@ -130,6 +148,40 @@ $$");
             await VerifyAbsenceAsync(
 @"unsafe struct S {
     static $$");
+        }
+
+        [WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUnsafeLocalFunction()
+        {
+            await VerifyKeywordAsync(
+@"public class C
+{
+    public void M()
+    {
+        unsafe void Local()
+        {
+            $$
+        }
+    }
+}");
+        }
+
+        [WorkItem(52296, "https://github.com/dotnet/roslyn/issues/52296")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInOrdinaryLocalFunction()
+        {
+            await VerifyAbsenceAsync(
+@"public class C
+{
+    public void M()
+    {
+        void Local()
+        {
+            $$
+        }
+    }
+}");
         }
     }
 }

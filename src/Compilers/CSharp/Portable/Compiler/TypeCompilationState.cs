@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -55,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Type symbol being compiled, or null if we compile a synthesized type that doesn't have a symbol (e.g. PrivateImplementationDetails).
         /// </summary>
-        private readonly NamedTypeSymbol _typeOpt;
+        private readonly NamedTypeSymbol? _typeOpt;
 
         /// <summary>
         /// The builder for generating code, or null if not in emit phase.
         /// </summary>
-        public readonly PEModuleBuilder ModuleBuilderOpt;
+        public readonly PEModuleBuilder? ModuleBuilderOpt;
 
         /// <summary>
         /// Any generated methods that don't suppress debug info will use this
@@ -72,13 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SynthesizedClosureEnvironment? StaticLambdaFrame;
 
+        public DelegateCacheContainer? ConcreteDelegateCacheContainer;
+
         /// <summary>
         /// A graph of method->method references for this(...) constructor initializers.
         /// Used to detect and report initializer cycles.
         /// </summary>
         private SmallDictionary<MethodSymbol, MethodSymbol>? _constructorInitializers;
 
-        public TypeCompilationState(NamedTypeSymbol typeOpt, CSharpCompilation compilation, PEModuleBuilder moduleBuilderOpt)
+        public TypeCompilationState(NamedTypeSymbol? typeOpt, CSharpCompilation compilation, PEModuleBuilder? moduleBuilderOpt)
         {
             this.Compilation = compilation;
             _typeOpt = typeOpt;
@@ -92,8 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                // NOTE: currently it can be null if only private implementation type methods are compiled
-                RoslynDebug.Assert((object)_typeOpt != null);
+                // NOTE: currently it can be null if only private implementation type methods are compiled.
+                // There should be no caller of this method in that case.
+                Debug.Assert(_typeOpt is { });
                 return _typeOpt;
             }
         }
@@ -109,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        [MemberNotNullWhen(true, nameof(ModuleBuilderOpt))]
         public bool Emitting
         {
             get { return ModuleBuilderOpt != null; }
@@ -196,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method2">the chained-to ctor</param>
         /// <param name="syntax">where to report a cyclic error if needed</param>
         /// <param name="diagnostics">a diagnostic bag for receiving the diagnostic</param>
-        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, SyntaxNode syntax, DiagnosticBag diagnostics)
+        internal void ReportCtorInitializerCycles(MethodSymbol method1, MethodSymbol method2, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
         {
             // precondition and postcondition: the graph _constructorInitializers is acyclic.
             // If adding the edge (method1, method2) would induce a cycle, we report an error

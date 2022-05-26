@@ -2,14 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Partial Friend Module SyntaxTreeExtensions
@@ -48,7 +44,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' check whether given token is the last token of a statement by walking up the spine
         ''' </summary>
         <Extension()>
-        Public Function IsLastTokenOfStatement(token As SyntaxToken, Optional checkColonTrivia As Boolean = False) As Boolean
+        Public Function IsLastTokenOfStatement(
+                token As SyntaxToken,
+                Optional checkColonTrivia As Boolean = False,
+                <Out> Optional ByRef statement As StatementSyntax = Nothing) As Boolean
             Dim current = token.Parent
             While current IsNot Nothing
                 If current.FullSpan.End <> token.FullSpan.End Then
@@ -56,6 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If TypeOf current Is StatementSyntax Then
+                    statement = DirectCast(current, StatementSyntax)
                     Dim colonTrivia = GetTrailingColonTrivia(DirectCast(current, StatementSyntax))
                     If Not PartOfSingleLineLambda(current) AndAlso Not PartOfMultilineLambdaFooter(current) Then
                         If checkColonTrivia Then
@@ -91,6 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If TypeOf node Is SingleLineLambdaExpressionSyntax Then Return True
                 node = node.Parent
             End While
+
             Return False
         End Function
 
@@ -134,6 +135,7 @@ recurse:
                                 Return trivia
                             End If
                         Next
+
                         For Each trivia In child.GetLeadingTrivia.Reverse
                             If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
                                 Return trivia
@@ -142,6 +144,7 @@ recurse:
                     End If
                 End If
             Next
+
             Return Nothing
         End Function
 
@@ -325,8 +328,17 @@ recurse:
 
         <Extension()>
         Public Function IsInPreprocessorDirectiveContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim directive As DirectiveTriviaSyntax = Nothing
+            Return IsInPreprocessorDirectiveContext(syntaxTree, position, cancellationToken, directive)
+        End Function
+
+        Friend Function IsInPreprocessorDirectiveContext(
+                syntaxTree As SyntaxTree,
+                position As Integer,
+                cancellationToken As CancellationToken,
+                ByRef directive As DirectiveTriviaSyntax) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
-            Dim directive = token.GetAncestor(Of DirectiveTriviaSyntax)()
+            directive = token.GetAncestor(Of DirectiveTriviaSyntax)()
 
             ' Directives contain the EOL, so if the position is within the full span of the
             ' directive, then it is on that line, the only exception is if the directive is on the
@@ -337,85 +349,8 @@ recurse:
                 Return False
             End If
 
-            Return _
-                      directive.FullSpan.Contains(position) OrElse
-                      directive.FullSpan.End = syntaxTree.GetRoot(cancellationToken).FullSpan.End
-        End Function
-
-        <Extension()>
-        Public Function GetSelectedFieldsAndPropertiesInSpan(root As SyntaxNode,
-                                         textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
-
-            Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
-            Dim firstMember = token.GetAncestors(Of StatementSyntax).
-                                    Where(Function(s) TypeOf s.Parent Is TypeBlockSyntax).
-                                    FirstOrDefault()
-            If firstMember IsNot Nothing Then
-                Dim containingType = DirectCast(firstMember.Parent, TypeBlockSyntax)
-                If containingType IsNot Nothing AndAlso
-                   firstMember IsNot containingType.BlockStatement AndAlso
-                   firstMember IsNot containingType.EndBlockStatement Then
-                    Return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection)
-                End If
-            End If
-
-            Return ImmutableArray(Of StatementSyntax).Empty
-        End Function
-
-        Private Function GetFieldsAndPropertiesInSpan(
-            textSpan As TextSpan,
-            containingType As TypeBlockSyntax,
-            firstMember As StatementSyntax,
-            allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
-            Dim selectedMembers = ArrayBuilder(Of StatementSyntax).GetInstance()
-
-            Try
-                Dim members = containingType.Members
-                Dim fieldIndex = members.IndexOf(firstMember)
-                If fieldIndex < 0 Then
-                    Return ImmutableArray(Of StatementSyntax).Empty
-                End If
-
-                For i = fieldIndex To members.Count - 1
-                    Dim member = members(i)
-                    If IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection) Then
-                        selectedMembers.Add(member)
-                    End If
-                Next
-
-                Return selectedMembers.ToImmutable()
-            Finally
-                selectedMembers.Free()
-            End Try
-        End Function
-
-        Private Function IsSelectedFieldOrProperty(textSpan As TextSpan, member As StatementSyntax, allowPartialSelection As Boolean) As Boolean
-            If Not member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyStatement) Then
-                Return False
-            End If
-
-            ' first, check if entire member is selected
-            If textSpan.Contains(member.Span) Then
-                Return True
-            End If
-
-            If Not allowPartialSelection Then
-                Return False
-            End If
-
-            ' next, check if identifier is at lease partially selected
-            If member.IsKind(SyntaxKind.FieldDeclaration) Then
-                Dim fieldDeclaration = DirectCast(member, FieldDeclarationSyntax)
-                For Each declarator In fieldDeclaration.Declarators
-                    If textSpan.Contains(member.Span) Or (allowPartialSelection And textSpan.OverlapsWith(declarator.Names.Span)) Then
-                        Return True
-                    End If
-                Next
-            ElseIf member.IsKind(SyntaxKind.PropertyStatement) Then
-                Return textSpan.OverlapsWith((DirectCast(member, PropertyStatementSyntax)).Identifier.Span)
-            End If
-
-            Return False
+            Return directive.FullSpan.Contains(position) OrElse
+                   directive.FullSpan.End = syntaxTree.GetRoot(cancellationToken).FullSpan.End
         End Function
 
         <Extension()>

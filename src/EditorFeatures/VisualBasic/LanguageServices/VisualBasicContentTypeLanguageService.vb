@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
@@ -10,9 +11,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
     Friend Class VisualBasicContentTypeLanguageService
         Implements IContentTypeLanguageService
 
-        Private _contentTypeRegistry As IContentTypeRegistryService
+        Private ReadOnly _contentTypeRegistry As IContentTypeRegistryService
 
         <ImportingConstructor()>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(contentTypeRegistry As IContentTypeRegistryService)
             Me._contentTypeRegistry = contentTypeRegistry
         End Sub

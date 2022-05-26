@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading
@@ -21,23 +23,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
         Public Overrides Function TrySimplify(expression As ExpressionSyntax,
                                               semanticModel As SemanticModel,
-                                              optionSet As OptionSet,
+                                              options As VisualBasicSimplifierOptions,
                                               ByRef replacementNode As ExpressionSyntax,
                                               ByRef issueSpan As TextSpan,
                                               cancellationToken As CancellationToken) As Boolean
-            If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, optionSet, cancellationToken) Then
+
+            Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
+            If memberAccessExpression?.Expression?.Kind() = SyntaxKind.MeExpression Then
+                If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
+                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
+                    Return False
+                End If
+
+                replacementNode = memberAccessExpression.GetNameWithTriviaMoved()
+                issueSpan = memberAccessExpression.Expression.Span
+                Return True
+            End If
+
+            If TryReduceExplicitName(expression, semanticModel, replacementNode, issueSpan, options, cancellationToken) Then
                 Return True
             End If
 
             Return TrySimplify(expression, semanticModel, replacementNode, issueSpan)
         End Function
 
-        Private Function TryReduceExplicitName(
+        Private Shared Function TryReduceExplicitName(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
             <Out> ByRef issueSpan As TextSpan,
-            optionSet As OptionSet,
+            options As VisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As Boolean
             replacementNode = Nothing
@@ -45,27 +60,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
 
             If expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
-                Return TryReduce(memberAccess, semanticModel,
-                                              replacementNode,
-                                              issueSpan,
-                                              optionSet,
-                                              cancellationToken)
+                Return TryReduce(
+                    memberAccess, semanticModel, replacementNode, issueSpan, options, cancellationToken)
             ElseIf TypeOf expression Is NameSyntax Then
                 Dim name = DirectCast(expression, NameSyntax)
                 Return NameSimplifier.Instance.TrySimplify(
-                    name, semanticModel, optionSet,
-                    replacementNode, issueSpan, cancellationToken)
+                    name, semanticModel, options, replacementNode, issueSpan, cancellationToken)
             End If
 
             Return False
         End Function
 
-        Private Function TryReduce(
+        Private Shared Function TryReduce(
             memberAccess As MemberAccessExpressionSyntax,
             semanticModel As SemanticModel,
-            <Out()> ByRef replacementNode As ExpressionSyntax,
-            <Out()> ByRef issueSpan As TextSpan,
-            optionSet As OptionSet,
+            <Out> ByRef replacementNode As ExpressionSyntax,
+            <Out> ByRef issueSpan As TextSpan,
+            options As VisualBasicSimplifierOptions,
             cancellationToken As CancellationToken
         ) As Boolean
             If memberAccess.Expression Is Nothing OrElse memberAccess.Name Is Nothing Then
@@ -93,11 +104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                 Return False
             End If
 
-            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso
-               Not SimplificationHelpers.ShouldSimplifyThisOrMeMemberAccessExpression(semanticModel, optionSet, symbol) Then
-                Return False
-            End If
-
             If Not memberAccess.IsRightSideOfDot() Then
                 Dim aliasReplacement As IAliasSymbol = Nothing
 
@@ -121,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                     Return True
                 End If
 
-                If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
+                If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, options) Then
                     If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
                         Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
                         If keywordKind <> SyntaxKind.None Then
@@ -132,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
                                                     memberAccess.GetTrailingTrivia()))
 
                             replacementNode = replacementNode.WithAdditionalAnnotations(
-                                    New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
+                                    New SyntaxAnnotation(NameOf(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
 
                             issueSpan = memberAccess.Span
                             Return True
@@ -162,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Overloads Function TrySimplify(
+        Private Overloads Shared Function TrySimplify(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
@@ -210,13 +216,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim speculationAnalyzer = New SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None)
             Return speculationAnalyzer.ReplacementChangesSemantics()
         End Function
 
         ' Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
-        Private Function TrySimplifyMemberAccessOrQualifiedName(
+        Private Shared Function TrySimplifyMemberAccessOrQualifiedName(
             left As ExpressionSyntax,
             right As ExpressionSyntax,
             semanticModel As SemanticModel,
@@ -262,14 +268,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
+        Private Shared Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
                                            semanticModel As SemanticModel,
                                            symbol As ISymbol,
                                            <Out> ByRef replacementNode As ExpressionSyntax,
                                            <Out> ByRef issueSpan As TextSpan,
                                            cancellationToken As CancellationToken) As Boolean
             If memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) Then
-                Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax)).Symbol
+                Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax), cancellationToken).Symbol
                 If symbolForMemberAccess.IsModuleMember Then
                     replacementNode = memberAccess.Expression.WithLeadingTrivia(memberAccess.GetLeadingTrivia())
                     issueSpan = memberAccess.Name.Span
@@ -287,13 +293,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         End Function
 
         Private Shared Function CanReplaceWithReducedName(
-            memberAccess As MemberAccessExpressionSyntax,
-            reducedNode As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            symbol As ISymbol,
-            cancellationToken As CancellationToken
-        ) As Boolean
-            If Not IsMeOrNamedTypeOrNamespace(memberAccess.Expression, semanticModel) Then
+                memberAccess As MemberAccessExpressionSyntax,
+                reducedNode As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                symbol As ISymbol,
+                cancellationToken As CancellationToken) As Boolean
+            If Not SimplificationHelpers.IsNamespaceOrTypeOrThisParameter(memberAccess.Expression, semanticModel) Then
                 Return False
             End If
 
@@ -315,25 +320,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             End If
 
             Return True
-        End Function
-
-        Private Shared Function IsMeOrNamedTypeOrNamespace(expression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
-            If expression.Kind = SyntaxKind.MeExpression Then
-                Return True
-            End If
-
-            Dim expressionInfo = semanticModel.GetSymbolInfo(expression)
-            If SimplificationHelpers.IsValidSymbolInfo(expressionInfo.Symbol) Then
-                If TypeOf expressionInfo.Symbol Is INamespaceOrTypeSymbol Then
-                    Return True
-                End If
-
-                If expressionInfo.Symbol.IsThisParameter() Then
-                    Return True
-                End If
-            End If
-
-            Return False
         End Function
     End Class
 End Namespace

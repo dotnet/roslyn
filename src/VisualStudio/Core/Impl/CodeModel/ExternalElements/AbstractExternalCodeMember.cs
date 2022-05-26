@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -28,9 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Exter
         }
 
         protected virtual EnvDTE.CodeElements GetParameters()
-        {
-            return ExternalParameterCollection.Create(this.State, this, this.ProjectId);
-        }
+            => ExternalParameterCollection.Create(this.State, this, this.ProjectId);
 
         public bool CanOverride
         {

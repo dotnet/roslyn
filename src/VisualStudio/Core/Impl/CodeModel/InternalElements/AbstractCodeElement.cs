@@ -2,11 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -33,29 +37,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         internal FileCodeModel FileCodeModel
-        {
-            get { return _fileCodeModel.Object; }
-        }
+            => _fileCodeModel.Object;
 
         protected SyntaxTree GetSyntaxTree()
-        {
-            return FileCodeModel.GetSyntaxTree();
-        }
+            => FileCodeModel.GetSyntaxTree();
 
         protected Document GetDocument()
-        {
-            return FileCodeModel.GetDocument();
-        }
+            => FileCodeModel.GetDocument();
 
         protected SemanticModel GetSemanticModel()
-        {
-            return FileCodeModel.GetSemanticModel();
-        }
+            => FileCodeModel.GetSemanticModel();
 
         protected ProjectId GetProjectId()
-        {
-            return FileCodeModel.GetProjectId();
-        }
+            => FileCodeModel.GetProjectId();
+
+        internal IGlobalOptionService GlobalOptions
+            => FileCodeModel.GlobalOptions;
 
         internal bool IsValidNode()
         {
@@ -110,9 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected virtual void SetName(string value)
-        {
-            UpdateNode(FileCodeModel.UpdateName, value);
-        }
+            => UpdateNode(FileCodeModel.UpdateName, value);
 
         public string Name
         {
@@ -137,25 +132,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         public abstract EnvDTE.CodeElements Children { get; }
 
         EnvDTE.CodeElements ICodeElementContainer<AbstractCodeElement>.GetCollection()
-        {
-            return Children;
-        }
+            => Children;
 
         protected virtual EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<AbstractCodeElement>(Parent);
-        }
+            => GetCollection<AbstractCodeElement>(Parent);
 
         public virtual EnvDTE.CodeElements Collection
         {
             get { return GetCollection(); }
         }
 
+        private LineFormattingOptions GetLineFormattingOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetLineFormattingOptionsAsync(GlobalOptions, CancellationToken.None).AsTask());
+
         public EnvDTE.TextPoint StartPoint
         {
             get
             {
-                var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                var options = GetLineFormattingOptions();
                 var point = CodeModelService.GetStartPoint(LookupNode(), options);
                 if (point == null)
                 {
@@ -170,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                var options = GetLineFormattingOptions();
                 var point = CodeModelService.GetEndPoint(LookupNode(), options);
                 if (point == null)
                 {
@@ -183,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public virtual EnvDTE.TextPoint GetStartPoint(EnvDTE.vsCMPart part)
         {
-            var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var options = GetLineFormattingOptions();
             var point = CodeModelService.GetStartPoint(LookupNode(), options, part);
             if (point == null)
             {
@@ -195,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         public virtual EnvDTE.TextPoint GetEndPoint(EnvDTE.vsCMPart part)
         {
-            var options = GetDocument().GetOptionsAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var options = GetLineFormattingOptions();
             var point = CodeModelService.GetEndPoint(LookupNode(), options, part);
             if (point == null)
             {
@@ -230,9 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected virtual object GetExtenderNames()
-        {
-            throw Exceptions.ThrowENotImpl();
-        }
+            => throw Exceptions.ThrowENotImpl();
 
         public object ExtenderNames
         {
@@ -240,14 +232,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected virtual object GetExtender(string name)
-        {
-            throw Exceptions.ThrowENotImpl();
-        }
+            => throw Exceptions.ThrowENotImpl();
 
         public object get_Extender(string extenderName)
-        {
-            return GetExtender(extenderName);
-        }
+            => GetExtender(extenderName);
 
         public string ElementID
         {
@@ -283,8 +271,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         [SuppressMessage("Microsoft.StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Required by interface")]
         public string get_Prototype(int flags)
-        {
-            return CodeModelService.GetPrototype(LookupNode(), LookupSymbol(), (PrototypeFlags)flags);
-        }
+            => CodeModelService.GetPrototype(LookupNode(), LookupSymbol(), (PrototypeFlags)flags);
     }
 }

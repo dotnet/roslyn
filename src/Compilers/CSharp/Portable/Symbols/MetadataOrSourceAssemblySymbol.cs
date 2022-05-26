@@ -2,27 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// Represents source or metadata assembly.
     /// </summary>
-    /// <remarks></remarks>
     internal abstract class MetadataOrSourceAssemblySymbol
         : NonMissingAssemblySymbol
     {
         /// <summary>
         /// An array of cached Cor types defined in this assembly.
-        /// Lazily filled by GetSpecialType method.
+        /// Lazily filled by GetDeclaredSpecialType method.
         /// </summary>
-        /// <remarks></remarks>
         private NamedTypeSymbol[] _lazySpecialTypes;
 
         /// <summary>
@@ -30,13 +31,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private int _cachedSpecialTypes;
 
+        private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
+        private ThreeState _lazyRuntimeSupportsNumericIntPtr = ThreeState.Unknown;
+
+        internal override bool RuntimeSupportsNumericIntPtr
+        {
+            get
+            {
+                if ((object)CorLibrary == this)
+                {
+                    if (!_lazyRuntimeSupportsNumericIntPtr.HasValue())
+                    {
+                        _lazyRuntimeSupportsNumericIntPtr = RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr).ToThreeState();
+                    }
+
+                    return _lazyRuntimeSupportsNumericIntPtr.Value();
+                }
+
+                return base.RuntimeSupportsNumericIntPtr;
+            }
+            set
+            {
+                Debug.Assert(value);
+                Debug.Assert(!RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr));
+                if ((object)CorLibrary == this)
+                {
+                    Debug.Assert(!_lazyRuntimeSupportsNumericIntPtr.HasValue());
+                    _lazyRuntimeSupportsNumericIntPtr = value.ToThreeState();
+                    return;
+                }
+
+                base.RuntimeSupportsNumericIntPtr = value;
+            }
+        }
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        /// <remarks></remarks>
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal sealed override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
         {
 #if DEBUG
             foreach (var module in this.Modules)
@@ -64,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Register declaration of predefined CorLib type in this Assembly.
         /// </summary>
         /// <param name="corType"></param>
-        internal override sealed void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
+        internal sealed override void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
         {
             SpecialType typeId = corType.SpecialType;
             Debug.Assert(typeId != SpecialType.None);
@@ -90,7 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes <= (int)SpecialType.Count);
             }
         }
-
 
         /// <summary>
         /// Continue looking for declaration of predefined CorLib type in this Assembly
@@ -118,6 +151,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return _lazyTypeNames;
             }
+        }
+
+        internal sealed override NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
+        {
+            Debug.Assert(!underlyingType.IsNativeIntegerType);
+
+            if (_lazyNativeIntegerTypes == null)
+            {
+                Interlocked.CompareExchange(ref _lazyNativeIntegerTypes, new NativeIntegerTypeSymbol[2], null);
+            }
+
+            int index = underlyingType.SpecialType switch
+            {
+                SpecialType.System_IntPtr => 0,
+                SpecialType.System_UIntPtr => 1,
+                _ => throw ExceptionUtilities.UnexpectedValue(underlyingType.SpecialType),
+            };
+
+            if (_lazyNativeIntegerTypes[index] is null)
+            {
+                Interlocked.CompareExchange(ref _lazyNativeIntegerTypes[index], new NativeIntegerTypeSymbol(underlyingType), null);
+            }
+
+            return _lazyNativeIntegerTypes[index];
         }
 
         public override ICollection<string> NamespaceNames

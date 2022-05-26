@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 
@@ -12,9 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
         private class StartComparer : IComparer<SnapshotSpan>
         {
             public int Compare(SnapshotSpan x, SnapshotSpan y)
-            {
-                return x.Start.CompareTo(y.Start);
-            }
+                => x.Start.CompareTo(y.Start);
         }
     }
 }

@@ -2,15 +2,12 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Shared
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
-Imports Microsoft.VisualStudio.Composition
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -18,15 +15,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private _testDocument As TestHostDocument
+        Private ReadOnly _testDocument As TestHostDocument
         Public Workspace As TestWorkspace
         Public TargetDocument As Document
-
-        Private Shared ReadOnly s_exportProviderFactory As IExportProviderFactory =
-            ExportProviderCache.GetOrCreateExportProviderFactory(
-                TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic.WithParts(
-                    GetType(VisualBasicEncapsulateFieldService),
-                    GetType(DefaultTextBufferSupportsFeatureService)))
 
         Private Sub New(workspace As TestWorkspace)
             Me.Workspace = workspace
@@ -35,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
         End Sub
 
         Public Shared Function Create(markup As String) As EncapsulateFieldTestState
-            Dim workspace = TestWorkspace.CreateVisualBasic(markup, exportProvider:=s_exportProviderFactory.CreateExportProvider())
+            Dim workspace = TestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
             Return New EncapsulateFieldTestState(workspace)
         End Function
 
@@ -44,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             Dim commandHandler = New EncapsulateFieldCommandHandler(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
                 Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
+                Workspace.GlobalOptions,
                 Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
             commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create())
         End Sub

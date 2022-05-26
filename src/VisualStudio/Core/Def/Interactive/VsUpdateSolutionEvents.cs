@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
@@ -31,19 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         public int OnActiveProjectCfgChange(IVsHierarchy hierarchy)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int UpdateSolution_Begin(ref int cancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int UpdateSolution_Cancel()
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
 
         public int UpdateSolution_Done(int succeeded, int modified, int cancelCommand)
         {
@@ -65,8 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         }
 
         public int UpdateSolution_StartUpdate(ref int cancelUpdate)
-        {
-            return VSConstants.S_OK;
-        }
+            => VSConstants.S_OK;
     }
 }

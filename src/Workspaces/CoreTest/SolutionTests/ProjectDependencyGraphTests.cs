@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -51,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
         /// <param name="expectedResults">A list of possible results. Because topological sorting is ambiguous
         /// in that a graph could have multiple topological sorts, this helper lets you give all the possible
         /// results and it asserts that one of them does match.</param>
-        private void VerifyTopologicalSort(Solution solution, params string[] expectedResults)
+        private static void VerifyTopologicalSort(Solution solution, params string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectIds = projectDependencyGraph.GetTopologicallySortedProjects(CancellationToken.None);
 
-            var actualResult = string.Concat(projectIds.Select(id => solution.GetProject(id)!.AssemblyName));
+            var actualResult = string.Concat(projectIds.Select(id => solution.GetRequiredProject(id).AssemblyName));
             Assert.Contains<string>(actualResult, expectedResults);
         }
 
@@ -87,14 +86,14 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDependencySets(solution, "A B");
         }
 
-        private void VerifyDependencySets(Solution solution, string expectedResult)
+        private static void VerifyDependencySets(Solution solution, string expectedResult)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectIds = projectDependencyGraph.GetDependencySets(CancellationToken.None);
             var actualResult = string.Join(" ",
                 projectIds.Select(
                     group => string.Concat(
-                        group.Select(p => solution.GetProject(p)!.AssemblyName).OrderBy(n => n))).OrderBy(n => n));
+                        group.Select(p => solution.GetRequiredProject(p).AssemblyName).OrderBy(n => n))).OrderBy(n => n));
             Assert.Equal(expectedResult, actualResult);
         }
 
@@ -228,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectAId = solution.GetProjectsByName("A").Single().Id;
             var projectBId = solution.GetProjectsByName("B").Single().Id;
-            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { projectBId });
+            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { new ProjectReference(projectBId) });
 
             VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: new string[] { "B" });
         }
@@ -259,7 +258,6 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "A", new string[] { "B" });
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTransitiveReferencesWithMultipleReferences()
         {
@@ -278,30 +276,30 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyTransitiveReferences(solution, "A", new string[] { "B", "C", "D", "E" });
         }
 
-        private void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
+        private static void VerifyDirectReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectDirectlyDependsOn(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
+            var actualResults = projectIds.Select(id => solution.GetRequiredProject(id).Name);
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
         }
 
-        private void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
+        private static void VerifyTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             VerifyTransitiveReferences(solution, projectDependencyGraph, project, expectedResults);
         }
 
-        private void VerifyTransitiveReferences(Solution solution, ProjectDependencyGraph projectDependencyGraph, string project, string[] expectedResults)
+        private static void VerifyTransitiveReferences(Solution solution, ProjectDependencyGraph projectDependencyGraph, string project, string[] expectedResults)
         {
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
+            var actualResults = projectIds.Select(id => solution.GetRequiredProject(id).Name);
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
@@ -647,25 +645,25 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "D", new string[] { "C" });
         }
 
-        private void VerifyDirectReverseReferences(Solution solution, string project, string[] expectedResults)
+        private static void VerifyDirectReverseReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
+            var actualResults = projectIds.Select(id => solution.GetRequiredProject(id).Name);
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
                 actualResults.OrderBy(n => n));
         }
 
-        private void VerifyReverseTransitiveReferences(Solution solution, string project, string[] expectedResults)
+        private static void VerifyReverseTransitiveReferences(Solution solution, string project, string[] expectedResults)
         {
             var projectDependencyGraph = solution.GetProjectDependencyGraph();
             var projectId = solution.GetProjectsByName(project).Single().Id;
             var projectIds = projectDependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId);
 
-            var actualResults = projectIds.Select(id => solution.GetProject(id)!.Name);
+            var actualResults = projectIds.Select(id => solution.GetRequiredProject(id).Name);
 
             Assert.Equal<string>(
                 expectedResults.OrderBy(n => n),
@@ -676,7 +674,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         #region Helpers
 
-        private Solution CreateSolutionFromReferenceMap(string projectReferences)
+        private static Solution CreateSolutionFromReferenceMap(string projectReferences)
         {
             var solution = CreateSolution();
 
@@ -706,10 +704,8 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 solution = AddProject(solution, projectName);
             }
 
-            foreach (var kvp in references)
-            {
-                solution = AddProjectReferences(solution, kvp.Key, kvp.Value);
-            }
+            foreach (var (name, refs) in references)
+                solution = AddProjectReferences(solution, name, refs);
 
             return solution;
         }
@@ -741,10 +737,8 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
                 referencesByTargetProject.SelectMany(pair => pair.Value));
         }
 
-        private Solution CreateSolution()
-        {
-            return new AdhocWorkspace().CurrentSolution;
-        }
+        private static Solution CreateSolution()
+            => new AdhocWorkspace().CurrentSolution;
 
         #endregion
     }

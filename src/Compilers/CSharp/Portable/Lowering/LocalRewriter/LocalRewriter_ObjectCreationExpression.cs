@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
+            // There are no target types for dynamic object creation scenarios, so there should be no implicit handler conversions
+            AssertNoImplicitInterpolatedStringHandlerConversions(node.Arguments);
             var loweredArguments = VisitList(node.Arguments);
             var constructorInvocation = _dynamicFactory.MakeDynamicConstructorInvocation(node.Syntax, node.Type, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt).ToExpression();
 
@@ -22,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructorInvocation;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, constructorInvocation, node.InitializerExpressionOpt, node.Type);
+            return MakeExpressionWithInitializer(node.Syntax, constructorInvocation, node.InitializerExpressionOpt, node.Type);
         }
 
         public override BoundNode VisitObjectCreationExpression(BoundObjectCreationExpression node)
@@ -31,25 +34,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Rewrite the arguments.
             // NOTE: We may need additional argument rewriting such as generating a params array,
-            //       re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
+            //       re-ordering arguments based on argsToParamsOpt map, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            var rewrittenArguments = VisitList(node.Arguments);
+            BoundExpression? receiverDiscard = null;
+
+            ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                node.Arguments,
+                node.Constructor,
+                node.ArgsToParamsOpt,
+                argumentRefKindsOpt,
+                ref receiverDiscard,
+                out ArrayBuilder<LocalSymbol>? tempsBuilder);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
-            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
-            ImmutableArray<LocalSymbol> temps;
-            ImmutableArray<RefKind> argumentRefKindsOpt = node.ArgumentRefKindsOpt;
+            // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, etc.
             rewrittenArguments = MakeArguments(
                 node.Syntax,
                 rewrittenArguments,
                 node.Constructor,
-                node.Constructor,
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 ref argumentRefKindsOpt,
-                out temps);
+                ref tempsBuilder);
 
             BoundExpression rewrittenObjectCreation;
+            var temps = tempsBuilder.ToImmutableAndFree();
 
             if (_inExpressionLambda)
             {
@@ -74,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // replace "new S()" with a default struct ctor with "default(S)"
             if (node.Constructor.IsDefaultValueTypeConstructor())
             {
-                rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type);
+                rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type!);
             }
 
             if (!temps.IsDefaultOrEmpty)
@@ -98,10 +108,121 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenObjectCreation;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
+            return MakeExpressionWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
         }
 
-        private BoundObjectInitializerExpressionBase MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase initializerExpressionOpt)
+        public override BoundNode VisitWithExpression(BoundWithExpression withExpr)
+        {
+            TypeSymbol type = withExpr.Type;
+            BoundExpression receiver = withExpr.Receiver;
+            Debug.Assert(receiver.Type!.Equals(type, TypeCompareKind.ConsiderEverything));
+
+            // for a with expression of the form
+            //
+            //      receiver with { P1 = e1, P2 = e2 } // P3 is copied implicitly
+            //
+            // if the receiver is a struct, duplicate the value, then set the given struct properties:
+            //
+            //     var tmp = receiver;
+            //     tmp.P1 = e1;
+            //     tmp.P2 = e2;
+            //     tmp
+            //
+            // if the receiver is an anonymous type, then invoke its constructor:
+            //
+            //     new Type(e1, e2, receiver.P3);
+            //
+            // otherwise the receiver is a record class and we want to lower it to a call to its `Clone` method, then
+            // set the given record properties. i.e.
+            //
+            //      var tmp = (ReceiverType)receiver.Clone();
+            //      tmp.P1 = e1;
+            //      tmp.P2 = e2;
+            //      tmp
+
+            BoundExpression rewrittenReceiver = VisitExpression(receiver);
+
+            if (type.IsAnonymousType)
+            {
+                var anonymousType = (AnonymousTypeManager.AnonymousTypePublicSymbol)type;
+                var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
+                var temps = ArrayBuilder<LocalSymbol>.GetInstance();
+                BoundLocal oldValue = _factory.StoreToTemp(rewrittenReceiver, out BoundAssignmentOperator boundAssignmentToTemp);
+                temps.Add(oldValue.LocalSymbol);
+                sideEffects.Add(boundAssignmentToTemp);
+
+                BoundExpression value = _factory.New(anonymousType, getAnonymousTypeValues(withExpr, oldValue, anonymousType, sideEffects, temps));
+
+                return new BoundSequence(withExpr.Syntax, temps.ToImmutableAndFree(), sideEffects.ToImmutableAndFree(), value, type);
+            }
+
+            BoundExpression expression;
+            if (type.IsValueType)
+            {
+                expression = rewrittenReceiver;
+            }
+            else
+            {
+                Debug.Assert(withExpr.CloneMethod is not null);
+                Debug.Assert(withExpr.CloneMethod.ParameterCount == 0);
+
+                expression = _factory.Convert(
+                    type,
+                    _factory.Call(
+                        rewrittenReceiver,
+                        withExpr.CloneMethod));
+            }
+
+            return MakeExpressionWithInitializer(
+                withExpr.Syntax,
+                expression,
+                withExpr.InitializerExpression,
+                type);
+
+            ImmutableArray<BoundExpression> getAnonymousTypeValues(BoundWithExpression withExpr, BoundExpression oldValue, AnonymousTypeManager.AnonymousTypePublicSymbol anonymousType,
+                ArrayBuilder<BoundExpression> sideEffects, ArrayBuilder<LocalSymbol> temps)
+            {
+                // map: [propertyIndex] -> valueTemp
+                var valueTemps = ArrayBuilder<BoundExpression?>.GetInstance(anonymousType.Properties.Length, fillWithValue: null);
+
+                foreach (BoundExpression initializer in withExpr.InitializerExpression.Initializers)
+                {
+                    var assignment = (BoundAssignmentOperator)initializer;
+                    var left = (BoundObjectInitializerMember)assignment.Left;
+                    Debug.Assert(left.MemberSymbol is not null);
+
+                    // We evaluate the values provided in source first
+                    var rewrittenRight = VisitExpression(assignment.Right);
+                    BoundLocal valueTemp = _factory.StoreToTemp(rewrittenRight, out BoundAssignmentOperator boundAssignmentToTemp);
+                    temps.Add(valueTemp.LocalSymbol);
+                    sideEffects.Add(boundAssignmentToTemp);
+
+                    var property = left.MemberSymbol;
+                    Debug.Assert(property.MemberIndexOpt!.Value >= 0 && property.MemberIndexOpt.Value < anonymousType.Properties.Length);
+                    valueTemps[property.MemberIndexOpt.Value] = valueTemp;
+                }
+
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(anonymousType.Properties.Length);
+                foreach (var property in anonymousType.Properties)
+                {
+                    if (valueTemps[property.MemberIndexOpt!.Value] is BoundExpression initializerValue)
+                    {
+                        builder.Add(initializerValue);
+                    }
+                    else
+                    {
+                        // The values that are implicitly copied over will get evaluated afterwards, in the order they are needed
+                        builder.Add(_factory.Property(oldValue, property));
+                    }
+                }
+
+                valueTemps.Free();
+                return builder.ToImmutableAndFree();
+            }
+        }
+
+        [return: NotNullIfNotNull("initializerExpressionOpt")]
+        private BoundObjectInitializerExpressionBase? MakeObjectCreationInitializerForExpressionTree(BoundObjectInitializerExpressionBase? initializerExpressionOpt)
         {
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
             {
@@ -113,10 +234,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        // Shared helper for MakeObjectCreationWithInitializer and MakeNewT
-        private BoundExpression MakeObjectCreationWithInitializer(
+        // Shared helper for VisitWithExpression, MakeObjectCreationWithInitializer and MakeNewT
+        private BoundExpression MakeExpressionWithInitializer(
             SyntaxNode syntax,
-            BoundExpression rewrittenObjectCreation,
+            BoundExpression rewrittenExpression,
             BoundExpression initializerExpression,
             TypeSymbol type)
         {
@@ -125,12 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a temp and assign it with the object creation expression.
             BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal value = _factory.StoreToTemp(rewrittenObjectCreation, out boundAssignmentToTemp);
+            BoundLocal value = _factory.StoreToTemp(rewrittenExpression, out boundAssignmentToTemp);
 
             // Rewrite object/collection initializer expressions
-            ArrayBuilder<BoundExpression> dynamicSiteInitializers = null;
-            ArrayBuilder<LocalSymbol> temps = null;
-            ArrayBuilder<BoundExpression> loweredInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+            ArrayBuilder<BoundExpression>? dynamicSiteInitializers = null;
+            ArrayBuilder<LocalSymbol>? temps = null;
+            ArrayBuilder<BoundExpression>? loweredInitializers = ArrayBuilder<BoundExpression>.GetInstance();
 
             AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, loweredInitializers, value, initializerExpression);
 
@@ -140,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (dynamicSiteCount > 0)
             {
-                sideEffects.AddRange(dynamicSiteInitializers);
-                dynamicSiteInitializers.Free();
+                sideEffects.AddRange(dynamicSiteInitializers!);
+                dynamicSiteInitializers!.Free();
             }
 
             sideEffects.AddRange(loweredInitializers);
@@ -170,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
-                return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.Type);
+                return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.WasTargetTyped, node.Type);
             }
 
             var rewrittenNewT = MakeNewT(node.Syntax, (TypeParameterSymbol)node.Type);
@@ -179,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenNewT;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, rewrittenNewT, node.InitializerExpressionOpt, rewrittenNewT.Type);
+            return MakeExpressionWithInitializer(node.Syntax, rewrittenNewT, node.InitializerExpressionOpt, rewrittenNewT.Type!);
         }
 
         private BoundExpression MakeNewT(SyntaxNode syntax, TypeParameterSymbol typeParameter)
@@ -213,8 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 resultKind: LookupResultKind.Viable,
-                binderOpt: null,
                 type: typeParameter);
 
             return createInstanceCall;
@@ -238,31 +359,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             var ctor = _factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
             BoundExpression newGuid;
 
-            if ((object)ctor != null)
+            if (ctor is { })
             {
+                Debug.Assert(node.GuidString is { });
                 newGuid = _factory.New(ctor, _factory.Literal(node.GuidString));
             }
             else
             {
-                newGuid = new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
+                newGuid = new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
             var getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
 
-            if ((object)getTypeFromCLSID == null)
+            if (getTypeFromCLSID is null)
             {
                 getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Type__GetTypeFromCLSID);
             }
 
             BoundExpression callGetTypeFromCLSID;
 
-            if ((object)getTypeFromCLSID != null)
+            if (getTypeFromCLSID is { })
             {
                 callGetTypeFromCLSID = _factory.Call(null, getTypeFromCLSID, newGuid);
             }
             else
             {
-                callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
+                callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
             var createInstance = _factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
@@ -274,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                rewrittenObjectCreation = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, node.Type);
+                rewrittenObjectCreation = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, node.Type);
             }
 
             _factory.Syntax = oldSyntax;
@@ -284,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenObjectCreation;
             }
 
-            return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
+            return MakeExpressionWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
         }
     }
 }

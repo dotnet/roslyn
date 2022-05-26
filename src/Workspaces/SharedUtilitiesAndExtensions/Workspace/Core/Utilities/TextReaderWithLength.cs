@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -9,9 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal abstract class TextReaderWithLength : TextReader
     {
         public TextReaderWithLength(int length)
-        {
-            Length = length;
-        }
+            => Length = length;
 
         public int Length { get; }
     }

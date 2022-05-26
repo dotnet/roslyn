@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Threading;
 
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         private readonly MetadataDecoder _decoder;
         private readonly CustomAttributeHandle _handle;
-        private NamedTypeSymbol _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
-        private MethodSymbol _lazyAttributeConstructor;
+        private NamedTypeSymbol? _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
+        private MethodSymbol? _lazyAttributeConstructor;
         private ImmutableArray<TypedConstant> _lazyConstructorArguments;
         private ImmutableArray<KeyValuePair<string, TypedConstant>> _lazyNamedArguments;
         private ThreeState _lazyHasErrors = ThreeState.Unknown;
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _handle = handle;
         }
 
-        public override NamedTypeSymbol AttributeClass
+        public override NamedTypeSymbol? AttributeClass
         {
             get
             {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override MethodSymbol AttributeConstructor
+        public override MethodSymbol? AttributeConstructor
         {
             get
             {
@@ -47,12 +48,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override SyntaxReference ApplicationSyntaxReference
+        public override SyntaxReference? ApplicationSyntaxReference
         {
             get { return null; }
         }
 
-        internal protected override ImmutableArray<TypedConstant> CommonConstructorArguments
+        protected internal override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
             get
             {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal protected override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
+        protected internal override ImmutableArray<KeyValuePair<string, TypedConstant>> CommonNamedArguments
         {
             get
             {
@@ -73,10 +74,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private void EnsureClassAndConstructorSymbolsAreLoaded()
         {
 #pragma warning disable 0252
-            if ((object)_lazyAttributeClass == ErrorTypeSymbol.UnknownResultType)
+            if ((object?)_lazyAttributeClass == ErrorTypeSymbol.UnknownResultType)
             {
-                TypeSymbol attributeClass;
-                MethodSymbol attributeConstructor;
+                TypeSymbol? attributeClass;
+                MethodSymbol? attributeConstructor;
 
                 if (!_decoder.GetCustomAttribute(_handle, out attributeClass, out attributeConstructor))
                 {
@@ -89,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 Interlocked.CompareExchange(ref _lazyAttributeConstructor, attributeConstructor, null);
-                Interlocked.CompareExchange(ref _lazyAttributeClass, (NamedTypeSymbol)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
+                Interlocked.CompareExchange(ref _lazyAttributeClass, (NamedTypeSymbol?)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
             }
 #pragma warning restore 0252
         }
@@ -98,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyConstructorArguments.IsDefault || _lazyNamedArguments.IsDefault)
             {
-                TypedConstant[] lazyConstructorArguments = null;
-                KeyValuePair<string, TypedConstant>[] lazyNamedArguments = null;
+                TypedConstant[]? lazyConstructorArguments = null;
+                KeyValuePair<string, TypedConstant>[]? lazyNamedArguments = null;
 
                 if (!_decoder.GetCustomAttribute(_handle, out lazyConstructorArguments, out lazyNamedArguments))
                 {
@@ -146,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _decoder.GetTargetAttributeSignatureIndex(_handle, description);
         }
 
+        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get

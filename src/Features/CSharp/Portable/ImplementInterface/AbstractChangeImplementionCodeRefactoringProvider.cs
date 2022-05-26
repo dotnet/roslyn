@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -43,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         protected abstract bool CheckExplicitNameAllowsConversion(ExplicitInterfaceSpecifierSyntax? explicitName);
         protected abstract bool CheckMemberCanBeConverted(ISymbol member);
-        protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol interfaceMember);
+        protected abstract SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode currentDecl, ISymbol implMember, ISymbol interfaceMember);
         protected abstract Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -73,9 +71,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             // like: "System.IEnumerable.GetEnumerator"
             directlyImplementedMembers.AddRange(member, member.ExplicitOrImplicitInterfaceImplementations());
 
-            var codeAction = new MyCodeAction(
-                string.Format(Implement_0, member.ExplicitOrImplicitInterfaceImplementations().First().Name),
-                c => ChangeImplementationAsync(project, directlyImplementedMembers, c));
+            var firstImplName = member.ExplicitOrImplicitInterfaceImplementations().First().Name;
+            var codeAction = CodeAction.Create(
+                string.Format(Implement_0, firstImplName),
+                c => ChangeImplementationAsync(project, directlyImplementedMembers, c),
+                nameof(Implement_0) + firstImplName);
 
             var containingType = member.ContainingType;
             var interfaceTypes = directlyImplementedMembers.SelectMany(kvp => kvp.Value).Select(
@@ -104,19 +104,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (offerForSameInterface)
             {
                 var interfaceNames = interfaceTypes.Select(i => i.ToDisplayString(NameAndTypeParametersFormat));
-                nestedActions.Add(new MyCodeAction(
+                nestedActions.Add(CodeAction.Create(
                     string.Format(Implement_0, string.Join(", ", interfaceNames)),
-                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c)));
+                    c => ChangeImplementationAsync(project, implementedMembersFromSameInterfaces, c),
+                    nameof(Implement_0) + string.Join(", ", interfaceNames)));
             }
 
             if (offerForAllInterfaces)
             {
-                nestedActions.Add(new MyCodeAction(
+                nestedActions.Add(CodeAction.Create(
                     Implement_all_interfaces,
-                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c)));
+                    c => ChangeImplementationAsync(project, implementedMembersFromAllInterfaces, c),
+                    nameof(Implement_all_interfaces)));
             }
 
-            context.RegisterRefactoring(new CodeAction.CodeActionWithNestedActions(
+            context.RegisterRefactoring(CodeAction.CodeActionWithNestedActions.Create(
                 Implement, nestedActions.ToImmutableAndFree(), isInlinable: true));
         }
 
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
         private static (SyntaxNode?, ExplicitInterfaceSpecifierSyntax?, SyntaxToken) GetContainer(SyntaxToken token)
         {
-            for (SyntaxNode? node = token.Parent; node != null; node = node.Parent)
+            for (var node = token.Parent; node != null; node = node.Parent)
             {
                 var result = node switch
                 {
@@ -166,13 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             return default;
         }
 
-        private int TotalCount(MemberImplementationMap dictionary)
+        private static int TotalCount(MemberImplementationMap dictionary)
         {
             var result = 0;
             foreach (var (key, values) in dictionary)
             {
                 result += values.Count;
             }
+
             return result;
         }
 
@@ -221,14 +224,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 
             // Now, bucket all the implemented members by which document they appear in.
             // That way, we can update all the members in a specific document in bulk.
-            var documentToImplDeclarations = new OrderedMultiDictionary<Document, (SyntaxNode, SetWithInsertionOrder<ISymbol>)>();
+            var documentToImplDeclarations = new OrderedMultiDictionary<Document, (SyntaxNode, ISymbol impl, SetWithInsertionOrder<ISymbol> interfaceMembers)>();
             foreach (var (implMember, interfaceMembers) in implMemberToInterfaceMembers)
             {
                 foreach (var syntaxRef in implMember.DeclaringSyntaxReferences)
                 {
                     var doc = solution.GetRequiredDocument(syntaxRef.SyntaxTree);
                     var decl = await syntaxRef.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    documentToImplDeclarations.Add(doc, (decl, interfaceMembers));
+                    documentToImplDeclarations.Add(doc, (decl, implMember, interfaceMembers));
                 }
             }
 
@@ -236,23 +239,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             {
                 var editor = await solutionEditor.GetDocumentEditorAsync(
                     document.Id, cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                foreach (var (decl, symbols) in declsAndSymbol)
+                foreach (var (decl, implMember, interfaceMembers) in declsAndSymbol)
                 {
                     editor.ReplaceNode(decl, (currentDecl, g) =>
-                        symbols.Select(s => ChangeImplementation(g, currentDecl, s)));
+                        interfaceMembers.Select(s => ChangeImplementation(g, currentDecl, implMember, s)));
                 }
             }
 
             return solutionEditor.GetChangedSolution();
-        }
-
-        private class MyCodeAction : CodeAction.SolutionChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution)
-            {
-            }
         }
     }
 }

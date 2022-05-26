@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.ContainingTypeDeclaration != null)
             {
                 return
-                    IsConstructorInitializerContext(position, context) ||
-                    IsInstanceExpressionOrStatement(context);
+                    IsConstructorInitializerContext(context) ||
+                    IsInstanceExpressionOrStatement(context) ||
+                    context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
             }
 
             return false;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsConstructorInitializerContext(int position, CSharpSyntaxContext context)
+        private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
             //   Goo() : |
@@ -51,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.ColonToken &&
                 token.Parent is ConstructorInitializerSyntax &&
                 token.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration) &&
-                token.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration))
+                token.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
             {
-                var constructor = token.GetAncestor<ConstructorDeclarationSyntax>();
+                var constructor = token.GetRequiredAncestor<ConstructorDeclarationSyntax>();
                 if (constructor.Modifiers.Any(SyntaxKind.StaticKeyword))
                 {
                     return false;

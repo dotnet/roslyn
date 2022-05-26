@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var query = SearchQuery.Create(name, ignoreCase);
             var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                 project, query, SymbolFilter.All, cancellationToken).ConfigureAwait(false);
-            return declarations.SelectAsArray(t => t.Symbol);
+            return declarations;
         }
 
         /// <summary>
@@ -31,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using var query = SearchQuery.Create(name, ignoreCase);
             var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                 project, query, filter, cancellationToken).ConfigureAwait(false);
-            return declarations.SelectAsArray(t => t.Symbol);
+            return declarations;
         }
     }
 }

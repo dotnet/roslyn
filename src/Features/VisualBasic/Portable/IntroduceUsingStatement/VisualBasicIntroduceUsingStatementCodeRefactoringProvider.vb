@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.IntroduceUsingStatement
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
         Inherits AbstractIntroduceUsingStatementCodeRefactoringProvider(Of StatementSyntax, LocalDeclarationStatementSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -33,16 +35,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             Return parentOfStatementsToSurround.ReplaceStatements(statements)
         End Function
 
-        Protected Overrides Function CreateUsingStatement(declarationStatement As LocalDeclarationStatementSyntax, sameLineTrivia As SyntaxTriviaList, statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
-            Dim usingStatement =
-                SyntaxFactory.UsingStatement(
-                    expression:=Nothing,
-                    variables:=declarationStatement.Declarators)
-
-            If sameLineTrivia.Any Then
-                usingStatement = usingStatement.WithTrailingTrivia(sameLineTrivia)
-            End If
-
+        Protected Overrides Function CreateUsingStatement(
+                declarationStatement As LocalDeclarationStatementSyntax,
+                statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
+            Dim usingStatement = SyntaxFactory.UsingStatement(
+                expression:=Nothing,
+                variables:=declarationStatement.Declarators).WithTriviaFrom(declarationStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
     End Class

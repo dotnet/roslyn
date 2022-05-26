@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
-Imports Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
+Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Utilities
 
@@ -16,8 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ChangeSignature
         Inherits AbstractChangeSignatureCommandHandler
 
         <ImportingConstructor>
-        Public Sub New(threadingContext As IThreadingContext)
-            MyBase.New(threadingContext)
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New(threadingContext As IThreadingContext, globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, globalOptions)
         End Sub
     End Class
 End Namespace

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -70,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentBreakStatement(original, rewritten);
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
+        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
         {
             return Previous.CreateBlockPrologue(original, out synthesizedLocal);
         }
 
-        public override BoundStatement CreateBlockEpilogue(BoundBlock original)
+        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
         {
             return Previous.CreateBlockEpilogue(original);
         }
@@ -90,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentDoStatementConditionalGotoStart(original, ifConditionGotoStart);
         }
 
-        public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
+        public override BoundStatement? InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement? collectionVarDecl)
         {
             return Previous.InstrumentForEachStatementCollectionVarDeclaration(original, collectionVarDecl);
         }
@@ -183,6 +182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
             return Previous.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory);
+        }
+
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return Previous.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory);
         }
 
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)

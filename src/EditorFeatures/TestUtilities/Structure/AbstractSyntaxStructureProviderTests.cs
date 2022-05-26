@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -20,73 +22,66 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
     {
         protected abstract string LanguageName { get; }
 
-        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Test;
+        protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
-        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
+        internal virtual BlockStructureOptions GetDefaultOptions()
+            => new(MaximumBannerLength: 120, IsMetadataAsSource: WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
+
+        private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, BlockStructureOptions options, int position)
+            => GetBlockSpansWorkerAsync(document, options, position);
+
+        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, BlockStructureOptions options, int position);
+
+        private protected Task VerifyBlockSpansAsync(string markupCode, params RegionData[] expectedRegionData)
+            => VerifyBlockSpansAsync(markupCode, GetDefaultOptions(), expectedRegionData);
+
+        private protected async Task VerifyBlockSpansAsync(string markupCode, BlockStructureOptions options, params RegionData[] expectedRegionData)
         {
-            return GetBlockSpansWorkerAsync(document, position);
-        }
+            using var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode);
 
-        internal abstract Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position);
+            var hostDocument = workspace.Documents.Single();
+            Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
+            var position = hostDocument.CursorPosition.Value;
 
-        protected async Task VerifyBlockSpansAsync(string markupCode, params Tuple<string, string, string, bool, bool>[] expectedRegionData)
-        {
-            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
+            var expectedRegions = expectedRegionData.Select(data => CreateBlockSpan(data, hostDocument.AnnotatedSpans)).ToArray();
+
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var actualRegions = await GetBlockSpansAsync(document, options, position);
+
+            Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
+
+            for (var i = 0; i < expectedRegions.Length; i++)
             {
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                    .WithChangedOption(BlockStructureOptions.MaximumBannerLength, LanguageName, 120)));
-                var hostDocument = workspace.Documents.Single();
-                Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
-                var position = hostDocument.CursorPosition.Value;
-
-                var expectedRegions = expectedRegionData.Select(data => CreateBlockSpan(data, hostDocument.AnnotatedSpans)).ToArray();
-
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var actualRegions = await GetBlockSpansAsync(document, position);
-
-                Assert.True(expectedRegions.Length == actualRegions.Length, $"Expected {expectedRegions.Length} regions but there were {actualRegions.Length}");
-
-                for (var i = 0; i < expectedRegions.Length; i++)
-                {
-                    AssertRegion(expectedRegions[i], actualRegions[i]);
-                }
+                AssertRegion(expectedRegions[i], actualRegions[i]);
             }
         }
 
         protected async Task VerifyNoBlockSpansAsync(string markupCode)
         {
-            using (var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode))
-            {
-                var hostDocument = workspace.Documents.Single();
-                Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
-                var position = hostDocument.CursorPosition.Value;
+            using var workspace = TestWorkspace.Create(WorkspaceKind, LanguageName, compilationOptions: null, parseOptions: null, content: markupCode);
 
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var actualRegions = await GetBlockSpansAsync(document, position);
+            var hostDocument = workspace.Documents.Single();
+            Assert.True(hostDocument.CursorPosition.HasValue, "Test must specify a position.");
+            var position = hostDocument.CursorPosition.Value;
 
-                Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
-            }
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var options = GetDefaultOptions();
+            var actualRegions = await GetBlockSpansAsync(document, options, position);
+
+            Assert.True(actualRegions.Length == 0, $"Expected no regions but found {actualRegions.Length}.");
         }
 
-        protected Tuple<string, string, string, bool, bool> Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-        {
-            return Tuple.Create(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
-        }
+        protected static RegionData Region(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+            => new RegionData(textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
-        protected Tuple<string, string, string, bool, bool> Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
-        {
-            return Tuple.Create(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
-        }
+        protected static RegionData Region(string textSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed = false)
+            => new RegionData(textSpanName, textSpanName, bannerText, autoCollapse, isDefaultCollapsed);
 
         private static BlockSpan CreateBlockSpan(
-            Tuple<string, string, string, bool, bool> regionData,
+            RegionData regionData,
             IDictionary<string, ImmutableArray<TextSpan>> spans)
         {
-            var textSpanName = regionData.Item1;
-            var hintSpanName = regionData.Item2;
-            var bannerText = regionData.Item3;
-            var autoCollapse = regionData.Item4;
-            var isDefaultCollapsed = regionData.Item5;
+            var (textSpanName, hintSpanName, bannerText, autoCollapse, isDefaultCollapsed) = regionData;
 
             Assert.True(spans.ContainsKey(textSpanName) && spans[textSpanName].Length == 1, $"Test did not specify '{textSpanName}' span.");
             Assert.True(spans.ContainsKey(hintSpanName) && spans[hintSpanName].Length == 1, $"Test did not specify '{hintSpanName}' span.");
@@ -112,6 +107,54 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             Assert.Equal(expected.BannerText, actual.BannerText);
             Assert.Equal(expected.AutoCollapse, actual.AutoCollapse);
             Assert.Equal(expected.IsDefaultCollapsed, actual.IsDefaultCollapsed);
+        }
+    }
+
+    public readonly struct RegionData
+    {
+        public readonly string TextSpanName;
+        public readonly string HintSpanName;
+        public readonly string BannerText;
+        public readonly bool AutoCollapse;
+        public readonly bool IsDefaultCollapsed;
+
+        public RegionData(string textSpanName, string hintSpanName, string bannerText, bool autoCollapse, bool isDefaultCollapsed)
+        {
+            this.TextSpanName = textSpanName;
+            this.HintSpanName = hintSpanName;
+            this.BannerText = bannerText;
+            this.AutoCollapse = autoCollapse;
+            this.IsDefaultCollapsed = isDefaultCollapsed;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RegionData other
+                && TextSpanName == other.TextSpanName
+                && HintSpanName == other.HintSpanName
+                && BannerText == other.BannerText
+                && AutoCollapse == other.AutoCollapse
+                && IsDefaultCollapsed == other.IsDefaultCollapsed;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1426774128;
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(TextSpanName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(HintSpanName);
+            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(BannerText);
+            hashCode = hashCode * -1521134295 + AutoCollapse.GetHashCode();
+            hashCode = hashCode * -1521134295 + IsDefaultCollapsed.GetHashCode();
+            return hashCode;
+        }
+
+        public void Deconstruct(out string textSpanName, out string hintSpanName, out string bannerText, out bool autoCollapse, out bool isDefaultCollapsed)
+        {
+            textSpanName = this.TextSpanName;
+            hintSpanName = this.HintSpanName;
+            bannerText = this.BannerText;
+            autoCollapse = this.AutoCollapse;
+            isDefaultCollapsed = this.IsDefaultCollapsed;
         }
     }
 }

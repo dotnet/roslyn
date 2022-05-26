@@ -24,14 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node.Update(node.Locals, node.LocalFunctions, builder.ToImmutableAndFree());
             }
 
-            LocalSymbol synthesizedLocal;
-            BoundStatement prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
+            LocalSymbol? synthesizedLocal;
+            BoundStatement? prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
             if (prologue != null)
             {
                 builder.Insert(0, prologue);
             }
+            else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+            {
+                builder.Insert(0, _factory.HiddenSequencePoint());
+            }
 
-            BoundStatement epilogue = _instrumenter.CreateBlockEpilogue(node);
+            BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);
             if (epilogue != null)
             {
                 builder.Add(epilogue);
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = startIndex; i < statements.Length; i++)
             {
-                BoundStatement statement = VisitPossibleUsingDeclaration(statements[i], statements, i, out var replacedUsingDeclarations);
+                BoundStatement? statement = VisitPossibleUsingDeclaration(statements[i], statements, i, out var replacedUsingDeclarations);
                 if (statement != null)
                 {
                     builder.Add(statement);
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// When traversing down a set of labels, we set node to the label.body and recurse, but statements[startIndex] still refers to the original parent label 
         /// as we haven't actually moved down the original statement list
         /// </remarks>
-        public BoundStatement VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int statementIndex, out bool replacedLocalDeclarations)
+        public BoundStatement? VisitPossibleUsingDeclaration(BoundStatement node, ImmutableArray<BoundStatement> statements, int statementIndex, out bool replacedLocalDeclarations)
         {
             switch (node.Kind)
             {
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MakeLocalUsingDeclarationStatement((BoundUsingLocalDeclarations)node, builder.ToImmutableAndFree());
                 default:
                     replacedLocalDeclarations = false;
-                    return (BoundStatement)Visit(node);
+                    return VisitStatement(node);
             }
         }
 

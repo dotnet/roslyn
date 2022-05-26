@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -17,25 +16,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static StringComparer KeyComparer { get; } = AnalyzerConfig.Section.PropertiesKeyComparer;
 
-        internal static ImmutableDictionary<string, string> EmptyDictionary = ImmutableDictionary.Create<string, string>(KeyComparer);
-
         /// <summary>
         /// Get an analyzer config value for the given key, using the <see cref="KeyComparer"/>.
         /// </summary>
-        public abstract bool TryGetValue(string key, out string value);
-    }
+        public abstract bool TryGetValue(string key, [NotNullWhen(true)] out string? value);
 
-    internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
-    {
-        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(EmptyDictionary);
-
-        private readonly ImmutableDictionary<string, string> _backing;
-
-        public CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string> properties)
-        {
-            _backing = properties;
-        }
-
-        public override bool TryGetValue(string key, out string value) => _backing.TryGetValue(key, out value);
+        /// <summary>
+        /// Enumerates unique keys of all available options in no specific order.
+        /// </summary>
+        /// <exception cref="NotImplementedException">Not implemented by the derived type.</exception>
+        public virtual IEnumerable<string> Keys
+            => throw new NotImplementedException();
     }
 }

@@ -2,14 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -29,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return symbol.Accept(TypeSyntaxGeneratorVisitor.Create(_addGlobal))
         End Function
 
-        Private Function AddInformationTo(Of TExpressionSyntax As ExpressionSyntax)(expression As TExpressionSyntax, symbol As ISymbol) As TExpressionSyntax
+        Private Shared Function AddInformationTo(Of TExpressionSyntax As ExpressionSyntax)(expression As TExpressionSyntax, symbol As ISymbol) As TExpressionSyntax
             expression = expression.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker)
             expression = expression.WithAdditionalAnnotations(SymbolAnnotation.Create(symbol))
             Return expression
@@ -77,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
         End Function
 
-        Private Function CreateMemberAccessExpression(symbol As ISymbol, container As ExpressionSyntax, simpleName As SimpleNameSyntax) As ExpressionSyntax
+        Private Shared Function CreateMemberAccessExpression(symbol As ISymbol, container As ExpressionSyntax, simpleName As SimpleNameSyntax) As ExpressionSyntax
             Return AddInformationTo(SyntaxFactory.SimpleMemberAccessExpression(container, SyntaxFactory.Token(SyntaxKind.DotToken), simpleName), symbol)
         End Function
     End Class

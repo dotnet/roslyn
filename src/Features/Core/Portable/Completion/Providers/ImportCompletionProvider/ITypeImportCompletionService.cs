@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
+namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface ITypeImportCompletionService : ILanguageService
     {
@@ -23,10 +21,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion
         /// Because items from each entity are cached as a separate array, we simply return them as is instead of an 
         /// aggregated array to avoid unnecessary allocations.
         /// </remarks>
-        Task<ImmutableArray<ImmutableArray<CompletionItem>>?> GetAllTopLevelTypesAsync(
+        Task<(ImmutableArray<ImmutableArray<CompletionItem>>, bool)> GetAllTopLevelTypesAsync(
             Project project,
             SyntaxContext syntaxContext,
             bool forceCacheCreation,
+            CompletionOptions options,
             CancellationToken cancellationToken);
+
+        void QueueCacheWarmUpTask(Project project);
     }
 }

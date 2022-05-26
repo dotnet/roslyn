@@ -40,9 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As AssemblySymbol,
-                                                  <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                  <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                   Optional basesBeingResolved As BasesBeingResolved = Nothing) As Boolean
-            Return CheckSymbolAccessibilityCore(symbol, within, Nothing, basesBeingResolved, useSiteDiagnostics) = AccessCheckResult.Accessible
+            Return CheckSymbolAccessibilityCore(symbol, within, Nothing, basesBeingResolved, useSiteInfo) = AccessCheckResult.Accessible
         End Function
 
         ''' <summary>
@@ -50,9 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Shared Function CheckSymbolAccessibility(symbol As Symbol,
                                                         within As AssemblySymbol,
-                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                        <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                         Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
-            Return CheckSymbolAccessibilityCore(symbol, within, Nothing, basesBeingResolved, useSiteDiagnostics)
+            Return CheckSymbolAccessibilityCore(symbol, within, Nothing, basesBeingResolved, useSiteInfo)
         End Function
 
         ''' <summary>
@@ -62,22 +62,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function IsSymbolAccessible(symbol As Symbol,
                                                   within As NamedTypeSymbol,
                                                   throughTypeOpt As TypeSymbol,
-                                                  <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                  <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                   Optional basesBeingResolved As BasesBeingResolved = Nothing) As Boolean
-            Return CheckSymbolAccessibilityCore(symbol, within, throughTypeOpt, basesBeingResolved, useSiteDiagnostics) = AccessCheckResult.Accessible
+            Return CheckSymbolAccessibilityCore(symbol, within, throughTypeOpt, basesBeingResolved, useSiteInfo) = AccessCheckResult.Accessible
         End Function
 
         ''' <summary>
         ''' Checks if 'symbol' is accessible from within type 'within', with
-        ''' an qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
+        ''' a qualifier of type "throughTypeOpt". Sets "failedThroughTypeCheck" to true
         ''' if it failed the "through type" check.
         ''' </summary>
         Public Shared Function CheckSymbolAccessibility(symbol As Symbol,
                                                         within As NamedTypeSymbol,
                                                         throughTypeOpt As TypeSymbol,
-                                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                        <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
                                                         Optional basesBeingResolved As BasesBeingResolved = Nothing) As AccessCheckResult
-            Return CheckSymbolAccessibilityCore(symbol, within, throughTypeOpt, basesBeingResolved, useSiteDiagnostics)
+            Return CheckSymbolAccessibilityCore(symbol, within, throughTypeOpt, basesBeingResolved, useSiteInfo)
         End Function
 
         ''' <summary>
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              within As Symbol,
                                                              throughTypeOpt As TypeSymbol,
                                                              basesBeingResolved As BasesBeingResolved,
-                                                             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
+                                                             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As AccessCheckResult
             Debug.Assert(symbol IsNot Nothing)
             Debug.Assert(within IsNot Nothing)
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
@@ -101,13 +101,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case symbol.Kind
                 Case SymbolKind.ArrayType
-                    Return CheckSymbolAccessibilityCore((DirectCast(symbol, ArrayTypeSymbol)).ElementType, within, Nothing, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckSymbolAccessibilityCore((DirectCast(symbol, ArrayTypeSymbol)).ElementType, within, Nothing, basesBeingResolved, useSiteInfo)
 
                 Case SymbolKind.NamedType
-                    Return CheckNamedTypeAccessibility(DirectCast(symbol, NamedTypeSymbol), within, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckNamedTypeAccessibility(DirectCast(symbol, NamedTypeSymbol), within, basesBeingResolved, useSiteInfo)
 
                 Case SymbolKind.Alias
-                    Return CheckSymbolAccessibilityCore((DirectCast(symbol, AliasSymbol)).Target, within, Nothing, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckSymbolAccessibilityCore((DirectCast(symbol, AliasSymbol)).Target, within, Nothing, basesBeingResolved, useSiteInfo)
 
                 Case SymbolKind.ErrorType
                     ' Always assume that error types are accessible.
@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 throughTypeOpt = Nothing
             End If
 
-            Return CheckMemberAccessibility(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, basesBeingResolved, useSiteDiagnostics)
+            Return CheckMemberAccessibility(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughTypeOpt, basesBeingResolved, useSiteInfo)
         End Function
 
         ' Is the named type "typeSym" accessible from within "within", which must
@@ -140,19 +140,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function CheckNamedTypeAccessibility(typeSym As NamedTypeSymbol,
                                                             within As Symbol,
                                                             basesBeingResolved As BasesBeingResolved,
-                                                            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
+                                                            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As AccessCheckResult
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
             Debug.Assert(typeSym IsNot Nothing)
 
             If Not typeSym.IsDefinition Then
                 ' All type argument must be accessible.
-                Dim typeArgs = typeSym.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                Dim typeArgs = typeSym.TypeArgumentsWithDefinitionUseSiteDiagnostics(useSiteInfo)
 
                 For i As Integer = 0 To typeArgs.Length - 1
                     ' type parameters are always accessible, so don't check those (so common it's
                     ' worth optimizing this).
                     If typeArgs(i).Kind <> SymbolKind.TypeParameter Then
-                        Dim result = CheckSymbolAccessibilityCore(typeArgs(i), within, Nothing, basesBeingResolved, useSiteDiagnostics)
+                        Dim result = CheckSymbolAccessibilityCore(typeArgs(i), within, Nothing, basesBeingResolved, useSiteInfo)
                         If result <> AccessCheckResult.Accessible Then
                             Return result
                         End If
@@ -165,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If containingType Is Nothing Then
                 Return CheckNonNestedTypeAccessibility(typeSym.ContainingAssembly, typeSym.DeclaredAccessibility, within)
             Else
-                Return CheckMemberAccessibility(typeSym.ContainingType, typeSym.DeclaredAccessibility, within, Nothing, basesBeingResolved, useSiteDiagnostics)
+                Return CheckMemberAccessibility(typeSym.ContainingType, typeSym.DeclaredAccessibility, within, Nothing, basesBeingResolved, useSiteInfo)
             End If
         End Function
 
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          within As Symbol,
                                                          throughTypeOpt As TypeSymbol,
                                                          basesBeingResolved As BasesBeingResolved,
-                                                         <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
+                                                         <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As AccessCheckResult
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
             Debug.Assert(containingType IsNot Nothing)
 
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim withinAssembly As AssemblySymbol = If(TryCast(within, AssemblySymbol), withinNamedType.ContainingAssembly)
 
             ' A member is only accessible to us if its containing type is accessible as well.
-            Dim result = CheckNamedTypeAccessibility(containingType, within, basesBeingResolved, useSiteDiagnostics)
+            Dim result = CheckNamedTypeAccessibility(containingType, within, basesBeingResolved, useSiteInfo)
             If result <> AccessCheckResult.Accessible Then
                 Return result
             End If
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     ' We had friend access.  Also have to make sure we have protected access.
-                    Return CheckProtectedSymbolAccessibility(within, throughTypeOpt, originalContainingType, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckProtectedSymbolAccessibility(within, throughTypeOpt, originalContainingType, basesBeingResolved, useSiteInfo)
 
                 Case Accessibility.ProtectedOrFriend
                     If HasFriendAccessTo(withinAssembly, containingType.ContainingAssembly) Then
@@ -262,10 +262,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' We don't have friend access.  But if we have protected access then that's
                     ' sufficient.
-                    Return CheckProtectedSymbolAccessibility(within, throughTypeOpt, originalContainingType, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckProtectedSymbolAccessibility(within, throughTypeOpt, originalContainingType, basesBeingResolved, useSiteInfo)
 
                 Case Accessibility.Protected
-                    Return CheckProtectedSymbolAccessibility(within, throughTypeOpt, originalContainingType, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckProtectedSymbolAccessibility(within, throughTypeOpt, originalContainingType, basesBeingResolved, useSiteInfo)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(declaredAccessibility)
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                   throughTypeOpt As TypeSymbol,
                                                                   originalContainingType As NamedTypeSymbol,
                                                                   basesBeingResolved As BasesBeingResolved,
-                                                                  <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As AccessCheckResult
+                                                                  <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As AccessCheckResult
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
 
             ' It is not an error to define protected member in a sealed Script class, it's just a
@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             While current IsNot Nothing
                 Debug.Assert(current.IsDefinition)
 
-                If InheritsFromOrImplementsIgnoringConstruction(current, originalContainingType, basesBeingResolved, useSiteDiagnostics) Then
+                If InheritsFromOrImplementsIgnoringConstruction(current, originalContainingType, basesBeingResolved, useSiteInfo) Then
                     ' Any protected instance members in or visible in the current context
                     ' through inheritance are accessible in the current context through an
                     ' instance of the current context or any type derived from the current
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '    End Sub
                     ' End Class
                     If originalThroughTypeOpt Is Nothing OrElse
-                       InheritsFromOrImplementsIgnoringConstruction(originalThroughTypeOpt, current, basesBeingResolved, useSiteDiagnostics) Then
+                       InheritsFromOrImplementsIgnoringConstruction(originalThroughTypeOpt, current, basesBeingResolved, useSiteInfo) Then
                         Return AccessCheckResult.Accessible
                     End If
 
@@ -409,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function InheritsFromOrImplementsIgnoringConstruction(derivedType As TypeSymbol,
                                                                              baseType As TypeSymbol,
                                                                              basesBeingResolved As BasesBeingResolved,
-                                                                             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
+                                                                             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As Boolean
             Debug.Assert(derivedType.IsDefinition)
             Debug.Assert(baseType.IsDefinition)
 
@@ -444,9 +444,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case TypeKind.Interface
                             current = Nothing
                         Case TypeKind.TypeParameter
-                            current = DirectCast(current, TypeParameterSymbol).GetClassConstraint(useSiteDiagnostics)
+                            current = DirectCast(current, TypeParameterSymbol).GetClassConstraint(useSiteInfo)
                         Case Else
-                            current = current.GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved, useSiteDiagnostics)
+                            current = current.GetDirectBaseTypeWithDefinitionUseSiteDiagnostics(basesBeingResolved, useSiteInfo)
                     End Select
 
                     ' NOTE: The base type of an 'original' type may not be 'original'. i.e. 
@@ -473,7 +473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If Not result Then
                     For Each candidate In interfacesLookedAt
-                        candidate.AddUseSiteDiagnostics(useSiteDiagnostics)
+                        candidate.AddUseSiteInfo(useSiteInfo)
                     Next
                 End If
             End If
@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             exposedThrough As Symbol,
             exposedType As TypeSymbol,
             ByRef illegalExposure As ArrayBuilder(Of AccessExposure),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             Dim typeArgumentsExposureIsLegal As Boolean = True
 
@@ -616,7 +616,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Do
                 If possiblyGeneric.Arity > 0 Then
                     For Each typeArgument In possiblyGeneric.TypeArgumentsNoUseSiteDiagnostics
-                        If Not VerifyAccessExposure(exposedThrough, typeArgument, illegalExposure, useSiteDiagnostics) Then
+                        If Not VerifyAccessExposure(exposedThrough, typeArgument, illegalExposure, useSiteInfo) Then
                             typeArgumentsExposureIsLegal = False
                         End If
                     Next
@@ -629,7 +629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' check the original definition of the type.
             Dim containerWithAccessError As NamespaceOrTypeSymbol = Nothing
 
-            If VerifyAccessExposure(exposedThrough, exposedNamedType.OriginalDefinition, containerWithAccessError, useSiteDiagnostics) Then
+            If VerifyAccessExposure(exposedThrough, exposedNamedType.OriginalDefinition, containerWithAccessError, useSiteInfo) Then
                 Return typeArgumentsExposureIsLegal
             End If
 
@@ -649,7 +649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             exposedThrough As Symbol,
             exposedType As NamedTypeSymbol,
             ByRef containerWithAccessError As NamespaceOrTypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
 
             containerWithAccessError = Nothing
@@ -667,11 +667,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return True
             End If
 
-            If Not VerifyAccessExposureWithinAssembly(exposedThrough, exposedType, containerWithAccessError, useSiteDiagnostics) Then
+            If Not VerifyAccessExposureWithinAssembly(exposedThrough, exposedType, containerWithAccessError, useSiteInfo) Then
                 Return False
             End If
 
-            Return VerifyAccessExposureOutsideAssembly(exposedThrough, exposedType, useSiteDiagnostics)
+            Return VerifyAccessExposureOutsideAssembly(exposedThrough, exposedType, useSiteInfo)
         End Function
 
         ''' <summary>
@@ -706,7 +706,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             exposedThrough As Symbol,
             exposedType As NamedTypeSymbol,
             ByRef containerWithAccessError As NamespaceOrTypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             Return VerifyAccessExposureHelper(
                         exposedThrough,
@@ -714,13 +714,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         containerWithAccessError,
                         Nothing,
                         isOutsideAssembly:=False,
-                        useSiteDiagnostics:=useSiteDiagnostics)
+                        useSiteInfo:=useSiteInfo)
         End Function
 
         Private Shared Function VerifyAccessExposureOutsideAssembly(
             exposedThrough As Symbol,
             exposedType As NamedTypeSymbol,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             Dim memberAccessOutsideAssembly As Accessibility = GetEffectiveAccessOutsideAssembly(exposedThrough)
 
@@ -756,7 +756,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Nothing,
                 typeSeenThroughInheritance,
                 isOutsideAssembly:=True,
-                useSiteDiagnostics:=useSiteDiagnostics)
+                useSiteInfo:=useSiteInfo)
 
             Return typeSeenThroughInheritance
         End Function
@@ -856,7 +856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ByRef containerWithAccessError As NamespaceOrTypeSymbol,
             ByRef seenThroughInheritance As Boolean,
             isOutsideAssembly As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             seenThroughInheritance = False
             Dim exposingType As NamedTypeSymbol = Nothing
@@ -882,7 +882,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parentOfExposingType As NamespaceOrTypeSymbol
 
             If membersAccessibilityInAssemblyContext <= Accessibility.Protected Then
-                If CanBeAccessedThroughInheritance(exposedType, exposingMember.ContainingType, isOutsideAssembly, useSiteDiagnostics) Then
+                If CanBeAccessedThroughInheritance(exposedType, exposingMember.ContainingType, isOutsideAssembly, useSiteInfo) Then
                     seenThroughInheritance = True
                     Return True
                 End If
@@ -894,7 +894,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          If(parentOfExposingType.IsNamespace,
                                             DirectCast(parentOfExposingType.ContainingAssembly, Symbol),
                                             parentOfExposingType), Nothing,
-                                        useSiteDiagnostics) <> AccessCheckResult.Accessible Then
+                                        useSiteInfo) <> AccessCheckResult.Accessible Then
                 containerWithAccessError = parentOfExposingType
                 Return False
             End If
@@ -913,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     containerWithAccessError,
                     seenThroughInheritance,
                     isOutsideAssembly,
-                    useSiteDiagnostics)
+                    useSiteInfo)
             End If
         End Function
 
@@ -924,7 +924,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             type As NamedTypeSymbol,
             container As NamedTypeSymbol,
             isOutsideAssembly As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         ) As Boolean
             If GetAccessInAssemblyContext(type, isOutsideAssembly) = Accessibility.Private Then
                 Return False
@@ -952,20 +952,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If containerOfType.IsInterfaceType() Then
-                For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
+                For Each iface In container.AllInterfacesWithDefinitionUseSiteDiagnostics(useSiteInfo)
                     If iface.OriginalDefinition.Equals(containerOfTypeDefinition) Then
                         Return True
                     End If
                 Next
             Else
-                Dim baseDefinition = container.BaseTypeOriginalDefinition(useSiteDiagnostics)
+                Dim baseDefinition = container.BaseTypeOriginalDefinition(useSiteInfo)
 
                 While baseDefinition IsNot Nothing
                     If baseDefinition.Equals(containerOfTypeDefinition) Then
                         Return True
                     End If
 
-                    baseDefinition = baseDefinition.BaseTypeOriginalDefinition(useSiteDiagnostics)
+                    baseDefinition = baseDefinition.BaseTypeOriginalDefinition(useSiteInfo)
                 End While
             End If
 
@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         containerOfType,
                                                         container,
                                                         isOutsideAssembly,
-                                                        useSiteDiagnostics)
+                                                        useSiteInfo)
             End If
 
             Return False
@@ -1034,16 +1034,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             classOrInterface As NamedTypeSymbol,
             baseClassSyntax As TypeSyntax,
             base As TypeSymbol,
-            diagBag As DiagnosticBag
+            diagBag As BindingDiagnosticBag
         ) As Boolean
             Debug.Assert(base.IsClassType() OrElse base.IsInterfaceType(), "Expected class or interface!!!")
 
             Dim illegalExposure As ArrayBuilder(Of AccessExposure) = Nothing
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, classOrInterface.ContainingAssembly)
 
-            VerifyAccessExposure(classOrInterface, base, illegalExposure, useSiteDiagnostics)
+            VerifyAccessExposure(classOrInterface, base, illegalExposure, useSiteInfo)
 
-            diagBag.Add(baseClassSyntax, useSiteDiagnostics)
+            diagBag.Add(baseClassSyntax, useSiteInfo)
 
             If illegalExposure IsNot Nothing Then
 
@@ -1111,14 +1111,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             paramName As String,
             errorLocation As VisualBasicSyntaxNode,
             TypeBehindParam As TypeSymbol,
-            diagBag As DiagnosticBag
+            diagBag As BindingDiagnosticBag
         )
             Dim illegalExposure As ArrayBuilder(Of AccessExposure) = Nothing
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, member.ContainingAssembly)
 
-            VerifyAccessExposure(member, TypeBehindParam, illegalExposure, useSiteDiagnostics)
+            VerifyAccessExposure(member, TypeBehindParam, illegalExposure, useSiteInfo)
 
-            diagBag.Add(errorLocation, useSiteDiagnostics)
+            diagBag.Add(errorLocation, useSiteInfo)
 
             If illegalExposure IsNot Nothing Then
                 Debug.Assert(illegalExposure.Count > 0)
@@ -1157,15 +1157,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             member As Symbol,
             errorLocation As SyntaxNodeOrToken,
             typeBehindMember As TypeSymbol,
-            diagBag As DiagnosticBag,
+            diagBag As BindingDiagnosticBag,
             Optional isDelegateFromImplements As Boolean = False
         )
             Dim illegalExposure As ArrayBuilder(Of AccessExposure) = Nothing
-            Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+            Dim useSiteInfo As New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, member.ContainingAssembly)
 
-            VerifyAccessExposure(member, typeBehindMember, illegalExposure, useSiteDiagnostics)
+            VerifyAccessExposure(member, typeBehindMember, illegalExposure, useSiteInfo)
 
-            diagBag.Add(errorLocation, useSiteDiagnostics)
+            diagBag.Add(errorLocation, useSiteInfo)
 
             If illegalExposure IsNot Nothing Then
                 Debug.Assert(illegalExposure.Count > 0)

@@ -2,13 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -46,6 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return SyntaxKind.CSngKeyword
                 Case specialType.System_Int16
                     Return SyntaxKind.CShortKeyword
+                Case SpecialType.System_String
+                    Return SyntaxKind.CStrKeyword
                 Case specialType.System_UInt32
                     Return SyntaxKind.CUIntKeyword
                 Case specialType.System_UInt64

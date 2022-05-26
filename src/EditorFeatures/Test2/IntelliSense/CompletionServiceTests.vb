@@ -2,10 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports System.Threading.Tasks
+Imports System.Composition
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 
@@ -22,14 +22,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Document>
                 </Project>
             </Workspace>
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(TestCompletionProvider))
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
+                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 1, "Completion list contained more than one item")
                 Assert.Equal("Completion Item From Test Completion Provider", list.Items.First.DisplayText)
@@ -49,15 +54,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 End Get
             End Property
 
-            Private Shared s_providers As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(New TestCompletionProvider())
-
-            Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
-                Return s_providers
+            Friend Overrides Function GetRules(options As CompletionOptions) As CompletionRules
+                Return CompletionRules.Default
             End Function
         End Class
 
+        <ExportCompletionProvider(NameOf(TestCompletionProvider), "NoCompilation")>
+        <[Shared]>
+        <PartNotDiscoverable>
         Private Class TestCompletionProvider
             Inherits CompletionProvider
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
 
             Public Overrides Function ShouldTriggerCompletion(text As SourceText, position As Int32, trigger As CompletionTrigger, options As OptionSet) As [Boolean]
                 Return True

@@ -2,35 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Composition;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        [ImportingConstructor]
-        public TrivialTemporaryStorageService()
+        public static readonly TrivialTemporaryStorageService Instance = new();
+
+        private TrivialTemporaryStorageService()
         {
         }
 
         public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
-        {
-            return new StreamStorage();
-        }
+            => new StreamStorage();
 
         public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
-        {
-            return new TextStorage();
-        }
+            => new TextStorage();
 
         private sealed class StreamStorage : ITemporaryStreamStorage
         {
@@ -44,38 +39,46 @@ namespace Microsoft.CodeAnalysis
 
             public Stream ReadStream(CancellationToken cancellationToken = default)
             {
-                if (_stream == null)
+                var stream = _stream;
+                if (stream is null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                _stream.Position = 0;
-                return _stream;
+                // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
+                // disposing the backing storage.
+                return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
             }
 
             public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
             {
-                if (_stream == null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                _stream.Position = 0;
-                return Task.FromResult((Stream)_stream);
+                return Task.FromResult(ReadStream(cancellationToken));
             }
 
             public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
+#if NETCOREAPP
+                await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
+# else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
-                _stream = newStream;
+#endif
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
         }
 
@@ -84,26 +87,24 @@ namespace Microsoft.CodeAnalysis
             private SourceText _sourceText;
 
             public void Dispose()
-            {
-                _sourceText = null;
-            }
+                => _sourceText = null;
 
             public SourceText ReadText(CancellationToken cancellationToken = default)
-            {
-                return _sourceText;
-            }
+                => _sourceText;
 
             public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
-            {
-                return Task.FromResult(ReadText(cancellationToken));
-            }
+                => Task.FromResult(ReadText(cancellationToken));
 
             public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {
                 // This is a trivial implementation, indeed. Note, however, that we retain a strong
                 // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
                 // is appropriate for this trivial implementation.
-                _sourceText = text;
+                var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)

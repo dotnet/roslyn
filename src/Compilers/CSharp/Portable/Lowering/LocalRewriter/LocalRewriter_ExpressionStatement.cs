@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return RewriteExpressionStatement(node) ?? BoundStatementList.Synthesized(node.Syntax);
         }
 
-        private BoundStatement RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
+        private BoundStatement? RewriteExpressionStatement(BoundExpressionStatement node, bool suppressInstrumentation = false)
         {
             var loweredExpression = VisitUnusedExpression(node.Expression);
 
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundExpression VisitUnusedExpression(BoundExpression expression)
+        private BoundExpression? VisitUnusedExpression(BoundExpression expression)
         {
             if (expression.HasErrors)
             {

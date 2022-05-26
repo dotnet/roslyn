@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics;
 
@@ -143,6 +141,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public void AddRange(SyntaxTokenList list, int offset, int length)
         {
+            Debug.Assert(list.Node is object);
             this.AddRange(new SyntaxList<SyntaxNode>(list.Node.CreateRed()), offset, length);
         }
 

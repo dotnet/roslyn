@@ -7,8 +7,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Metadata;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -251,8 +249,8 @@ namespace Microsoft.CodeAnalysis
                 return identity;
             }
 
-            Version newVersion = null;
-            ImmutableArray<byte> newPublicKeyToken = default(ImmutableArray<byte>);
+            Version? newVersion = null;
+            ImmutableArray<byte> newPublicKeyToken = default;
 
             var version = (AssemblyVersion)identity.Version;
             if (version >= new AssemblyVersion(2, 0, 0, 0) && version <= new AssemblyVersion(5, 9, 0, 0))

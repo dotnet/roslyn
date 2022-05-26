@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -61,14 +63,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         protected override EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<CodeParameter>(Parent);
-        }
+            => GetCollection<CodeParameter>(Parent);
 
         protected override string GetName()
-        {
-            return _name;
-        }
+            => _name;
 
         protected override string GetFullName()
         {
@@ -191,9 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         void IParameterKind.SetParameterPassingMode(PARAMETER_PASSING_MODE passingMode)
-        {
-            this.ParameterKind = this.CodeModelService.UpdateParameterKind(ParameterKind, passingMode);
-        }
+            => this.ParameterKind = this.CodeModelService.UpdateParameterKind(ParameterKind, passingMode);
 
         void IParameterKind.SetParameterArrayDimensions(int dimensions)
         {

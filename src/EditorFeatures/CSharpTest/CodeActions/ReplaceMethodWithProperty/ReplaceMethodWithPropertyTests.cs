@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,6 +18,44 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ReplaceMethodWithPropertyCodeRefactoringProvider();
+
+        private async Task TestWithAllCodeStyleOff(
+            string initialMarkup, string expectedMarkup,
+            ParseOptions? parseOptions = null, int index = 0)
+        {
+            await TestAsync(
+                initialMarkup, expectedMarkup, parseOptions,
+                index: index,
+                options: AllCodeStyleOff);
+        }
+
+        private OptionsCollection AllCodeStyleOff
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
+
+        private OptionsCollection PreferExpressionBodiedAccessors
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            };
+
+        private OptionsCollection PreferExpressionBodiedProperties
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+            };
+
+        private OptionsCollection PreferExpressionBodiedAccessorsAndProperties
+            => new(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement },
+            };
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
         public async Task TestMethodWithGetName()
@@ -1900,12 +1937,14 @@ options: PreferExpressionBodiedAccessorsAndProperties);
         get
         {
             throw e +
-   e;
+        e;
         }
     }
-}", options: OptionsSet(
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement),
-    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement)));
+}", options: new OptionsCollection(GetLanguage())
+    {
+        { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+        { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenOnSingleLineWithSilentEnforcement },
+    });
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -2207,30 +2246,427 @@ class C
 }", index: 1);
         }
 
-        private async Task TestWithAllCodeStyleOff(
-            string initialMarkup, string expectedMarkup,
-            ParseOptions parseOptions = null, int index = 0)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestAtStartOfMethod()
         {
-            await TestAsync(
-                initialMarkup, expectedMarkup, parseOptions,
-                index: index,
-                options: AllCodeStyleOff);
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    [||]int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
         }
 
-        private IDictionary<OptionKey, object> AllCodeStyleOff =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_OnSameLine()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+[||]    int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessors =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement));
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_OnPreviousLine()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    [||]
+    int GetGoo()
+    {
+    }
+}",
+@"class C
+{
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedAccessorsAndProperties =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement),
-                       SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotMultipleLinesPrior()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    [||]
+
+    int GetGoo()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotBeforeAttributes()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||][A]
+    int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    [A]
+    int Goo
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotBeforeComments()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    [||] /// <summary/>
+    int GetGoo()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestBeforeStartOfMethod_NotInComment()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    /// [||]<summary/>
+    int GetGoo()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42699, "https://github.com/dotnet/roslyn/issues/42699")]
+        public async Task TestSameNameMemberAsProperty()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Goo;
+    [||]int GetGoo()
+    {
+    }
+}",
+@"class C
+{
+    int Goo;
+    int Goo1
+    {
+        get
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        public async Task TestMethodWithTrivia_3()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    [||]int Goo() //Vital Comment
+    {
+      return 1;
+    }
+}",
+@"class C
+{
+    //Vital Comment
+    int Goo => 1;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        [WorkItem(42698, "https://github.com/dotnet/roslyn/issues/42698")]
+        public async Task TestMethodWithTrivia_4()
+        {
+            await TestWithAllCodeStyleOff(
+@"class C
+{
+    int [||]GetGoo()    // Goo
+    {
+    }
+    void SetGoo(int i)    // SetGoo
+    {
+    }
+}",
+@"class C
+{
+    // Goo
+    // SetGoo
+    int Goo
+    {
+        get
+        {
+        }
+
+        set
+        {
+        }
+    }
+}",
+index: 1);
+        }
+
+        [WorkItem(57769, "https://github.com/dotnet/roslyn/issues/57769")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestInLinkedFile()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    int [||]GetP();
+    bool M()
+    {
+        return GetP() == 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    int P { get; }
+
+    bool M()
+    {
+        return P == 0;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>");
+        }
+
+        [WorkItem(37991, "https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task AllowIfNestedNullableIsSame()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public void SetNames(IEnumerable<string?> names)
+    {
+        this.names = names;
+    }
+
+    public IEnumerable<string?> [||]GetNames()
+    {
+        return this.names.Where(n => n is object);
+    }
+}",
+@"
+#nullable enable
+
+using System.Linq;
+
+class C
+{
+    private IEnumerable<string?> names;
+
+    public IEnumerable<string?> Names { get => this.names.Where(n => n is object); set => this.names = value; }
+}", index: 1);
+        }
+
+        [WorkItem(37991, "https://github.com/dotnet/roslyn/issues/37991")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestGetSetWithGeneric()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> someTask;
+
+    public void SetSomeTask(Task<string> t)
+    {
+        this.someTask = t;
+    }
+
+    public Task<string> [||]GetSomeTask()
+    {
+        return this.someTask;
+    }
+}",
+@"
+using System.Threading.Tasks;
+
+class C
+{
+    private Task<string> someTask;
+
+    public Task<string> SomeTask { get => this.someTask; set => this.someTask = value; }
+}", index: 1);
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        if (/*test*/Value())
+        {
+        }
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        if (/*test*/Value)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        if (Value()/*test*/)
+        {
+        }
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        if (Value/*test*/)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = /*test*/Value;
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = /*test*/{|Conflict:Value|};
+    }
+}");
+        }
+
+        [WorkItem(40758, "https://github.com/dotnet/roslyn/issues/40758")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TestReferenceTrivia4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    static bool [||]Value() => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = Value/*test*/;
+    }
+}",
+@"class Class
+{
+    static bool Value => default;
+
+    static void Main()
+    {
+        var valueAsDelegate = {|Conflict:Value|}/*test*/;
+    }
+}");
+        }
     }
 }

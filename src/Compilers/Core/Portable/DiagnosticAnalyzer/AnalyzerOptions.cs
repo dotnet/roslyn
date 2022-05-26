@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerOptions(additionalFiles);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
             {

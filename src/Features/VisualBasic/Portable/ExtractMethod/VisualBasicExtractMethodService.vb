@@ -10,21 +10,23 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     <Export(GetType(IExtractMethodService)), ExportLanguageService(GetType(IExtractMethodService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicExtractMethodService
+    Friend NotInheritable Class VisualBasicExtractMethodService
         Inherits AbstractExtractMethodService(Of VisualBasicSelectionValidator, VisualBasicMethodExtractor, VisualBasicSelectionResult)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Protected Overrides Function CreateSelectionValidator(document As SemanticDocument,
                                                               textSpan As TextSpan,
-                                                              options As OptionSet) As VisualBasicSelectionValidator
+                                                              options As ExtractMethodOptions,
+                                                              localFunction As Boolean) As VisualBasicSelectionValidator
             Return New VisualBasicSelectionValidator(document, textSpan, options)
         End Function
 
-        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult, localFunction As Boolean) As VisualBasicMethodExtractor
-            Return New VisualBasicMethodExtractor(selectionResult)
+        Protected Overrides Function CreateMethodExtractor(selectionResult As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions, localFunction As Boolean) As VisualBasicMethodExtractor
+            Return New VisualBasicMethodExtractor(selectionResult, options)
         End Function
     End Class
 End Namespace

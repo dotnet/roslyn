@@ -183,13 +183,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' If we have already generated this helper method, possibly for another select case
             ' or on another thread, we don't need to regenerate it.
-            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics)
+            Dim privateImplClass = _emitModule.GetPrivateImplClass(node.Syntax, _diagnostics.DiagnosticBag)
             If privateImplClass.GetMethod(PrivateImplementationDetails.SynthesizedStringHashFunctionName) IsNot Nothing Then
                 Return
             End If
 
             Dim method = New SynthesizedStringSwitchHashMethod(_emitModule.SourceModule, privateImplClass)
-            privateImplClass.TryAddSynthesizedMethod(method)
+            privateImplClass.TryAddSynthesizedMethod(method.GetCciAdapter())
         End Sub
 
         Private Function RewriteSelectExpression(

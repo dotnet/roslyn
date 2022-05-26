@@ -10,12 +10,17 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Tags;
@@ -49,11 +54,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// may be less helpful than would be optimal. If two code actions that should be treated as distinct have
         /// equal <see cref="EquivalenceKey"/> values, Visual Studio behavior may appear incorrect.
         /// </remarks>
-        public virtual string EquivalenceKey => null;
+        public virtual string? EquivalenceKey => null;
 
         internal virtual bool IsInlinable => false;
 
-        internal virtual CodeActionPriority Priority => CodeActionPriority.Medium;
+        internal virtual CodeActionPriority Priority => CodeActionPriority.Default;
 
         /// <summary>
         /// Descriptive tags from <see cref="WellKnownTags"/>.
@@ -65,12 +70,56 @@ namespace Microsoft.CodeAnalysis.CodeActions
             => ImmutableArray<CodeAction>.Empty;
 
         /// <summary>
+        /// Gets custom tags for the CodeAction.
+        /// </summary>
+        internal ImmutableArray<string> CustomTags { get; private set; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Lazily set provider type that registered this code action.
+        /// Used for telemetry purposes only.
+        /// </summary>
+        private Type? _providerTypeForTelemetry;
+
+        /// <summary>
+        /// Used by the CodeFixService and CodeRefactoringService to add the Provider Name as a CustomTag.
+        /// </summary>
+        internal void AddCustomTagAndTelemetryInfo(CodeChangeProviderMetadata? providerMetadata, object provider)
+        {
+            Contract.ThrowIfFalse(provider is CodeFixProvider or CodeRefactoringProvider);
+
+            // Add the provider name to the parent CodeAction's CustomTags.
+            // Always add a name even in cases of 3rd party fixers/refactorings that do not export
+            // name metadata.
+            var tag = providerMetadata?.Name ?? provider.GetTypeDisplayName();
+            CustomTags = CustomTags.Add(tag);
+
+            // Set the provider type to use for logging telemetry.
+            _providerTypeForTelemetry = provider.GetType();
+        }
+
+        internal Guid GetTelemetryId(FixAllScope? fixAllScope = null)
+        {
+            // We need to identify the type name to use for CodeAction's telemetry ID.
+            // For code actions created from 'CodeAction.Create' factory methods,
+            // we use the provider type for telemetry.  For the rest of the code actions
+            // created by sub-typing CodeAction type, we use the code action type for telemetry.
+            // For the former case, if the provider type is not set, we fallback to the CodeAction type instead.
+            var isFactoryGenerated = this is SimpleCodeAction { CreatedFromFactoryMethod: true };
+            var type = isFactoryGenerated && _providerTypeForTelemetry != null
+                ? _providerTypeForTelemetry
+                : this.GetType();
+
+            // Additionally, we also add the equivalence key and fixAllScope ID (if non-null)
+            // to the telemetry ID.
+            var scope = fixAllScope?.GetScopeIdForTelemetry() ?? 0;
+            return type.GetTelemetryId(scope, EquivalenceKey);
+        }
+
+        /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
-        {
-            return GetOperationsAsync(new ProgressTracker(), cancellationToken);
-        }
+            => GetOperationsAsync(new ProgressTracker(), cancellationToken);
 
         internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
@@ -117,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
             var changedSolution = await GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
             if (changedSolution == null)
             {
-                return null;
+                return Array.Empty<CodeActionOperation>();
             }
 
             return new CodeActionOperation[] { new ApplyChangesOperation(changedSolution) };
@@ -135,15 +184,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
         protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            return ComputeOperationsAsync(cancellationToken);
-        }
+            => ComputeOperationsAsync(cancellationToken);
 
         /// <summary>
         /// Computes all changes for an entire solution.
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes more than one document.
         /// </summary>
-        protected async virtual Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+        protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (changedDocument == null)
@@ -154,25 +201,29 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return changedDocument.Project.Solution;
         }
 
-        internal virtual Task<Solution> GetChangedSolutionAsync(
+        internal virtual Task<Solution?> GetChangedSolutionAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             return GetChangedSolutionAsync(cancellationToken);
         }
 
         /// <summary>
-        /// Computes changes for a single document.
-        /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes a single document.
+        /// Computes changes for a single document. Override this method if you want to implement a
+        /// <see cref="CodeAction"/> subclass that changes a single document.
         /// </summary>
+        /// <remarks>
+        /// All code actions are expected to operate on solutions. This method is a helper to simplify the
+        /// implementation of <see cref="GetChangedSolutionAsync(CancellationToken)"/> for code actions that only need
+        /// to change one document.
+        /// </remarks>
+        /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotSupportedException(GetType().FullName);
 
         /// <summary>
         /// used by batch fixer engine to get new solution
         /// </summary>
-        internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default)
+        internal async Task<Solution?> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default)
         {
             var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)
@@ -184,9 +235,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         }
 
         internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
-        {
-            return GetChangedDocumentAsync(cancellation);
-        }
+            => GetChangedDocumentAsync(cancellation);
 
         /// <summary>
         /// Apply post processing steps to any <see cref="ApplyChangesOperation"/>'s.
@@ -232,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
                 foreach (var documentId in documentsToProcess)
                 {
-                    var document = processedSolution.GetDocument(documentId);
+                    var document = processedSolution.GetRequiredDocument(documentId);
                     var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
                     processedSolution = processedDocument.Project.Solution;
                 }
@@ -245,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
                 foreach (var documentId in documentsToProcess)
                 {
-                    var document = processedSolution.GetDocument(documentId);
+                    var document = processedSolution.GetRequiredDocument(documentId);
                     var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
                     processedSolution = processedDocument.Project.Solution;
                 }
@@ -262,42 +311,38 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="document">The document changed by the <see cref="CodeAction"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A document with the post processing changes applied.</returns>
-        protected virtual Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
-            => CleanupDocumentAsync(document, cancellationToken);
-
-        internal static async Task<Document> CleanupDocumentAsync(
-            Document document, CancellationToken cancellationToken)
+        protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
         {
             if (document.SupportsSyntaxTree)
             {
-                document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                // TODO: avoid ILegacyGlobalOptionsWorkspaceService https://github.com/dotnet/roslyn/issues/60777
+                var globalOptions = document.Project.Solution.Workspace.Services.GetService<ILegacyGlobalOptionsWorkspaceService>();
+                var fallbackOptions = globalOptions?.CleanCodeGenerationOptionsProvider ?? CodeActionOptions.DefaultProvider;
 
-                document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // format any node with explicit formatter annotation
-                document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // format any elastic whitespace
-                document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                return await CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
             }
 
             return document;
         }
 
-        internal virtual bool PerformFinalApplicabilityCheck => false;
-
-        /// <summary>
-        /// Called by the CodeActions on the UI thread to determine if the CodeAction is still
-        /// applicable and should be presented to the user.  CodeActions can override this if they
-        /// need to do any final checking that must be performed on the UI thread (for example
-        /// accessing and querying the Visual Studio DTE).
-        /// </summary>
-        internal virtual bool IsApplicable(Workspace workspace)
+        internal static async Task<Document> CleanupDocumentAsync(
+            Document document, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            return true;
+            document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
+                document, Simplifier.AddImportsAnnotation, options.AddImportOptions, cancellationToken).ConfigureAwait(false);
+
+            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, options.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+
+            // format any node with explicit formatter annotation
+            document = await Formatter.FormatAsync(document, Formatter.Annotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+
+            // format any elastic whitespace
+            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options.FormattingOptions, cancellationToken).ConfigureAwait(false);
+
+            document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
+
+            return document;
         }
 
         #region Factories for standard code actions
@@ -310,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="createChangedDocument">Function to create the <see cref="Document"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
         {
             if (title == null)
             {
@@ -322,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(createChangedDocument));
             }
 
-            return new DocumentChangeAction(title, createChangedDocument, equivalenceKey);
+            return DocumentChangeAction.Create(title, createChangedDocument, equivalenceKey);
         }
 
         /// <summary>
@@ -333,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="createChangedSolution">Function to create the <see cref="Solution"/>.</param>
         /// <param name="equivalenceKey">Optional value used to determine the equivalence of the <see cref="CodeAction"/> with other <see cref="CodeAction"/>s. See <see cref="CodeAction.EquivalenceKey"/>.</param>
         [SuppressMessage("ApiDesign", "RS0027:Public API with optional parameter(s) should have the most parameters amongst its public overloads.", Justification = "Preserving existing public API")]
-        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
         {
             if (title == null)
             {
@@ -345,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(createChangedSolution));
             }
 
-            return new SolutionChangeAction(title, createChangedSolution, equivalenceKey);
+            return SolutionChangeAction.Create(title, createChangedSolution, equivalenceKey);
         }
 
         /// <summary>
@@ -367,46 +412,89 @@ namespace Microsoft.CodeAnalysis.CodeActions
                 throw new ArgumentNullException(nameof(nestedActions));
             }
 
-            return new CodeActionWithNestedActions(title, nestedActions, isInlinable);
+            return CodeActionWithNestedActions.Create(title, nestedActions, isInlinable);
         }
+
+        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+            => DocumentChangeAction.Create(
+                title ?? throw new ArgumentNullException(nameof(title)),
+                createChangedDocument ?? throw new ArgumentNullException(nameof(createChangedDocument)),
+                equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
+                priority);
+
+        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
+            => SolutionChangeAction.Create(
+                title ?? throw new ArgumentNullException(nameof(title)),
+                createChangedSolution ?? throw new ArgumentNullException(nameof(createChangedSolution)),
+                equivalenceKey ?? throw new ArgumentNullException(nameof(equivalenceKey)),
+                priority);
+
+        internal static CodeAction CreateWithPriority(CodeActionPriority priority, string title, ImmutableArray<CodeAction> nestedActions, bool isInlinable)
+            => CodeActionWithNestedActions.Create(
+                title ?? throw new ArgumentNullException(nameof(title)), nestedActions, isInlinable, priority);
 
         internal abstract class SimpleCodeAction : CodeAction
         {
-            public SimpleCodeAction(string title, string equivalenceKey)
+            protected SimpleCodeAction(
+                string title,
+                string? equivalenceKey,
+                CodeActionPriority priority,
+                bool createdFromFactoryMethod)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
+                Priority = priority;
+                CreatedFromFactoryMethod = createdFromFactoryMethod;
             }
 
             public sealed override string Title { get; }
-            public sealed override string EquivalenceKey { get; }
+            public sealed override string? EquivalenceKey { get; }
+            internal sealed override CodeActionPriority Priority { get; }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            {
-                return Task.FromResult<Document>(null);
-            }
+            /// <summary>
+            /// Indicates if this CodeAction was created using one of the 'CodeAction.Create' factory methods.
+            /// This is used in <see cref="GetTelemetryId(FixAllScope?)"/> to determine the appropriate type
+            /// name to log in the CodeAction telemetry.
+            /// </summary>
+            public bool CreatedFromFactoryMethod { get; }
         }
 
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
-            public CodeActionWithNestedActions(
-                string title, ImmutableArray<CodeAction> nestedActions,
-                bool isInlinable, CodeActionPriority priority = CodeActionPriority.Medium)
-                : base(title, ComputeEquivalenceKey(nestedActions))
+            private CodeActionWithNestedActions(
+                string title,
+                ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable,
+                CodeActionPriority priority,
+                bool createdFromFactoryMethod)
+                : base(title, ComputeEquivalenceKey(nestedActions), priority, createdFromFactoryMethod)
             {
                 Debug.Assert(nestedActions.Length > 0);
                 NestedCodeActions = nestedActions;
                 IsInlinable = isInlinable;
-                Priority = priority;
             }
 
-            internal override CodeActionPriority Priority { get; }
+            protected CodeActionWithNestedActions(
+               string title,
+               ImmutableArray<CodeAction> nestedActions,
+               bool isInlinable,
+               CodeActionPriority priority = CodeActionPriority.Default)
+               : this(title, nestedActions, isInlinable, priority, createdFromFactoryMethod: false)
+            {
+            }
+
+            public static CodeActionWithNestedActions Create(
+               string title,
+               ImmutableArray<CodeAction> nestedActions,
+               bool isInlinable,
+               CodeActionPriority priority = CodeActionPriority.Default)
+                => new(title, nestedActions, isInlinable, priority, createdFromFactoryMethod: true);
 
             internal sealed override bool IsInlinable { get; }
 
             internal sealed override ImmutableArray<CodeAction> NestedCodeActions { get; }
 
-            private static string ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
+            private static string? ComputeEquivalenceKey(ImmutableArray<CodeAction> nestedActions)
             {
                 var equivalenceKey = StringBuilderPool.Allocate();
                 try
@@ -429,32 +517,91 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
-                : base(title, equivalenceKey)
+            private DocumentChangeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey,
+                CodeActionPriority priority,
+                bool createdFromFactoryMethod)
+                : base(title, equivalenceKey, priority, createdFromFactoryMethod)
             {
                 _createChangedDocument = createChangedDocument;
             }
 
-            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected DocumentChangeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey,
+                CodeActionPriority priority = CodeActionPriority.Default)
+                : this(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: false)
             {
-                return _createChangedDocument(cancellationToken);
             }
+
+            public static DocumentChangeAction Create(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey,
+                CodeActionPriority priority = CodeActionPriority.Default)
+                => new(title, createChangedDocument, equivalenceKey, priority, createdFromFactoryMethod: true);
+
+            protected sealed override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+                => _createChangedDocument(cancellationToken);
         }
 
         internal class SolutionChangeAction : SimpleCodeAction
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey = null)
-                : base(title, equivalenceKey)
+            private SolutionChangeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string? equivalenceKey,
+                CodeActionPriority priority,
+                bool createdFromFactoryMethod)
+                : base(title, equivalenceKey, priority, createdFromFactoryMethod)
             {
                 _createChangedSolution = createChangedSolution;
             }
 
-            protected override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+            protected SolutionChangeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string? equivalenceKey,
+                CodeActionPriority priority = CodeActionPriority.Default)
+                : this(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: false)
             {
-                return _createChangedSolution(cancellationToken);
             }
+
+            public static SolutionChangeAction Create(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string? equivalenceKey,
+                CodeActionPriority priority = CodeActionPriority.Default)
+                => new(title, createChangedSolution, equivalenceKey, priority, createdFromFactoryMethod: true);
+
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                => _createChangedSolution(cancellationToken).AsNullable();
+        }
+
+        internal sealed class NoChangeAction : SimpleCodeAction
+        {
+            private NoChangeAction(
+                string title,
+                string? equivalenceKey,
+                CodeActionPriority priority,
+                bool createdFromFactoryMethod)
+                : base(title, equivalenceKey, priority, createdFromFactoryMethod)
+            {
+            }
+
+            public static NoChangeAction Create(
+                string title,
+                string? equivalenceKey,
+                CodeActionPriority priority = CodeActionPriority.Default)
+                => new(title, equivalenceKey, priority, createdFromFactoryMethod: true);
+
+            protected sealed override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+                => SpecializedTasks.Null<Solution>();
         }
 
         #endregion

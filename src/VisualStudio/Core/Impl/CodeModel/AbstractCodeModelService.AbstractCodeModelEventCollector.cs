@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             protected readonly AbstractCodeModelService CodeModelService;
 
             protected AbstractCodeModelEventCollector(AbstractCodeModelService codeModelService)
-            {
-                this.CodeModelService = codeModelService;
-            }
+                => this.CodeModelService = codeModelService;
 
             protected abstract void CollectCore(SyntaxNode oldRoot, SyntaxNode newRoot, CodeModelEventQueue eventQueue);
 
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 if (oldCount == newCount)
                 {
-                    return FindDifferentChild(compare, oldChildren, newChildren, newNodeParent, eventType, eventQueue);
+                    return FindDifferentChild(compare, oldChildren, newChildren, newNodeParent, eventQueue);
                 }
                 else if (Math.Abs(oldCount - newCount) > MaxChildDelta)
                 {
@@ -74,11 +74,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 {
                     if (oldCount > newCount)
                     {
-                        FindRemovedChild(compare, oldChildren, newChildren, newNodeParent, eventType, oldCount - newCount, eventQueue);
+                        FindRemovedChild(compare, oldChildren, newChildren, newNodeParent, oldCount - newCount, eventQueue);
                     }
                     else
                     {
-                        FindAddedChild(compare, oldChildren, newChildren, newNodeParent, eventType, newCount - oldCount, eventQueue);
+                        FindAddedChild(compare, oldChildren, newChildren, newNodeParent, newCount - oldCount, eventQueue);
                     }
                 }
 
@@ -135,7 +135,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 IReadOnlyList<TNode> oldChildren,
                 IReadOnlyList<TNode> newChildren,
                 TParent newNodeParent,
-                CodeModelEventType codeModelEventType,
                 CodeModelEventQueue eventQueue)
                 where TNode : SyntaxNode
                 where TParent : SyntaxNode
@@ -188,7 +187,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 IReadOnlyList<TNode> oldChildren,
                 IReadOnlyList<TNode> newChildren,
                 TParent newNodeParent,
-                CodeModelEventType codeModelEventType,
                 int delta,
                 CodeModelEventQueue eventQueue)
                 where TNode : SyntaxNode
@@ -240,7 +238,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 IReadOnlyList<TNode> oldChildren,
                 IReadOnlyList<TNode> newChildren,
                 TParent newNodeParent,
-                CodeModelEventType codeModelEventType,
                 int delta,
                 CodeModelEventQueue eventQueue)
                 where TNode : SyntaxNode

@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class ProjectInfoTests
     {
         [Fact]
-        public void Create_Errors()
+        public void Create_Errors_NullReferences()
         {
             var pid = ProjectId.CreateNewId();
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(id: null, version: VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#"));
@@ -25,18 +26,43 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 documents: new DocumentInfo[] { null }));
+        }
+
+        [Fact]
+        public void Create_Errors_DuplicateItems()
+        {
+            var pid = ProjectId.CreateNewId();
+
+            var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "doc");
+            Assert.Throws<ArgumentException>("documents[1]",
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", documents: new[] { documentInfo, documentInfo }));
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 additionalDocuments: new DocumentInfo[] { null }));
 
+            Assert.Throws<ArgumentException>("additionalDocuments[1]",
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", additionalDocuments: new[] { documentInfo, documentInfo }));
+
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 projectReferences: new ProjectReference[] { null }));
 
-            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
+            var projectReference = new ProjectReference(ProjectId.CreateNewId());
+            Assert.Throws<ArgumentException>("projectReferences[1]",
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", projectReferences: new[] { projectReference, projectReference }));
+
+            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 analyzerReferences: new AnalyzerReference[] { null }));
+
+            var analyzerReference = new TestAnalyzerReference();
+            Assert.Throws<ArgumentException>("analyzerReferences[1]",
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", analyzerReferences: new[] { analyzerReference, analyzerReference }));
 
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Goo", assemblyName: "Bar", language: "C#",
                 metadataReferences: new MetadataReference[] { null }));
+
+            var metadataReference = new TestMetadataReference();
+            Assert.Throws<ArgumentException>("metadataReferences[1]",
+                () => ProjectInfo.Create(pid, VersionStamp.Default, "proj", "assembly", "C#", metadataReferences: new[] { metadataReference, metadataReference }));
         }
 
         [Fact]
@@ -161,16 +187,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithFilePath(value), opt => opt.FilePath, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithOutputFilePath(value), opt => opt.OutputFilePath, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithOutputRefFilePath(value), opt => opt.OutputRefFilePath, "New");
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithCompilationOutputInfo(value), opt => opt.CompilationOutputInfo, new CompilationOutputInfo("NewPath"));
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithDefaultNamespace(value), opt => opt.DefaultNamespace, "New");
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithHasAllInformation(value), opt => opt.HasAllInformation, true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithRunAnalyzers(value), opt => opt.RunAnalyzers, true);
 
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithDocuments(value), opt => opt.Documents, documentInfo);
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAdditionalDocuments(value), opt => opt.AdditionalDocuments, documentInfo);
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAnalyzerConfigDocuments(value), opt => opt.AnalyzerConfigDocuments, documentInfo);
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAnalyzerReferences(value), opt => opt.AnalyzerReferences, (AnalyzerReference)new TestAnalyzerReference());
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithMetadataReferences(value), opt => opt.MetadataReferences, (MetadataReference)new TestMetadataReference());
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithProjectReferences(value), opt => opt.ProjectReferences, new ProjectReference(projectId));
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithDocuments(value), opt => opt.Documents, documentInfo, allowDuplicates: false);
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAdditionalDocuments(value), opt => opt.AdditionalDocuments, documentInfo, allowDuplicates: false);
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAnalyzerConfigDocuments(value), opt => opt.AnalyzerConfigDocuments, documentInfo, allowDuplicates: false);
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithAnalyzerReferences(value), opt => opt.AnalyzerReferences, (AnalyzerReference)new TestAnalyzerReference(), allowDuplicates: false);
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithMetadataReferences(value), opt => opt.MetadataReferences, (MetadataReference)new TestMetadataReference(), allowDuplicates: false);
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithProjectReferences(value), opt => opt.ProjectReferences, new ProjectReference(projectId), allowDuplicates: false);
         }
     }
 }

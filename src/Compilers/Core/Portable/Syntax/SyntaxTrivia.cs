@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -15,8 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Represents a trivia in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxTrivia"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxTrivia"/>.
+    /// Represents a trivia in the syntax tree.
     /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines whether this trivia has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return UnderlyingNode?.HasAnnotation(annotation) ?? false;
         }
@@ -209,6 +207,12 @@ namespace Microsoft.CodeAnalysis
         public SyntaxNode? GetStructure()
         {
             return HasStructure ? UnderlyingNode!.GetStructure(this) : null;
+        }
+
+        internal bool TryGetStructure([NotNullWhen(true)] out SyntaxNode? structure)
+        {
+            structure = GetStructure();
+            return structure is object;
         }
 
         /// <summary> 

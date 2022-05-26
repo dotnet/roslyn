@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly MethodSymbol _topLevelMethod;
 
-        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod)
-            : base(name, topLevelMethod)
+        internal DynamicSiteContainer(string name, MethodSymbol topLevelMethod, MethodSymbol containingMethod)
+            : base(name, containingMethod)
         {
             Debug.Assert(topLevelMethod != null);
             _topLevelMethod = topLevelMethod;
@@ -35,6 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { throw ExceptionUtilities.Unreachable; }
         }
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {

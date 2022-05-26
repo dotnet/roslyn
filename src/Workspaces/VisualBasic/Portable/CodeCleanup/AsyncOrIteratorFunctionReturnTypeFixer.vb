@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup
@@ -103,6 +102,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                     Return True
                 End If
             End If
+
             Return False
         End Function
 
@@ -142,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                     End Select
                 End If
             End If
+
             Return False
         End Function
 

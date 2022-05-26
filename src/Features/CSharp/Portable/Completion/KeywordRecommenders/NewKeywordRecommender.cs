@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,12 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsStatementContext ||
                 context.IsGlobalStatementContext ||
                 IsMemberDeclarationContext(context, cancellationToken) ||
-                IsTypeDeclarationContext(context, cancellationToken);
+                IsTypeDeclarationContext(context, cancellationToken) ||
+                context.LeftToken.IsInCastExpressionTypeWhereExpressionIsMissingOrInNextLine();
         }
 
-        private bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsTypeDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            if (context.IsTypeDeclarationContext(validModifiers: ValidTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
+            if (context.IsTypeDeclarationContext(validModifiers: ValidTypeModifiers, validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken))
             {
                 // we must be on a nested type.
                 var token = context.LeftToken;
@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
+        private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
+                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
         }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             var token = context.TargetToken;
 
             if (token.Kind() == SyntaxKind.CommaToken &&
-                token.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause, out TypeParameterConstraintClauseSyntax constraintClause))
+                token.Parent.IsKind<TypeParameterConstraintClauseSyntax>(SyntaxKind.TypeParameterConstraintClause, out var constraintClause))
             {
                 if (!constraintClause.Constraints
                         .OfType<ClassOrStructConstraintSyntax>()

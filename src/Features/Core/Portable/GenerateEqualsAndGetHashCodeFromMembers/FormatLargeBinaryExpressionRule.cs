@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
@@ -20,22 +19,20 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly ISyntaxFactsService _syntaxFacts;
 
             public FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts)
-            {
-                _syntaxFacts = syntaxFacts;
-            }
+                => _syntaxFacts = syntaxFacts;
 
             /// <summary>
             /// Wrap the large &amp;&amp; expression after every &amp;&amp; token.
             /// </summary>
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-                SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
+                in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (_syntaxFacts.IsLogicalAndExpression(previousToken.Parent))
                 {
                     return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
 
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             /// <summary>
@@ -47,7 +44,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ///        ...
             /// </summary>
             public override void AddIndentBlockOperations(
-                List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+                List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
             {
                 if (_syntaxFacts.IsReturnStatement(node))
                 {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -35,20 +37,50 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             => _implementation.DocumentResetAsync(document, cancellationToken);
 
+        public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             => _implementation.NeedsReanalysisOnOptionChanged(sender, new UnitTestingOptionChangedEventArgsWrapper(e));
 
         public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             => _implementation.NewSolutionSnapshotAsync(solution, cancellationToken);
 
-        public void RemoveDocument(DocumentId documentId)
-            => _implementation.RemoveDocument(documentId);
+        public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
+        {
+            _implementation.RemoveDocument(documentId);
+            return Task.CompletedTask;
+        }
 
-        public void RemoveProject(ProjectId projectId)
-            => _implementation.RemoveProject(projectId);
+        public Task RemoveProjectAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            _implementation.RemoveProject(projectId);
+            return Task.CompletedTask;
+        }
+
+        public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public Task NonSourceDocumentCloseAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public Task NonSourceDocumentResetAsync(TextDocument textDocument, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public Task AnalyzeNonSourceDocumentAsync(TextDocument textDocument, InvocationReasons reasons, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        public void LogAnalyzerCountSummary()
+        {
+        }
+
+        /// <summary>
+        /// Order all incremental analyzers below DiagnosticIncrementalAnalyzer
+        /// </summary>
+        public int Priority => 1;
 
         // Unit testing incremental analyzer only supports full solution analysis scope.
         // In future, we should add a separate option to allow users to configure background analysis scope for unit testing.
-        public BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
+        public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet _) => BackgroundAnalysisScope.FullSolution;
     }
 }

@@ -13,7 +13,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
         Public Overrides Function VisitNullableIsTrueOperator(node As BoundNullableIsTrueOperator) As BoundNode
             Debug.Assert(node.Operand.Type.IsNullableOfBoolean())
 
@@ -30,17 +30,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If HasNoValue(operand) Then
                 Return New BoundLiteral(node.Syntax, ConstantValue.False, node.Type)
-            End If
-
-            Dim whenNotNull As BoundExpression = Nothing
-            Dim whenNull As BoundExpression = Nothing
-            If IsConditionalAccess(operand, whenNotNull, whenNull) Then
-                If HasNoValue(whenNull) Then
-                    Debug.Assert(Not HasNoValue(whenNotNull))
-                    Return UpdateConditionalAccess(operand,
-                                              NullableValueOrDefault(whenNotNull),
-                                              New BoundLiteral(node.Syntax, ConstantValue.False, node.Type))
-                End If
             End If
 
             Return NullableValueOrDefault(operand)

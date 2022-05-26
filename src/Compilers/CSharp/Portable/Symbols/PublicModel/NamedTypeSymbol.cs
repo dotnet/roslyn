@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -192,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool INamedTypeSymbol.IsSerializable => UnderlyingNamedTypeSymbol.IsSerializable;
 
+        INamedTypeSymbol INamedTypeSymbol.NativeIntegerUnderlyingType => UnderlyingNamedTypeSymbol.NativeIntegerUnderlyingType.GetPublicSymbol();
+
         #region ISymbol Members
 
         protected sealed override void Accept(SymbolVisitor visitor)
@@ -202,6 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected sealed override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitNamedType(this);
+        }
+
+        protected sealed override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNamedType(this, argument);
         }
 
         #endregion

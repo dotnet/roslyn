@@ -1,10 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
     internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
     {
-        public static readonly NameSimplifier Instance = new NameSimplifier();
+        public static readonly NameSimplifier Instance = new();
 
         private NameSimplifier()
         {
@@ -30,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         public override bool TrySimplify(
             NameSyntax name,
             SemanticModel semanticModel,
-            OptionSet optionSet,
+            CSharpSimplifierOptions options,
             out TypeSyntax replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                     name, replacementNode, semanticModel, cancellationToken);
             }
 
-            if (!(symbol is INamespaceOrTypeSymbol))
+            if (symbol is not INamespaceOrTypeSymbol)
             {
                 return false;
             }
@@ -234,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         // Don't simplify to predefined type if name is part of a QualifiedName.
                         // QualifiedNames can't contain PredefinedTypeNames (although MemberAccessExpressions can).
                         // In other words, the left side of a QualifiedName can't be a PredefinedTypeName.
-                        var inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel);
-                        var inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel);
+                        var inDeclarationContext = PreferPredefinedTypeKeywordInDeclarations(name, options, semanticModel);
+                        var inMemberAccessContext = PreferPredefinedTypeKeywordInMemberAccess(name, options, semanticModel);
 
                         if (!name.Parent.IsKind(SyntaxKind.QualifiedName) && (inDeclarationContext || inMemberAccessContext))
                         {
@@ -243,8 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                             // If not, we'll still fall through and see if we can convert it to Int32.
 
                             var codeStyleOptionName = inDeclarationContext
-                                ? nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
-                                : nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
+                                ? nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)
+                                : nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess);
 
                             var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)
@@ -480,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             out TextSpan issueSpan)
         {
             issueSpan = default;
-            replacementNode = default;
+            replacementNode = null;
 
             // we can try to remove the Attribute suffix if this is the attribute name
             if (SyntaxFacts.IsAttributeName(name))
@@ -546,7 +549,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
                         break;
 
                     case SyntaxKind.NamespaceDeclaration:
-                        var namespaceDeclaration = (NamespaceDeclarationSyntax)parent;
+                    case SyntaxKind.FileScopedNamespaceDeclaration:
+                        var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)parent;
                         return object.Equals(namespaceDeclaration.Name, node);
 
                     default:
@@ -709,12 +713,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
             return false;
         }
 
-        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, OptionSet optionSet, SemanticModel semanticModel)
+        private static bool PreferPredefinedTypeKeywordInDeclarations(NameSyntax name, CSharpSimplifierOptions options, SemanticModel semanticModel)
         {
             return !name.IsDirectChildOfMemberAccessExpression() &&
                    !name.InsideCrefReference() &&
                    !InsideNameOfExpression(name, semanticModel) &&
-                   SimplificationHelpers.PreferPredefinedTypeKeywordInDeclarations(optionSet, semanticModel.Language);
+                   options.PreferPredefinedTypeKeywordInDeclaration.Value;
         }
     }
 }

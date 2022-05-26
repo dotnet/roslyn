@@ -4,8 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -13,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class EventDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<EventDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             EventDeclarationSyntax eventDeclaration,
-            ArrayBuilder<BlockSpan> spans,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(eventDeclaration, spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(eventDeclaration, ref spans, options);
 
             // fault tolerance
             if (eventDeclaration.AccessorList == null ||
@@ -29,9 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 return;
             }
 
+            SyntaxNodeOrToken current = eventDeclaration;
+            var nextSibling = current.GetNextSibling();
+
+            // Check IsNode to compress blank lines after this node if it is the last child of the parent.
+            //
+            // Full events are grouped together with event field definitions in Metadata as Source.
+            var compressEmptyLines = options.IsMetadataAsSource
+                && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.EventDeclaration) || nextSibling.IsKind(SyntaxKind.EventFieldDeclaration));
+
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
                 eventDeclaration,
                 eventDeclaration.Identifier,
+                compressEmptyLines: compressEmptyLines,
                 autoCollapse: true,
                 type: BlockTypes.Member,
                 isCollapsible: true));

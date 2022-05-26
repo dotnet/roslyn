@@ -5,19 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -27,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             private readonly ComplexTrivia _original;
 
-            public ModifiedComplexTrivia(OptionSet optionSet, ComplexTrivia original, int lineBreaks, int space)
-                : base(optionSet, original.Token1.Language)
+            public ModifiedComplexTrivia(SyntaxFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
+                : base(options, original.Token1.Language)
             {
                 Contract.ThrowIfNull(original);
 
@@ -59,9 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                return _original.WithSpace(space, context, formattingRules);
-            }
+                => _original.WithSpace(space, context, formattingRules);
 
             public override TriviaData WithLine(
                 int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
@@ -109,15 +98,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                         cancellationToken));
             }
 
-            public override List<SyntaxTrivia> GetTriviaList(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+            public override SyntaxTriviaList GetTriviaList(CancellationToken cancellationToken)
+                => throw new NotImplementedException();
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan span)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
         }
     }
 }

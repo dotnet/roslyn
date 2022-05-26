@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -48,20 +49,50 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             /// </summary>
             private readonly SyntaxTrivia _singleIndentationTrivia;
 
+            /// <summary>
+            /// Indentation to use when placing brace.  e.g.:
+            /// 
+            ///     var v = new List {
+            ///     ^
+            ///     |
+            /// </summary>
+            private readonly SyntaxTrivia _braceIndentationTrivia;
+
+            /// <summary>
+            /// Whether or not we should move the open brace of this separated list to a new line.  Many separated lists
+            /// will never move the brace (like a parameter list).  And some separated lists may move the brace
+            /// depending on if a particular option is set (like the collection initializer brace in C#).
+            /// </summary>
+            private readonly bool _shouldMoveOpenBraceToNewLine;
+
+            /// <summary>
+            /// Whether or not we should move the close brace of this separated list to a new line.  Some lists will
+            /// never move the close brace (like a parameter list), while some will always move it (like a collection
+            /// initializer in both C# or VB).
+            /// </summary>
+            private readonly bool _shouldMoveCloseBraceToNewLine;
+
             public SeparatedSyntaxListCodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
-                Document document, SourceText sourceText, DocumentOptionSet options,
-                TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems,
+                Document document,
+                SourceText sourceText,
+                SyntaxWrappingOptions options,
+                TListSyntax listSyntax,
+                SeparatedSyntaxList<TListItemSyntax> listItems,
                 CancellationToken cancellationToken)
                 : base(service, document, sourceText, options, cancellationToken)
             {
                 _listSyntax = listSyntax;
                 _listItems = listItems;
 
-                var generator = SyntaxGenerator.GetGenerator(this.OriginalDocument);
+                _shouldMoveOpenBraceToNewLine = service.ShouldMoveOpenBraceToNewLine(options);
+                _shouldMoveCloseBraceToNewLine = service.ShouldMoveCloseBraceToNewLine;
+
+                var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
+                _braceIndentationTrivia = generator.Whitespace(GetBraceTokenIndentation());
             }
 
             private void AddTextChangeBetweenOpenAndFirstItem(
@@ -77,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var openToken = _listSyntax.GetFirstToken();
                 var afterOpenTokenOffset = OriginalSourceText.GetOffset(openToken.Span.End);
 
-                var indentString = afterOpenTokenOffset.CreateIndentationString(UseTabs, TabSize);
+                var indentString = afterOpenTokenOffset.CreateIndentationString(Options.FormattingOptions.UseTabs, Options.FormattingOptions.TabSize);
                 return indentString;
             }
 
@@ -98,11 +129,19 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     : _singleIndentationTrivia;
             }
 
+            private string GetBraceTokenIndentation()
+            {
+                var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
+
+                // Block indentation is the only style that correctly indents across all initializer expressions
+                return GetIndentationAfter(previousToken, FormattingOptions2.IndentStyle.Block);
+            }
+
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                var result = ArrayBuilder<WrappingGroup>.GetInstance();
+                using var _ = ArrayBuilder<WrappingGroup>.GetInstance(out var result);
                 await AddWrappingGroupsAsync(result).ConfigureAwait(false);
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
@@ -116,20 +155,23 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             private async Task<WrappingGroup> GetUnwrapGroupAsync()
             {
-                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var unwrapActions);
 
                 var parentTitle = Wrapper.Unwrap_list;
 
                 // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
-                // MethodName(
-                //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_UnwrapGroup_WrapFirst_IndentRest)
+                {
+                    // MethodName(
+                    //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                    unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+                }
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
             }
 
             private async Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
@@ -144,7 +186,10 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             private ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+
+                if (_shouldMoveOpenBraceToNewLine)
+                    result.Add(Edit.DeleteBetween(_listSyntax.GetFirstToken().GetPreviousToken(), _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -154,8 +199,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     result.Add(Edit.DeleteBetween(comma, comma.GetNextToken()));
                 }
 
-                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
-                return result.ToImmutableAndFree();
+                var last = _listItems.GetWithSeparators().Last();
+                if (last.IsNode)
+                    result.Add(Edit.DeleteBetween(last, _listSyntax.GetLastToken()));
+
+                return result.ToImmutable();
             }
 
             #endregion
@@ -165,14 +213,17 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_long_list;
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
-                // MethodName(int a, int b, int c,
-                //            int d, int e, int f,
-                //            int g, int h, int i,
-                //            int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
+                {
+                    // MethodName(int a, int b, int c,
+                    //            int d, int e, int f,
+                    //            int g, int h, int i,
+                    //            int j)
+                    codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                }
 
                 // MethodName(
                 //     int a, int b, int c, int d, int e,
@@ -180,11 +231,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
-                // MethodName(int a, int b, int c, 
-                //     int d, int e, int f, int g,
-                //     int h, int i, int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
+                {
+                    // MethodName(int a, int b, int c, 
+                    //     int d, int e, int f, int g,
+                    //     int h, int i, int j)
+                    codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                }
 
                 // The wrap-all and wrap-long code action titles are not unique.  i.e. we show them
                 // as:
@@ -198,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // We can't in-line these nested actions because the parent title is necessary to
                 // determine which situation each child action applies to.
 
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
             private async Task<WrapItemsAction> GetWrapLongLineCodeActionAsync(
@@ -215,7 +269,10 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private ImmutableArray<Edit> GetWrapLongLinesEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+
+                if (_shouldMoveOpenBraceToNewLine)
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -226,14 +283,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 for (var i = 0; i < itemsAndSeparators.Count; i += 2)
                 {
-                    var item = itemsAndSeparators[i].AsNode();
+                    var item = itemsAndSeparators[i].AsNode()!;
 
                     // Figure out where we'd be after this item.
                     currentOffset += item.Span.Length;
 
                     if (i > 0)
                     {
-                        if (currentOffset < WrappingColumn)
+                        if (currentOffset < Options.WrappingColumn)
                         {
                             // this item would not make us go pass our preferred wrapping column. So
                             // keep it on this line, making sure there's a space between the previous
@@ -250,15 +307,26 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                         }
                     }
 
-                    // Get rid of any spaces between the list item and the following token (a
-                    // comma or close token).
-                    var nextToken = item.GetLastToken().GetNextToken();
-
-                    result.Add(Edit.DeleteBetween(item, nextToken));
-                    currentOffset += nextToken.Span.Length;
+                    // Get rid of any spaces between the list item and the following comma token
+                    if (i + 1 < itemsAndSeparators.Count)
+                    {
+                        var comma = itemsAndSeparators[i + 1];
+                        Contract.ThrowIfFalse(comma.IsToken);
+                        result.Add(Edit.DeleteBetween(item, comma));
+                        currentOffset += comma.Span.Length;
+                    }
                 }
 
-                return result.ToImmutableAndFree();
+                if (this.Wrapper.ShouldMoveCloseBraceToNewLine)
+                {
+                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                }
+                else
+                {
+                    result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
+                }
+
+                return result.ToImmutable();
             }
 
             #endregion
@@ -269,14 +337,17 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 var parentTitle = Wrapper.Wrap_every_item;
 
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
-                // MethodName(int a,
-                //            int b,
-                //            ...
-                //            int j);
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
+                {
+                    // MethodName(int a,
+                    //            int b,
+                    //            ...
+                    //            int j);
+                    codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                }
 
                 // MethodName(
                 //     int a,
@@ -286,16 +357,19 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
-                // MethodName(int a,
-                //     int b,
-                //     ...
-                //     int j)
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
+                {
+                    // MethodName(int a,
+                    //     int b,
+                    //     ...
+                    //     int j)
+                    codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                        parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                }
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
                 // not inlinable.
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
             private async Task<WrapItemsAction> GetWrapEveryNestedCodeActionAsync(
@@ -321,31 +395,41 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+
+                if (_shouldMoveOpenBraceToNewLine)
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
                 var itemsAndSeparators = _listItems.GetWithSeparators();
 
-                for (var i = 0; i < itemsAndSeparators.Count; i += 2)
+                for (var i = 1; i < itemsAndSeparators.Count; i += 2)
                 {
-                    var item = itemsAndSeparators[i].AsNode();
+                    var comma = itemsAndSeparators[i].AsToken();
+
+                    var item = itemsAndSeparators[i - 1];
+                    result.Add(Edit.DeleteBetween(item, comma));
+
                     if (i < itemsAndSeparators.Count - 1)
                     {
-                        // intermediary item
-                        var comma = itemsAndSeparators[i + 1].AsToken();
-                        result.Add(Edit.DeleteBetween(item, comma));
-
                         // Always wrap between this comma and the next item.
                         result.Add(Edit.UpdateBetween(
-                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 2]));
+                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 1]));
                     }
                 }
 
-                // last item.  Delete whatever is between it and the close token of the list.
-                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                if (_shouldMoveCloseBraceToNewLine)
+                {
+                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                }
+                else
+                {
+                    // last item.  Delete whatever is between it and the close token of the list.
+                    result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
+                }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             #endregion

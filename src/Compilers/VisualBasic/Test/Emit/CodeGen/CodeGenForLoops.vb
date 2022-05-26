@@ -328,7 +328,7 @@ End Class
 
         End Sub
 
-        <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/metadata-tools/issues/30")>
+        <Fact()>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub ForLoopStepIsFloatNegativeVar()
             Dim TEMP = CompileAndVerify(
@@ -340,7 +340,7 @@ Public Class MyClass1
         Dim s As Double = -1.1
 
         For i As Double = 2 To 0 Step s
-            System.Console.WriteLine(i.ToString(System.Globalization.CultureInfo.InvariantCulture))
+            System.Console.WriteLine(i.ToString("G15", System.Globalization.CultureInfo.InvariantCulture))
         Next
 
     End Sub
@@ -351,11 +351,11 @@ End Class
 0.9
 ]]>).VerifyIL("MyClass1.Main", <![CDATA[
 {
-  // Code size       97 (0x61)
-  .maxstack  2
+  // Code size      102 (0x66)
+  .maxstack  3
   .locals init (Double V_0,
-  Boolean V_1,
-  Double V_2) //i
+                Boolean V_1,
+                Double V_2) //i
   IL_0000:  ldc.r8     -1.1
   IL_0009:  stloc.0
   IL_000a:  ldloc.0
@@ -366,30 +366,31 @@ End Class
   IL_0019:  stloc.1
   IL_001a:  ldc.r8     2
   IL_0023:  stloc.2
-  IL_0024:  br.s       IL_003b
+  IL_0024:  br.s       IL_0040
   IL_0026:  ldloca.s   V_2
-  IL_0028:  call       "Function System.Globalization.CultureInfo.get_InvariantCulture() As System.Globalization.CultureInfo"
-  IL_002d:  call       "Function Double.ToString(System.IFormatProvider) As String"
-  IL_0032:  call       "Sub System.Console.WriteLine(String)"
-  IL_0037:  ldloc.2
-  IL_0038:  ldloc.0
-  IL_0039:  add
-  IL_003a:  stloc.2
-  IL_003b:  ldloc.1
-  IL_003c:  brtrue.s   IL_004f
-  IL_003e:  ldloc.2
-  IL_003f:  ldc.r8     0
-  IL_0048:  clt.un
-  IL_004a:  ldc.i4.0
-  IL_004b:  ceq
-  IL_004d:  br.s       IL_005e
-  IL_004f:  ldloc.2
-  IL_0050:  ldc.r8     0
-  IL_0059:  cgt.un
-  IL_005b:  ldc.i4.0
-  IL_005c:  ceq
-  IL_005e:  brtrue.s   IL_0026
-  IL_0060:  ret
+  IL_0028:  ldstr      "G15"
+  IL_002d:  call       "Function System.Globalization.CultureInfo.get_InvariantCulture() As System.Globalization.CultureInfo"
+  IL_0032:  call       "Function Double.ToString(String, System.IFormatProvider) As String"
+  IL_0037:  call       "Sub System.Console.WriteLine(String)"
+  IL_003c:  ldloc.2
+  IL_003d:  ldloc.0
+  IL_003e:  add
+  IL_003f:  stloc.2
+  IL_0040:  ldloc.1
+  IL_0041:  brtrue.s   IL_0054
+  IL_0043:  ldloc.2
+  IL_0044:  ldc.r8     0
+  IL_004d:  clt.un
+  IL_004f:  ldc.i4.0
+  IL_0050:  ceq
+  IL_0052:  br.s       IL_0063
+  IL_0054:  ldloc.2
+  IL_0055:  ldc.r8     0
+  IL_005e:  cgt.un
+  IL_0060:  ldc.i4.0
+  IL_0061:  ceq
+  IL_0063:  brtrue.s   IL_0026
+  IL_0065:  ret
 }
 ]]>)
 

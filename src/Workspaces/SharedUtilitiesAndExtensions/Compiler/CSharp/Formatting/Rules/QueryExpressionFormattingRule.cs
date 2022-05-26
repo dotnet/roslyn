@@ -4,22 +4,41 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    internal class QueryExpressionFormattingRule : BaseFormattingRule
+    internal sealed class QueryExpressionFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp Query Expressions Formatting Rule";
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
+        private readonly CSharpSyntaxFormattingOptions _options;
+
+        public QueryExpressionFormattingRule()
+            : this(CSharpSyntaxFormattingOptions.Default)
+        {
+        }
+
+        private QueryExpressionFormattingRule(CSharpSyntaxFormattingOptions options)
+        {
+            _options = options;
+        }
+
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
+        {
+            var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
+
+            if (_options.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses) == newOptions.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
+            {
+                return this;
+            }
+
+            return new QueryExpressionFormattingRule(newOptions);
+        }
+
+        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -29,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        private void AddIndentBlockOperationsForFromClause(List<IndentBlockOperation> list, FromClauseSyntax fromClause)
+        private static void AddIndentBlockOperationsForFromClause(List<IndentBlockOperation> list, FromClauseSyntax fromClause)
         {
             // Only add the indent block operation if the 'in' keyword is present. Otherwise, we'll get the following:
             //
@@ -59,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             AddIndentBlockOperation(list, baseToken, startToken, endToken);
         }
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
         {
             nextOperation.Invoke();
 
@@ -87,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, OptionSet optionSet, in NextAnchorIndentationOperationAction nextOperation)
+        public override void AddAnchorIndentationOperations(List<AnchorIndentationOperation> list, SyntaxNode node, in NextAnchorIndentationOperationAction nextOperation)
         {
             nextOperation.Invoke();
             switch (node)
@@ -112,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (previousToken.IsNestedQueryExpression())
             {
@@ -122,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // skip the very first from keyword
             if (currentToken.IsFirstFromKeywordInExpression())
             {
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             switch (currentToken.Kind())
@@ -136,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case SyntaxKind.SelectKeyword:
                     if (currentToken.GetAncestor<QueryExpressionSyntax>() != null)
                     {
-                        if (optionSet.GetOption(CSharpFormattingOptions.NewLineForClausesInQuery))
+                        if (_options.NewLines.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -149,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
             }
 
-            return nextOperation.Invoke();
+            return nextOperation.Invoke(in previousToken, in currentToken);
         }
     }
 }

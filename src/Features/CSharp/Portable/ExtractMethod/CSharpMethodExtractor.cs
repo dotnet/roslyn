@@ -2,11 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
@@ -20,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        public CSharpMethodExtractor(CSharpSelectionResult result, bool localFunction)
-            : base(result, localFunction)
+        public CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
+            : base(result, options, localFunction)
         {
         }
 
@@ -64,8 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (memberNode is GlobalStatementSyntax globalStatement)
             {
                 // check whether we are extracting whole global statement out
-                if (this.OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
+                if (OriginalSelectionResult.FinalSpan.Contains(memberNode.Span))
                 {
+                    return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
+                }
+
+                // check whether the global statement is a statement container
+                if (!globalStatement.Statement.IsStatementContainerNode() && !root.SyntaxTree.IsScript())
+                {
+                    // The extracted function will be a new global statement
                     return await InsertionPoint.CreateAsync(document, globalStatement.Parent, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -76,9 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         }
 
         protected override async Task<TriviaResult> PreserveTriviaAsync(SelectionResult selectionResult, CancellationToken cancellationToken)
-        {
-            return await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
-        }
+            => await CSharpTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(false);
 
         protected override async Task<SemanticDocument> ExpandAsync(SelectionResult selection, CancellationToken cancellationToken)
         {
@@ -92,20 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             return await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newExpression), cancellationToken).ConfigureAwait(false);
         }
 
-        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, OptionSet options, CancellationToken cancellationToken)
-        {
-            return CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, options, LocalFunction, cancellationToken);
-        }
+        protected override Task<GeneratedCode> GenerateCodeAsync(InsertionPoint insertionPoint, SelectionResult selectionResult, AnalyzerResult analyzeResult, CodeGenerationOptions options, CancellationToken cancellationToken)
+            => CSharpCodeGenerator.GenerateAsync(insertionPoint, selectionResult, analyzeResult, (CSharpCodeGenerationOptions)options, LocalFunction, cancellationToken);
 
-        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-        {
-            return SpecializedCollections.SingletonEnumerable(new FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document));
-        }
+        protected override ImmutableArray<AbstractFormattingRule> GetCustomFormattingRules(Document document)
+            => ImmutableArray.Create<AbstractFormattingRule>(new FormattingRule());
 
         protected override SyntaxToken GetMethodNameAtInvocation(IEnumerable<SyntaxNodeOrToken> methodNames)
-        {
-            return (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
-        }
+            => (SyntaxToken)methodNames.FirstOrDefault(t => !t.Parent.IsKind(SyntaxKind.MethodDeclaration));
 
         protected override async Task<OperationStatus> CheckTypeAsync(
             Document document,
@@ -122,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 return OperationStatus.Succeeded;
             }
 
-            if (type.TypeKind == TypeKind.Error ||
-                type.TypeKind == TypeKind.Unknown)
+            if (type.TypeKind is TypeKind.Error or
+                TypeKind.Unknown)
             {
                 return OperationStatus.ErrorOrUnknownType;
             }
@@ -158,7 +163,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             if (!leadingTrivia.Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia)) && !methodDefinition.FindTokenOnLeftOfPosition(methodDefinition.SpanStart).IsKind(SyntaxKind.OpenBraceToken))
             {
                 var originalMethodDefinition = methodDefinition;
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed));
+                var newLine = Options.LineFormattingOptions.NewLine;
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+
+                if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
+                {
+                    // Add a second new line since there were no line endings in the original form
+                    methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+                }
 
                 // Generating the new document and associated variables.
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

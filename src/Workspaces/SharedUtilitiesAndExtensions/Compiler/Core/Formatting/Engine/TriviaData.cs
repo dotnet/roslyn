@@ -5,14 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -23,17 +18,15 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         protected const int TokenPairIndexNotNeeded = int.MinValue;
 
-        private readonly OptionSet _optionSet;
         private readonly string _language;
 
-        protected TriviaData(OptionSet optionSet, string language)
+        protected TriviaData(SyntaxFormattingOptions options, string language)
         {
-            Contract.ThrowIfNull(optionSet);
-            _optionSet = optionSet;
+            Options = options;
             _language = language;
         }
 
-        protected OptionSet OptionSet => _optionSet;
+        protected SyntaxFormattingOptions Options { get; }
         protected string Language => _language;
 
         public int LineBreaks { get; protected set; }

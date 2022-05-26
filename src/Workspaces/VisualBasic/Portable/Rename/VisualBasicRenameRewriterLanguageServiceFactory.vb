@@ -13,11 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicRenameRewriterLanguageService(provider)
+            Return VisualBasicRenameRewriterLanguageService.Instance
         End Function
     End Class
 End Namespace

@@ -5,14 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -22,13 +17,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly string _newString;
 
-            public FormattedWhitespace(OptionSet optionSet, int lineBreaks, int indentation, string language)
-                : base(optionSet, language)
+            public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, string language)
+                : base(options, language)
             {
                 this.LineBreaks = Math.Max(0, lineBreaks);
                 this.Spaces = Math.Max(0, indentation);
 
-                _newString = CreateString(this.OptionSet.GetOption(FormattingOptions.NewLine, language));
+                _newString = CreateString(Options.NewLine);
             }
 
             private string CreateString(string newLine)
@@ -36,17 +31,17 @@ namespace Microsoft.CodeAnalysis.Formatting
                 if (this.SecondTokenIsFirstTokenOnLine)
                 {
                     var builder = StringBuilderPool.Allocate();
-                    for (var i = 0; i < this.LineBreaks; i++)
+                    for (var i = 0; i < LineBreaks; i++)
                     {
                         builder.Append(newLine);
                     }
 
-                    builder.AppendIndentationString(this.Spaces, this.OptionSet.GetOption(FormattingOptions.UseTabs, this.Language), this.OptionSet.GetOption(FormattingOptions.TabSize, this.Language));
+                    builder.AppendIndentationString(Spaces, Options.UseTabs, Options.TabSize);
                     return StringBuilderPool.ReturnAndFree(builder);
                 }
 
                 // space case. always use space
-                return new string(' ', this.Spaces);
+                return new string(' ', Spaces);
             }
 
             public override bool TreatAsElastic => false;
@@ -56,24 +51,16 @@ namespace Microsoft.CodeAnalysis.Formatting
             public override bool ContainsChanges => true;
 
             public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
-            {
-                return SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
-            }
+                => SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
 
             public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithLine(int line, int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override TriviaData WithIndentation(int indentation, FormattingContext context, ChainedFormattingRules formattingRules, CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public override void Format(
                 FormattingContext context, ChainedFormattingRules formattingRules, Action<int, TokenStream, TriviaData> formattingResultApplier, CancellationToken cancellationToken, int tokenPairIndex = TokenPairIndexNotNeeded)

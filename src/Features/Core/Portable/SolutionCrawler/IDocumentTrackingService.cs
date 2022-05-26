@@ -10,18 +10,20 @@ namespace Microsoft.CodeAnalysis
 {
     internal interface IDocumentTrackingService : IWorkspaceService
     {
+        bool SupportsDocumentTracking { get; }
+
         /// <summary>
         /// Get the <see cref="DocumentId"/> of the active document. May be null if there is no active document
         /// or the active document is not in the workspace.
         /// </summary>
-        DocumentId TryGetActiveDocument();
+        DocumentId? TryGetActiveDocument();
 
         /// <summary>
         /// Get a read only collection of the <see cref="DocumentId"/>s of all the visible documents in the workspace.
         /// </summary>
         ImmutableArray<DocumentId> GetVisibleDocuments();
 
-        event EventHandler<DocumentId> ActiveDocumentChanged;
+        event EventHandler<DocumentId?> ActiveDocumentChanged;
 
         /// <summary>
         /// Raised when a text buffer that's not part of a workspace is changed.

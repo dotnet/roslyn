@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,13 +20,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ChangeSignatureCodeRefactoringProvider();
 
-        protected override string GetLanguage()
+        protected internal override string GetLanguage()
             => LanguageNames.CSharp;
 
-        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
-            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ImplicitInvokeCalls()
         {
             var markup = @"
@@ -55,7 +53,7 @@ class C
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ExplicitInvokeCalls()
         {
             var markup = @"
@@ -85,7 +83,7 @@ class C
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 1);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_BeginInvokeCalls()
         {
             var markup = @"
@@ -115,7 +113,7 @@ class C
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 2);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_AnonymousMethods()
         {
             var markup = @"
@@ -146,7 +144,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_Lambdas()
         {
             var markup = @"
@@ -175,7 +173,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_Lambdas_RemovingOnlyParameterIntroducesParentheses()
         {
             var markup = @"
@@ -188,7 +186,7 @@ class C
         MyDelegate d1 = null;
         d1 = (r) => { System.Console.WriteLine(""Test""); };
         d1 = r => { System.Console.WriteLine(""Test""); };
-        d1 =r=>{ System.Console.WriteLine(""Test""); };
+        d1 = r => { System.Console.WriteLine(""Test""); };
     }
 }";
             var updatedSignature = Array.Empty<int>();
@@ -202,13 +200,13 @@ class C
         MyDelegate d1 = null;
         d1 = () => { System.Console.WriteLine(""Test""); };
         d1 = () => { System.Console.WriteLine(""Test""); };
-        d1 =()=>{ System.Console.WriteLine(""Test""); };
+        d1 = () => { System.Console.WriteLine(""Test""); };
     }
 }";
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_CascadeThroughMethodGroups_AssignedToVariable()
         {
             var markup = @"
@@ -247,7 +245,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_CascadeThroughMethodGroups_DelegateConstructor()
         {
             var markup = @"
@@ -284,7 +282,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_CascadeThroughMethodGroups_PassedAsArgument()
         {
             var markup = @"
@@ -325,7 +323,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_CascadeThroughMethodGroups_ReturnValue()
         {
             var markup = @"
@@ -370,7 +368,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_CascadeThroughMethodGroups_YieldReturnValue()
         {
             var markup = @"
@@ -417,7 +415,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ReferencingLambdas_MethodArgument()
         {
             var markup = @"
@@ -448,7 +446,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_ReferencingLambdas_YieldReturn()
         {
             var markup = @"
@@ -477,7 +475,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_Recursive()
         {
             var markup = @"
@@ -506,7 +504,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_DocComments()
         {
             var markup = @"
@@ -565,7 +563,7 @@ class C
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_CascadeThroughEventAdd()
         {
             var markup = @"
@@ -598,7 +596,7 @@ class Program
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_Generics1()
         {
             var markup = @"
@@ -641,7 +639,7 @@ public class DP16a
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_Generics2()
         {
             var markup = @"
@@ -668,7 +666,7 @@ public class D17Test
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_GenericParams()
         {
             var markup = @"
@@ -719,7 +717,7 @@ public class DP20<T>
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: expectedUpdatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegates_Generic_RemoveArgumentAtReference()
         {
             var markup = @"public class CD<T>
@@ -749,7 +747,7 @@ class Test
                 expectedUpdatedInvocationDocumentCode: expectedUpdatedCode, expectedSelectedIndex: 0);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task ChangeSignature_Delegate_Generics_RemoveStaticArgument()
         {
             var markup = @"

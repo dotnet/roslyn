@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
         Implements IIfLikeStatementGenerator
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

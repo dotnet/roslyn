@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
@@ -23,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("true:suggestion", true, ReportDiagnostic.Info)]
         [InlineData("true:warning", true, ReportDiagnostic.Warn)]
         [InlineData("true:error", true, ReportDiagnostic.Error)]
-        [InlineData("true", false, ReportDiagnostic.Hidden)]
+        [InlineData("true", true, ReportDiagnostic.Hidden)]
         [InlineData("false:none", false, ReportDiagnostic.Suppress)]
         [InlineData("false:refactoring", false, ReportDiagnostic.Hidden)]
         [InlineData("false:silent", false, ReportDiagnostic.Hidden)]
@@ -41,26 +44,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false : error", false, ReportDiagnostic.Error)]
         public void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, ReportDiagnostic severity)
         {
-            var notificationOption = NotificationOption.Silent;
-            switch (severity)
-            {
-                case ReportDiagnostic.Hidden:
-                    notificationOption = NotificationOption.Silent;
-                    break;
-                case ReportDiagnostic.Info:
-                    notificationOption = NotificationOption.Suggestion;
-                    break;
-                case ReportDiagnostic.Warn:
-                    notificationOption = NotificationOption.Warning;
-                    break;
-                case ReportDiagnostic.Error:
-                    notificationOption = NotificationOption.Error;
-                    break;
-            }
-
-            var codeStyleOption = new CodeStyleOption<bool>(value: isEnabled, notification: notificationOption);
-
-            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, out var result);
+            CodeStyleHelpers.TryParseBoolEditorConfigCodeStyleOption(args, defaultValue: CodeStyleOption2<bool>.Default, out var result);
             Assert.True(result.Value == isEnabled,
                         $"Expected {nameof(isEnabled)} to be {isEnabled}, was {result.Value}");
             Assert.True(result.Notification.Severity == severity,
@@ -80,13 +64,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("omit_if_default : error", (int)AccessibilityModifiersRequired.OmitIfDefault, ReportDiagnostic.Error)]
         public void TestParseEditorConfigAccessibilityModifiers(string args, int value, ReportDiagnostic severity)
         {
-            var storageLocation = CodeStyleOptions.RequireAccessibilityModifiers.StorageLocations
-                .OfType<EditorConfigStorageLocation<CodeStyleOption<AccessibilityModifiersRequired>>>()
+            var storageLocation = CodeStyleOptions2.AccessibilityModifiersRequired.StorageLocations
+                .OfType<EditorConfigStorageLocation<CodeStyleOption2<AccessibilityModifiersRequired>>>()
                 .Single();
-            var allRawConventions = new Dictionary<string, string?> { { storageLocation.KeyName, args } };
+            var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, args));
 
-            Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
-            var codeStyleOption = (CodeStyleOption<AccessibilityModifiersRequired>)parsedCodeStyleOption!;
+            Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(CodeStyleOption2<AccessibilityModifiersRequired>), out var parsedCodeStyleOption));
+            var codeStyleOption = (CodeStyleOption2<AccessibilityModifiersRequired>)parsedCodeStyleOption!;
             Assert.Equal((AccessibilityModifiersRequired)value, codeStyleOption.Value);
             Assert.Equal(severity, codeStyleOption.Notification.Severity);
         }
@@ -105,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
             var storageLocation = FormattingOptions.NewLine.StorageLocations
                 .OfType<EditorConfigStorageLocation<string>>()
                 .Single();
-            var allRawConventions = new Dictionary<string, string?> { { storageLocation.KeyName, configurationString } };
+            var allRawConventions = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary.Add(storageLocation.KeyName, configurationString));
 
             Assert.True(storageLocation.TryGetOption(allRawConventions, typeof(string), out var parsedNewLine));
             Assert.Equal(newLine, (string?)parsedNewLine);

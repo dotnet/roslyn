@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected readonly SyntaxNode Node;
 
         private readonly IList<AbstractFormattingResult> _formattingResults;
-        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> _formattingSpans;
+        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _formattingSpans;
 
         private readonly CancellableLazy<IList<TextChange>> _lazyTextChanges;
         private readonly CancellableLazy<SyntaxNode> _lazyNode;
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         public AbstractAggregatedFormattingResult(
             SyntaxNode node,
             IList<AbstractFormattingResult> formattingResults,
-            SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> formattingSpans)
+            SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans)
         {
             Contract.ThrowIfNull(node);
             Contract.ThrowIfNull(formattingResults);
@@ -46,9 +46,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         protected abstract SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken);
 
         protected SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> GetFormattingSpans()
-        {
-            return _formattingSpans ?? SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), _formattingResults.Select(r => r.FormattedSpan));
-        }
+            => _formattingSpans ?? SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), _formattingResults.Select(r => r.FormattedSpan));
 
         #region IFormattingResult implementation
 
@@ -61,14 +59,10 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public IList<TextChange> GetTextChanges(CancellationToken cancellationToken)
-        {
-            return _lazyTextChanges.GetValue(cancellationToken);
-        }
+            => _lazyTextChanges.GetValue(cancellationToken);
 
         public SyntaxNode GetFormattedRoot(CancellationToken cancellationToken)
-        {
-            return _lazyNode.GetValue(cancellationToken);
-        }
+            => _lazyNode.GetValue(cancellationToken);
 
         private IList<TextChange> CreateTextChanges(CancellationToken cancellationToken)
         {

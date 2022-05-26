@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             sourceTypeParameters As ImmutableArray(Of TypeParameterSymbol),
             getTypeParameters As Func(Of NamedTypeSymbol, EENamedTypeSymbol, ImmutableArray(Of TypeParameterSymbol)))
 
+            Debug.Assert(syntax IsNot Nothing)
             _container = container
             _baseType = baseType
             _syntax = syntax
@@ -170,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             ' Should not be requesting generated members by name other than constructors.
             Debug.Assert(name = WellKnownMemberNames.InstanceConstructorName OrElse name = WellKnownMemberNames.StaticConstructorName)
-            Return GetMembers().WhereAsArray(Function(m) m.Name = name)
+            Return GetMembers().WhereAsArray(Function(member, name_) member.Name = name_, name)
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
@@ -295,19 +296,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             End Get
         End Property
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return _baseType
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return _baseType
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 

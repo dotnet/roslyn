@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -20,26 +21,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         public static string GetLanguageServerProviderServiceName(string lspServiceName)
-        {
-            return LanguageServerProviderServiceName + "-" + lspServiceName;
-        }
+            => LanguageServerProviderServiceName + "-" + lspServiceName;
 
         public static string GetContentTypesName(string[] contentTypes) => string.Join("-", contentTypes.OrderBy(c => c).ToArray());
 
         public static bool IsContentTypeRemote(string contentType)
-        {
-            return contentType.EndsWith("-remote");
-        }
-
-        public static bool HasVisualStudioLspCapability(this ClientCapabilities clientCapabilities)
-        {
-            if (clientCapabilities is VSClientCapabilities vsClientCapabilities)
-            {
-                return vsClientCapabilities.SupportsVisualStudioExtensions;
-            }
-
-            return false;
-        }
+            => contentType.EndsWith("-remote");
 
         public static bool TryParseJson<T>(object json, out T t)
         {
@@ -48,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             {
                 return true;
             }
+
             try
             {
                 t = ((JObject)json).ToObject<T>();

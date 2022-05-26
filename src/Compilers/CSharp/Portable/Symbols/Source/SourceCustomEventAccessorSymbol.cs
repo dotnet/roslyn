@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -25,10 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             EventSymbol explicitlyImplementedEventOpt,
             string aliasQualifierOpt,
-            DiagnosticBag diagnostics)
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   ImmutableArray.Create(syntax.Keyword.GetLocation()), explicitlyImplementedEventOpt, aliasQualifierOpt, isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration)
+                   ImmutableArray.Create(syntax.Keyword.GetLocation()), explicitlyImplementedEventOpt, aliasQualifierOpt,
+                   isAdder: syntax.Kind() == SyntaxKind.AddAccessorDeclaration,
+                   isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                   isNullableAnalysisEnabled: isNullableAnalysisEnabled)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);

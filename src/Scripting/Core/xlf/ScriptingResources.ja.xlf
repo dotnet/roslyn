@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="CantAssignTo">
         <source>Can't assign '{0}' to '{1}'.</source>
-        <target state="translated">{0}' を '{1}' に割り当てられません。</target>
+        <target state="translated">'{0}' を '{1}' に割り当てられません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ExpectedAnAssemblyReference">

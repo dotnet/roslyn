@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
@@ -23,8 +22,13 @@ namespace Roslyn.Utilities
             _second = second;
         }
 
+        public int Length => _first.Length + _second.Length;
+
+        public bool Any(Func<T, bool> predicate)
+            => _first.Any(predicate) || _second.Any(predicate);
+
         public Enumerator GetEnumerator()
-            => new Enumerator(_first, _second);
+            => new(_first, _second);
 
         public ImmutableArray<T> ToImmutableArray()
             => _first.NullToEmpty().AddRange(_second.NullToEmpty());
@@ -66,9 +70,7 @@ namespace Roslyn.Utilities
             }
 
             void IEnumerator.Reset()
-            {
-                throw new NotSupportedException();
-            }
+                => throw new NotSupportedException();
         }
     }
 }

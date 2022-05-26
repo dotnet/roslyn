@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithSourceCodeKind(value), opt => opt.SourceCodeKind, SourceCodeKind.Script);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithTextLoader(value), opt => opt.TextLoader, (TextLoader)new FileTextLoader(Path.GetTempPath(), defaultEncoding: null));
 
-            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithFolders(value), opt => opt.Folders, "folder");
+            SolutionTestHelpers.TestListProperty(instance, (old, value) => old.WithFolders(value), opt => opt.Folders, "folder", allowDuplicates: true);
         }
     }
 }

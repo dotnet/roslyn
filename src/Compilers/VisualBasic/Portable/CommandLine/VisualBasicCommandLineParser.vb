@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
-            Dim flattenedArgs As List(Of String) = New List(Of String)()
+            Dim flattenedArgs = ArrayBuilder(Of String).GetInstance()
             Dim scriptArgs As List(Of String) = If(IsScriptCommandLineParser, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
@@ -161,6 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim touchedFilesPath As String = Nothing
             Dim features = New List(Of String)()
             Dim reportAnalyzer As Boolean = False
+            Dim skipAnalyzers As Boolean = False
             Dim publicSign As Boolean = False
             Dim interactiveMode As Boolean = False
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
@@ -192,9 +193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    For Each path In ParseFileArgument(arg, baseDirectory, diagnostics)
+                    Dim builder = ArrayBuilder(Of String).GetInstance()
+                    ParseFileArgument(arg.AsMemory(), baseDirectory, builder, diagnostics)
+                    For Each path In builder
                         sourceFiles.Add(ToCommandLineSourceFile(path))
                     Next
+                    builder.Free()
                     hasSourceFiles = True
                     Continue For
                 End If
@@ -573,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "errorlog", ErrorLogOptionFormat)
                             Else
                                 Dim diagnosticAlreadyReported As Boolean
-                                errorLogOptions = ParseErrorLogOptions(unquoted, diagnostics, baseDirectory, diagnosticAlreadyReported)
+                                errorLogOptions = ParseErrorLogOptions(unquoted.AsMemory(), diagnostics, baseDirectory, diagnosticAlreadyReported)
                                 If errorLogOptions Is Nothing And Not diagnosticAlreadyReported Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_BadSwitchValue, unquoted, "errorlog", ErrorLogOptionFormat)
                                     Continue For
@@ -1105,6 +1109,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             reportAnalyzer = True
                             Continue For
 
+                        Case "skipanalyzers", "skipanalyzers+"
+                            If value IsNot Nothing Then
+                                Exit Select
+                            End If
+
+                            skipAnalyzers = True
+                            Continue For
+
+                        Case "skipanalyzers-"
+                            If value IsNot Nothing Then
+                                Exit Select
+                            End If
+
+                            skipAnalyzers = False
+                            Continue For
+
                         Case "nostdlib"
                             If value IsNot Nothing Then
                                 Exit Select
@@ -1360,6 +1380,8 @@ lVbRuntimePlus:
                 AddDiagnostic(diagnostics, ERRID.ERR_NoSourcesOut)
             End If
 
+            flattenedArgs.Free()
+
             Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
@@ -1423,6 +1445,8 @@ lVbRuntimePlus:
             ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
             interactiveMode = interactiveMode Or (IsScriptCommandLineParser AndAlso sourceFiles.Count = 0)
 
+            pathMap = SortPathMap(pathMap)
+
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptCommandLineParser,
@@ -1468,6 +1492,7 @@ lVbRuntimePlus:
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
+                .SkipAnalyzers = skipAnalyzers,
                 .EmbeddedFiles = embeddedFiles.AsImmutable()
             }
         End Function
@@ -1662,7 +1687,7 @@ lVbRuntimePlus:
             Dim accessibility As String = Nothing
 
             ParseResourceDescription(
-                resourceDescriptor,
+                resourceDescriptor.AsMemory(),
                 baseDirectory,
                 True,
                 filePath,
@@ -1799,7 +1824,7 @@ lVbRuntimePlus:
             ' unescape quotes \" -> "
             symbolList = symbolList.Replace("\""", """")
 
-            Dim trimmedSymbolList As String = symbolList.TrimEnd(Nothing)
+            Dim trimmedSymbolList As String = symbolList.TrimEnd()
             If trimmedSymbolList.Length > 0 AndAlso IsConnectorPunctuation(trimmedSymbolList(trimmedSymbolList.Length - 1)) Then
                 ' In case the symbol list ends with '_' we add ',' to the end of the list which in some 
                 ' cases will produce an error 30999 to match Dev11 behavior

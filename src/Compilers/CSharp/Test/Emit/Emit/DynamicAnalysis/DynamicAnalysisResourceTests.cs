@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -452,6 +455,55 @@ class Student : Person { public double GPA; }
                 new SpanResult(24, 16, 24, 58, "return $\"Teacher {t.Name} of {t.Subject}\""),
                 new SpanResult(26, 16, 26, 42, "return $\"Person {p.Name}\""),
                 new SpanResult(15, 16, 15, 17, "p"));
+        }
+
+        [Fact]
+        public void TestPatternSpans_WithSharedWhenExpression()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+    public static void Main()                            // Method 0
+    {
+        Method1(1, b1: false, b2: false);
+    }
+
+    static string Method1(int i, bool b1, bool b2)       // Method 1
+    {
+        switch (i)
+        {
+            case not 1 when b1:
+                return ""b1"";
+            case var _ when b2:
+                return ""b2"";
+            case 1:
+                return ""1"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+
+            var c = CreateCompilation(Parse(source + InstrumentationHelperSource, @"C:\myproject\doc1.cs"));
+            var peImage = c.EmitToArray(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+
+            var peReader = new PEReader(peImage);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
+
+            string[] sourceLines = source.Split('\n');
+
+            VerifySpans(reader, reader.Methods[1], sourceLines,
+                new SpanResult(10, 4, 23, 5, "static string Method1(int i, bool b1, bool b2)"),
+                new SpanResult(14, 23, 14, 30, "when b1:"),
+                new SpanResult(16, 23, 16, 30, "when b2:"),
+                new SpanResult(15, 16, 15, 28, @"return ""b1"";"),
+                new SpanResult(17, 16, 17, 28, @"return ""b2"";"),
+                new SpanResult(19, 16, 19, 27, @"return ""1"";"),
+                new SpanResult(21, 16, 21, 33, @"return ""default"";"),
+                new SpanResult(12, 16, 12, 17, "i"));
         }
 
         [Fact]
@@ -911,6 +963,73 @@ public class D
             Assert.Null(reader);
         }
 
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void EmptyStaticConstructor_WithEnableTestCoverage()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static C()
+    {
+    }
+
+    static object obj = null!;
+}" + InstrumentationHelperSource;
+            var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
+            CompileAndVerify(source, emitOptions: emitOptions).VerifyIL("C..cctor()",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""C..cctor()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""C..cctor()""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""C..cctor()""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.1
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ret
+}");
+        }
+
+        [WorkItem(42985, "https://github.com/dotnet/roslyn/issues/42985")]
+        [Fact]
+        public void SynthesizedStaticConstructor_WithEnableTestCoverage()
+        {
+            string source = @"
+#nullable enable
+class C
+{
+    static object obj = null!;
+}" + InstrumentationHelperSource;
+            var emitOptions = EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage));
+            CompileAndVerify(
+                source,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+                emitOptions: emitOptions,
+                symbolValidator: validator);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                Assert.Empty(type.GetMembers(".cctor"));
+            }
+        }
+
         private class SpanResult
         {
             public int StartLine { get; }
@@ -933,7 +1052,9 @@ public class D
             ArrayBuilder<string> expectedSpanSpellings = ArrayBuilder<string>.GetInstance(expected.Length);
             foreach (SpanResult expectedSpanResult in expected)
             {
-                Assert.True(sourceLines[expectedSpanResult.StartLine].Substring(expectedSpanResult.StartColumn).StartsWith(expectedSpanResult.TextStart));
+                var text = sourceLines[expectedSpanResult.StartLine].Substring(expectedSpanResult.StartColumn);
+                Assert.True(text.StartsWith(expectedSpanResult.TextStart), $"Text doesn't start with {expectedSpanResult.TextStart}. Text is: {text}");
+
                 expectedSpanSpellings.Add(string.Format("({0},{1})-({2},{3})", expectedSpanResult.StartLine, expectedSpanResult.StartColumn, expectedSpanResult.EndLine, expectedSpanResult.EndColumn));
             }
 

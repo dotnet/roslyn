@@ -207,7 +207,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 readOutside = readInside
                 writtenOutside = readInside
                 captured = readInside
-
+                capturedInside = readInside
+                capturedOutside = readInside
             Else
                 ReadWriteWalker.Analyze(
                     _context.AnalysisInfo, _context.RegionInfo,
@@ -282,6 +283,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property UnsafeAddressTaken As ImmutableArray(Of ISymbol)
             Get
                 Return ImmutableArray(Of ISymbol).Empty
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property UsedLocalFunctions As ImmutableArray(Of IMethodSymbol)
+            Get
+                Return ImmutableArray(Of IMethodSymbol).Empty
             End Get
         End Property
 

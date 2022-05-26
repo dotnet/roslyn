@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
 Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -48,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Function AddEventTo(destination As TypeBlockSyntax,
                                     [event] As IEventSymbol,
-                                    options As CodeGenerationOptions,
+                                    options As CodeGenerationContextInfo,
                                     availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim eventDeclaration = GenerateEventDeclaration([event], GetDestination(destination), options)
 
@@ -63,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Function GenerateEventDeclaration([event] As IEventSymbol,
                                                  destination As CodeGenerationDestination,
-                                                 options As CodeGenerationOptions) As DeclarationStatementSyntax
+                                                 options As CodeGenerationContextInfo) As DeclarationStatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -76,9 +74,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
                                                         destination As CodeGenerationDestination,
-                                                        options As CodeGenerationOptions) As DeclarationStatementSyntax
+                                                        options As CodeGenerationContextInfo) As DeclarationStatementSyntax
 
-            If options.GenerateMethodBodies AndAlso
+            If options.Context.GenerateMethodBodies AndAlso
                 ([event].AddMethod IsNot Nothing OrElse [event].RemoveMethod IsNot Nothing OrElse [event].RaiseMethod IsNot Nothing) Then
                 Return GenerateCustomEventDeclarationWorker([event], destination, options)
             Else
@@ -89,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateCustomEventDeclarationWorker(
                 [event] As IEventSymbol,
                 destination As CodeGenerationDestination,
-                options As CodeGenerationOptions) As DeclarationStatementSyntax
+                options As CodeGenerationContextInfo) As DeclarationStatementSyntax
             Dim addStatements = If(
                 [event].AddMethod Is Nothing,
                 New SyntaxList(Of StatementSyntax),
@@ -129,13 +127,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If
+
             Return result
         End Function
 
         Private Function GenerateNotCustomEventDeclarationWorker(
                 [event] As IEventSymbol,
                 destination As CodeGenerationDestination,
-                options As CodeGenerationOptions) As EventStatementSyntax
+                options As CodeGenerationContextInfo) As EventStatementSyntax
             Dim eventType = TryCast([event].Type, INamedTypeSymbol)
             If eventType.IsDelegateType() AndAlso eventType.AssociatedSymbol IsNot Nothing Then
                 ' This is a declaration style event like "Event E(x As String)".  This event will
@@ -161,22 +160,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function GenerateModifiers([event] As IEventSymbol,
                                                   destination As CodeGenerationDestination,
-                                                  options As CodeGenerationOptions) As SyntaxTokenList
-            Dim tokens = New List(Of SyntaxToken)()
+                                                  options As CodeGenerationContextInfo) As SyntaxTokenList
+            Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
-            If destination <> CodeGenerationDestination.InterfaceType Then
-                AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+                If destination <> CodeGenerationDestination.InterfaceType Then
+                    AddAccessibilityModifiers([event].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
 
-                If [event].IsStatic Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    If [event].IsStatic Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    End If
+
+                    If [event].IsAbstract Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                    End If
                 End If
 
-                If [event].IsAbstract Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
-                End If
-            End If
-
-            Return SyntaxFactory.TokenList(tokens)
+                Return SyntaxFactory.TokenList(tokens)
+            End Using
         End Function
 
         Private Function GenerateAsClause([event] As IEventSymbol) As SimpleAsClauseSyntax

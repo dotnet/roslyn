@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -17,14 +18,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
+        public static SyntaxNode GetRequiredParent(this SyntaxNode node)
+            => node.Parent ?? throw new InvalidOperationException("Node's parent was null");
+
         public static IEnumerable<SyntaxNodeOrToken> DepthFirstTraversal(this SyntaxNode node)
-        {
-            return SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
-        }
+            => SyntaxNodeOrTokenExtensions.DepthFirstTraversal(node);
 
         public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxNode node)
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
 
             while (current != null)
             {
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<TNode> GetAncestors<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static TNode? GetAncestor<TNode>(this SyntaxNode node)
             where TNode : SyntaxNode
         {
-            SyntaxNode? current = node.Parent;
+            var current = node.Parent;
             while (current != null)
             {
                 if (current is TNode tNode)
@@ -104,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             while (nodes.Count > 0)
             {
-                var currentNode = nodes.First.Value;
+                var currentNode = nodes.First!.Value;
                 nodes.RemoveFirst();
 
                 if (currentNode != null && searchSpan.Contains(currentNode.FullSpan) && predicate(currentNode))
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>([NotNullWhen(returnValue: true)] this SyntaxNode? node, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            if (!(node?.Parent is T parentNode))
+            if (node?.Parent is not T parentNode)
             {
                 return false;
             }
@@ -135,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// <typeparam name="TParent">The type of the parent node.</typeparam>
         /// <param name="node">The node that we are testing.</param>
         /// <param name="childGetter">A function that, when given the parent node, returns the child token we are interested in.</param>
-        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode> childGetter)
+        public static bool IsChildNode<TParent>(this SyntaxNode node, Func<TParent, SyntaxNode?> childGetter)
             where TParent : SyntaxNode
         {
             var ancestor = node.GetAncestor<TParent>();
@@ -180,35 +182,105 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static int Width(this SyntaxNode node)
-        {
-            return node.Span.Length;
-        }
+            => node.Span.Length;
 
         public static int FullWidth(this SyntaxNode node)
-        {
-            return node.FullSpan.Length;
-        }
+            => node.FullSpan.Length;
 
-        public static SyntaxNode? FindInnermostCommonNode(
-            this IEnumerable<SyntaxNode> nodes,
-            Func<SyntaxNode, bool> predicate)
+        public static SyntaxNode? FindInnermostCommonNode(this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, bool> predicate)
+            => nodes.FindInnermostCommonNode()?.FirstAncestorOrSelf(predicate);
+
+        public static SyntaxNode? FindInnermostCommonNode(this IEnumerable<SyntaxNode> nodes)
         {
-            IEnumerable<SyntaxNode>? blocks = null;
+            // Two collections we use to make this operation as efficient as possible. One is a
+            // stack of the current shared ancestor chain shared by all nodes so far.  It starts
+            // with the full ancestor chain of the first node, and can only get smaller over time.
+            // It should be log(n) with the size of the tree as it's only storing a parent chain.
+            //
+            // The second is a set with the exact same contents as the array.  It's used for O(1)
+            // lookups if a node is in the ancestor chain or not.
+
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var commonAncestorsStack);
+            using var _2 = PooledHashSet<SyntaxNode>.GetInstance(out var commonAncestorsSet);
+
+            var first = true;
             foreach (var node in nodes)
             {
-                blocks = blocks == null
-                    ? node.AncestorsAndSelf().Where(predicate)
-                    : blocks.Intersect(node.AncestorsAndSelf().Where(predicate));
+                // If we're just starting, initialize the ancestors set/array with the ancestors of
+                // this node.
+                if (first)
+                {
+                    first = false;
+                    foreach (var ancestor in node.ValueAncestorsAndSelf())
+                    {
+                        commonAncestorsSet.Add(ancestor);
+                        commonAncestorsStack.Add(ancestor);
+                    }
+
+                    // Reverse the ancestors stack so that we go downwards with CompilationUnit at
+                    // the start, and then go down to this starting node.  This enables cheap
+                    // popping later on.
+                    commonAncestorsStack.ReverseContents();
+                    continue;
+                }
+
+                // On a subsequent node, walk its ancestors to find the first match
+                var commonAncestor = FindCommonAncestor(node, commonAncestorsSet);
+                if (commonAncestor == null)
+                {
+                    // So this shouldn't happen as long as the nodes are from the same tree.  And
+                    // the caller really shouldn't be calling from different trees.  However, the
+                    // previous impl supported that, so continue to have this behavior.
+                    //
+                    // If this doesn't fire, that means that all callers seem sane.  If it does
+                    // fire, we can relax this (but we should consider fixing the caller).
+                    Debug.Fail("Could not find common ancestor.");
+                    return null;
+                }
+
+                // Now remove everything in the ancestors array up to that common ancestor. This is
+                // generally quite efficient.  Either we settle on a common node quickly. and don't
+                // need to do work here, or we keep tossing data from our common-ancestor scratch
+                // pad, making further work faster.
+                while (commonAncestorsStack.Count > 0 &&
+                       commonAncestorsStack.Peek() != commonAncestor)
+                {
+                    commonAncestorsSet.Remove(commonAncestorsStack.Peek());
+                    commonAncestorsStack.Pop();
+                }
+
+                if (commonAncestorsStack.Count == 0)
+                {
+                    // So this shouldn't happen as long as the nodes are from the same tree.  And
+                    // the caller really shouldn't be calling from different trees.  However, the
+                    // previous impl supported that, so continue to have this behavior.
+                    //
+                    // If this doesn't fire, that means that all callers seem sane.  If it does
+                    // fire, we can relax this (but we should consider fixing the caller).
+                    Debug.Fail("Could not find common ancestor.");
+                    return null;
+                }
             }
 
-            return blocks?.First();
+            // The common ancestor is the one at the end of the ancestor stack.  This could be empty
+            // in the case where the caller passed in an empty enumerable of nodes.
+            return commonAncestorsStack.Count == 0 ? null : commonAncestorsStack.Peek();
+
+            // local functions
+            static SyntaxNode? FindCommonAncestor(SyntaxNode node, HashSet<SyntaxNode> commonAncestorsSet)
+            {
+                foreach (var ancestor in node.ValueAncestorsAndSelf())
+                {
+                    if (commonAncestorsSet.Contains(ancestor))
+                        return ancestor;
+                }
+
+                return null;
+            }
         }
 
-        public static TSyntaxNode? FindInnermostCommonNode<TSyntaxNode>(this IEnumerable<SyntaxNode> nodes)
-            where TSyntaxNode : SyntaxNode
-        {
-            return (TSyntaxNode?)nodes.FindInnermostCommonNode(n => n is TSyntaxNode);
-        }
+        public static TSyntaxNode? FindInnermostCommonNode<TSyntaxNode>(this IEnumerable<SyntaxNode> nodes) where TSyntaxNode : SyntaxNode
+            => (TSyntaxNode?)nodes.FindInnermostCommonNode(t => t is TSyntaxNode);
 
         /// <summary>
         /// create a new root node from the given root after adding annotations to the tokens
@@ -254,53 +326,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return fullSpan;
         }
 
-        public static IEnumerable<TextSpan> GetContiguousSpans(
-            this IEnumerable<SyntaxNode> nodes, Func<SyntaxNode, SyntaxToken>? getLastToken = null)
-        {
-            (SyntaxNode node, TextSpan textSpan)? previous = null;
-
-            // Sort the nodes in source location order.
-            foreach (var node in nodes.OrderBy(n => n.SpanStart))
-            {
-                TextSpan textSpan;
-                if (previous == null)
-                {
-                    textSpan = node.Span;
-                }
-                else
-                {
-                    var lastToken = getLastToken?.Invoke(previous.Value.node) ?? previous.Value.node.GetLastToken();
-                    if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
-                    {
-                        // Expand the span
-                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, node.Span.End);
-                    }
-                    else
-                    {
-                        // Return the last span, and start a new one
-                        yield return previous.Value.textSpan;
-                        textSpan = node.Span;
-                    }
-                }
-
-                previous = (node, textSpan);
-            }
-
-            if (previous.HasValue)
-            {
-                yield return previous.Value.textSpan;
-            }
-        }
-
         public static bool OverlapsHiddenPosition(this SyntaxNode node, CancellationToken cancellationToken)
-        {
-            return node.OverlapsHiddenPosition(node.Span, cancellationToken);
-        }
+            => node.OverlapsHiddenPosition(node.Span, cancellationToken);
 
         public static bool OverlapsHiddenPosition(this SyntaxNode node, TextSpan span, CancellationToken cancellationToken)
-        {
-            return node.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken);
-        }
+            => node.SyntaxTree.OverlapsHiddenPosition(span, cancellationToken);
 
         public static bool OverlapsHiddenPosition(this SyntaxNode declaration, SyntaxNode startNode, SyntaxNode endNode, CancellationToken cancellationToken)
         {
@@ -312,9 +342,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static IEnumerable<T> GetAnnotatedNodes<T>(this SyntaxNode node, SyntaxAnnotation syntaxAnnotation) where T : SyntaxNode
-        {
-            return node.GetAnnotatedNodesAndTokens(syntaxAnnotation).Select(n => n.AsNode()).OfType<T>();
-        }
+            => node.GetAnnotatedNodesAndTokens(syntaxAnnotation).Select(n => n.AsNode()).OfType<T>();
 
         /// <summary>
         /// Creates a new tree of nodes from the existing tree with the specified old nodes replaced with a newly computed nodes.
@@ -427,29 +455,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         if (nodesToReplace.TryGetValue(span, out var currentNode))
                         {
-                            var original = (SyntaxNode)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
+                            var original = (SyntaxNode?)retryAnnotations.GetAnnotations(currentNode).SingleOrDefault() ?? currentNode;
                             var newNode = await computeReplacementNodeAsync!(original, currentNode, cancellationToken).ConfigureAwait(false);
                             nodeReplacements[currentNode] = newNode;
                         }
                         else if (tokensToReplace.TryGetValue(span, out var currentToken))
                         {
-                            var original = (SyntaxToken)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentToken;
-                            }
-
+                            var original = (SyntaxToken?)retryAnnotations.GetAnnotations(currentToken).SingleOrDefault() ?? currentToken;
                             var newToken = await computeReplacementTokenAsync!(original, currentToken, cancellationToken).ConfigureAwait(false);
                             tokenReplacements[currentToken] = newToken;
                         }
                         else if (triviaToReplace.TryGetValue(span, out var currentTrivia))
                         {
-                            var original = (SyntaxTrivia)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault();
-                            if (original == default)
-                            {
-                                original = currentTrivia;
-                            }
-
+                            var original = (SyntaxTrivia?)retryAnnotations.GetAnnotations(currentTrivia).SingleOrDefault() ?? currentTrivia;
                             var newTrivia = await computeReplacementTriviaAsync!(original, currentTrivia, cancellationToken).ConfigureAwait(false);
                             triviaReplacements[currentTrivia] = newTrivia;
                         }
@@ -760,6 +778,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
+        /// <summary>
+        /// Creates a new token with the leading trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutLeadingTrivia(this SyntaxToken token)
+        {
+            return token.WithLeadingTrivia(default(SyntaxTriviaList));
+        }
+
+        /// <summary>
+        /// Creates a new token with the trailing trivia removed.
+        /// </summary>
+        public static SyntaxToken WithoutTrailingTrivia(this SyntaxToken token)
+        {
+            return token.WithTrailingTrivia(default(SyntaxTriviaList));
+        }
+
         // Copy of the same function in SyntaxNode.cs
         public static SyntaxNode? GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
@@ -791,7 +825,49 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
-            return default;
+            return null;
+        }
+
+        /// <summary>
+        /// Gets a list of ancestor nodes (including this node) 
+        /// </summary>
+        public static ValueAncestorsAndSelfEnumerable ValueAncestorsAndSelf(this SyntaxNode syntaxNode, bool ascendOutOfTrivia = true)
+            => new(syntaxNode, ascendOutOfTrivia);
+
+        public struct ValueAncestorsAndSelfEnumerable
+        {
+            private readonly SyntaxNode _syntaxNode;
+            private readonly bool _ascendOutOfTrivia;
+
+            public ValueAncestorsAndSelfEnumerable(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
+            {
+                _syntaxNode = syntaxNode;
+                _ascendOutOfTrivia = ascendOutOfTrivia;
+            }
+
+            public Enumerator GetEnumerator()
+                => new(_syntaxNode, _ascendOutOfTrivia);
+
+            public struct Enumerator
+            {
+                private readonly SyntaxNode _start;
+                private readonly bool _ascendOutOfTrivia;
+
+                public Enumerator(SyntaxNode syntaxNode, bool ascendOutOfTrivia)
+                {
+                    _start = syntaxNode;
+                    _ascendOutOfTrivia = ascendOutOfTrivia;
+                    Current = null!;
+                }
+
+                public SyntaxNode Current { get; private set; }
+
+                public bool MoveNext()
+                {
+                    Current = Current == null ? _start : GetParent(Current, _ascendOutOfTrivia)!;
+                    return Current != null;
+                }
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
 
@@ -8,7 +9,7 @@
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
 
     <!-- ServiceHub AssemblyPath -->
-    <!-- Path to our servicehub entry point dll in Common7\IDE\CommonExtensions\Microsoft\ManagedLanguages\VBCSharp\LanguageServices (our vsix directory)
+    <!-- Path to our servicehub entry point dll in Common7\IDE\CommonExtensions\Microsoft\VBCSharp\LanguageServices (our vsix directory)
          relative to Common7\ServiceHub\Services\RoslynCodeAnalysisService where our in-box servicehub.service.json files are -->
     <ServiceHubAssemblyBasePath>..\..\..\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\</ServiceHubAssemblyBasePath>
   </PropertyGroup>
@@ -26,9 +27,12 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
+      <!-- We are shipping a copy of config files for Roslyn desktop services in ServiceHub folder, which is to mitigate an issue where the VsixDiscoveryService is 
+           flaky and occasionally not finding the Roslyn services properly. However, we can't do the same for services running on .Net Core host because the config
+           file location is used as default path to resolve service assemblies. -->
       <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
-      <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.FileName)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64S" />
+      <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.Identity)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
     </ItemGroup>
 
     <PropertyGroup>
@@ -37,6 +41,7 @@
 
 package name=$(MSBuildProjectName)
         version=$(VsixVersion)
+        vs.package.productArch=neutral
 
 folder InstallDir:\Common7\ServiceHub\Services\RoslynCodeAnalysisService
   @(_FileEntries, '%0d%0a  ')

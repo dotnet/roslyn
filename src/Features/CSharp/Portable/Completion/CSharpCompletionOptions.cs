@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 {
     internal static class CSharpCompletionOptions
     {
-        [Obsolete("This option is superceded by CompletionOptions.EnterKeyBehavior")]
-        public static readonly Option<bool> AddNewLineOnEnterAfterFullyTypedWord = new Option<bool>(nameof(CSharpCompletionOptions), nameof(AddNewLineOnEnterAfterFullyTypedWord), defaultValue: false);
+        [Obsolete("This option is superceded by CompletionOptions.Metadata.EnterKeyBehavior")]
+        public static readonly Option2<bool> AddNewLineOnEnterAfterFullyTypedWord = new Option2<bool>(nameof(CSharpCompletionOptions), nameof(AddNewLineOnEnterAfterFullyTypedWord), defaultValue: false);
 
-        [Obsolete("This option is superceded by CompletionOptions.SnippetsBehavior")]
-        public static readonly Option<bool> IncludeSnippets = new Option<bool>(nameof(CSharpCompletionOptions), nameof(IncludeSnippets), defaultValue: true);
+        [Obsolete("This option is superceded by CompletionOptions.Metadata.SnippetsBehavior")]
+        public static readonly Option2<bool> IncludeSnippets = new Option2<bool>(nameof(CSharpCompletionOptions), nameof(IncludeSnippets), defaultValue: true);
     }
 }

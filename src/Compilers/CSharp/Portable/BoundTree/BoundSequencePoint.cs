@@ -8,16 +8,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundSequencePoint
     {
-        public static BoundStatement Create(CSharpSyntaxNode syntax, TextSpan? part, BoundStatement statement, bool hasErrors = false)
+        public static BoundStatement Create(SyntaxNode? syntax, TextSpan? part, BoundStatement statement, bool hasErrors = false)
         {
             if (part.HasValue)
             {
-                return new BoundSequencePointWithSpan(syntax, statement, part.Value, hasErrors);
+                // A bound sequence point is permitted to have a null syntax to make a hidden sequence point.
+                return new BoundSequencePointWithSpan(syntax!, statement, part.Value, hasErrors);
             }
             else
             {
-                return new BoundSequencePoint(syntax, statement, hasErrors);
+                // A bound sequence point is permitted to have a null syntax to make a hidden sequence point.
+                return new BoundSequencePoint(syntax!, statement, hasErrors);
             }
+        }
+
+        public static BoundStatement Create(SyntaxNode? syntax, BoundStatement? statementOpt, bool hasErrors = false, bool wasCompilerGenerated = false)
+        {
+            // A bound sequence point is permitted to have a null syntax to make a hidden sequence point.
+            return new BoundSequencePoint(syntax!, statementOpt, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+        }
+
+        public static BoundStatement CreateHidden(BoundStatement? statementOpt = null, bool hasErrors = false)
+        {
+            // A bound sequence point is permitted to have a null syntax to make a hidden sequence point.
+            return new BoundSequencePoint(null!, statementOpt, hasErrors) { WasCompilerGenerated = true };
         }
     }
 }

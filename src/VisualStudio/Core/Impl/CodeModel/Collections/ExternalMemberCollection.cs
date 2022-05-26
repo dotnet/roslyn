@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                     throw Exceptions.ThrowEFail();
                 }
 
-                if (!(_typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is ITypeSymbol typeSymbol))
+                if (_typeSymbolId.Resolve(project.GetCompilationAsync().Result).Symbol is not ITypeSymbol typeSymbol)
                 {
                     throw Exceptions.ThrowEFail();
                 }
