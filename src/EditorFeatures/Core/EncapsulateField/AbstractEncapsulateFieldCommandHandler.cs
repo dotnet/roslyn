@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -14,7 +10,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
@@ -47,9 +43,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
             if (!args.SubjectBuffer.SupportsRefactorings())
-            {
                 return false;
-            }
 
             using var waitScope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Encapsulate_Field_refactoring);
 
@@ -70,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var spans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
-            var service = document.GetLanguageService<AbstractEncapsulateFieldService>();
+            var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
 
             var result = service.EncapsulateFieldsInSpanAsync(document, spans.First().Span.ToTextSpan(), _globalOptions.CreateProvider(), useDefaultBehavior: true, cancellationToken).WaitAndGetResult(cancellationToken);
 
@@ -82,7 +76,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             var workspace = document.Project.Solution.Workspace;
             if (result == null)
             {
-                var notificationService = workspace.Services.GetService<INotificationService>();
+                var notificationService = workspace.Services.GetRequiredService<INotificationService>();
                 notificationService.SendNotification(EditorFeaturesResources.Please_select_the_definition_of_the_field_to_encapsulate, severity: NotificationSeverity.Error);
                 return false;
             }
