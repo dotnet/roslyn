@@ -68,6 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
 
+        public bool IsRefScoped => false;
+
+        public bool IsValueScoped => false;
+
         public bool IsDiscard => false;
     }
 }

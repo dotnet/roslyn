@@ -4397,11 +4397,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "scoped").WithArguments("scoped").WithLocation(1, 12));
 
             var method = comp.GetMember<MethodSymbol>("Program.F1");
-            // PROTOTYPE: Enable after adding 'scoped' to SymbolDisplay.
-            //VerifyParameterSymbol(method.Parameters[0], "scoped scoped x", RefKind.None, DeclarationScope.ValueScoped);
-            //VerifyParameterSymbol(method.Parameters[1], "ref scoped y", RefKind.Ref, DeclarationScope.None);
-            //VerifyParameterSymbol(method.Parameters[2], "ref scoped scoped y", RefKind.Ref, DeclarationScope.ValueScoped);
-            //VerifyParameterSymbol(method.Parameters[3], "scoped ref scoped z", RefKind.Ref, DeclarationScope.ValueScoped | DeclarationScope.RefScoped);
+            VerifyParameterSymbol(method.Parameters[0], "scoped scoped x", RefKind.None, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(method.Parameters[1], "ref scoped y", RefKind.Ref, DeclarationScope.None);
+            VerifyParameterSymbol(method.Parameters[2], "ref scoped scoped z", RefKind.Ref, DeclarationScope.ValueScoped);
+            VerifyParameterSymbol(method.Parameters[3], "scoped ref scoped w", RefKind.Ref, DeclarationScope.RefScoped);
         }
 
         // PROTOTYPE: Test 'scoped' with 'this'.
