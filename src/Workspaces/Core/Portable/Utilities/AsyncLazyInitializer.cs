@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +13,9 @@ namespace Microsoft.CodeAnalysis.Utilities
     /// </summary>
     internal static class AsyncLazyInitializer
     {
-        public delegate ref T Accessor<T>();
+        public delegate ref T? Accessor<T>();
 
-        public delegate ref T Accessor<T, TState>(TState state);
+        public delegate ref T? Accessor<T, TState>(TState state);
 
         /// <summary>
         /// Initializes a target reference type by using a specified asynchronous function if it hasn't already been
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <para>If the target value is not already initialized and <paramref name="valueFactory"/> is <see langword="null"/>.</para>
         /// </exception>
         /// <exception cref="InvalidOperationException"><paramref name="valueFactory"/> returned <see langword="null"/>.</exception>
-        public static ValueTask<T> EnsureInitializedAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory, Action<T> releaseUnusedValue)
+        public static ValueTask<T> EnsureInitializedAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory, Action<T>? releaseUnusedValue)
             where T : class
         {
             _ = targetAccessor ?? throw new ArgumentNullException(nameof(targetAccessor));
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <para>If the target value is not already initialized and <paramref name="valueFactory"/> is <see langword="null"/>.</para>
         /// </exception>
         /// <exception cref="InvalidOperationException"><paramref name="valueFactory"/> returned <see langword="null"/>.</exception>
-        public static ValueTask<T> EnsureInitializedAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, Action<T, TState> releaseUnusedValue, TState state)
+        public static ValueTask<T> EnsureInitializedAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, Action<T, TState>? releaseUnusedValue, TState state)
             where T : class
         {
             _ = targetAccessor ?? throw new ArgumentNullException(nameof(targetAccessor));
@@ -191,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <param name="valueFactory">The function that is called to initialize the reference.</param>
         /// <param name="releaseUnusedValue">The action invoked to release a reference which was computed but not used.</param>
         /// <returns>The initialized value of type <typeparamref name="T"/>.</returns>
-        private static async ValueTask<T> EnsureInitializedCoreAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory, Action<T> releaseUnusedValue)
+        private static async ValueTask<T> EnsureInitializedCoreAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory, Action<T>? releaseUnusedValue)
             where T : class
         {
             _ = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
@@ -227,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <param name="releaseUnusedValue">The action invoked to release a reference which was computed but not used.</param>
         /// <param name="state">The state object to pass to the accessor and value factory.</param>
         /// <returns>The initialized value of type <typeparamref name="T"/>.</returns>
-        private static async ValueTask<T> EnsureInitializedCoreAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, Action<T, TState> releaseUnusedValue, TState state)
+        private static async ValueTask<T> EnsureInitializedCoreAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, Action<T, TState>? releaseUnusedValue, TState state)
             where T : class
         {
             _ = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));

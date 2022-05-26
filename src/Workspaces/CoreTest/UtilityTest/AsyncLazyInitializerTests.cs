@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 {
     public class AsyncLazyInitializerTests
     {
-        private object _value;
+        private object? _value;
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
@@ -53,8 +51,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             var expected = new object();
             var notExpected = new object();
 
-            var firstInValueFactory = new TaskCompletionSource<object>();
-            var secondCompleted = new TaskCompletionSource<object>();
+            var firstInValueFactory = new TaskCompletionSource<object?>();
+            var secondCompleted = new TaskCompletionSource<object?>();
 
             var firstInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
                 () => ref _value,
@@ -97,8 +95,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 cleanedUp = true;
             }
 
-            var firstInValueFactory = new TaskCompletionSource<object>();
-            var secondCompleted = new TaskCompletionSource<object>();
+            var firstInValueFactory = new TaskCompletionSource<object?>();
+            var secondCompleted = new TaskCompletionSource<object?>();
 
             var firstInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
                 () => ref _value,
@@ -136,8 +134,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             var expected = new object();
             var notExpected = new object();
 
-            var firstInValueFactory = new TaskCompletionSource<object>();
-            var secondCompleted = new TaskCompletionSource<object>();
+            var firstInValueFactory = new TaskCompletionSource<object?>();
+            var secondCompleted = new TaskCompletionSource<object?>();
 
             var firstInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
                 state => ref state._value,
@@ -183,8 +181,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 cleanedUp = true;
             }
 
-            var firstInValueFactory = new TaskCompletionSource<object>();
-            var secondCompleted = new TaskCompletionSource<object>();
+            var firstInValueFactory = new TaskCompletionSource<object?>();
+            var secondCompleted = new TaskCompletionSource<object?>();
 
             var firstInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
                 state => ref state._value,
@@ -224,11 +222,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
             _value = new object();
             var expected = _value;
 
-            var initializedValue = await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, null);
+            var initializedValue = await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, null!);
             Assert.Same(expected, _value);
             Assert.Same(expected, initializedValue);
 
-            initializedValue = await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, null, this);
+            initializedValue = await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, null!, this);
             Assert.Same(expected, _value);
             Assert.Same(expected, initializedValue);
         }
@@ -259,8 +257,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         {
             Assert.Null(_value);
 
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null, () => new ValueTask<object>(new object())));
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null, _ => new ValueTask<object>(new object()), this));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null!, () => new ValueTask<object>(new object())));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null!, _ => new ValueTask<object>(new object()), this));
 
             Assert.Null(_value);
         }
@@ -294,8 +292,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         {
             Assert.Null(_value);
 
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, null));
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, null, this));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, null!));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, null!, this));
 
             Assert.Null(_value);
         }
@@ -306,8 +304,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         {
             Assert.Null(_value);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, () => new ValueTask<object>((object)null)));
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, _ => new ValueTask<object>((object)null), this));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, () => new ValueTask<object>((object)null!)));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, _ => new ValueTask<object>((object)null!), this));
 
             Assert.Null(_value);
         }
