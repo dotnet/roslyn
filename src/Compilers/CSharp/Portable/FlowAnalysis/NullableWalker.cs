@@ -7775,17 +7775,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
-                case ConversionKind.ImplicitUtf8StringLiteral:
-                    if (targetType.IsReferenceType)
-                    {
-                        resultState = getConversionResultState(operandType);
-                    }
-                    else
-                    {
-                        resultState = NullableFlowState.NotNull;
-                    }
-                    break;
-
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:

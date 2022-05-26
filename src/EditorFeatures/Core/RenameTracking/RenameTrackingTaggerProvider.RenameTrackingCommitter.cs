@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 if (!workspace.TryApplyChanges(newSolution))
                     return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
-                // If we successfully update the workspace then make sure the undo transaction is committed and is
+                // If we successfully updated the workspace then make sure the undo transaction is committed and is
                 // always able to undo anything any other external listener did.
 
                 // Never resume tracking session on redo
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
                 finally
                 {
-                    // If we successfully update the workspace then make sure the undo transaction is committed and is
+                    // If we successfully updated the workspace then make sure the undo transaction is committed and is
                     // always able to undo anything any other external listener did.
 
                     // Never resume tracking session on redo

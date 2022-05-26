@@ -947,6 +947,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             };
         }
 
+        public static bool IsGenericConstraintContext(this SyntaxTree syntaxTree, SyntaxToken targetToken)
+            => targetToken.Parent.IsKind(SyntaxKind.TypeParameterConstraintClause) && targetToken.IsKind(SyntaxKind.ColonToken, SyntaxKind.CommaToken);
+
         public static bool IsGenericTypeArgumentContext(
             this SyntaxTree syntaxTree,
             int position,
@@ -1011,12 +1014,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var symbols = semanticModelOpt.LookupName(nameToken, cancellationToken);
             return symbols.Any(s =>
             {
-                switch (s)
+                return s switch
                 {
-                    case INamedTypeSymbol nt: return nt.Arity > 0;
-                    case IMethodSymbol m: return m.Arity > 0;
-                    default: return false;
-                }
+                    INamedTypeSymbol nt => nt.Arity > 0,
+                    IMethodSymbol m => m.Arity > 0,
+                    _ => false,
+                };
             });
         }
 
