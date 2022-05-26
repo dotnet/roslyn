@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
-        public async Task EnsureInitialized()
+        public async Task EnsureInitialized_ImplicitState()
         {
             var expected = new object();
 
@@ -30,9 +30,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 });
             Assert.Same(expected, _value);
             Assert.Same(expected, initializedValue);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public async Task EnsureInitialized_ExplicitState()
+        {
+            var expected = new object();
 
             _value = null;
-            initializedValue = await AsyncLazyInitializer.EnsureInitializedAsync(
+            var initializedValue = await AsyncLazyInitializer.EnsureInitializedAsync(
                 state => ref state._value,
                 async _ =>
                 {
@@ -59,9 +66,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
                 async () =>
                 {
                     firstInValueFactory.SetResult(null);
+
+                    // Make sure the second call completes before this one (despite starting first, this value factory
+                    // completes last).
                     await secondCompleted.Task;
                     return notExpected;
                 });
+
+            // Make sure the first call is already inside the value factory before starting the second call
+            await firstInValueFactory.Task;
             var secondInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
                 () => ref _value,
                 async () =>
