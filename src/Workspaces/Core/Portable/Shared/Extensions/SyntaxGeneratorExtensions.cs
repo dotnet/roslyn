@@ -410,7 +410,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             // The user can add required if they want, but if the property being overridden is required, this one needs to be as well.
-            modifiers = modifiers.WithRequired(modifiers.IsRequired || overriddenProperty.IsRequired);
+            modifiers = modifiers.WithIsRequired(overriddenProperty.IsIndexer
+                ? false
+                : (modifiers.IsRequired || overriddenProperty.IsRequired));
+
 
             // Only generate a getter if the base getter is accessible.
             IMethodSymbol? accessorGet = null;
@@ -511,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             // Required is not a valid modifier for methods, so clear it if the user typed it
-            modifiers = modifiers.WithRequired(false);
+            modifiers = modifiers.WithIsRequired(false);
 
             // Abstract: Throw not implemented
             if (overriddenMethod.IsAbstract)

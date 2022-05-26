@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public DeclarationModifiers WithIsExtern(bool isExtern)
             => new(SetFlag(_modifiers, Modifiers.Extern, isExtern));
 
-        public DeclarationModifiers WithRequired(bool isRequired)
+        public DeclarationModifiers WithIsRequired(bool isRequired)
             => new(SetFlag(_modifiers, Modifiers.Required, isRequired));
 
         private static Modifiers SetFlag(Modifiers existing, Modifiers modifier, bool isSet)

@@ -57,6 +57,7 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsNew(bool isNe
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsOverride(bool isOverride) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsReadOnly(bool isReadOnly) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsRef(bool isRef) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsRequired(bool isRequired) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsSealed(bool isSealed) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsStatic(bool isStatic) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsUnsafe(bool isUnsafe) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
@@ -64,7 +65,6 @@ Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsVirtual(bool 
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsVolatile(bool isVolatile) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithIsWriteOnly(bool isWriteOnly) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithPartial(bool isPartial) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
-Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithRequired(bool isRequired) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.WithWithEvents(bool withEvents) -> Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers
 override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers.GetHashCode() -> int
