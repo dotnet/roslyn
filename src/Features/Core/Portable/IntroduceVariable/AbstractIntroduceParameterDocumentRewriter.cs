@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var invocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentListSyntax);
                     parameterToArgumentMap.Clear();
                     MapParameterToArgumentsAtInvocation(parameterToArgumentMap, invocationArguments, invocationSemanticModel, cancellationToken);
-                    var currentInvocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax).CastDown<TArgumentSyntax>();
+                    var currentInvocationArguments = (SeparatedSyntaxList<TArgumentSyntax>)_syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
                     var requiredArguments = new List<SyntaxNode>();
 
                     foreach (var parameterSymbol in validParameters)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     {
                         editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                         {
-                            var updatedInvocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax).CastDown<TArgumentSyntax>();
+                            var updatedInvocationArguments = (SeparatedSyntaxList<TArgumentSyntax>)_syntaxFacts.GetArgumentsOfArgumentList(currentArgumentListSyntax);
                             var updatedExpression = CreateNewArgumentExpression(expressionEditor, expressionToParameterMap, parameterToArgumentMap, updatedInvocationArguments);
                             var named = ShouldArgumentBeNamed(compilation, invocationSemanticModel, invocationArguments, insertionIndex, cancellationToken);
                             var allArguments = AddArgumentToArgumentList(updatedInvocationArguments,

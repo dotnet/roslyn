@@ -1348,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = ((SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments).CastDown<TArgumentSyntax>();
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 

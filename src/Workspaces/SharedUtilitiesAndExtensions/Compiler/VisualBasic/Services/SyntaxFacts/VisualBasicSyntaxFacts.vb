@@ -1419,7 +1419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
             Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
             openParen = tupleExpr.OpenParenToken
-            arguments = CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)).CastDown(Of TArgumentSyntax)()
+            arguments = CType(CType(tupleExpr.Arguments, SeparatedSyntaxList(Of SyntaxNode)), SeparatedSyntaxList(Of TArgumentSyntax))
             closeParen = tupleExpr.CloseParenToken
         End Sub
 

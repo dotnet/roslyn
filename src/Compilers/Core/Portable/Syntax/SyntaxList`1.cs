@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Syntax;
@@ -448,8 +449,9 @@ namespace Microsoft.CodeAnalysis
             return _node?.GetHashCode() ?? 0;
         }
 
-        [Obsolete("Implicit downcast is not safe. Use CastDown<TNode>() instead", error: true)]
-        public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
+        [Obsolete("Implicit downcast is not safe. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxList<TNode> op_Implicit(SyntaxList<SyntaxNode> nodes)
         {
             return new SyntaxList<TNode>(nodes._node);
         }
@@ -459,10 +461,9 @@ namespace Microsoft.CodeAnalysis
             return new SyntaxList<SyntaxNode>(nodes.Node);
         }
 
-        public SyntaxList<TDerived> CastDown<TDerived>()
-            where TDerived : TNode
+        public static explicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
         {
-            return new SyntaxList<TDerived>(_node);
+            return new SyntaxList<TNode>(nodes._node);
         }
 
         /// <summary>

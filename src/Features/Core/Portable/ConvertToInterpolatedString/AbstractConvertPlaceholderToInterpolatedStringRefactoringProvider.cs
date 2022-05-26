@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 return;
             }
 
-            if (!IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocationSyntax).CastDown<TArgumentSyntax>(), invocationSymbol, allInvocationMethods, semanticModel, syntaxFactsService, cancellationToken))
+            if (!IsArgumentListCorrect((SeparatedSyntaxList<TArgumentSyntax>)syntaxFactsService.GetArgumentsOfInvocationExpression(invocationSyntax), invocationSymbol, allInvocationMethods, semanticModel, syntaxFactsService, cancellationToken))
             {
                 return;
             }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                     TLiteralExpressionSyntax, TArgumentListExpressionSyntax, TInterpolationSyntax> thisInstance,
                 CancellationToken cancellationToken)
             {
-                var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation).CastDown<TArgumentSyntax>();
+                var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
                 if (arguments.Count >= 2)
                 {
                     if (syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService)) is TLiteralExpressionSyntax firstArgumentExpression &&
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation).CastDown<TArgumentSyntax>();
+            var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
             var literalExpression = (TLiteralExpressionSyntax?)syntaxFactsService.GetExpressionOfArgument(GetFormatArgument(arguments, syntaxFactsService));
             Contract.ThrowIfNull(literalExpression);
             var text = literalExpression.GetFirstToken().ToString();

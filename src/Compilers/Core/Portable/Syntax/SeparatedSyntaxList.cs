@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -598,16 +599,16 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
         }
 
-        [Obsolete("Implicit downcast is not safe. Use CastDown<TNode>() instead", error: true)]
-        public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
+        [Obsolete("Implicit downcast is not safe. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SeparatedSyntaxList<TNode> op_Implicit(SeparatedSyntaxList<SyntaxNode> nodes)
         {
             return new SeparatedSyntaxList<TNode>(nodes._list);
         }
 
-        public SeparatedSyntaxList<TDerived> CastDown<TDerived>()
-            where TDerived : TNode
+        public static explicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
         {
-            return new SeparatedSyntaxList<TDerived>(_list);
+            return new SeparatedSyntaxList<TNode>(nodes._list);
         }
     }
 }

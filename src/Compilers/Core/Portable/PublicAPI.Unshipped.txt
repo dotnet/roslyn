@@ -1,4 +1,6 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
+*REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
+*REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
 abstract Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.DefaultResult.get -> TResult
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
 Microsoft.CodeAnalysis.IImportScope
@@ -50,12 +52,14 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Micr
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
 Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IImportScope!>
 Microsoft.CodeAnalysis.ISymbol.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>! visitor, TArgument argument) -> TResult
-Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.CastDown<TDerived>() -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TDerived!>
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>
 Microsoft.CodeAnalysis.SymbolVisitor<TArgument, TResult>.SymbolVisitor() -> void
-Microsoft.CodeAnalysis.SyntaxList<TNode>.CastDown<TDerived>() -> Microsoft.CodeAnalysis.SyntaxList<TDerived!>
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
+static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
+static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
+static Microsoft.CodeAnalysis.SyntaxList<TNode>.explicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
+static Microsoft.CodeAnalysis.SyntaxList<TNode>.op_Implicit(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementOperatorName = "op_CheckedDecrement" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementOperatorName = "op_CheckedIncrement" -> string!
