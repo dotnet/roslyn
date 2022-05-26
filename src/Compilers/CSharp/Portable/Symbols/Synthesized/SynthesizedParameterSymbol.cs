@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
-        internal sealed override DeclarationScope Scope => DeclarationScope.None;
+        internal sealed override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 
     internal sealed class SynthesizedParameterSymbol : SynthesizedParameterSymbolBase

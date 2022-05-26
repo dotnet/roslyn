@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal sealed override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        internal sealed override DeclarationScope Scope => DeclarationScope.None;
+        internal sealed override DeclarationScope Scope => DeclarationScope.Unscoped;
 
         internal sealed override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics)
         {

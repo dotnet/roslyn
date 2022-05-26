@@ -2268,6 +2268,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        internal override DeclarationScope Scope => DeclarationScope.None;
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 }

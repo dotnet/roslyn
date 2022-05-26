@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(Symbol symbol, DeclarationScope scope)
         {
-            Debug.Assert(scope != DeclarationScope.None);
+            Debug.Assert(scope != DeclarationScope.Unscoped);
 
             if ((object)Compilation.SourceModule != symbol.ContainingModule)
             {
@@ -1722,8 +1722,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return SynthesizeLifetimeAnnotationAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_LifetimeAnnotationAttribute__ctor,
                 ImmutableArray.Create(
-                    new TypedConstant(booleanType, TypedConstantKind.Primitive, (scope & DeclarationScope.RefScoped) != 0),
-                    new TypedConstant(booleanType, TypedConstantKind.Primitive, (scope & DeclarationScope.ValueScoped) != 0)));
+                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.RefScoped),
+                    new TypedConstant(booleanType, TypedConstantKind.Primitive, scope == DeclarationScope.ValueScoped)));
         }
 
         internal virtual SynthesizedAttributeData SynthesizeLifetimeAnnotationAttribute(WellKnownMember member, ImmutableArray<TypedConstant> arguments)

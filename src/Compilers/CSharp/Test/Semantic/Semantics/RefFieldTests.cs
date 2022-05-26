@@ -4203,14 +4203,14 @@ public static class A
             static void verify(CSharpCompilation comp)
             {
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F1").Parameters[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.None);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[0], "ref R x2", RefKind.Ref, DeclarationScope.Unscoped);
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F2").Parameters[1], "ref scoped R y2", RefKind.Ref, DeclarationScope.ValueScoped);
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F3").Parameters[0], "scoped in R r3", RefKind.In, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F4").Parameters[0], "scoped out R r4", RefKind.Out, DeclarationScope.RefScoped);
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F5").Parameters[1], "ref scoped R r5", RefKind.Ref, DeclarationScope.ValueScoped);
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F6").Parameters[0], "in scoped R r6", RefKind.In, DeclarationScope.ValueScoped);
                 VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F7").Parameters[0], "out scoped R r7", RefKind.Out, DeclarationScope.ValueScoped);
-                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F8").Parameters[0], "scoped ref scoped R r8", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+                VerifyParameterSymbol(comp.GetMember<MethodSymbol>("A.F8").Parameters[0], "ref scoped R r8", RefKind.Ref, DeclarationScope.ValueScoped);
             }
         }
 
@@ -4514,7 +4514,7 @@ class Program
 
             var method = comp.GetMember<MethodSymbol>("Program.F1");
             VerifyParameterSymbol(method.Parameters[0], "scoped scoped x", RefKind.None, DeclarationScope.ValueScoped);
-            VerifyParameterSymbol(method.Parameters[1], "ref scoped y", RefKind.Ref, DeclarationScope.None);
+            VerifyParameterSymbol(method.Parameters[1], "ref scoped y", RefKind.Ref, DeclarationScope.Unscoped);
             VerifyParameterSymbol(method.Parameters[2], "ref scoped scoped z", RefKind.Ref, DeclarationScope.ValueScoped);
             VerifyParameterSymbol(method.Parameters[3], "scoped ref scoped w", RefKind.Ref, DeclarationScope.RefScoped);
         }
@@ -4632,8 +4632,8 @@ public class A
         private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            Assert.Equal((expectedScope & DeclarationScope.RefScoped) != 0, parameter.IsRefScoped);
-            Assert.Equal((expectedScope & DeclarationScope.ValueScoped) != 0, parameter.IsValueScoped);
+            Assert.Equal(expectedScope == DeclarationScope.RefScoped, parameter.IsRefScoped);
+            Assert.Equal(expectedScope == DeclarationScope.ValueScoped, parameter.IsValueScoped);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
         }
 
@@ -4685,7 +4685,7 @@ class Program
                 VerifyLocalSymbol(locals[0], "scoped R r1", RefKind.None, DeclarationScope.ValueScoped);
                 VerifyLocalSymbol(locals[1], "scoped ref R r2", RefKind.Ref, DeclarationScope.RefScoped);
                 VerifyLocalSymbol(locals[2], "ref scoped R r3", RefKind.Ref, DeclarationScope.ValueScoped);
-                VerifyLocalSymbol(locals[3], "scoped ref scoped R r4", RefKind.Ref, DeclarationScope.RefScoped | DeclarationScope.ValueScoped);
+                VerifyLocalSymbol(locals[3], "ref scoped R r4", RefKind.Ref, DeclarationScope.ValueScoped);
             }
         }
 
@@ -4777,8 +4777,8 @@ ref struct scoped { }
                 var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
                 var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.None);
-                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.None);
+                VerifyLocalSymbol(locals[0], "scoped s1", RefKind.None, DeclarationScope.Unscoped);
+                VerifyLocalSymbol(locals[1], "ref scoped s2", RefKind.Ref, DeclarationScope.Unscoped);
                 VerifyLocalSymbol(locals[2], "scoped scoped s3", RefKind.None, DeclarationScope.ValueScoped);
                 VerifyLocalSymbol(locals[3], "scoped ref scoped s4", RefKind.Ref, DeclarationScope.RefScoped);
             }
@@ -4804,7 +4804,7 @@ scoped = true;
             var decls = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var locals = decls.Select(d => model.GetDeclaredSymbol(d).GetSymbol<LocalSymbol>()).ToArray();
 
-            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.None);
+            VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.Unscoped);
         }
 
         private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
@@ -4819,8 +4819,8 @@ scoped = true;
         private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            Assert.Equal((expectedScope & DeclarationScope.RefScoped) != 0, local.IsRefScoped);
-            Assert.Equal((expectedScope & DeclarationScope.ValueScoped) != 0, local.IsValueScoped);
+            Assert.Equal(expectedScope == DeclarationScope.RefScoped, local.IsRefScoped);
+            Assert.Equal(expectedScope == DeclarationScope.ValueScoped, local.IsValueScoped);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
         }
 

@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeSyntax = p.Type;
                     TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
-                    var scope = DeclarationScope.None;
+                    var scope = DeclarationScope.Unscoped;
 
                     if (typeSyntax == null)
                     {
@@ -190,13 +190,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                             }
                         }
-                        if (scopedBeforeRef)
-                        {
-                            scope |= refKind == RefKind.None ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
-                        }
                         if (scopedAfterRef)
                         {
-                            scope |= DeclarationScope.ValueScoped;
+                            scope = DeclarationScope.ValueScoped;
+                        }
+                        else if (scopedBeforeRef)
+                        {
+                            scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
                         }
                     }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
-                if (scopesBuilder.Any(s => s != DeclarationScope.None))
+                if (scopesBuilder.Any(s => s != DeclarationScope.Unscoped))
                 {
                     scopes = scopesBuilder.ToImmutable();
                 }
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type);
                         }
-                        if ((data.Scope(i) & DeclarationScope.ValueScoped) != 0 && !type.IsValidScopedType())
+                        if (data.Scope(i) == DeclarationScope.ValueScoped && !type.IsValidScopedType())
                         {
                             diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, data.ParameterLocation(i));
                         }

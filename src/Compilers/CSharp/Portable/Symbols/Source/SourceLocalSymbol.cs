@@ -82,20 +82,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static DeclarationScope GetScope(bool scoped, bool allowRefKind, TypeSyntax typeSyntax)
         {
-            var result = DeclarationScope.None;
             if (typeSyntax is RefTypeSyntax refTypeSyntax)
             {
+                if (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword)
+                {
+                    return DeclarationScope.ValueScoped;
+                }
                 if (allowRefKind && scoped)
                 {
-                    result |= DeclarationScope.RefScoped;
+                    return DeclarationScope.RefScoped;
                 }
-                scoped = (refTypeSyntax.ScopedKeyword.Kind() == SyntaxKind.ScopedKeyword);
             }
-            if (scoped)
-            {
-                result |= DeclarationScope.ValueScoped;
-            }
-            return result;
+            return scoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped;
         }
 
         /// <summary>

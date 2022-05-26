@@ -96,6 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         internal override uint RefEscapeScope => Binder.TopLevelScope;
 
-        internal override DeclarationScope Scope => DeclarationScope.None;
+        internal override DeclarationScope Scope => DeclarationScope.Unscoped;
     }
 }

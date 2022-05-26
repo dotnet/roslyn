@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isParams &&
                 !isExtensionMethodThis &&
-                scope == DeclarationScope.None &&
+                scope == DeclarationScope.Unscoped &&
                 (syntax.Default == null) &&
                 inModifiers.IsEmpty &&
                 (syntax.AttributeLists.Count == 0) &&

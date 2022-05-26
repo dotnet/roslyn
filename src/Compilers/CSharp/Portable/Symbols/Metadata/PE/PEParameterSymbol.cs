@@ -982,8 +982,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // PROTOTYPE: Should we silently drop [LifetimeAnnotation] values that are invalid
                     // (RefScoped for RefKind.None, or ValueScoped for non-ref struct)?
                     value = _moduleSymbol.Module.HasLifetimeAnnotationAttribute(_handle, out var pair) ?
-                        (pair.IsRefScoped ? DeclarationScope.RefScoped : DeclarationScope.None) | (pair.IsValueScoped ? DeclarationScope.ValueScoped : DeclarationScope.None) :
-                        DeclarationScope.None;
+                        (pair.IsRefScoped ? DeclarationScope.RefScoped : DeclarationScope.Unscoped) | (pair.IsValueScoped ? DeclarationScope.ValueScoped : DeclarationScope.Unscoped) :
+                        DeclarationScope.Unscoped;
                     _packedFlags.SetScope(value);
                 }
                 return value;

@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override DeclarationScope Scope(int index)
         {
             Debug.Assert(0 <= index && index < _parameterTypesWithAnnotations.Length);
-            return _parameterScopes.IsDefault ? DeclarationScope.None : _parameterScopes[index];
+            return _parameterScopes.IsDefault ? DeclarationScope.Unscoped : _parameterScopes[index];
         }
 
         public override TypeWithAnnotations ParameterTypeWithAnnotations(int index)

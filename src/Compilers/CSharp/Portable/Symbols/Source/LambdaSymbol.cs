@@ -347,13 +347,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     type = parameterTypes[p];
                     refKind = parameterRefKinds[p];
-                    scope = DeclarationScope.None; // PROTOTYPE: DeclarationScope should be taken from delegate signature.
+                    scope = DeclarationScope.Unscoped; // PROTOTYPE: DeclarationScope should be taken from delegate signature.
                 }
                 else
                 {
                     type = TypeWithAnnotations.Create(new ExtendedErrorTypeSymbol(compilation, name: string.Empty, arity: 0, errorInfo: null));
                     refKind = RefKind.None;
-                    scope = DeclarationScope.None;
+                    scope = DeclarationScope.Unscoped;
                 }
 
                 var attributeLists = unboundLambda.ParameterAttributes(p);

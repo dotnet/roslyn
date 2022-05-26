@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Scope != DeclarationScope.None)
+                if (parameter.Scope != DeclarationScope.Unscoped)
                 {
                     if (moduleBuilder is { })
                     {
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
 
-            if ((parameter.Scope & DeclarationScope.ValueScoped) != 0 && !parameter.Type.IsValidScopedType())
+            if (parameter.Scope == DeclarationScope.ValueScoped && !parameter.Type.IsValidScopedType())
             {
                 diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, parameterSyntax.Location);
             }
@@ -861,14 +861,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            scope = DeclarationScope.None;
-            if (scopedBeforeRef)
-            {
-                scope |= refKind == RefKind.None ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
-            }
             if (scopedAfterRef)
             {
-                scope |= DeclarationScope.ValueScoped;
+                scope = DeclarationScope.ValueScoped;
+            }
+            else if (scopedBeforeRef)
+            {
+                scope = (refKind == RefKind.None) ? DeclarationScope.ValueScoped : DeclarationScope.RefScoped;
+            }
+            else
+            {
+                scope = DeclarationScope.Unscoped;
             }
 
             return refKind;

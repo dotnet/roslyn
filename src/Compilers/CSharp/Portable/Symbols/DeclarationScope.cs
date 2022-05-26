@@ -2,17 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // PROTOTYPE: Remove and use separate IsRefScoped and IsValueScoped
-    // properties on LocalSymbol and ParameterSymbol, to match the public API.
-    [Flags]
+    // PROTOTYPE: Internally, scope is represented with this enum, but the public API
+    // uses a IsRefScoped and IsValueScoped bools (see ILocalSymbol, IParameterSymbol,
+    // and LifetimeAnnotationAttribute). We should have a common representation.
     internal enum DeclarationScope : byte
     {
-        None = 0x0,
-        RefScoped = 0x1,
-        ValueScoped = 0x2,
+        Unscoped = 0,
+        RefScoped = 1,
+        ValueScoped = 2,
     }
 }
