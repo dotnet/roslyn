@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Structure
@@ -30,6 +32,19 @@ $$#Region ""Goo""
 
             Await VerifyBlockSpansAsync(code,
                 Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=True))
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function RegionsShouldBeCollapsedByDefault(collapseRegionsByDefault As Boolean) As Task
+            Const code = "
+{|span:$$#Region ""Goo""
+#End Region|}
+"
+
+            Dim options = New BlockStructureOptions(CollapseRegionsWhenFirstOpened:=collapseRegionsByDefault)
+
+            Await VerifyBlockSpansAsync(code, options,
+                Region("span", "Goo", autoCollapse:=False, isDefaultCollapsed:=collapseRegionsByDefault))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>

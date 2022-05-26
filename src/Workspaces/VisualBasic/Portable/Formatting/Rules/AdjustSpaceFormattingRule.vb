@@ -1,13 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
-Imports System.Composition
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
-    <ExportFormattingRule(AdjustSpaceFormattingRule.Name, LanguageNames.VisualBasic), [Shared]>
-    <ExtensionOrder(After:=ElasticTriviaFormattingRule.Name)>
     Friend Class AdjustSpaceFormattingRule
         Inherits BaseFormattingRule
         Friend Const Name As String = "VisualBasic Adjust Space Formatting Rule"
@@ -15,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextFunc As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextFunc As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             ' * <end of file token>
             If currentToken.Kind = SyntaxKind.EndOfFileToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
@@ -358,14 +356,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
-            Return nextFunc.Invoke()
+            Return nextFunc.Invoke(previousToken, currentToken)
         End Function
 
-        Private Function PrecedingTriviaContainsLineBreak(previousToken As SyntaxToken) As Boolean
+        Private Shared Function PrecedingTriviaContainsLineBreak(previousToken As SyntaxToken) As Boolean
             Return ContainsLineBreak(previousToken.LeadingTrivia) OrElse ContainsLineBreak(previousToken.GetPreviousToken(includeZeroWidth:=True).TrailingTrivia)
         End Function
 
-        Private Function ContainsLineBreak(triviaList As SyntaxTriviaList) As Boolean
+        Private Shared Function ContainsLineBreak(triviaList As SyntaxTriviaList) As Boolean
             Return triviaList.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
         End Function
     End Class

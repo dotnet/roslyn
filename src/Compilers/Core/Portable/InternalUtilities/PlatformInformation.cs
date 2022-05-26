@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -25,6 +27,25 @@ namespace Roslyn.Utilities
                 catch
                 {
                     // Arbitrarily assume we're not running on Mono.
+                    return false;
+                }
+            }
+        }
+        /// <summary>
+        /// Are we running on .NET 5 or later using the Mono runtime?
+        /// Will also return true when running on Mono itself; if necessary
+        /// we can use IsRunningOnMono to distinguish.
+        /// </summary>
+        public static bool IsUsingMonoRuntime
+        {
+            get
+            {
+                try
+                {
+                    return !(Type.GetType("Mono.RuntimeStructs", throwOnError: false) is null);
+                }
+                catch
+                {
                     return false;
                 }
             }

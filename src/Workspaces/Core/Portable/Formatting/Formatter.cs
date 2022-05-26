@@ -1,16 +1,22 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Formatting.FormattingExtensions;
 
 namespace Microsoft.CodeAnalysis.Formatting
 {
@@ -27,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <summary>
         /// Gets the formatting rules that would be applied if left unspecified.
         /// </summary>
-        internal static IEnumerable<IFormattingRule> GetDefaultFormattingRules(Document document)
+        internal static ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules(Document document)
         {
             if (document == null)
             {
@@ -41,33 +47,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
             else
             {
-                return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
-            }
-        }
-
-        /// <summary>
-        /// Gets the formatting rules that would be applied if left unspecified.
-        /// </summary>
-        internal static IEnumerable<IFormattingRule> GetDefaultFormattingRules(Workspace workspace, string language)
-        {
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
-            if (language == null)
-            {
-                throw new ArgumentNullException(nameof(language));
-            }
-
-            var service = workspace.Services.GetLanguageServices(language).GetService<ISyntaxFormattingService>();
-            if (service != null)
-            {
-                return service.GetDefaultFormattingRules();
-            }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
+                return ImmutableArray<AbstractFormattingRule>.Empty;
             }
         }
 
@@ -78,8 +58,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static Task<Document> FormatAsync(Document document, OptionSet options = null, CancellationToken cancellationToken = default)
+        public static Task<Document> FormatAsync(Document document, OptionSet? options = null, CancellationToken cancellationToken = default)
+#pragma warning disable RS0030 // Do not used banned APIs
             => FormatAsync(document, spans: null, options: options, cancellationToken: cancellationToken);
+#pragma warning restore
+
+        internal static Task<Document> FormatAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => FormatAsync(document, spans: null, options, rules: null, cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in an area of a document corresponding to a text span.
@@ -89,8 +74,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static Task<Document> FormatAsync(Document document, TextSpan span, OptionSet options = null, CancellationToken cancellationToken = default)
+        public static Task<Document> FormatAsync(Document document, TextSpan span, OptionSet? options = null, CancellationToken cancellationToken = default)
+#pragma warning disable RS0030 // Do not used banned APIs
             => FormatAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+#pragma warning restore
+
+        internal static Task<Document> FormatAsync(Document document, TextSpan span, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => FormatAsync(document, SpecializedCollections.SingletonEnumerable(span), options, rules: null, cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in areas of a document corresponding to multiple non-overlapping spans.
@@ -100,24 +90,23 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static Task<Document> FormatAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options = null, CancellationToken cancellationToken = default)
+        public static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OptionSet? options = null, CancellationToken cancellationToken = default)
         {
             var formattingService = document.GetLanguageService<IFormattingService>();
-            return formattingService == null
-                ? SpecializedTasks.FromResult(document)
-                : formattingService.FormatAsync(document, spans, options, cancellationToken);
-        }
-
-        internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
-        {
-            if (document == null)
+            if (formattingService == null)
             {
-                throw new ArgumentNullException(nameof(document));
+                return document;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(await FormatAsync(root, spans, document.Project.Solution.Workspace, documentOptions, rules, cancellationToken).ConfigureAwait(false));
+            var (syntaxFormattingOptions, lineFormattingOptions) = await GetFormattingOptionsAsync(document, options, cancellationToken).ConfigureAwait(false);
+            return await formattingService.FormatAsync(document, spans, lineFormattingOptions, syntaxFormattingOptions, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var services = document.Project.Solution.Workspace.Services;
+            return document.WithSyntaxRoot(Format(root, spans, services, options, rules, cancellationToken));
         }
 
         /// <summary>
@@ -128,10 +117,20 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet options = null, CancellationToken cancellationToken = default)
+        public static Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet? options = null, CancellationToken cancellationToken = default)
             => FormatAsync(document, annotation, options, rules: null, cancellationToken: cancellationToken);
 
-        internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        internal static Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => FormatAsync(document, annotation, options, rules: null, cancellationToken);
+
+        internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var services = document.Project.Solution.Workspace.Services;
+            return document.WithSyntaxRoot(Format(root, annotation, services, options, rules, cancellationToken));
+        }
+
+        internal static async Task<Document> FormatAsync(Document document, SyntaxAnnotation annotation, OptionSet? optionSet, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             if (document == null)
             {
@@ -143,9 +142,14 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(annotation));
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var documentOptions = options ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(await FormatAsync(root, annotation, document.Project.Solution.Workspace, documentOptions, rules, cancellationToken).ConfigureAwait(false));
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var services = document.Project.Solution.Workspace.Services;
+
+            // must have syntax formatting options since we require the document to have a syntax tree:
+            var (formattingOptions, _) = await GetFormattingOptionsAsync(document, optionSet, cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(formattingOptions);
+
+            return document.WithSyntaxRoot(Format(root, annotation, services, formattingOptions, rules, cancellationToken));
         }
 
         /// <summary>
@@ -157,13 +161,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted tree's root node.</returns>
-        public static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, annotation, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => Format(node, annotation, workspace, options, rules: null, cancellationToken);
 
-        internal static Task<SyntaxNode> FormatAsync(SyntaxNode node, SyntaxAnnotation annotation, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, annotation, workspace, options, rules: null, cancellationToken: cancellationToken);
+        internal static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, HostWorkspaceServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => Format(node, annotation, services, options, rules: null, cancellationToken);
 
-        internal static Task<SyntaxNode> FormatAsync(SyntaxNode node, SyntaxAnnotation annotation, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        private static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, Workspace workspace, OptionSet? options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             if (workspace == null)
             {
@@ -180,12 +184,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(annotation));
             }
 
-            var spans = (annotation == SyntaxAnnotation.ElasticAnnotation)
-                ? GetElasticSpans(node)
-                : GetAnnotatedSpans(node, annotation);
-
-            return FormatAsync(node, spans, workspace, options, rules, cancellationToken);
+            return Format(node, GetAnnotatedSpans(node, annotation), workspace, options, rules, cancellationToken);
         }
+
+        internal static SyntaxNode Format(SyntaxNode node, SyntaxAnnotation annotation, HostWorkspaceServices services, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+            => Format(node, GetAnnotatedSpans(node, annotation), services, options, rules, cancellationToken);
 
         /// <summary>
         /// Formats the whitespace of a syntax tree.
@@ -195,11 +198,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted tree's root node.</returns>
-        public static SyntaxNode Format(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static SyntaxNode Format(SyntaxNode node, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => Format(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken);
 
-        internal static Task<SyntaxNode> FormatAsync(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);
+        internal static SyntaxNode Format(SyntaxNode node, HostWorkspaceServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => Format(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), services, options, rules: null, cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in areas of a syntax tree identified by a span.
@@ -210,11 +213,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted tree's root node.</returns>
-        public static SyntaxNode Format(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, span, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static SyntaxNode Format(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => Format(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules: null, cancellationToken: cancellationToken);
 
-        internal static Task<SyntaxNode> FormatAsync(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules: null, cancellationToken: cancellationToken);
+        internal static SyntaxNode Format(SyntaxNode node, TextSpan span, HostWorkspaceServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => Format(node, SpecializedCollections.SingletonEnumerable(span), services, options, rules: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in areas of a syntax tree identified by multiple non-overlapping spans.
@@ -225,30 +228,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted tree's root node.</returns>
-        public static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, spans, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan>? spans, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => Format(node, spans, workspace, options, rules: null, cancellationToken: cancellationToken);
 
-        internal static Task<SyntaxNode> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => FormatAsync(node, spans, workspace, options, rules: null, cancellationToken: cancellationToken);
-
-        internal static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
-            => FormatAsync(node, spans, workspace, options, rules, cancellationToken).WaitAndGetResult(cancellationToken);
-
-        internal static async Task<SyntaxNode> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        private static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan>? spans, Workspace workspace, OptionSet? options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
-            var formattingResult = await GetFormattingResult(node, spans, workspace, options, rules, cancellationToken).ConfigureAwait(false);
+            var formattingResult = GetFormattingResult(node, spans, workspace, options, rules, cancellationToken);
             return formattingResult == null ? node : formattingResult.GetFormattedRoot(cancellationToken);
         }
 
-        internal static async Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
-        {
-            var formattingResult = await GetFormattingResult(node, spans, workspace, options, rules, cancellationToken).ConfigureAwait(false);
-            return formattingResult == null 
-                ? SpecializedCollections.EmptyList<TextChange>()
-                : formattingResult.GetTextChanges(cancellationToken);
-        }
+        internal static SyntaxNode Format(SyntaxNode node, IEnumerable<TextSpan>? spans, HostWorkspaceServices services, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+            => GetFormattingResult(node, spans, services, options, rules, cancellationToken).GetFormattedRoot(cancellationToken);
 
-        internal static Task<IFormattingResult> GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        private static IFormattingResult? GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, Workspace workspace, OptionSet? options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
             if (workspace == null)
             {
@@ -260,16 +252,22 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(node));
             }
 
-            var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
+            var languageServices = workspace.Services.GetLanguageServices(node.Language);
+            var languageFormatter = languageServices.GetService<ISyntaxFormattingService>();
             if (languageFormatter == null)
             {
-                return SpecializedTasks.Default<IFormattingResult>();
+                return null;
             }
 
-            options = options ?? workspace.Options;
-            rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
-            spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
-            return languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken);
+            spans ??= SpecializedCollections.SingletonEnumerable(node.FullSpan);
+            var formattingOptions = GetFormattingOptions(workspace, options, node.Language);
+            return languageFormatter.GetFormattingResult(node, spans, formattingOptions, rules, cancellationToken);
+        }
+
+        internal static IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, HostWorkspaceServices services, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+        {
+            var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(node.Language);
+            return formatter.GetFormattingResult(node, spans, options, rules, cancellationToken);
         }
 
         /// <summary>
@@ -280,11 +278,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The changes necessary to format the tree.</returns>
-        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);
 
-        internal static Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), workspace, options, rules: null, cancellationToken: cancellationToken);
+        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, HostWorkspaceServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+            => GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(node.FullSpan), services, options, rules: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// Determines the changes necessary to format the whitespace of a syntax tree.
@@ -295,11 +293,11 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The changes necessary to format the tree.</returns>
-        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, span, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules: null, cancellationToken);
 
-        internal static Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, TextSpan span, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, SpecializedCollections.SingletonEnumerable(span), workspace, options, rules: null, cancellationToken: cancellationToken);
+        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, TextSpan span, HostWorkspaceServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken = default)
+            => GetFormattedTextChanges(node, SpecializedCollections.SingletonEnumerable(span), services, options, rules: null, cancellationToken);
 
         /// <summary>
         /// Determines the changes necessary to format the whitespace of a syntax tree.
@@ -310,82 +308,84 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The changes necessary to format the tree.</returns>
-        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, spans, workspace, options, cancellationToken).WaitAndGetResult(cancellationToken);
+        public static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan>? spans, Workspace workspace, OptionSet? options = null, CancellationToken cancellationToken = default)
+            => GetFormattedTextChanges(node, spans, workspace, options, rules: null, cancellationToken);
 
-        internal static Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options = null, CancellationToken cancellationToken = default)
-            => GetFormattedTextChangesAsync(node, spans, workspace, options, rules: null, cancellationToken: cancellationToken);
+        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan>? spans, HostWorkspaceServices services, SyntaxFormattingOptions options, CancellationToken cancellationToken = default)
+            => GetFormattedTextChanges(node, spans, services, options, rules: null, cancellationToken);
 
-        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
-            => GetFormattedTextChangesAsync(node, spans, workspace, options, rules, cancellationToken).WaitAndGetResult(cancellationToken);
-
-        private static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
+        private static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan>? spans, Workspace workspace, OptionSet? options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
-            foreach (var nodeOrToken in node.GetAnnotatedNodesAndTokens(annotation))
-            {
-                var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-                yield return GetSpan(firstToken, lastToken);
-            }
+            var formattingResult = GetFormattingResult(node, spans, workspace, options, rules, cancellationToken);
+            return formattingResult == null
+                ? SpecializedCollections.EmptyList<TextChange>()
+                : formattingResult.GetTextChanges(cancellationToken);
         }
 
-        private static TextSpan GetSpan(SyntaxToken firstToken, SyntaxToken lastToken)
+        internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan>? spans, HostWorkspaceServices services, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken = default)
         {
-            var previousToken = firstToken.GetPreviousToken();
-            var nextToken = lastToken.GetNextToken();
-
-            if (previousToken.RawKind != 0)
-            {
-                firstToken = previousToken;
-            }
-
-            if (nextToken.RawKind != 0)
-            {
-                lastToken = nextToken;
-            }
-
-            return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
+            var formatter = services.GetRequiredLanguageService<ISyntaxFormattingService>(node.Language);
+            return formatter.GetFormattingResult(node, spans, options, rules, cancellationToken).GetTextChanges(cancellationToken);
         }
 
-        private static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
+        internal static SyntaxFormattingOptions GetFormattingOptions(Workspace workspace, OptionSet? optionSet, string language)
         {
-            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
-            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
+            var syntaxFormattingService = workspace.Services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
+            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var configOptionSet = (optionSet ?? workspace.CurrentSolution.Options).AsAnalyzerConfigOptions(optionService, language);
+            return syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
         }
 
-        private static TextSpan GetElasticSpan(SyntaxToken token)
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
+        internal static async ValueTask<(SyntaxFormattingOptions? Syntax, LineFormattingOptions Line)> GetFormattingOptionsAsync(Document document, OptionSet? optionSet, CancellationToken cancellationToken)
         {
-            return GetSpan(token, token);
-        }
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var configOptionSet = (optionSet ?? await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
 
-        private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
-        {
-            var aggregateSpans = new List<TextSpan>();
+            LineFormattingOptions lineFormattingOptions;
+            SyntaxFormattingOptions? syntaxFormattingOptions;
 
-            var last = default(TextSpan);
-            foreach (var span in spans)
+            var syntaxFormattingService = document.GetLanguageService<ISyntaxFormattingService>();
+            if (syntaxFormattingService != null)
             {
-                if (last == default)
-                {
-                    last = span;
-                }
-                else if (span.IntersectsWith(last))
-                {
-                    last = TextSpan.FromBounds(last.Start, span.End);
-                }
-                else
-                {
-                    aggregateSpans.Add(last);
-                    last = span;
-                }
+                syntaxFormattingOptions = syntaxFormattingService.GetFormattingOptions(configOptionSet, fallbackOptions: null);
+                lineFormattingOptions = syntaxFormattingOptions.LineFormatting;
+            }
+            else
+            {
+                syntaxFormattingOptions = null;
+                lineFormattingOptions = configOptionSet.GetLineFormattingOptions(fallbackOptions: null);
             }
 
-            if (last != default)
+            return (syntaxFormattingOptions, lineFormattingOptions);
+        }
+#pragma warning restore
+
+        /// <summary>
+        /// Organizes the imports in the document.
+        /// </summary>
+        /// <param name="document">The document to organize.</param>
+        /// <param name="cancellationToken">The cancellation token that the operation will observe.</param>
+        /// <returns>The document with organized imports. If the language does not support organizing imports, or if no changes were made, this method returns <paramref name="document"/>.</returns>
+        public static async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken = default)
+        {
+            var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
+            if (organizeImportsService is null)
             {
-                aggregateSpans.Add(last);
+                return document;
             }
 
-            return aggregateSpans;
+            var options = await GetOrganizeImportsOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+            return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
         }
+
+#pragma warning disable RS0030 // Do not used banned APIs (backwards compatibility)
+        internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var optionService = document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+            var configOptionSet = (await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)).AsAnalyzerConfigOptions(optionService, document.Project.Language);
+            return configOptionSet.GetOrganizeImportsOptions(fallbackOptions: null);
+        }
+#pragma warning restore
     }
 }

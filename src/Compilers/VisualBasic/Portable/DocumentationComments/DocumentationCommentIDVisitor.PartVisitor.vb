@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Text
@@ -141,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol.Arity <> 0 Then
                     ' Special case: dev11 treats types instances of the declaring type in the parameter list
                     ' (And return type, for conversions) as constructed with its own type parameters.
-                    If Not _inParameterOrReturnType AndAlso symbol = symbol.ConstructedFrom Then
+                    If Not _inParameterOrReturnType AndAlso TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.ConsiderEverything) Then
                         builder.Append(MetadataHelpers.GenericTypeNameManglingChar)
                         builder.Append(symbol.Arity)
                     Else

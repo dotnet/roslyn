@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -25,11 +29,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         private CodeAccessorFunction(CodeModelState state, AbstractCodeMember parent, MethodKind kind)
             : base(state, parent.FileCodeModel)
         {
-            Debug.Assert(kind == MethodKind.EventAdd ||
-                         kind == MethodKind.EventRaise ||
-                         kind == MethodKind.EventRemove ||
-                         kind == MethodKind.PropertyGet ||
-                         kind == MethodKind.PropertySet);
+            Debug.Assert(kind is MethodKind.EventAdd or
+                         MethodKind.EventRaise or
+                         MethodKind.EventRemove or
+                         MethodKind.PropertyGet or
+                         MethodKind.PropertySet);
 
             _parentHandle = new ParentHandle<AbstractCodeMember>(parent);
             _kind = kind;
@@ -38,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         private AbstractCodeMember ParentMember => _parentHandle.Value;
 
         private bool IsPropertyAccessor()
-            => _kind == MethodKind.PropertyGet || _kind == MethodKind.PropertySet;
+            => _kind is MethodKind.PropertyGet or MethodKind.PropertySet;
 
         internal override bool TryLookupNode(out SyntaxNode node)
         {
@@ -131,8 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                var methodSymbol = LookupSymbol() as IMethodSymbol;
-                if (methodSymbol == null)
+                if (LookupSymbol() is not IMethodSymbol methodSymbol)
                 {
                     throw Exceptions.ThrowEUnexpected();
                 }

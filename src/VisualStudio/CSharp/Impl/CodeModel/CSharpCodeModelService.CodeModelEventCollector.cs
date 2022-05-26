@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 // Taken from csharp\LanguageAnalysis\Compiler\IDE\LIB\CMEvents.cpp
 
@@ -17,9 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
     internal partial class CSharpCodeModelService
     {
         protected override AbstractCodeModelEventCollector CreateCodeModelEventCollector()
-        {
-            return new CodeModelEventCollector(this);
-        }
+            => new CodeModelEventCollector(this);
 
         private class CodeModelEventCollector : AbstractCodeModelEventCollector
         {
@@ -28,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
             }
 
-            private IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
+            private static IReadOnlyList<MemberDeclarationSyntax> GetValidMembers(SyntaxNode node)
             {
                 return CSharpCodeModelService
                     .GetChildMemberNodes(node)
@@ -77,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldAttribute != null && newAttribute != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!CompareNames(oldAttribute.Name, newAttribute.Name))
                 {
@@ -110,7 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                for (int i = 0; i < oldArguments.Count; i++)
+                for (var i = 0; i < oldArguments.Count; i++)
                 {
                     var oldArgument = oldArguments[i];
                     var newArgument = newArguments[i];
@@ -182,9 +184,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         && CompareExpressions(oldBinaryExpression.Right, newBinaryExpression.Right);
                 }
 
-                if (oldExpression is AssignmentExpressionSyntax)
+                if (oldExpression is AssignmentExpressionSyntax oldAssignmentExpression)
                 {
-                    var oldAssignmentExpression = (AssignmentExpressionSyntax)oldExpression;
                     var newAssignmentExpression = (AssignmentExpressionSyntax)newExpression;
 
                     return CompareExpressions(oldAssignmentExpression.Left, newAssignmentExpression.Left)
@@ -206,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldParameter != null && newParameter != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldParameter), CodeModelService.GetName(newParameter)))
                 {
@@ -242,8 +243,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldMember is BaseTypeDeclarationSyntax ||
-                    oldMember is DelegateDeclarationSyntax)
+                if (oldMember is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldMember, newMember, newNodeParent, eventQueue);
                 }
@@ -275,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldEnumMember != null && newEnumMember != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldEnumMember), CodeModelService.GetName(newEnumMember)))
                 {
@@ -302,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldProperty != null && newProperty != null);
 
-                bool same = true;
+                var same = true;
 
                 if (!StringComparer.Ordinal.Equals(CodeModelService.GetName(oldProperty), CodeModelService.GetName(newProperty)))
                 {
@@ -372,7 +373,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             {
                 Debug.Assert(oldField != null && newField != null);
 
-                bool same = true;
+                var same = true;
                 same &= CompareChildren(
                     CompareVariableDeclarators,
                     oldField.Declaration.Variables.AsReadOnlyList(),
@@ -382,7 +383,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     eventQueue);
 
                 // If modifiers have changed enqueue a element changed (unknown change) node
-                if ((oldField.Kind() != newField.Kind()) ||
+                if (oldField.Kind() != newField.Kind() ||
                     !CompareModifiers(oldField, newField))
                 {
                     EnqueueChangeEvent(newField, newNodeParent, CodeModelEventType.Unknown, eventQueue);
@@ -434,7 +435,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
                 else
                 {
-                    bool same = true;
+                    var same = true;
 
                     if (!CompareModifiers(oldMethod, newMethod))
                     {
@@ -469,8 +470,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             private bool CompareNamespaceDeclarations(
-                NamespaceDeclarationSyntax oldNamespace,
-                NamespaceDeclarationSyntax newNamespace,
+                BaseNamespaceDeclarationSyntax oldNamespace,
+                BaseNamespaceDeclarationSyntax newNamespace,
                 SyntaxNode newNodeParent,
                 CodeModelEventQueue eventQueue)
             {
@@ -512,8 +513,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 CodeModelEventQueue eventQueue)
             {
                 Debug.Assert(oldMember != null && newMember != null);
-                Debug.Assert(oldMember is BaseTypeDeclarationSyntax || oldMember is DelegateDeclarationSyntax);
-                Debug.Assert(newMember is BaseTypeDeclarationSyntax || newMember is DelegateDeclarationSyntax);
+                Debug.Assert(oldMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
+                Debug.Assert(newMember is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax);
 
                 // If the kind doesn't match, it has to be a remove/add.
                 if (oldMember.Kind() != newMember.Kind())
@@ -531,7 +532,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     var oldMembers = GetValidMembers(oldType);
                     var newMembers = GetValidMembers(newType);
 
-                    bool same = true;
+                    var same = true;
 
                     // If the type name is different, it might mean that the whole type has been removed and a new one added.
                     // In that case, we shouldn't do any other checks and instead return immediately.
@@ -589,7 +590,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 {
                     var newDelegate = (DelegateDeclarationSyntax)newMember;
 
-                    bool same = true;
+                    var same = true;
 
                     // If the delegate name is different, it might mean that the whole delegate has been removed and a new one added.
                     // In that case, we shouldn't do any other checks and instead return immediately.
@@ -662,14 +663,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                     return false;
                 }
 
-                if (oldNamespaceOrType is BaseTypeDeclarationSyntax ||
-                    oldNamespaceOrType is DelegateDeclarationSyntax)
+                if (oldNamespaceOrType is BaseTypeDeclarationSyntax or
+                    DelegateDeclarationSyntax)
                 {
                     return CompareTypeDeclarations(oldNamespaceOrType, newNamespaceOrType, newNodeParent, eventQueue);
                 }
-                else if (oldNamespaceOrType is NamespaceDeclarationSyntax namespaceDecl)
+                else if (oldNamespaceOrType is BaseNamespaceDeclarationSyntax namespaceDecl)
                 {
-                    return CompareNamespaceDeclarations(namespaceDecl, (NamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
+                    return CompareNamespaceDeclarations(namespaceDecl, (BaseNamespaceDeclarationSyntax)newNamespaceOrType, newNodeParent, eventQueue);
                 }
 
                 return false;
@@ -692,7 +693,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         return false;
                     }
 
-                    for (int i = 0; i < oldTypes.Count; i++)
+                    for (var i = 0; i < oldTypes.Count; i++)
                     {
                         if (!CompareTypes(oldTypes[i].Type, newTypes[i].Type))
                         {
@@ -707,15 +708,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
-            {
-                return oldMember.GetModifierFlags() == newMember.GetModifierFlags();
-            }
+            private static bool CompareModifiers(MemberDeclarationSyntax oldMember, MemberDeclarationSyntax newMember)
+                => oldMember.GetModifierFlags() == newMember.GetModifierFlags();
 
-            private bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
-            {
-                return oldParameter.GetParameterFlags() == newParameter.GetParameterFlags();
-            }
+            private static bool CompareModifiers(ParameterSyntax oldParameter, ParameterSyntax newParameter)
+                => oldParameter.GetParameterFlags() == newParameter.GetParameterFlags();
 
             private bool CompareNames(NameSyntax oldName, NameSyntax newName)
             {
@@ -753,7 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                             return false;
                         }
 
-                        for (int i = 0; i < oldGenericName.Arity; i++)
+                        for (var i = 0; i < oldGenericName.Arity; i++)
                         {
                             if (!CompareTypes(oldGenericName.TypeArgumentList.Arguments[i], newGenericName.TypeArgumentList.Arguments[i]))
                             {
@@ -800,7 +797,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         var oldArrayType = (ArrayTypeSyntax)oldType;
                         var newArrayType = (ArrayTypeSyntax)newType;
 
-                        return (oldArrayType.RankSpecifiers.Count == newArrayType.RankSpecifiers.Count)
+                        return oldArrayType.RankSpecifiers.Count == newArrayType.RankSpecifiers.Count
                             && CompareTypes(oldArrayType.ElementType, newArrayType.ElementType);
 
                     case SyntaxKind.PointerType:
@@ -829,7 +826,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return false;
             }
 
-            private TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
+            private static TypeSyntax GetReturnType(BaseMethodDeclarationSyntax method)
             {
                 if (method is MethodDeclarationSyntax methodDecl)
                 {
@@ -846,9 +843,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             protected override void CollectCore(SyntaxNode oldRoot, SyntaxNode newRoot, CodeModelEventQueue eventQueue)
-            {
-                CompareCompilationUnits((CompilationUnitSyntax)oldRoot, (CompilationUnitSyntax)newRoot, eventQueue);
-            }
+                => CompareCompilationUnits((CompilationUnitSyntax)oldRoot, (CompilationUnitSyntax)newRoot, eventQueue);
 
             protected override void EnqueueAddEvent(SyntaxNode node, SyntaxNode parent, CodeModelEventQueue eventQueue)
             {
@@ -973,7 +968,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 }
             }
 
-            private void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
+            private static void AddEventToEventQueueForAttributes(AttributeSyntax attribute, SyntaxNode parent, Action<SyntaxNode, SyntaxNode> enqueueAddOrRemoveEvent)
             {
                 if (parent is BaseFieldDeclarationSyntax baseField)
                 {

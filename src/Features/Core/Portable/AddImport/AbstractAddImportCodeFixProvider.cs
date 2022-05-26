@@ -1,36 +1,49 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
-#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
-        private const int MaxResults = 3;
+        private const int MaxResults = 5;
 
-        private readonly IPackageInstallerService _packageInstallerService;
-        private readonly ISymbolSearchService _symbolSearchService;
+        private readonly IPackageInstallerService? _packageInstallerService;
+        private readonly ISymbolSearchService? _symbolSearchService;
 
         /// <summary>
         /// Values for these parameters can be provided (during testing) for mocking purposes.
         /// </summary> 
         protected AbstractAddImportCodeFixProvider(
-            IPackageInstallerService packageInstallerService = null,
-            ISymbolSearchService symbolSearchService = null)
+            IPackageInstallerService? packageInstallerService = null,
+            ISymbolSearchService? symbolSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
             _symbolSearchService = symbolSearchService;
+        }
+
+        /// <summary>
+        /// Add-using gets special privileges as being the most used code-action, along with being a core
+        /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
+        /// first, ahead of everything else, and the main results should show up at the top of the list.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
+        public sealed override FixAllProvider? GetFixAllProvider()
+        {
+            // Currently Fix All is not supported for this provider
+            // https://github.com/dotnet/roslyn/issues/34457
+            return null;
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -38,86 +51,44 @@ namespace Microsoft.CodeAnalysis.AddImport
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
+            var diagnostics = context.Diagnostics;
 
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
+            var services = document.Project.Solution.Workspace.Services;
 
-            var solution = document.Project.Solution;
-            var options = solution.Options;
+            var codeActionOptions = context.Options.GetOptions(document.Project.LanguageServices);
+            var searchOptions = codeActionOptions.SearchOptions;
 
-            var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
-            var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
+            var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 
-            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
-                ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
-                : null;
+            var installerService = searchOptions.SearchNuGetPackages ?
+                _packageInstallerService ?? services.GetService<IPackageInstallerService>() : null;
 
-            var packageSources = symbolSearchService != null && searchNuGetPackages
-                ? GetPackageSources(document)
+            var packageSources = installerService?.IsEnabled(document.Project.Id) == true
+                ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
-            // We might have multiple different diagnostics covering the same span.  Have to
-            // process them all as we might produce different fixes for each diagnostic.
-
-            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-
-            foreach (var diagnostic in context.Diagnostics)
+            if (packageSources.IsEmpty)
             {
-                var fixes = await addImportService.GetFixesAsync(
-                    document, span, diagnostic.Id, placeSystemNamespaceFirst,
-                    symbolSearchService, searchReferenceAssemblies, 
-                    packageSources, cancellationToken).ConfigureAwait(false);
+                searchOptions = searchOptions with { SearchNuGetPackages = false };
+            }
 
-                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
 
-                foreach (var fix in fixes)
-                {
-                    var codeAction = TryCreateCodeAction(document, fix);
-                    codeActions.AddIfNotNull(codeAction);
+            var addImportOptions = new AddImportOptions(
+                searchOptions,
+                cleanupOptions,
+                codeActionOptions.HideAdvancedMembers);
 
-                    if (codeActions.Count >= MaxResults)
-                    {
-                        break;
-                    }
-                }
+            var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
+                document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);
 
+            foreach (var (diagnostic, fixes) in fixesForDiagnostic)
+            {
+                // Limit the results returned since this will be displayed to the user
+                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, installerService, MaxResults);
                 context.RegisterFixes(codeActions, diagnostic);
-                codeActions.Free();
             }
-        }
-
-        private IPackageInstallerService GetPackageInstallerService(Document document)
-            => _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
-
-        private ImmutableArray<PackageSource> GetPackageSources(Document document)
-            => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
-
-        private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData)
-        {
-            if (fixData == null)
-            {
-                return null;
-            }
-
-            switch (fixData.Kind)
-            {
-                case AddImportFixKind.ProjectSymbol:
-                    return new ProjectSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.MetadataSymbol:
-                    return new MetadataSymbolReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.ReferenceAssemblySymbol:
-                    return new AssemblyReferenceCodeAction(document, fixData);
-
-                case AddImportFixKind.PackageSymbol:
-                    var packageInstaller = GetPackageInstallerService(document);
-                    return !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
-                        ? new ParentInstallPackageCodeAction(document, fixData, GetPackageInstallerService(document))
-                        : null;
-            }
-
-            throw ExceptionUtilities.Unreachable;
         }
     }
 }

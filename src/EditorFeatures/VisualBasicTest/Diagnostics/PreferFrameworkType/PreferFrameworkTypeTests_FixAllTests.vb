@@ -1,6 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-Option Strict Off
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.PreferFrameworkTypeTests
     Partial Public Class PreferFrameworkTypeTests
@@ -348,9 +348,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class ProgramA
-    Dim x As Integer = 0
-    Dim y As Integer = 0
-    Dim z As Integer = 0
+    Dim x As Int32 = 0
+    Dim y As Int32 = 0
+    Dim z As Int32 = 0
 
     Private Function F(p1 As System.Int32, p2 As System.Int16) As System.Int32
         Dim i1 As System.Int32 = Me.x
@@ -366,9 +366,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class ProgramA2
-    Dim x As Integer = 0
-    Dim y As Integer = 0
-    Dim z As Integer = 0
+    Dim x As Int32 = 0
+    Dim y As Int32 = 0
+    Dim z As Int32 = 0
 
     Private Function F(p1 As System.Int32, p2 As System.Int16) As System.Int32
         Dim i1 As System.Int32 = Me.x
@@ -387,9 +387,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class ProgramA3
-    Dim x As Integer = 0
-    Dim y As Integer = 0
-    Dim z As Integer = 0
+    Dim x As Int32 = 0
+    Dim y As Int32 = 0
+    Dim z As Int32 = 0
 
     Private Function F(p1 As System.Int32, p2 As System.Int16) As System.Int32
         Dim i1 As System.Int32 = Me.x

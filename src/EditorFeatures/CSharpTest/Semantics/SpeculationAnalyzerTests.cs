@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.IO;
@@ -35,6 +39,10 @@ class Program
         [Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")]
         public void SpeculationAnalyzerExtensionMethodExplicitInvocation()
         {
+            // We consider a change here to be a change in semantics as an instance call became a static call. In
+            // practice this is fine as the only thing that makes this change is complexification, and we don't test for
+            // semantics changed after that as the purpose of complexification is to put us in a safe place to make
+            // changes that won't break semantics.
             Test(@"
 static class Program
 {
@@ -43,7 +51,7 @@ static class Program
     {
         [|5.Vain()|];
     }
-}           ", "Vain(5)", false);
+}           ", "Vain(5)", semanticChanges: true);
         }
 
         [Fact]
@@ -151,9 +159,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", true);
+}           ", "c.CompareTo(d)", true);
         }
 
         [Fact]
@@ -170,9 +179,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", false);
+}           ", "((IComparable)c).CompareTo(d)", semanticChanges: false);
         }
 
         [Fact]
@@ -287,7 +297,7 @@ class Program
 using System.Collections;
 class Collection : IEnumerable
 {
-    public IEnumerator GetEnumerator() { return null; }
+    public IEnumerator GetEnumerator() { throw new System.NotImplementedException(); }
     public void Add(string s) { }
     public void Add(int i) { }
     void Main()
@@ -388,15 +398,111 @@ class Program
             ", "1", semanticChanges: true);
         }
 
-        protected override SyntaxTree Parse(string text)
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerIndexerPropertyWithRedundantCast()
         {
-            return SyntaxFactory.ParseSyntaxTree(text);
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|]).Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
         }
 
-        protected override bool IsExpressionNode(SyntaxNode node)
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerIndexerPropertyWithRequiredCast()
         {
-            return node is ExpressionSyntax;
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+    public new Indexer Foo { get; } = new Indexer();
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|]).Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
         }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerDelegatePropertyWithRedundantCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|]).Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerDelegatePropertyWithRequiredCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+    public new MyDelegate Foo { get; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|]).Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
+        }
+
+        protected override SyntaxTree Parse(string text)
+            => SyntaxFactory.ParseSyntaxTree(text);
+
+        protected override bool IsExpressionNode(SyntaxNode node)
+            => node is ExpressionSyntax;
 
         protected override Compilation CreateCompilation(SyntaxTree tree)
         {
@@ -404,20 +510,18 @@ class Program
                 CompilationName,
                 new[] { tree },
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePair.Create("CS0219", ReportDiagnostic.Suppress) }));
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new[] { KeyValuePairUtil.Create("CS0219", ReportDiagnostic.Suppress) }));
         }
 
         protected override bool CompilationSucceeded(Compilation compilation, Stream temporaryStream)
         {
             var langCompilation = compilation;
-            bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
+            static bool isProblem(Diagnostic d) => d.Severity >= DiagnosticSeverity.Warning;
             return !langCompilation.GetDiagnostics().Any(isProblem) &&
                 !langCompilation.Emit(temporaryStream).Diagnostics.Any(isProblem);
         }
 
         protected override bool ReplacementChangesSemantics(SyntaxNode initialNode, SyntaxNode replacementNode, SemanticModel initialModel)
-        {
-            return new SpeculationAnalyzer((ExpressionSyntax)initialNode, (ExpressionSyntax)replacementNode, initialModel, CancellationToken.None).ReplacementChangesSemantics();
-        }
+            => new SpeculationAnalyzer((ExpressionSyntax)initialNode, (ExpressionSyntax)replacementNode, initialModel, CancellationToken.None).ReplacementChangesSemantics();
     }
 }

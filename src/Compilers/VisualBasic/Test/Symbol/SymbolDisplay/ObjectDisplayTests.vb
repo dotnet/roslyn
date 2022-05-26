@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
 Imports System.Threading.Thread
@@ -227,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 CurrentThread.CurrentCulture = New CultureInfo(1031) ' de-DE
 
                 Dim dateValue As New Date(2001, 1, 31)
-                Assert.Equal("31.01.2001 00:00:00", dateValue.ToString())
+                Assert.Equal("31.01.2001 00:00:00", dateValue.ToString("dd.MM.yyyy HH:mm:ss"))
                 Assert.Equal("#1/31/2001 12:00:00 AM#", FormatPrimitive(dateValue))
 
                 Dim decimalValue As New Decimal(12.5)

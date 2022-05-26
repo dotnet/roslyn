@@ -1,18 +1,30 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
 {
     public partial class RemoveUnusedVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public RemoveUnusedVariableTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpRemoveUnusedVariableCodeFixProvider());
 
@@ -213,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
         {
             await TestInRegularAndScriptAsync(
 @"
-#define NET46
+#define DIRECTIVE1
 
 using System;
 
@@ -223,9 +235,9 @@ namespace ClassLibrary
     {
         public static string GetText()
         {
-#if NET46
+#if DIRECTIVE1
         return ""Hello from "" + Environment.OSVersion;
-#elif NETSTANDARD1_4
+#elif DIRECTIVE2
         return ""Hello from .NET Standard"";
 #else
 #error Unknown platform 
@@ -235,7 +247,7 @@ namespace ClassLibrary
     }
 }",
 @"
-#define NET46
+#define DIRECTIVE1
 
 using System;
 
@@ -245,9 +257,9 @@ namespace ClassLibrary
     {
         public static string GetText()
         {
-#if NET46
+#if DIRECTIVE1
         return ""Hello from "" + Environment.OSVersion;
-#elif NETSTANDARD1_4
+#elif DIRECTIVE2
         return ""Hello from .NET Standard"";
 #else
 #error Unknown platform 
@@ -306,6 +318,73 @@ class Test
     bool TrySomething()
     {
         return used;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatementsInSwitchSection1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                bool used = true;
+                int [|unused|];
+
+                return used;
+        }
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                bool used = true;
+
+                return used;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TestWhitespaceBetweenStatementsInSwitchSection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                int [|unused|];
+
+                return used;
+        }
+    }
+}",
+@"
+class Test
+{
+    bool TrySomething()
+    {
+        switch (true)
+        {
+            case true:
+                return used;
+        }
     }
 }");
         }
@@ -579,6 +658,157 @@ class C
 ";
 
             await TestInRegularAndScriptAsync(input, expected);
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableDeclaredInForStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        for([|int i = 0|]; ; )
+        {
+
+        }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        for(; ; )
+        {
+
+        }
+    }
+}");
+        }
+
+        [WorkItem(40336, "https://github.com/dotnet/roslyn/issues/40336")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableJointDeclaredInForStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        for(int i = 0[|, j = 0|]; i < 1; i++)
+        {
+
+        }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        for(int i = 0; i < 1; i++)
+        {
+
+        }
+    }
+}");
+        }
+
+        [WorkItem(44273, "https://github.com/dotnet/roslyn/issues/44273")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task TopLevelStatement()
+        {
+            await TestAsync(@"
+[|int i = 0|];
+",
+@"
+", TestOptions.Regular);
+        }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableJointDeclaredInForStatementInsideIfStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for(int i = 0[|, j = 0|]; i < 1; i++)
+            {
+
+            }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for(int i = 0; i < 1; i++)
+            {
+
+            }
+    }
+}");
+        }
+
+        [WorkItem(49827, "https://github.com/dotnet/roslyn/issues/49827")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task DontCrashOnDeclarationInsideIfStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test [|and test|])
+        {
+
+        }
+    }
+}");
+        }
+
+        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception [|ex|]) { }
+        };
+    }
+}",
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception) { }
+        };
+    }
+}");
+        }
+
+        [WorkItem(51737, "https://github.com/dotnet/roslyn/issues/51737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RemoveUnusedVariableTopLevel()
+        {
+            await TestAsync(
+@"
+[|int i = 1|];
+i = 2;
+",
+@"
+", CSharpParseOptions.Default);
         }
     }
 }

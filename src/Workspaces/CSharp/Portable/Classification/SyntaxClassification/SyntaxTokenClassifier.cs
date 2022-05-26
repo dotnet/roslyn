@@ -1,11 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -23,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         public override void AddClassifications(
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            ClassificationOptions options,
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out var identifier))
@@ -35,25 +37,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 // For example: X?.Y<
                 //
                 // In this case, this could never be a type, and we do not want to try to 
-                // resolve it as such as it can lead to innapropriate classifications.
+                // resolve it as such as it can lead to inappropriate classifications.
                 if (CouldBeGenericType(identifier))
                 {
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
                     if (types.Any(s_shouldInclude))
                     {
+#nullable disable // Can 'GetClassificationForType(types.First()' be null here?
                         result.Add(new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+#nullable enable
                     }
                 }
             }
         }
 
-        private bool CouldBeGenericType(SyntaxToken identifier)
+        private static bool CouldBeGenericType(SyntaxToken identifier)
         {
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            var identifierName = identifier.Parent as IdentifierNameSyntax;
-            if (identifierName == null)
+            if (identifier.Parent is not IdentifierNameSyntax identifierName)
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;
@@ -65,13 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return false;
             }
 
-            if (identifierName.IsMemberAccessExpressionName())
+            // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
+            if (identifierName.IsSimpleMemberAccessExpressionName() ||
+                identifierName.IsMemberBindingExpressionName())
             {
-                // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
                 if (identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
                     return false;
-                }
             }
 
             // Add more cases as necessary.

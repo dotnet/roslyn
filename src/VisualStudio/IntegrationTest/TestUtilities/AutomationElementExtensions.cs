@@ -1,7 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UIAutomationClient;
@@ -39,7 +42,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
 
             var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, automationId);
-            var child = parent.FindFirst(TreeScope.TreeScope_Descendants, condition);
+            var child = Helper.Retry(
+                () => parent.FindFirst(TreeScope.TreeScope_Descendants, condition),
+                AutomationRetryDelay,
+                retryCount: AutomationRetryCount);
 
             if (child == null)
             {
@@ -61,7 +67,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
 
             var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.NameProperty.Id, name);
-            var child = parent.FindFirst(TreeScope.TreeScope_Descendants, condition);
+            var child = Helper.Retry(
+                () => parent.FindFirst(TreeScope.TreeScope_Descendants, condition),
+                AutomationRetryDelay,
+                retryCount: AutomationRetryCount);
 
             if (child == null)
             {
@@ -83,7 +92,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
 
             var condition = Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ClassNameProperty.Id, className);
-            var child = parent.FindFirst(TreeScope.TreeScope_Descendants, condition);
+            var child = Helper.Retry(
+                () => parent.FindFirst(TreeScope.TreeScope_Descendants, condition),
+                AutomationRetryDelay,
+                retryCount: AutomationRetryCount);
 
             if (child == null)
             {
@@ -243,16 +255,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static IUIAutomationElement FindDescendantByPath(this IUIAutomationElement element, string path)
         {
-            string[] pathParts = path.Split(".".ToCharArray());
+            var pathParts = path.Split(".".ToCharArray());
 
             // traverse the path
-            IUIAutomationElement item = element;
-            IUIAutomationElement next = null;
-
-            foreach (string pathPart in pathParts)
+            var item = element;
+            foreach (var pathPart in pathParts)
             {
-                next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
-                
+                var next = item.FindFirst(TreeScope.TreeScope_Descendants, Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.LocalizedControlTypeProperty.Id, pathPart));
+
                 if (next == null)
                 {
                     ThrowUnableToFindChildException(path, item);
@@ -264,15 +274,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return item;
         }
 
+        [DoesNotReturn]
         private static void ThrowUnableToFindChildException(string path, IUIAutomationElement item)
         {
             // if not found, build a list of available children for debugging purposes
-            var validChildren = new List<string>();
+            var validChildren = new List<string?>();
 
             try
             {
                 var children = item.GetCachedChildren();
-                for (int i = 0; i < children.Length; i++)
+                for (var i = 0; i < children.Length; i++)
                 {
                     validChildren.Add(SimpleControlTypeName(children.GetElement(i)));
                 }
@@ -287,7 +298,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 string.Join(", ", validChildren)));
         }
 
-        private static string SimpleControlTypeName(IUIAutomationElement element)
+        private static string? SimpleControlTypeName(IUIAutomationElement element)
         {
             var type = ControlType.LookupById((int)element.GetCurrentPropertyValue(AutomationElementIdentifiers.ControlTypeProperty.Id));
             return type?.LocalizedControlType;
@@ -340,10 +351,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private static string GetNameForExceptionMessage(this IUIAutomationElement element)
         {
-            return element.CurrentAutomationId ?? element.CurrentName ?? "<unnamed>";
+            return RetryIfNotAvailable(e => e.CurrentAutomationId, element)
+                ?? RetryIfNotAvailable(e => e.CurrentName, element)
+                ?? "<unnamed>";
         }
 
-        private static void RetryIfNotAvailable<T>(Action<T> action, T state)
+        internal static void RetryIfNotAvailable<T>(Action<T> action, T state)
         {
             // NOTE: The loop termination condition if exceptions are thrown is in the exception filter
             for (var i = 0; true; i++)
@@ -361,7 +374,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static TResult RetryIfNotAvailable<T, TResult>(Func<T, TResult> function, T state)
+        internal static TResult RetryIfNotAvailable<T, TResult>(Func<T, TResult> function, T state)
         {
             // NOTE: The loop termination condition if exceptions are thrown is in the exception filter
             for (var i = 0; true; i++)

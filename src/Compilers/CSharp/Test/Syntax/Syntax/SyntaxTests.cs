@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -191,6 +195,58 @@ void goo()
         public void TestIsReservedTupleElementName(string elementName, bool isReserved)
         {
             Assert.Equal(isReserved, SyntaxFacts.IsReservedTupleElementName(elementName));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsLiteral(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsLiteral(kind));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken)]
+        [InlineData(SyntaxKind.CharacterLiteralToken)]
+        [InlineData(SyntaxKind.NumericLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralToken)]
+        [InlineData(SyntaxKind.XmlTextLiteralNewLineToken)]
+        [InlineData(SyntaxKind.XmlEntityLiteralToken)]
+        public void TestIsAnyToken(SyntaxKind kind)
+        {
+            Assert.True(SyntaxFacts.IsAnyToken(kind));
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.StringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.SingleLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.MultiLineRawStringLiteralToken, SyntaxKind.StringLiteralExpression)]
+        [InlineData(SyntaxKind.CharacterLiteralToken, SyntaxKind.CharacterLiteralExpression)]
+        [InlineData(SyntaxKind.NumericLiteralToken, SyntaxKind.NumericLiteralExpression)]
+        [InlineData(SyntaxKind.NullKeyword, SyntaxKind.NullLiteralExpression)]
+        [InlineData(SyntaxKind.TrueKeyword, SyntaxKind.TrueLiteralExpression)]
+        [InlineData(SyntaxKind.FalseKeyword, SyntaxKind.FalseLiteralExpression)]
+        [InlineData(SyntaxKind.ArgListKeyword, SyntaxKind.ArgListExpression)]
+        public void TestGetLiteralExpression(SyntaxKind tokenKind, SyntaxKind expressionKind)
+        {
+            Assert.Equal(expressionKind, SyntaxFacts.GetLiteralExpression(tokenKind));
+        }
+
+        [Fact]
+        public void Punctuation()
+        {
+            foreach (var kind in SyntaxFacts.GetPunctuationKinds())
+            {
+                Assert.True(SyntaxFacts.IsPunctuation(kind));
+            }
         }
     }
 }

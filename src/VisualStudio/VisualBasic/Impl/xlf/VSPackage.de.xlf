@@ -8,18 +8,43 @@
         <note>Used anywhere the string is needed (that is, everywhere.)</note>
       </trans-unit>
       <trans-unit id="1012">
-        <source>Microsoft Visual Basic Code Page Editor</source>
-        <target state="translated">Microsoft Visual Basic-Codepage-Editor</target>
+        <source>Visual Basic Editor with Encoding</source>
+        <target state="translated">Visual Basic-Editor mit Codierung</target>
         <note />
       </trans-unit>
       <trans-unit id="1013">
-        <source>Microsoft Visual Basic Editor</source>
-        <target state="translated">Microsoft Visual Basic-Editor</target>
+        <source>Visual Basic Editor</source>
+        <target state="translated">Visual Basic-Editor</target>
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off</source>
-        <target state="translated">End-Konstruktionen automatisch einfügen;Einstellungen für automatische Strukturierung und Einrückung ändern;Gliederungsmodus ändern;Schnittstellen- und MustOverride-Member automatisch einfügen;Zeilentrennzeichen zwischen Prozeduren anzeigen oder ausblenden;Vorschläge für Fehlerkorrektur ein- oder ausschalten;Markierung von Verweisen und Schlüsselwörtern ein- oder ausschalten</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen; Automatisches Einfügen von Endkonstrukten;Pretty Listing-Einstellungen ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;
+Regex;
+reguläre Ausdrücke;
+zugehörige Komponenten unter dem Cursor;
+Ungültige reguläre Ausdrücke melden;
+RegEx;
+regulärer Ausdruck;
+JSON;
+JSON-Zeichenfolgen farbig hervorheben;
+Ungültige JSON-Zeichenfolgen melden;
+Editorfeatures für JSON-Zeichenfolgen erkennen und anbieten;
+erweiterte Farben verwenden;Editor-Farbschema;Vererbungsrand;Einfuhrrichtlinien;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -64,7 +89,7 @@
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Mit mir qualifizieren;systeminterne Typen bevorzugen;Format;Codeformat</target>
+        <target state="translated">Mit Me qualifizieren; Intrinsische Typen bevorzugen; Format; Codeformat</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
@@ -101,6 +126,16 @@
         <source>Visual Basic Tools</source>
         <target state="translated">Visual Basic-Tools</target>
         <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="An_empty_Visual_Basic_script_file">
+        <source>An empty Visual Basic script file.</source>
+        <target state="translated">Eine leere Visual Basic-Skriptdatei.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Basic_Script">
+        <source>Visual Basic Script</source>
+        <target state="translated">Visual Basic-Skript</target>
+        <note />
       </trans-unit>
     </body>
   </file>

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -15,10 +19,10 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Reflection.PortableExecutable;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using static Microsoft.CodeAnalysis.SigningUtilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
-using Microsoft.DiaSymReader;
 
 namespace Microsoft.Cci
 {
@@ -31,44 +35,6 @@ namespace Microsoft.Cci
 
     internal static class PeWriter
     {
-        // Remove this function when  https://github.com/dotnet/roslyn/issues/25185 is fixed
-        private static byte ReadByteFromBlobBuilder(BlobBuilder blobBuilder, int offset)
-        {
-            BlobBuilder.Blobs blobs = blobBuilder.GetBlobs();
-            int startOffsetOfBlob = 0;
-            foreach (Blob b in blobs)
-            {
-                ArraySegment<byte> bytesInBlob = b.GetBytes();
-                int offsetInBlob = offset - startOffsetOfBlob;
-
-                if (offsetInBlob < bytesInBlob.Count)
-                    return ((IList<Byte>)bytesInBlob)[offsetInBlob];
-
-                startOffsetOfBlob += bytesInBlob.Count;
-            }
-            throw new IndexOutOfRangeException();
-        }
-
-        // Remove this function when  https://github.com/dotnet/roslyn/issues/25185 is fixed
-        private static void WriteByteToBlobBuilder(BlobBuilder blobBuilder, int offset, byte data)
-        {
-            BlobBuilder.Blobs blobs = blobBuilder.GetBlobs();
-            int startOffsetOfBlob = 0;
-            foreach (Blob b in blobs)
-            {
-                ArraySegment<byte> bytesInBlob = b.GetBytes();
-                int offsetInBlob = offset - startOffsetOfBlob;
-
-                if (offsetInBlob < bytesInBlob.Count)
-                {
-                    ((IList<Byte>)bytesInBlob)[offsetInBlob] = data;
-                    return;
-                }
-
-                startOffsetOfBlob += bytesInBlob.Count;
-            }
-        }
-
         internal static bool WritePeToStream(
             EmitContext context,
             CommonMessageProvider messageProvider,
@@ -136,12 +102,14 @@ namespace Microsoft.Cci
                 {
 #if DEBUG
                     // validate that all definitions are writable
-                    // if same scenario would happen in an winmdobj project
+                    // if same scenario would happen in a winmdobj project
                     nativePdbWriterOpt.AssertAllDefinitionsHaveTokens(mdWriter.Module.GetSymbolToLocationMap());
 #endif
                 }
 
-                nativePdbWriterOpt.WriteRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                nativePdbWriterOpt.WriteRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
+
+                nativePdbWriterOpt.WriteCompilerVersion(context.Module.CommonCompilation.Language);
             }
 
             Stream peStream = getPeStream();
@@ -158,17 +126,8 @@ namespace Microsoft.Cci
             ushort portablePdbVersion = 0;
             var metadataRootBuilder = mdWriter.GetRootBuilder();
 
-            Machine SRMVisibleMachine = properties.Machine;
-
-            // When attempting to write an Arm64 PE file, tell the PEBuilder that an Amd64 pe is being written instead
-            // then replace the bits in the produced PE header with the correct bits. This will allow an Arm64 pe to be
-            // generated without requiring the System.Reflection.Metadata dll to be updated to a newer version.
-            // Remove this code when  https://github.com/dotnet/roslyn/issues/25185 is fixed
-            if (SRMVisibleMachine == (Machine)0xAA64)
-                SRMVisibleMachine = Machine.Amd64;
-
             var peHeaderBuilder = new PEHeaderBuilder(
-                machine: SRMVisibleMachine,
+                machine: properties.Machine,
                 sectionAlignment: properties.SectionAlignment,
                 fileAlignment: properties.FileAlignment,
                 imageBase: properties.BaseAddress,
@@ -188,18 +147,17 @@ namespace Microsoft.Cci
                 sizeOfHeapReserve: properties.SizeOfHeapReserve,
                 sizeOfHeapCommit: properties.SizeOfHeapCommit);
 
-            // TODO: replace SAH1 with non-crypto alg: https://github.com/dotnet/roslyn/issues/24737
             var peIdProvider = isDeterministic ?
-                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeHash(HashAlgorithmName.SHA1, content))) :
+                new Func<IEnumerable<Blob>, BlobContentId>(content => BlobContentId.FromHash(CryptographicHashProvider.ComputeSourceHash(content))) :
                 null;
-                
+
             // We need to calculate the PDB checksum, so we may as well use the calculated hash for PDB ID regardless of whether deterministic build is requested.
             var portablePdbContentHash = default(ImmutableArray<byte>);
-            
+
             BlobBuilder portablePdbToEmbed = null;
             if (mdWriter.EmitPortableDebugMetadata)
             {
-                mdWriter.AddRemainingEmbeddedDocuments(mdWriter.Module.DebugDocumentsBuilder.EmbeddedDocuments);
+                mdWriter.AddRemainingDebugDocuments(mdWriter.Module.DebugDocumentsBuilder.DebugDocuments);
 
                 // The algorithm must be specified for deterministic builds (checked earlier).
                 Debug.Assert(!isDeterministic || context.Module.PdbChecksumAlgorithm.Name != null);
@@ -289,60 +247,11 @@ namespace Microsoft.Cci
             var peBlob = new BlobBuilder();
             var peContentId = peBuilder.Serialize(peBlob, out Blob mvidSectionFixup);
 
-            // Remove this code when  https://github.com/dotnet/roslyn/issues/25185 is fixed
-            if (SRMVisibleMachine != properties.Machine)
-            {
-                // ARM64 pe
-                // Update Amd64 machine type in PE header to 0xAA64
-                // Machine type in PEHeader is located at...
-                // 128 bytes (dos header)
-                // 4 bytes (PE Signature)
-                // 2 bytes (Machine)
-                // 2 bytes (NumberOfSections)
-                // 4 bytes (TimeDateStamp)
-                int machineOffset = 128 + 4;
-                int timeDateStampOffset = 128 + 4 + 2 + 2;
-                ushort amd64MachineType = (ushort)Machine.Amd64;
-                Debug.Assert(ReadByteFromBlobBuilder(peBlob, machineOffset) == (byte)(amd64MachineType));
-                Debug.Assert(ReadByteFromBlobBuilder(peBlob, machineOffset + 1) == (byte)(amd64MachineType >> 8));
-
-                ushort realMachineType = (ushort)properties.Machine;
-                byte lsbMachineType = (byte)realMachineType;
-                byte msbMachineType = (byte)(realMachineType >> 8);
-
-                // This code path is currently only expected to be used for ARM64
-                Debug.Assert(lsbMachineType == 0x64);
-                Debug.Assert(msbMachineType == 0xAA);
-
-                WriteByteToBlobBuilder(peBlob, machineOffset, lsbMachineType);
-                WriteByteToBlobBuilder(peBlob, machineOffset + 1, msbMachineType);
-
-                if (peIdProvider != null)
-                {
-                    // Patch timestamp in COFF Header to all zeroes
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset, 0);
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset + 1, 0);
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset + 2, 0);
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset + 3, 0);
-
-                    peContentId = peIdProvider(peBlob.GetBlobs());
-
-                    // patch timestamp in COFF header:
-                    uint newTimestamp = peContentId.Stamp;
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset, (byte)newTimestamp);
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset + 1, (byte)(newTimestamp >> 8));
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset + 2, (byte)(newTimestamp >> 16));
-                    WriteByteToBlobBuilder(peBlob, timeDateStampOffset + 3, (byte)(newTimestamp >> 24));
-                }
-            }
-
             PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
             if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
             {
-                Debug.Assert(strongNameProvider.Capability == SigningCapability.SignsPeBuilder);
-                strongNameProvider.SignPeBuilder(peBuilder, peBlob, privateKeyOpt.Value);
-                FixupChecksum(peBuilder, peBlob);
+                strongNameProvider.SignBuilder(peBuilder, peBlob, privateKeyOpt.Value);
             }
 
             try
@@ -355,30 +264,6 @@ namespace Microsoft.Cci
             }
 
             return true;
-        }
-
-        private static void FixupChecksum(ExtendedPEBuilder peBuilder, BlobBuilder peBlob)
-        {
-            // Checksum fixup, workaround for https://github.com/dotnet/corefx/issues/25829
-            // Tracked by https://github.com/dotnet/roslyn/issues/23762
-            // Since the checksum is calculated before signing in the PEBuilder,
-            // we need to redo the calculation and write in the correct checksum
-            Blob checksumBlob = getChecksumBlob(peBuilder);
-
-            ArraySegment<byte> checksumSegment = checksumBlob.GetBytes();
-            uint oldChecksum = BitConverter.ToUInt32(checksumSegment.Array, checksumSegment.Offset);
-            uint newChecksum = CalculateChecksum(peBlob, checksumBlob);
-            new BlobWriter(checksumBlob).WriteUInt32(newChecksum);
-
-            // If this assert fires, the above bug has been fixed and this workaround should
-            // be removed
-            Debug.Assert(oldChecksum != newChecksum);
-
-            Blob getChecksumBlob(PEBuilder builder)
-                => (Blob)typeof(PEBuilder).GetRuntimeFields()
-                    .Where(f => f.Name == "_lazyChecksum")
-                    .Single()
-                    .GetValue(builder);
         }
 
         private static MethodInfo s_calculateChecksumMethod;
@@ -454,10 +339,16 @@ namespace Microsoft.Cci
                 return new ResourceSectionBuilderFromResources(nativeResourcesOpt);
             }
 
+            var rawResourcesOpt = module.RawWin32Resources;
+            if (rawResourcesOpt != null)
+            {
+                return new ResourceSectionBuilderFromRaw(rawResourcesOpt);
+            }
+
             return null;
         }
 
-        private class ResourceSectionBuilderFromObj : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromObj : ResourceSectionBuilder
         {
             private readonly ResourceSection _resourceSection;
 
@@ -473,7 +364,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private class ResourceSectionBuilderFromResources : ResourceSectionBuilder
+        private sealed class ResourceSectionBuilderFromResources : ResourceSectionBuilder
         {
             private readonly IEnumerable<IWin32Resource> _resources;
 
@@ -486,6 +377,24 @@ namespace Microsoft.Cci
             protected override void Serialize(BlobBuilder builder, SectionLocation location)
             {
                 NativeResourceWriter.SerializeWin32Resources(builder, _resources, location.RelativeVirtualAddress);
+            }
+        }
+
+        private sealed class ResourceSectionBuilderFromRaw : ResourceSectionBuilder
+        {
+            private readonly Stream _resources;
+            public ResourceSectionBuilderFromRaw(Stream resources)
+            {
+                _resources = resources;
+            }
+
+            protected override void Serialize(BlobBuilder builder, SectionLocation location)
+            {
+                int value;
+                while ((value = _resources.ReadByte()) >= 0)
+                {
+                    builder.WriteByte((byte)value);
+                }
             }
         }
     }

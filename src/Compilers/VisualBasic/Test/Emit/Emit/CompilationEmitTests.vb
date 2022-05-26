@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -236,7 +238,6 @@ BC30451: 'NoSuchMethod' is not declared. It may be inaccessible due to its prote
 
         <Fact>
         Public Sub EmitMetadataOnly()
-            ' Check that Compilation.EmitMetadataOnly works.
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
@@ -295,6 +296,295 @@ End Class
                 CompilationUtils.AssertNoErrors(emitResult.Diagnostics)
                 Assert.True(output.ToArray().Length > 0, "no metadata emitted")
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_NoDocMode_Success()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should be emitted&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+"﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_NoDocMode_SyntaxWarning()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should still emit
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.None))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SyntaxWarning()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should still emit
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.WRN_XMLDocParseError1, "<summary>").WithArguments("Element is missing an end tag.").WithLocation(4, 9),
+                Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("Expected beginning '<' for an XML tag.").WithLocation(4, 40),
+                Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("'>' expected.").WithLocation(4, 40))
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SemanticWarning()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;&lt;see cref="T"/&gt;&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.WRN_XMLDocCrefAttributeNotFound1, "cref=""T""").WithArguments("T").WithLocation(4, 23))
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary><see cref=""!:T""/></summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_DiagnoseDocMode_Success()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should emit&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
+        End Sub
+
+        <Fact>
+        Public Sub EmitMetadataOnly_XmlDocs_ParseDocMode_Success()
+            Dim compilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Imports System        
+
+Namespace Goo.Bar
+    ''' &lt;summary&gt;This should emit&lt;/summary&gt;
+    Public Class X
+    End Class
+End Namespace
+    </file>
+</compilation>, assemblyName:="test", parseOptions:=VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse))
+
+            Dim emitResult As EmitResult
+            Dim mdOnlyImage As Byte()
+            Dim xmlDocBytes As Byte()
+
+            Using output = New MemoryStream()
+                Using xmlStream = New MemoryStream()
+                    emitResult = compilation.Emit(output, xmlDocumentationStream:=xmlStream, options:=New EmitOptions(metadataOnly:=True))
+                    mdOnlyImage = output.ToArray()
+                    xmlDocBytes = xmlStream.ToArray()
+                End Using
+            End Using
+
+            Assert.True(emitResult.Success)
+            emitResult.Diagnostics.Verify()
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted")
+            Assert.Equal(
+                "﻿<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+test
+</name>
+</assembly>
+<members>
+<member name=""T:Goo.Bar.X"">
+ <summary>This should emit</summary>
+</member>
+</members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes))
         End Sub
 
         <Fact>
@@ -400,7 +690,8 @@ End Class"
 
             Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
+            ' ILVerify: Failed to load type 'System.String' from assembly ...
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsILVerify, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -782,6 +1073,111 @@ End Function",
             End If
         End Sub
 
+#If NET472 Then
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
+        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        Public Sub RefAssembly_InvariantToResourceChanges_RefOut()
+            Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
+            Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
+
+            Dim manifestResources1 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData1), isPublic:=True)}
+            Dim manifestResources2 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData2), isPublic:=True)}
+            RefAssembly_InvariantToResourceChanges_RefOut_verify(manifestResources1, manifestResources2)
+
+            manifestResources1 = {New ResourceDescription(resourceName:="A", Function() New MemoryStream(arrayOfEmbeddedData1), isPublic:=True)}
+            manifestResources2 = {New ResourceDescription(resourceName:="A", Function() New MemoryStream(arrayOfEmbeddedData2), isPublic:=True)}
+            RefAssembly_InvariantToResourceChanges_RefOut_verify(manifestResources1, manifestResources2)
+        End Sub
+
+        Private Function RefAssembly_InvariantToResourceChanges_RefOut_emit(ByVal manifestResources As IEnumerable(Of ResourceDescription), ByVal name As String) _
+            As (peStream As ImmutableArray(Of Byte), metadataPEStream As ImmutableArray(Of Byte))
+
+            Dim source = Parse("")
+            Dim comp = CreateCompilation(source, options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            comp.VerifyDiagnostics()
+
+            Dim metadataPEStream = New MemoryStream()
+            Dim refoutOptions = EmitOptions.[Default].WithEmitMetadataOnly(False).WithIncludePrivateMembers(False)
+            Dim peStream = comp.EmitToArray(refoutOptions, metadataPEStream:=metadataPEStream, manifestResources:=manifestResources)
+
+            Return (peStream, metadataPEStream.ToImmutable())
+        End Function
+
+        Private Sub RefAssembly_InvariantToResourceChanges_RefOut_verify(ByVal manifestResources1 As IEnumerable(Of ResourceDescription), ByVal manifestResources2 As IEnumerable(Of ResourceDescription))
+            Dim name As String = GetUniqueName()
+            Dim emitted1 = RefAssembly_InvariantToResourceChanges_RefOut_emit(manifestResources1, name)
+            Dim emitted2 = RefAssembly_InvariantToResourceChanges_RefOut_emit(manifestResources2, name)
+
+            AssertEx.NotEqual(emitted1.peStream, emitted2.peStream, message:="Expecting different main assemblies produced by refout")
+            AssertEx.Equal(emitted1.metadataPEStream, emitted2.metadataPEStream, message:="Expecting identical ref assemblies produced by refout")
+
+            Dim refAssembly1 = Assembly.ReflectionOnlyLoad(emitted1.metadataPEStream.ToArray())
+            Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames())
+        End Sub
+
+        <ConditionalFact(GetType(WindowsDesktopOnly))>
+        <WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        Public Sub RefAssembly_SensitiveToResourceChanges_RefOnly()
+            Dim arrayOfEmbeddedData1 = New Byte() {1, 2, 3, 4, 5}
+            Dim arrayOfEmbeddedData2 = New Byte() {1, 2, 3, 4, 5, 6}
+
+            Dim manifestResources1 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData1), isPublic:=True)}
+            Dim manifestResources2 As IEnumerable(Of ResourceDescription) =
+                {New ResourceDescription(resourceName:="A", fileName:="x.goo", Function() New MemoryStream(arrayOfEmbeddedData2), isPublic:=True)}
+
+            Dim name As String = GetUniqueName()
+            Dim image1 = RefAssembly_SensitiveToResourceChanges_RefOnly_emit(manifestResources1, name)
+            Dim image2 = RefAssembly_SensitiveToResourceChanges_RefOnly_emit(manifestResources2, name)
+            AssertEx.Equal(image1, image2, message:="Expecting different ref assembly produced by refonly")
+
+            Dim refAssembly1 = Assembly.ReflectionOnlyLoad(image1.ToArray())
+            Assert.DoesNotContain("A", refAssembly1.GetManifestResourceNames())
+        End Sub
+
+        Private Function RefAssembly_SensitiveToResourceChanges_RefOnly_emit(ByVal manifestResources As IEnumerable(Of ResourceDescription), name As String) _
+            As ImmutableArray(Of Byte)
+
+            Dim source = Parse("")
+            Dim comp = CreateCompilation(source, options:=TestOptions.DebugDll.WithDeterministic(True), assemblyName:=name)
+            comp.VerifyDiagnostics()
+
+            Dim refonlyOptions = EmitOptions.[Default].WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Return comp.EmitToArray(refonlyOptions, metadataPEStream:=Nothing, manifestResources:=manifestResources)
+        End Function
+#End If
+        <Fact, WorkItem(31197, "https://github.com/dotnet/roslyn/issues/31197")>
+        Public Sub RefAssembly_CryptoHashFailedIsOnlyReportedOnce()
+            Dim hash_resources =
+                {New ResourceDescription("hash_resource", "snKey.snk", Function() New MemoryStream(TestResources.General.snKey, writable:=False), True)}
+
+            Dim moduleComp =
+                CreateEmptyCompilation("", options:=TestOptions.DebugDll.WithDeterministic(True).WithOutputKind(OutputKind.NetModule))
+
+            Dim reference = ModuleMetadata.CreateFromImage(moduleComp.EmitToArray()).GetReference()
+
+            Dim compilation = CreateCompilation("
+<assembly: System.Reflection.AssemblyAlgorithmIdAttribute(12345ui)>
+
+Class Program
+End Class
+", references:={reference}, options:=TestOptions.ReleaseDll)
+
+            Dim refonlyOptions = EmitOptions.[Default].WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Dim refonlyDiagnostics = compilation.Emit(New MemoryStream(), pdbStream:=Nothing,
+                                                      options:=refonlyOptions, manifestResources:=hash_resources).Diagnostics
+
+            refonlyDiagnostics.Verify(Diagnostic(ERRID.ERR_CryptoHashFailed))
+
+            Dim refoutOptions = EmitOptions.[Default].WithEmitMetadataOnly(False).WithIncludePrivateMembers(False)
+            Dim refoutDiagnostics = compilation.Emit(peStream:=New MemoryStream(), metadataPEStream:=New MemoryStream(),
+                                                     pdbStream:=Nothing, options:=refoutOptions, manifestResources:=hash_resources).Diagnostics
+
+            refoutDiagnostics.Verify(Diagnostic(ERRID.ERR_CryptoHashFailed))
+        End Sub
+
         <Fact>
         Public Sub RefAssemblyClient_EmitAllNestedTypes()
             VerifyRefAssemblyClient("
@@ -929,6 +1325,52 @@ Public Class C
 End Class
 ",
 Sub(comp) comp.AssertTheseDiagnostics())
+        End Sub
+
+        <Fact, WorkItem(49470, "https://github.com/dotnet/roslyn/issues/49470")>
+        Public Sub RefAssemblyClient_EventBackingField()
+            Dim lib_vb = "
+Imports System
+
+Public Class Button
+    Public Event Click As EventHandler
+End Class
+
+Public Class Base
+    Protected WithEvents Button1 As Button
+End Class
+"
+            Dim source_vb = "
+Imports System
+
+Public Class Derived
+    Inherits Base
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+    End Sub
+End Class
+"
+            Dim libComp = CreateCompilationWithMscorlib40({Parse(lib_vb)}, options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Assert.Equal({"Sub Base..ctor()",
+                         "Base._Button1 As Button",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         libComp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
+
+            Dim options = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            Dim libImage = libComp.EmitToImageReference(options)
+
+            Dim comp = CreateCompilationWithMscorlib40(source_vb, references:={libImage})
+            AssertNoDiagnostics(comp)
+
+            ' The logic in PENamedTypeSymbol.CreateFields chooses not to import the field, but its presence still matters.
+            Assert.Equal({"Sub Base..ctor()",
+                         "Function Base.get_Button1() As Button",
+                         "Sub Base.set_Button1(WithEventsValue As Button)",
+                         "WithEvents Base.Button1 As Button"},
+                         comp.GlobalNamespace.GetTypeMember("Base").GetMembers().Select(Function(m) m.ToTestDisplayString()))
         End Sub
 
         Private Sub VerifyRefAssemblyClient(lib_vb As String, client_vb As String, validator As Action(Of VisualBasicCompilation), Optional debugFlag As Integer = -1)
@@ -1616,7 +2058,7 @@ End Module
                 </file>
             </compilation>
 
-            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestReferences.NetFx.v2_0_50727.mscorlib}, Nothing)
+            Dim compilation = CreateEmptyCompilationWithReferences(source, {TestMetadata.Net20.mscorlib}, Nothing)
             Dim metadata = ModuleMetadata.CreateFromImage(compilation.EmitToArray())
 
             ' this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
@@ -2334,7 +2776,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2346,7 +2788,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2395,7 +2837,7 @@ End Module
                                                          .PermissionSet =
                                                              "." &
                                                              ChrW(2) &
- _
+                                                                      _
                                                              ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2407,7 +2849,7 @@ End Module
                                                              "Role" &
                                                              ChrW(&H5) &
                                                              "User1" &
- _
+                                                                      _
                                                      ChrW(&H80) &
                                                              ChrW(&H85) &
                                                              "System.Security.Permissions.PrincipalPermissionAttribute, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" &
@@ -2828,8 +3270,8 @@ end namespace
                     Dim assembly = [module].ContainingAssembly
                     Dim ns = DirectCast([module].GlobalNamespace.GetMembers("N").Single, NamespaceSymbol)
                     Dim namedType = DirectCast(ns.GetMembers("C1").Single, NamedTypeSymbol)
-                    Dim type = DirectCast(namedType, Microsoft.Cci.ITypeDefinition)
-                    Dim method = DirectCast(namedType.GetMembers("goo1").Single, Microsoft.Cci.IMethodDefinition)
+                    Dim type = DirectCast(namedType.GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
+                    Dim method = DirectCast(namedType.GetMembers("goo1").Single.GetCciAdapter(), Microsoft.Cci.IMethodDefinition)
 
                     Dim sourceAssembly = DirectCast(assembly, SourceAssemblySymbol)
                     Dim compilation = sourceAssembly.DeclaringCompilation
@@ -3407,7 +3849,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.Fails)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.FailsPEVerify Or Verification.FailsILVerify)
         End Sub
 
         <Fact>

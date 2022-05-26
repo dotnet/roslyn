@@ -192,8 +192,9 @@
   <data name="Place_open_brace_on_new_line_for_methods_local_functions" xml:space="preserve">
     <value>Place open brace on new line for methods and local functions</value>
   </data>
-  <data name="Place_open_brace_on_new_line_for_object_collection_and_array_initializers" xml:space="preserve">
-    <value>Place open brace on new line for object, collection and array initializers</value>
+  <data name="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers" xml:space="preserve">
+    <value>Place open brace on new line for object, collection, array, and with initializers</value>
+    <comment>{Locked="with"}</comment>
   </data>
   <data name="Place_open_brace_on_new_line_for_types" xml:space="preserve">
     <value>Place open brace on new line for types</value>
@@ -312,9 +313,6 @@
   <data name="Use_var_when_generating_locals" xml:space="preserve">
     <value>Use 'var' when generating locals</value>
   </data>
-  <data name="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere" xml:space="preserve">
-    <value>_Move local declaration to the extracted method if it is not used elsewhere</value>
-  </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
@@ -375,8 +373,8 @@
   <data name="Place_code_snippets_in_completion_lists" xml:space="preserve">
     <value>Place _code snippets in completion lists</value>
   </data>
-  <data name="Completion_Lists" xml:space="preserve">
-    <value>Completion Lists</value>
+  <data name="Completion" xml:space="preserve">
+    <value>Completion</value>
   </data>
   <data name="Selection_In_Completion_List" xml:space="preserve">
     <value>Selection In Completion List</value>
@@ -390,8 +388,8 @@
   <data name="Place_open_brace_on_new_line_for_properties_indexers_and_events" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
-  <data name="Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
-    <value>Suggest usings for types in _reference assemblies</value>
+  <data name="Suggest_usings_for_types_in_dotnet_framework_assemblies" xml:space="preserve">
+    <value>Suggest usings for types in .NET Framework assemblies</value>
   </data>
   <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest usings for types in _NuGet packages</value>
@@ -486,6 +484,9 @@
   <data name="Prefer_conditional_delegate_call" xml:space="preserve">
     <value>Prefer conditional delegate call</value>
   </data>
+  <data name="Prefer_pattern_matching" xml:space="preserve">
+    <value>Prefer pattern matching</value>
+  </data>
   <data name="Prefer_pattern_matching_over_is_with_cast_check" xml:space="preserve">
     <value>Prefer pattern matching over 'is' with 'cast' check</value>
   </data>
@@ -533,13 +534,11 @@
     <value>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</value>
   </data>
   <data name="In_other_binary_operators" xml:space="preserve">
-    <value>In other binary operators:  &amp;&amp;   ||   ??</value>
+    <value>In other binary operators:  &amp;&amp;   ||   ??   and   or</value>
+    <comment>'and' and 'or' are C# keywords and should not be localized</comment>
   </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
-  </data>
-  <data name="Generate Event Subscription" xml:space="preserve">
-    <value>Generate Event Subscription</value>
   </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
     <value>Remove unnecessary usings</value>
@@ -550,49 +549,110 @@
   <data name="Format_document_settings" xml:space="preserve">
     <value>Format Document Settings (Experiment) </value>
   </data>
-  <data name="All_csharp_formatting_rules" xml:space="preserve">
-    <value>All C# Formatting Rules (indentation, wrapping and spacing)</value>
-  </data>
-  <data name="Fix_accessibility_modifiers" xml:space="preserve">
-    <value>Fix accessibility modifiers</value>
-  </data>
-  <data name="Fix_add_remove_braces" xml:space="preserve">
-    <value>Fix add/remove braces</value>
-  </data>
-  <data name="Fix_framework_types" xml:space="preserve">
-    <value>Fix framework types (int vs Int32)</value>
-  </data>
-  <data name="Fix_implicit_explicit_type" xml:space="preserve">
-    <value>Fix implicit/explicit type</value>
-  </data>
-  <data name="Fix_this_qualification" xml:space="preserve">
-    <value>Fix this. qualification</value>
-  </data>
-  <data name="Sort_accessibility_modifiers" xml:space="preserve">
-    <value>Sort accessibility modifiers</value>
-  </data>
-  <data name="Fix_expression_bodied_members" xml:space="preserve">
-    <value>Fix expression-bodied members</value>
-  </data>
-  <data name="Fix_inline_variable_declarations" xml:space="preserve">
-    <value>Fix inline variable declarations</value>
-  </data>
-  <data name="Fix_language_features" xml:space="preserve">
-    <value>Fix language features</value>
-  </data>
-  <data name="Fix_object_collection_initialization" xml:space="preserve">
-    <value>Fix object/collection initialization</value>
-  </data>
-  <data name="Make_readonly" xml:space="preserve">
-    <value>Make readonly</value>
-  </data>
-  <data name="Remove_unnecessary_casts" xml:space="preserve">
-    <value>Remove unnecessary casts</value>
-  </data>
-  <data name="Remove_unused_variables" xml:space="preserve">
-    <value>Remove unused variables</value>
+  <data name="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing" xml:space="preserve">
+    <value>Apply all C# formatting rules (indentation, wrapping, spacing)</value>
   </data>
   <data name="In_relational_binary_operators" xml:space="preserve">
     <value>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</value>
+    <comment>'is' and 'as' are C# keywords and should not be localized</comment>
+  </data>
+  <data name="Perform_additional_code_cleanup_during_formatting" xml:space="preserve">
+    <value>Perform additional code cleanup during formatting</value>
+  </data>
+  <data name="CSharp_Coding_Conventions" xml:space="preserve">
+    <value>C# Coding Conventions</value>
+  </data>
+  <data name="CSharp_Formatting_Rules" xml:space="preserve">
+    <value>C# Formatting Rules</value>
+  </data>
+  <data name="Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="Unused_local" xml:space="preserve">
+    <value>Unused local</value>
+  </data>
+  <data name="When_on_multiple_lines" xml:space="preserve">
+    <value>When on multiple lines</value>
+  </data>
+  <data name="Show_items_from_unimported_namespaces" xml:space="preserve">
+    <value>Show items from unimported namespaces</value>
+  </data>
+  <data name="Inside_namespace" xml:space="preserve">
+    <value>Inside namespace</value>
+    <comment>'namespace' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Outside_namespace" xml:space="preserve">
+    <value>Outside namespace</value>
+    <comment>'namespace' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Preferred_using_directive_placement" xml:space="preserve">
+    <value>Preferred 'using' directive placement</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="using_preferences_colon" xml:space="preserve">
+    <value>'using' preferences:</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+    <comment>Title of the control group on the General Formatting options page</comment>
+  </data>
+  <data name="Prefer_switch_expression" xml:space="preserve">
+    <value>Prefer switch expression</value>
+  </data>
+  <data name="Automatically_show_completion_list_in_argument_lists" xml:space="preserve">
+    <value>Automatically show completion list in argument lists</value>
+  </data>
+  <data name="Show_remarks_in_Quick_Info" xml:space="preserve">
+    <value>Show remarks in Quick Info</value>
+  </data>
+  <data name="Pattern_matching_preferences_colon" xml:space="preserve">
+    <value>Pattern matching preferences:</value>
+  </data>
+  <data name="Prefer_pattern_matching_over_mixed_type_check" xml:space="preserve">
+    <value>Prefer pattern matching over mixed type check</value>
+  </data>
+  <data name="Edit_color_scheme" xml:space="preserve">
+    <value>Edit color scheme</value>
+  </data>
+  <data name="Prefer_implicit_object_creation_when_type_is_apparent" xml:space="preserve">
+    <value>Prefer implicit object creation when type is apparent</value>
+  </data>
+  <data name="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments" xml:space="preserve">
+    <value>Insert // at the start of new lines when writing // comments</value>
+  </data>
+  <data name="Show_hints_for_new_expressions" xml:space="preserve">
+    <value>Show hints for 'new' expressions</value>
+  </data>
+  <data name="Add_missing_using_directives_on_paste" xml:space="preserve">
+    <value>Add missing using directives on paste</value>
+    <comment>'using' is a C# keyword and should not be localized</comment>
+  </data>
+  <data name="Allow_embedded_statements_on_same_line" xml:space="preserve">
+    <value>Allow embedded statements on same line</value>
+  </data>
+  <data name="Allow_blank_lines_between_consecutive_braces" xml:space="preserve">
+    <value>Allow blank lines between consecutive braces</value>
+  </data>
+  <data name="Allow_bank_line_after_colon_in_constructor_initializer" xml:space="preserve">
+    <value>Allow blank line after colon in constructor initializer</value>
+  </data>
+  <data name="Automatically_complete_statement_on_semicolon" xml:space="preserve">
+    <value>Automatically complete statement on semicolon</value>
+  </data>
+  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
+    <value>Prefer 'null' check over type check</value>
+  </data>
+  <data name="Block_scoped" xml:space="preserve">
+    <value>Block scoped</value>
+  </data>
+  <data name="File_scoped" xml:space="preserve">
+    <value>File scoped</value>
+  </data>
+  <data name="Prefer_extended_property_pattern" xml:space="preserve">
+    <value>Prefer extended property pattern</value>
+  </data>
+  <data name="Collapse_usings_on_file_open" xml:space="preserve">
+    <value>Collapse usings on file open</value>
   </data>
 </root>

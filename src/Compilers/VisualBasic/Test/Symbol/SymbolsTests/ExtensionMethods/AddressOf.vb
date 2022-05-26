@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -200,6 +202,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
+                             verify:=Verification.FailsILVerify,
                              expectedOutput:=
             <![CDATA[
 -- Test1 --
@@ -630,6 +633,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
+                             verify:=Verification.FailsILVerify,
                              expectedOutput:=
             <![CDATA[
 M2.F1
@@ -937,8 +941,9 @@ Namespace System.Runtime.CompilerServices
 End Namespace
     </file>
 </compilation>
-
+            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
             CompileAndVerify(compilationDef,
+                             verify:=Verification.FailsILVerify,
                              expectedOutput:=
             <![CDATA[
 2

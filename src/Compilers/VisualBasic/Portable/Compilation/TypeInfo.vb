@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Utilities
@@ -47,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Shared Widening Operator CType(info As VisualBasicTypeInfo) As TypeInfo
-            Return New TypeInfo(info.Type, info.ConvertedType)
+            Return New TypeInfo(info.Type, info.ConvertedType, nullability:=Nothing, convertedNullability:=Nothing)
         End Operator
 
         Friend Sub New(type As TypeSymbol, convertedType As TypeSymbol, implicitConversion As Conversion)
@@ -58,8 +60,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overloads Function Equals(other As VisualBasicTypeInfo) As Boolean Implements IEquatable(Of VisualBasicTypeInfo).Equals
             Return _implicitConversion.Equals(other._implicitConversion) AndAlso
-                _type = other._type AndAlso
-                _convertedType = other._convertedType
+                TypeSymbol.Equals(_type, other._type, TypeCompareKind.ConsiderEverything) AndAlso
+                TypeSymbol.Equals(_convertedType, other._convertedType, TypeCompareKind.ConsiderEverything)
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean
@@ -73,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Guess the non-error type that the given type was intended to represent, or return
-        ''' the type itself. If a single, non-ambiguous type is a guess-type inside the type symbol, 
+        ''' the type itself. If a single, non-ambiguous type is a guess-type inside the type symbol,
         ''' return that; otherwise return the type itself (even if it is an error type).
         ''' </summary>
         Private Shared Function GetPossibleGuessForErrorType(type As TypeSymbol) As TypeSymbol

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -32,6 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 case string[] sources:
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
                     return CSharpTestBase.Parse(parseOptions, sources);
+                case (string source, string fileName):
+                    Debug.Assert(string.IsNullOrEmpty(sourceFileName));
+                    return new[] { CSharpTestBase.Parse(source, fileName, parseOptions) };
+                case (string Source, string FileName)[] sources:
+                    Debug.Assert(string.IsNullOrEmpty(sourceFileName));
+                    return sources.Select(source => CSharpTestBase.Parse(source.Source, source.FileName, parseOptions)).ToArray();
                 case SyntaxTree tree:
                     Debug.Assert(parseOptions == null);
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
@@ -40,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                     Debug.Assert(parseOptions == null);
                     Debug.Assert(string.IsNullOrEmpty(sourceFileName));
                     return trees;
+                case CSharpTestSource[] testSources:
+                    return testSources.SelectMany(s => s.GetSyntaxTrees(parseOptions, sourceFileName)).ToArray();
                 case null:
                     return Array.Empty<SyntaxTree>();
                 default:
@@ -49,9 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static implicit operator CSharpTestSource(string source) => new CSharpTestSource(source);
         public static implicit operator CSharpTestSource(string[] source) => new CSharpTestSource(source);
+        public static implicit operator CSharpTestSource((string Source, string FileName) source) => new CSharpTestSource(source);
+        public static implicit operator CSharpTestSource((string Source, string FileName)[] source) => new CSharpTestSource(source);
         public static implicit operator CSharpTestSource(SyntaxTree source) => new CSharpTestSource(source);
         public static implicit operator CSharpTestSource(SyntaxTree[] source) => new CSharpTestSource(source);
         public static implicit operator CSharpTestSource(List<SyntaxTree> source) => new CSharpTestSource(source.ToArray());
         public static implicit operator CSharpTestSource(ImmutableArray<SyntaxTree> source) => new CSharpTestSource(source.ToArray());
+        public static implicit operator CSharpTestSource(CSharpTestSource[] source) => new CSharpTestSource(source);
     }
 }

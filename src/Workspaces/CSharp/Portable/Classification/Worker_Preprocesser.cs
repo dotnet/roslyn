@@ -1,12 +1,13 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
-    internal partial class Worker
+    internal ref partial struct Worker
     {
         private void ClassifyPreprocessorDirective(DirectiveTriviaSyntax node)
         {
@@ -53,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.LineDirectiveTrivia:
                     ClassifyLineDirective((LineDirectiveTriviaSyntax)node);
                     break;
+                case SyntaxKind.LineSpanDirectiveTrivia:
+                    ClassifyLineSpanDirective((LineSpanDirectiveTriviaSyntax)node);
+                    break;
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                     ClassifyPragmaChecksumDirective((PragmaChecksumDirectiveTriviaSyntax)node);
                     break;
@@ -64,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
                 case SyntaxKind.LoadDirectiveTrivia:
                     ClassifyLoadDirective((LoadDirectiveTriviaSyntax)node);
+                    break;
+                case SyntaxKind.NullableDirectiveTrivia:
+                    ClassifyNullableDirective((NullableDirectiveTriviaSyntax)node);
                     break;
             }
         }
@@ -101,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        private void ClassifyPreprocessorExpression(ExpressionSyntax node)
+        private void ClassifyPreprocessorExpression(ExpressionSyntax? node)
         {
             if (node == null)
             {
@@ -237,12 +244,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
             }
 
-            if (node.File.Kind() != SyntaxKind.None)
-            {
-                AddClassification(node.File, ClassificationTypeNames.StringLiteral);
-            }
-
+            AddOptionalClassification(node.File, ClassificationTypeNames.StringLiteral);
             ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyLineSpanDirective(LineSpanDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.LineKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            ClassifyLineDirectivePosition(node.Start);
+            AddClassification(node.MinusToken, ClassificationTypeNames.Operator);
+            ClassifyLineDirectivePosition(node.End);
+            AddOptionalClassification(node.CharacterOffset, ClassificationTypeNames.NumericLiteral);
+            AddOptionalClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void AddOptionalClassification(SyntaxToken token, string classification)
+        {
+            if (token.Kind() != SyntaxKind.None)
+            {
+                AddClassification(token, classification);
+            }
+        }
+
+        private void ClassifyLineDirectivePosition(LineDirectivePositionSyntax node)
+        {
+            AddClassification(node.OpenParenToken, ClassificationTypeNames.Punctuation);
+            AddClassification(node.Line, ClassificationTypeNames.NumericLiteral);
+            AddClassification(node.CommaToken, ClassificationTypeNames.Punctuation);
+            AddClassification(node.Character, ClassificationTypeNames.NumericLiteral);
+            AddClassification(node.CloseParenToken, ClassificationTypeNames.Punctuation);
         }
 
         private void ClassifyPragmaChecksumDirective(PragmaChecksumDirectiveTriviaSyntax node)
@@ -267,6 +299,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 ClassifyNodeOrToken(nodeOrToken);
             }
+
+            if (node.ErrorCodes.Count == 0)
+            {
+                // When there are no error codes, we need to classify the directive's trivia.
+                // (When there are error codes, ClassifyNodeOrToken above takes care of that.)
+                ClassifyDirectiveTrivia(node);
+            }
         }
 
         private void ClassifyReferenceDirective(ReferenceDirectiveTriviaSyntax node)
@@ -282,6 +321,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.LoadKeyword, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyNullableDirective(NullableDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.NullableKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.SettingToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.TargetToken, ClassificationTypeNames.PreprocessorKeyword);
             ClassifyDirectiveTrivia(node);
         }
     }

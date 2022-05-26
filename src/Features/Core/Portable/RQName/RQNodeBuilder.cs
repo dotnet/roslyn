@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,31 +16,20 @@ namespace Microsoft.CodeAnalysis.Features.RQName
         /// Builds the RQName for a given symbol.
         /// </summary>
         /// <returns>The node if it could be created, otherwise null</returns>
-        public static UnresolvedRQNode Build(ISymbol symbol)
-        {
-            switch (symbol.Kind)
+        public static RQNode? Build(ISymbol symbol)
+            => symbol switch
             {
-                case SymbolKind.Namespace:
-                    return BuildNamespace(symbol as INamespaceSymbol);
-                case SymbolKind.NamedType:
-                    return BuildNamedType(symbol as INamedTypeSymbol);
-                case SymbolKind.Method:
-                    return BuildMethod(symbol as IMethodSymbol);
-                case SymbolKind.Field:
-                    return BuildField(symbol as IFieldSymbol);
-                case SymbolKind.Event:
-                    return BuildEvent(symbol as IEventSymbol);
-                case SymbolKind.Property:
-                    return BuildProperty(symbol as IPropertySymbol);
-                default:
-                    return null;
-            }
-        }
+                INamespaceSymbol namespaceSymbol => BuildNamespace(namespaceSymbol),
+                INamedTypeSymbol namedTypeSymbol => BuildUnconstructedNamedType(namedTypeSymbol),
+                IMethodSymbol methodSymbol => BuildMethod(methodSymbol),
+                IFieldSymbol fieldSymbol => BuildField(fieldSymbol),
+                IEventSymbol eventSymbol => BuildEvent(eventSymbol),
+                IPropertySymbol propertySymbol => BuildProperty(propertySymbol),
+                _ => null,
+            };
 
         private static RQNamespace BuildNamespace(INamespaceSymbol @namespace)
-        {
-            return new RQNamespace(RQNodeBuilder.GetNameParts(@namespace));
-        }
+            => new(RQNodeBuilder.GetNameParts(@namespace));
 
         private static IList<string> GetNameParts(INamespaceSymbol @namespace)
         {
@@ -59,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             return parts;
         }
 
-        private static RQUnconstructedType BuildNamedType(INamedTypeSymbol type)
+        private static RQUnconstructedType? BuildUnconstructedNamedType(INamedTypeSymbol type)
         {
             // Anything that is a valid RQUnconstructed types is ALWAYS safe for public APIs
 
@@ -85,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             var namespaceNames = RQNodeBuilder.GetNameParts(@type.ContainingNamespace);
             var typeInfos = new List<RQUnconstructedTypeInfo>();
 
-            for (INamedTypeSymbol currentType = type; currentType != null; currentType = currentType.ContainingType)
+            for (var currentType = type; currentType != null; currentType = currentType.ContainingType)
             {
                 typeInfos.Insert(0, new RQUnconstructedTypeInfo(currentType.Name, currentType.TypeParameters.Length));
             }
@@ -93,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             return new RQUnconstructedType(namespaceNames, typeInfos);
         }
 
-        private static RQMember BuildField(IFieldSymbol symbol)
+        private static RQMember? BuildField(IFieldSymbol symbol)
         {
-            var containingType = BuildNamedType(symbol.ContainingType);
+            var containingType = BuildUnconstructedNamedType(symbol.ContainingType);
 
             if (containingType == null)
             {
@@ -105,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             return new RQMemberVariable(containingType, symbol.Name);
         }
 
-        private static RQProperty BuildProperty(IPropertySymbol symbol)
+        private static RQProperty? BuildProperty(IPropertySymbol symbol)
         {
             RQMethodPropertyOrEventName name = symbol.IsIndexer ?
                 RQOrdinaryMethodPropertyOrEventName.CreateOrdinaryIndexerName() :
@@ -118,12 +109,17 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                     return null;
                 }
 
-                name = new RQExplicitInterfaceMemberName(
-                    BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol),
-                    (RQOrdinaryMethodPropertyOrEventName)name);
+                var interfaceType = BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType);
+
+                if (interfaceType != null)
+                {
+                    name = new RQExplicitInterfaceMemberName(
+                        interfaceType,
+                        (RQOrdinaryMethodPropertyOrEventName)name);
+                }
             }
 
-            var containingType = BuildNamedType(symbol.ContainingType);
+            var containingType = BuildUnconstructedNamedType(symbol.ContainingType);
 
             if (containingType == null)
             {
@@ -132,16 +128,26 @@ namespace Microsoft.CodeAnalysis.Features.RQName
 
             var parameterList = BuildParameterList(symbol.Parameters);
 
+            if (parameterList == null)
+            {
+                return null;
+            }
+
             return new RQProperty(containingType, name, typeParameterCount: 0, parameters: parameterList);
         }
 
-        private static IList<RQParameter> BuildParameterList(ImmutableArray<IParameterSymbol> parameters)
+        private static IList<RQParameter>? BuildParameterList(ImmutableArray<IParameterSymbol> parameters)
         {
             var parameterList = new List<RQParameter>();
 
             foreach (var parameter in parameters)
             {
                 var parameterType = BuildType(parameter.Type);
+
+                if (parameterType == null)
+                {
+                    return null;
+                }
 
                 if (parameter.RefKind == RefKind.Out)
                 {
@@ -160,9 +166,9 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             return parameterList;
         }
 
-        private static RQEvent BuildEvent(IEventSymbol symbol)
+        private static RQEvent? BuildEvent(IEventSymbol symbol)
         {
-            var containingType = BuildNamedType(symbol.ContainingType);
+            var containingType = BuildUnconstructedNamedType(symbol.ContainingType);
 
             if (containingType == null)
             {
@@ -178,20 +184,25 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                     return null;
                 }
 
-                name = new RQExplicitInterfaceMemberName(BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol), (RQOrdinaryMethodPropertyOrEventName)name);
+                var interfaceType = BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType);
+
+                if (interfaceType != null)
+                {
+                    name = new RQExplicitInterfaceMemberName(interfaceType, (RQOrdinaryMethodPropertyOrEventName)name);
+                }
             }
 
             return new RQEvent(containingType, name);
         }
 
-        private static RQMethod BuildMethod(IMethodSymbol symbol)
+        private static RQMethod? BuildMethod(IMethodSymbol symbol)
         {
-            if (symbol.MethodKind == MethodKind.UserDefinedOperator ||
-                symbol.MethodKind == MethodKind.BuiltinOperator ||
-                symbol.MethodKind == MethodKind.EventAdd ||
-                symbol.MethodKind == MethodKind.EventRemove ||
-                symbol.MethodKind == MethodKind.PropertySet ||
-                symbol.MethodKind == MethodKind.PropertyGet)
+            if (symbol.MethodKind is MethodKind.UserDefinedOperator or
+                MethodKind.BuiltinOperator or
+                MethodKind.EventAdd or
+                MethodKind.EventRemove or
+                MethodKind.PropertySet or
+                MethodKind.PropertyGet)
             {
                 return null;
             }
@@ -218,10 +229,15 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                     return null;
                 }
 
-                name = new RQExplicitInterfaceMemberName(BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType as ITypeSymbol), (RQOrdinaryMethodPropertyOrEventName)name);
+                var interfaceType = BuildType(symbol.ExplicitInterfaceImplementations.Single().ContainingType);
+
+                if (interfaceType != null)
+                {
+                    name = new RQExplicitInterfaceMemberName(interfaceType, (RQOrdinaryMethodPropertyOrEventName)name);
+                }
             }
 
-            var containingType = BuildNamedType(symbol.ContainingType);
+            var containingType = BuildUnconstructedNamedType(symbol.ContainingType);
 
             if (containingType == null)
             {
@@ -231,10 +247,15 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             var typeParamCount = symbol.TypeParameters.Length;
             var parameterList = BuildParameterList(symbol.Parameters);
 
+            if (parameterList == null)
+            {
+                return null;
+            }
+
             return new RQMethod(containingType, name, typeParamCount, parameterList);
         }
 
-        private static RQType BuildType(ITypeSymbol symbol)
+        private static RQType? BuildType(ITypeSymbol symbol)
         {
             if (symbol.IsAnonymousType)
             {
@@ -245,13 +266,25 @@ namespace Microsoft.CodeAnalysis.Features.RQName
             {
                 return RQVoidType.Singleton;
             }
-            else if (symbol.TypeKind == TypeKind.Pointer)
+            else if (symbol is IPointerTypeSymbol pointerType)
             {
-                return new RQPointerType(BuildType((symbol as IPointerTypeSymbol).PointedAtType));
+                var pointedAtType = BuildType(pointerType.PointedAtType);
+                if (pointedAtType == null)
+                {
+                    return null;
+                }
+
+                return new RQPointerType(pointedAtType);
             }
-            else if (symbol.TypeKind == TypeKind.Array)
+            else if (symbol is IArrayTypeSymbol arrayType)
             {
-                return new RQArrayType((symbol as IArrayTypeSymbol).Rank, BuildType((symbol as IArrayTypeSymbol).ElementType));
+                var elementType = BuildType(arrayType.ElementType);
+                if (elementType == null)
+                {
+                    return null;
+                }
+
+                return new RQArrayType(arrayType.Rank, elementType);
             }
             else if (symbol.TypeKind == TypeKind.TypeParameter)
             {
@@ -268,11 +301,9 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                 // not, we just erase dynamic to object here.
                 return RQType.ObjectType;
             }
-            else if (symbol.Kind == SymbolKind.NamedType || symbol.Kind == SymbolKind.ErrorType)
+            else if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var namedTypeSymbol = symbol as INamedTypeSymbol;
-
-                var definingType = namedTypeSymbol.ConstructedFrom != null ? namedTypeSymbol.ConstructedFrom : namedTypeSymbol;
+                var definingType = namedTypeSymbol.ConstructedFrom ?? namedTypeSymbol;
 
                 var typeChain = new List<INamedTypeSymbol>();
                 var type = namedTypeSymbol;
@@ -292,11 +323,17 @@ namespace Microsoft.CodeAnalysis.Features.RQName
                 {
                     foreach (var typeArgument in entry.TypeArguments)
                     {
-                        typeArgumentList.Add(BuildType(typeArgument));
+                        var rqType = BuildType(typeArgument);
+                        if (rqType == null)
+                        {
+                            return null;
+                        }
+
+                        typeArgumentList.Add(rqType);
                     }
                 }
 
-                var containingType = BuildNamedType(definingType);
+                var containingType = BuildUnconstructedNamedType(definingType);
 
                 if (containingType == null)
                 {

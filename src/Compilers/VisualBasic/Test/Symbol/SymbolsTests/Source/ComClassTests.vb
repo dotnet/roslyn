@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -9,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.Desktop
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -166,7 +167,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             End If
 
             If p.HasExplicitDefaultValue Then
-                result.Add(<Default><%= p.ExplicitDefaultValue %></Default>)
+                Dim value = p.ExplicitDefaultValue
+                If TypeOf value Is Date Then
+                    ' The default display of DateTime is different between Desktop and CoreClr hence 
+                    ' we need to normalize the value here.
+                    value = (CDate(value)).ToString("yyyy-MM-ddTHH:mm:ss")
+                End If
+                result.Add(<Default><%= value %></Default>)
             End If
 
             ' TODO (tomat): add MarshallingInformation
@@ -2401,18 +2408,6 @@ End Class
 
             Dim expected =
 <expected>
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
 BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '_ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
@@ -2423,6 +2418,18 @@ BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' impl
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
 BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '_ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
 </expected>
@@ -2483,18 +2490,6 @@ End Class
 
             Dim expected =
 <expected>
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
-Public Class ComClassTest1
-             ~~~~~~~~~~~~~
 BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '_ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
@@ -2505,6 +2500,18 @@ BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' impl
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
 BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '_ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+Public Class ComClassTest1
+             ~~~~~~~~~~~~~
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
 </expected>
@@ -2856,10 +2863,10 @@ End Class
 
             Dim warnings =
 <expected>
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '_ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
-BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '_ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
+BC42101: 'Microsoft.VisualBasic.ComClassAttribute' on class 'ComClassTest1' implicitly declares Interface '__ComClassTest1', which conflicts with a member of the same name in Class 'ComClassBase'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base ComClassBase.
 Public Class ComClassTest1
              ~~~~~~~~~~~~~
 BC42102: 'Public WriteOnly Property P2 As Object' cannot be exposed to COM as a property 'Let'. You will not be able to assign non-object values (such as numbers or strings) to this property from Visual Basic 6.0 using a 'Let' statement.
@@ -3549,10 +3556,10 @@ End Class
 BC32500: 'ComClassAttribute' cannot be applied because the format of the GUID '(7666AC25-855F-4534-BC55-27BF09D49D45)' is not correct.
 Public Class ComClassTest
              ~~~~~~~~~~~~
-BC32500: 'ComClassAttribute' cannot be applied because the format of the GUID '{7666AC25-855F-4534-BC55-27BF09D49D44}' is not correct.
+BC32500: 'ComClassAttribute' cannot be applied because the format of the GUID '7666AC25855F4534BC5527BF09D49D46' is not correct.
 Public Class ComClassTest
              ~~~~~~~~~~~~
-BC32500: 'ComClassAttribute' cannot be applied because the format of the GUID '7666AC25855F4534BC5527BF09D49D46' is not correct.
+BC32500: 'ComClassAttribute' cannot be applied because the format of the GUID '{7666AC25-855F-4534-BC55-27BF09D49D44}' is not correct.
 Public Class ComClassTest
              ~~~~~~~~~~~~
 </expected>

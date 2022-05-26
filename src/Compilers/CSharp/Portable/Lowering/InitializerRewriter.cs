@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var expression = GetTrailingScriptExpression(lastStatement);
                     if (expression != null &&
                         (object)expression.Type != null &&
-                        expression.Type.SpecialType != SpecialType.System_Void)
+                        !expression.Type.IsVoidType())
                     {
                         trailingExpression = expression;
                         continue;
@@ -58,10 +62,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasSubmissionResultType && (trailingExpression != null))
             {
-                Debug.Assert(submissionResultType.SpecialType != SpecialType.System_Void);
+                Debug.Assert(!submissionResultType.IsVoidType());
 
                 // Note: The trailing expression was already converted to the submission result type in Binder.BindGlobalStatement.
-                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, RefKind.None, trailingExpression));
+                boundStatements.Add(new BoundReturnStatement(lastStatement.Syntax, RefKind.None, trailingExpression, @checked: false));
                 hasTrailingExpression = true;
             }
             else
@@ -96,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundReceiver,
                             fieldInit.Field,
                             constantValueOpt: null),
-                            fieldInit.Value,
+                        fieldInit.Value,
                         fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
@@ -106,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatement = new BoundBlock(syntax, fieldInit.Locals, ImmutableArray.Create(boundStatement)) { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
             }
 
-            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
+            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement));
             return boundStatement;
         }
 

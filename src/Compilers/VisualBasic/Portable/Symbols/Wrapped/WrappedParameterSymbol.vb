@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -130,24 +132,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsIUnknownConstant As Boolean
             Get
                 Return Me._underlyingParameter.IsIUnknownConstant
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerLineNumber As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerLineNumber
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerFilePath As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerFilePath
-            End Get
-        End Property
-
-        Friend Overrides ReadOnly Property IsCallerMemberName As Boolean
-            Get
-                Return Me._underlyingParameter.IsCallerMemberName
             End Get
         End Property
 

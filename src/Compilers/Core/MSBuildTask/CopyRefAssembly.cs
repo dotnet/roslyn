@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.IO;
@@ -20,14 +22,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         [Required]
         public string DestinationPath { get; set; }
 
-        static CopyRefAssembly()
-        {
-            AssemblyResolution.Install();
-        }
-
         public CopyRefAssembly()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
+            // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
+            // their default values.
+            SourcePath = null!;
+            DestinationPath = null!;
         }
 
         public override bool Execute()
@@ -65,6 +66,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                             Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_SkippingCopy1", DestinationPath);
                             return true;
                         }
+
+                        Log.LogMessageFromResources(MessageImportance.Low, "CopyRefAssembly_Changed", SourcePath, File.GetLastWriteTimeUtc(SourcePath).ToString("O"), source, DestinationPath, File.GetLastWriteTimeUtc(DestinationPath).ToString("O"), destination);
                     }
                     catch (Exception)
                     {
@@ -80,12 +83,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             try
             {
+                Log.LogMessageFromResources(MessageImportance.Normal, "CopyRefAssembly_Copying", SourcePath, DestinationPath);
                 File.Copy(SourcePath, DestinationPath, overwrite: true);
             }
             catch (Exception e)
             {
                 Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                ManagedCompiler.LogErrorOutput(e.ToString(), Log);
+                Log.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
                 return false;
             }
 

@@ -1,15 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -29,13 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 int fieldsCount = properties.Length;
                 if (fieldsCount > 0)
                 {
-                    ParameterSymbol[] paramsArr = new ParameterSymbol[fieldsCount];
+                    var paramsArr = ArrayBuilder<ParameterSymbol>.GetInstance(fieldsCount);
                     for (int index = 0; index < fieldsCount; index++)
                     {
                         PropertySymbol property = properties[index];
-                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.Type, index, RefKind.None, property.Name);
+                        paramsArr.Add(SynthesizedParameterSymbol.Create(this, property.TypeWithAnnotations, index, RefKind.None, property.Name));
                     }
-                    _parameters = paramsArr.AsImmutableOrNull();
+                    _parameters = paramsArr.ToImmutableAndFree();
                 }
                 else
                 {
@@ -58,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbol ReturnType
+            public override TypeWithAnnotations ReturnTypeWithAnnotations
             {
-                get { return this.Manager.System_Void; }
+                get { return TypeWithAnnotations.Create(this.Manager.System_Void); }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters

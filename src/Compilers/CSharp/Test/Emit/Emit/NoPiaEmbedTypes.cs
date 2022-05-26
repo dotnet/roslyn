@@ -1,5 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET46
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+#if !NET472
+#pragma warning disable IDE0055 // Fix formatting
+#endif
+
+#if NET472
 
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -1513,28 +1522,34 @@ class UsePia4
                     var param = (PEParameterSymbol)m20.Parameters[0];
                     Assert.Equal(RefKind.Ref, param.RefKind);
                     Assert.Equal((ParameterAttributes)0, param.Flags);
+                    Assert.Equal(0, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[1];
                     Assert.Equal(RefKind.Out, param.RefKind);
                     Assert.Equal(ParameterAttributes.Out, param.Flags);
+                    Assert.Equal(1, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[2];
                     Assert.Equal(RefKind.Ref, param.RefKind);
                     Assert.Equal(ParameterAttributes.In, param.Flags);
+                    Assert.Equal(2, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[3];
                     Assert.Equal(RefKind.Ref, param.RefKind);
                     Assert.Equal(ParameterAttributes.In | ParameterAttributes.Out, param.Flags);
+                    Assert.Equal(3, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[4];
                     Assert.Equal(RefKind.None, param.RefKind);
                     Assert.Equal(ParameterAttributes.Optional, param.Flags);
                     Assert.Null(param.ExplicitDefaultConstantValue);
+                    Assert.Equal(4, param.Ordinal);
 
                     param = (PEParameterSymbol)m20.Parameters[5];
                     Assert.Equal(RefKind.None, param.RefKind);
                     Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, param.Flags);
                     Assert.Equal(34, param.ExplicitDefaultValue);
+                    Assert.Equal(5, param.Ordinal);
 
                     param = m20.ReturnTypeParameter;
                     Assert.Equal((ParameterAttributes)0, param.Flags);
@@ -1764,9 +1779,9 @@ interface UsePia5 : ITest29
                     Assert.Equal(VarianceKind.None, t7.Variance);
                 };
 
-            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
 
-            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Fails);
+            CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -1804,7 +1819,7 @@ class UsePia
 }";
 
             DiagnosticDescription[] expected = {
-                // (10,16): error CS0144: Cannot create an instance of the abstract class or interface 'ITest28'
+                // (10,16): error CS0144: Cannot create an instance of the abstract type or interface 'ITest28'
                 //         return new ITest28();
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new ITest28()").WithArguments("ITest28")
                                                };
@@ -2043,10 +2058,10 @@ class UsePia
 
 
             DiagnosticDescription[] expected = {
-                // (10,27): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
+                // (10,20): error CS1729: 'ITest28' does not contain a constructor that takes 1 arguments
                 //         return new ITest28(1);
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(1)").WithArguments("ITest28", "1")
-                                               };
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "ITest28").WithArguments("ITest28", "1").WithLocation(10, 20)
+            };
 
             var compilation = CreateCompilation(consumer, options: TestOptions.ReleaseExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) });
@@ -4693,11 +4708,11 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
         [Fact]
@@ -5170,14 +5185,15 @@ class UsePia5
 
             var compilation3 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { new CSharpCompilationReference(piaCompilation2) });
-            CompileAndVerify(compilation3, verify: Verification.Fails);
+            CompileAndVerify(compilation3, verify: Verification.FailsPEVerify);
 
             var compilation4 = CreateCompilation(consumer, options: TestOptions.DebugExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(piaCompilation2.EmitToStream()) });
-            CompileAndVerify(compilation4, verify: Verification.Fails);
+            CompileAndVerify(compilation4, verify: Verification.FailsPEVerify);
         }
 
-        [Fact, WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.NoPiaNeedsDesktop)]
+        [WorkItem(611578, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/611578")]
         public void Bug611578()
         {
             string IEvent_cs = @"
@@ -5689,7 +5705,7 @@ class B : IA
                 Assert.Equal(ParameterAttributes.HasDefault, p.Flags);
                 Assert.Equal((object)0x0000000C, p.ExplicitDefaultConstantValue.Value);
                 Assert.False(p.HasExplicitDefaultValue);
-                Assert.Throws(typeof(InvalidOperationException), delegate
+                Assert.Throws<InvalidOperationException>(delegate
                     {
                         var tmp = p.ExplicitDefaultValue;
                     });
@@ -5758,7 +5774,7 @@ class B : IA
                 Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString());
                 Assert.Null(p.ExplicitDefaultConstantValue);
                 Assert.False(p.HasExplicitDefaultValue);
-                Assert.Throws(typeof(InvalidOperationException), delegate
+                Assert.Throws<InvalidOperationException>(delegate
                 {
                     var tmp = p.ExplicitDefaultValue;
                 });

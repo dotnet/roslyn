@@ -1,68 +1,83 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 {
-    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider
-        : CodeRefactoringProvider
+    internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<TPropertyDeclarationNode, TTypeDeclarationNode, TCodeGenerationContextInfo> : CodeRefactoringProvider
+        where TPropertyDeclarationNode : SyntaxNode
+        where TTypeDeclarationNode : SyntaxNode
+        where TCodeGenerationContextInfo : CodeGenerationContextInfo
     {
-        internal abstract SyntaxNode GetProperty(SyntaxToken token);
-        internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
+        internal abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
         internal abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            DocumentOptionSet options, SyntaxNode property, string fieldName, SyntaxGenerator generator);
+            TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator);
         internal abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
         internal abstract SyntaxNode GetInitializerValue(SyntaxNode property);
-        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(DocumentOptionSet options, SyntaxNode fullProperty);
+        internal abstract SyntaxNode ConvertPropertyToExpressionBodyIfDesired(TCodeGenerationContextInfo info, SyntaxNode fullProperty);
         internal abstract SyntaxNode GetTypeBlock(SyntaxNode syntaxNode);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(context.Span.Start);
+            var (document, _, cancellationToken) = context;
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var property = GetProperty(token);
+            var property = await GetPropertyAsync(context).ConfigureAwait(false);
             if (property == null)
             {
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var propertySymbol = semanticModel.GetDeclaredSymbol(property) as IPropertySymbol;
-            if (propertySymbol == null)
+            if (semanticModel.GetDeclaredSymbol(property) is not IPropertySymbol propertySymbol)
             {
                 return;
             }
 
-            if (!(IsValidAutoProperty(property, propertySymbol)))
+            if (!(IsValidAutoProperty(propertySymbol)))
             {
                 return;
             }
 
             context.RegisterRefactoring(
-                new ConvertAutoPropertyToFullPropertyCodeAction(
+                CodeAction.Create(
                     FeaturesResources.Convert_to_full_property,
-                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c)));
+                    c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, context.Options, c),
+                    nameof(FeaturesResources.Convert_to_full_property)),
+                property.Span);
         }
 
-        internal bool IsValidAutoProperty(SyntaxNode property, IPropertySymbol propertySymbol)
+        internal static bool IsValidAutoProperty(IPropertySymbol propertySymbol)
         {
             var fields = propertySymbol.ContainingType.GetMembers().OfType<IFieldSymbol>();
             var field = fields.FirstOrDefault(f => propertySymbol.Equals(f.AssociatedSymbol));
             return field != null;
+        }
+
+        private static async Task<SyntaxNode?> GetPropertyAsync(CodeRefactoringContext context)
+        {
+            var containingProperty = await context.TryGetRelevantNodeAsync<TPropertyDeclarationNode>().ConfigureAwait(false);
+            if (containingProperty?.Parent is not TTypeDeclarationNode)
+            {
+                return null;
+            }
+
+            return containingProperty;
         }
 
         private async Task<Document> ExpandToFullPropertyAsync(
@@ -70,25 +85,31 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             SyntaxNode property,
             IPropertySymbol propertySymbol,
             SyntaxNode root,
+            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(document.DocumentState.ParseOptions);
+
             var generator = SyntaxGenerator.GetGenerator(document);
-            var workspace = document.Project.Solution.Workspace;
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
+            var services = document.Project.Solution.Workspace.Services;
+
+            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = (TCodeGenerationContextInfo)options.GetInfo(CodeGenerationContext.Default, document.Project);
 
             // Create full property. If the auto property had an initial value
             // we need to remove it and later add it to the backing field
-            var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
-            var accessorTuple = GetNewAccessors(options, property, fieldName, generator);
+            var fieldName = await GetFieldNameAsync(document, propertySymbol, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, generator);
             var fullProperty = generator
                 .WithAccessorDeclarations(
                     GetPropertyWithoutInitializer(property),
-                    accessorTuple.newSetAccessor == null
-                        ? new SyntaxNode[] { accessorTuple.newGetAccessor }
-                        : new SyntaxNode[] { accessorTuple.newGetAccessor, accessorTuple.newSetAccessor })
+                    newSetAccessor == null
+                        ? new SyntaxNode[] { newGetAccessor }
+                        : new SyntaxNode[] { newGetAccessor, newSetAccessor })
                 .WithLeadingTrivia(property.GetLeadingTrivia());
-            fullProperty = ConvertPropertyToExpressionBodyIfDesired(options, fullProperty);
-            var editor = new SyntaxEditor(root, workspace);
+            fullProperty = ConvertPropertyToExpressionBodyIfDesired(info, fullProperty);
+            var editor = new SyntaxEditor(root, services);
             editor.ReplaceNode(property, fullProperty.WithAdditionalAnnotations(Formatter.Annotation));
 
             // add backing field, plus initializer if it exists 
@@ -104,8 +125,8 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 var block = GetTypeBlock(await td.GetSyntaxAsync(cancellationToken).ConfigureAwait(false));
                 if (property.Ancestors().Contains(block))
                 {
-                    editor.ReplaceNode(block, (currentTypeDecl, _)  
-                        => CodeGenerator.AddFieldDeclaration(currentTypeDecl, newField, workspace)
+                    editor.ReplaceNode(block, (currentTypeDecl, _)
+                        => codeGenerator.AddField(currentTypeDecl, newField, info, cancellationToken)
                         .WithAdditionalAnnotations(Formatter.Annotation));
                 }
             }
@@ -113,14 +134,5 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
             var newRoot = editor.GetChangedRoot();
             return document.WithSyntaxRoot(newRoot);
         }
-
-        private class ConvertAutoPropertyToFullPropertyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public ConvertAutoPropertyToFullPropertyCodeAction(
-                string title, 
-                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
-            {
-            }
-        }
-}
+    }
 }

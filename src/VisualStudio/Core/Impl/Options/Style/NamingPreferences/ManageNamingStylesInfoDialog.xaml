@@ -58,6 +58,7 @@
             Grid.ColumnSpan="4"
             x:Uid="NamingStylesInfo"
             x:Name="NamingStylesInfo"
+            AutomationProperties.Name="{Binding DialogTitle}"
             Margin="0,5,0,0"
             ItemsSource="{Binding Items, Mode=OneWay}"
             AutoGenerateColumns="False"

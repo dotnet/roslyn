@@ -1,12 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Globalization;
-using System.Linq;
+#nullable disable
+
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UnifiedSuggestions.UnifiedSuggestedActions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -15,11 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// <summary>
     /// Represents light bulb menu item for code fixes.
     /// </summary>
-    internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ITelemetryDiagnosticID<string>
+    internal sealed class CodeFixSuggestedAction : SuggestedActionWithNestedFlavors, ICodeFixSuggestedAction, ITelemetryDiagnosticID<string>
     {
-        private readonly CodeFix _fix;
+        public CodeFix CodeFix { get; }
 
         public CodeFixSuggestedAction(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace,
             ITextBuffer subjectBuffer,
@@ -27,29 +31,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             CodeAction action,
             SuggestedActionSet fixAllFlavors)
-            : base(sourceProvider, workspace, subjectBuffer, 
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    provider, action, fixAllFlavors)
         {
-            _fix = fix;
+            CodeFix = fix;
         }
 
         public string GetDiagnosticID()
-        {
-            var diagnostic = _fix.PrimaryDiagnostic;
-
-            // we log diagnostic id as it is if it is from us
-            if (diagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
-            {
-                return diagnostic.Id;
-            }
-
-            // if it is from third party, we use hashcode
-            return diagnostic.GetHashCode().ToString(CultureInfo.InvariantCulture);
-        }
+            => CodeFix.PrimaryDiagnostic.GetTelemetryDiagnosticID();
 
         protected override DiagnosticData GetDiagnostic()
-        {
-            return _fix.GetPrimaryDiagnosticData();
-        }
+            => CodeFix.GetPrimaryDiagnosticData();
     }
 }

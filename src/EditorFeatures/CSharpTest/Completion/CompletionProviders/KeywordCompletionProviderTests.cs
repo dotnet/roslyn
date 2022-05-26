@@ -1,10 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,26 +15,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
 {
     public class KeywordCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public KeywordCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
-        internal override CompletionProvider CreateCompletionProvider()
-        {
-            return new KeywordCompletionProvider();
-        }
+        internal override Type GetCompletionProviderType()
+            => typeof(KeywordCompletionProvider);
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task IsCommitCharacterTest()
-        {
-            await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
-        }
+            => await VerifyCommonCommitCharactersAsync("$$", textTypedSoFar: "");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public void IsTextualTriggerCharacterTest()
-        {
-            TestCommonIsTextualTriggerCharacter();
-        }
+            => TestCommonIsTextualTriggerCharacter();
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task SendEnterThroughToEditorTest()
@@ -278,7 +270,7 @@ $$
     int P {get;
     void Main() { }
 }";
-            await VerifyProviderCommitAsync(markupBeforeCommit, "get", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "g");
+            await VerifyProviderCommitAsync(markupBeforeCommit, "get", expectedCodeAfterCommit, commitChar: ';');
         }
 
         [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
@@ -297,7 +289,7 @@ $$
     int P {get;set;
     void Main() { }
 }";
-            await VerifyProviderCommitAsync(markupBeforeCommit, "set", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "set");
+            await VerifyProviderCommitAsync(markupBeforeCommit, "set", expectedCodeAfterCommit, commitChar: ';');
         }
 
         [WorkItem(7768, "https://github.com/dotnet/roslyn/issues/7768")]
@@ -316,7 +308,7 @@ $$
     public static void Test() { return;
     void Main() { }
 }";
-            await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "return");
+            await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';');
         }
 
         [WorkItem(14218, "https://github.com/dotnet/roslyn/issues/14218")]
@@ -341,7 +333,7 @@ class Program
             await VerifyItemExistsAsync(text, "byte");
             await VerifyItemExistsAsync(text, "char");
         }
-    
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task PrivateOrProtectedModifiers()
         {
@@ -377,6 +369,252 @@ class C
 }";
 
             await VerifyItemExistsAsync(text, "private");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DontSuggestEventAfterReadonlyInClass()
+        {
+            var markup =
+@"class C {
+    readonly $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "event");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task DontSuggestEventAfterReadonlyInInterface()
+        {
+            var markup =
+@"interface C {
+    readonly $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "event");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34774, "https://github.com/dotnet/roslyn/issues/34774")]
+        public async Task SuggestEventAfterReadonlyInStruct()
+        {
+            var markup =
+@"struct C {
+    readonly $$
+}
+";
+            await VerifyItemExistsAsync(markup, "event");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("record struct", true)]
+        [InlineData("class", false)]
+        [InlineData("record", false)]
+        [InlineData("record class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyPropertyAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int X {{
+        $$
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyBeforePropertyAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int X {{
+        $$ get;
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyIndexerAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    int this[int i] {{
+        $$
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [InlineData("interface", false)]
+        public async Task SuggestReadonlyEventAccessor(string declarationType, bool present)
+        {
+
+            var markup =
+$@"{declarationType} C {{
+    event System.Action E {{
+        $$
+    }}
+}}
+";
+            if (present)
+            {
+                await VerifyItemExistsAsync(markup, "readonly");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "readonly");
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task SuggestAccessorAfterReadonlyInStruct()
+        {
+            var markup =
+@"struct C {
+    int X {
+        readonly $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "get");
+            await VerifyItemExistsAsync(markup, "set");
+            await VerifyItemIsAbsentAsync(markup, "void");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(39265, "https://github.com/dotnet/roslyn/issues/39265")]
+        public async Task SuggestReadonlyMethodInStruct()
+        {
+
+            var markup =
+@"struct C {
+    public $$ void M() {}
+}
+";
+            await VerifyItemExistsAsync(markup, "readonly");
+        }
+
+        [WorkItem(58921, "https://github.com/dotnet/roslyn/issues/58921")]
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInCastExpressionThatMightBeParenthesizedExpression1(bool hasNewline)
+        {
+
+            var markup =
+$@"
+class C
+{{
+    void M()
+    {{
+        var data = (n$$) { (hasNewline ? Environment.NewLine : string.Empty) } M();
+    }}
+}}";
+
+            if (hasNewline)
+            {
+                await VerifyItemExistsAsync(markup, "new");
+                await VerifyItemExistsAsync(markup, "this");
+                await VerifyItemExistsAsync(markup, "null");
+                await VerifyItemExistsAsync(markup, "base");
+                await VerifyItemExistsAsync(markup, "true");
+                await VerifyItemExistsAsync(markup, "false");
+                await VerifyItemExistsAsync(markup, "typeof");
+                await VerifyItemExistsAsync(markup, "sizeof");
+                await VerifyItemExistsAsync(markup, "nameof");
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "new");
+                await VerifyItemIsAbsentAsync(markup, "this");
+                await VerifyItemIsAbsentAsync(markup, "null");
+                await VerifyItemIsAbsentAsync(markup, "base");
+                await VerifyItemIsAbsentAsync(markup, "true");
+                await VerifyItemIsAbsentAsync(markup, "false");
+                await VerifyItemIsAbsentAsync(markup, "typeof");
+                await VerifyItemIsAbsentAsync(markup, "sizeof");
+                await VerifyItemIsAbsentAsync(markup, "nameof");
+            }
+        }
+
+        [Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(57886, "https://github.com/dotnet/roslyn/issues/57886")]
+        public async Task TestInCastExpressionThatMightBeParenthesizedExpression2(bool hasExpression)
+        {
+
+            var markup =
+$@"class C
+{{
+    bool Prop => (t$$)  { (hasExpression ? "n" : string.Empty) }
+    private int n;
+}}";
+            if (hasExpression)
+            {
+                await VerifyItemIsAbsentAsync(markup, "new");
+                await VerifyItemIsAbsentAsync(markup, "this");
+                await VerifyItemIsAbsentAsync(markup, "null");
+                await VerifyItemIsAbsentAsync(markup, "base");
+                await VerifyItemIsAbsentAsync(markup, "true");
+                await VerifyItemIsAbsentAsync(markup, "false");
+                await VerifyItemIsAbsentAsync(markup, "typeof");
+                await VerifyItemIsAbsentAsync(markup, "sizeof");
+                await VerifyItemIsAbsentAsync(markup, "nameof");
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "new");
+                await VerifyItemExistsAsync(markup, "this");
+                await VerifyItemExistsAsync(markup, "null");
+                await VerifyItemExistsAsync(markup, "base");
+                await VerifyItemExistsAsync(markup, "true");
+                await VerifyItemExistsAsync(markup, "false");
+                await VerifyItemExistsAsync(markup, "typeof");
+                await VerifyItemExistsAsync(markup, "sizeof");
+                await VerifyItemExistsAsync(markup, "nameof");
+            }
         }
     }
 }

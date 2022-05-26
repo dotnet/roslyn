@@ -1,39 +1,59 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Notification
 {
-    internal class GlobalOperationNotificationService : AbstractGlobalOperationNotificationService
+    [ExportWorkspaceService(typeof(IGlobalOperationNotificationService)), Shared]
+    internal partial class GlobalOperationNotificationService : IGlobalOperationNotificationService
     {
-        private const string GlobalOperationStartedEventName = "GlobalOperationStarted";
-        private const string GlobalOperationStoppedEventName = "GlobalOperationStopped";
+        private readonly object _gate = new();
 
-        private readonly object _gate = new object();
+        private readonly HashSet<IDisposable> _registrations = new();
+        private readonly HashSet<string> _operations = new();
 
-        private readonly HashSet<GlobalOperationRegistration> _registrations = new HashSet<GlobalOperationRegistration>();
-        private readonly HashSet<string> _operations = new HashSet<string>();
+        private readonly TaskQueue _eventQueue;
 
-        private readonly SimpleTaskQueue _eventQueue = new SimpleTaskQueue(TaskScheduler.Default);
-        private readonly EventMap _eventMap = new EventMap();
+        public event EventHandler? Started;
+        public event EventHandler? Stopped;
 
-        private readonly IAsynchronousOperationListener _listener;
-
-        public GlobalOperationNotificationService(IAsynchronousOperationListener listener)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public GlobalOperationNotificationService(IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _listener = listener;
+            _eventQueue = new TaskQueue(listenerProvider.GetListener(FeatureAttribute.GlobalOperation), TaskScheduler.Default);
         }
 
-        public override GlobalOperationRegistration Start(string operation)
+        private void RaiseGlobalOperationStarted()
+        {
+            var started = this.Started;
+            if (started != null)
+                _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStarted), () => this.Started?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+        }
+
+        private void RaiseGlobalOperationStopped()
+        {
+            var stopped = this.Stopped;
+            if (stopped != null)
+                _eventQueue.ScheduleTask(nameof(RaiseGlobalOperationStopped), () => this.Stopped?.Invoke(this, EventArgs.Empty), CancellationToken.None);
+        }
+
+        public IDisposable Start(string operation)
         {
             lock (_gate)
             {
                 // create new registration
-                var registration = new GlobalOperationRegistration(this, operation);
+                var registration = new GlobalOperationRegistration(this);
 
                 // states
                 _registrations.Add(registration);
@@ -50,69 +70,7 @@ namespace Microsoft.CodeAnalysis.Notification
             }
         }
 
-        protected virtual Task RaiseGlobalOperationStarted()
-        {
-            var ev = _eventMap.GetEventHandlers<EventHandler>(GlobalOperationStartedEventName);
-            if (ev.HasHandlers)
-            {
-                var asyncToken = _listener.BeginAsyncOperation("GlobalOperationStarted");
-                return _eventQueue.ScheduleTask(() =>
-                {
-                    ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
-                }).CompletesAsyncOperation(asyncToken);
-            }
-
-            return SpecializedTasks.EmptyTask;
-        }
-
-        protected virtual Task RaiseGlobalOperationStopped(IReadOnlyList<string> operations, bool cancelled)
-        {
-            var ev = _eventMap.GetEventHandlers<EventHandler<GlobalOperationEventArgs>>(GlobalOperationStoppedEventName);
-            if (ev.HasHandlers)
-            {
-                var asyncToken = _listener.BeginAsyncOperation("GlobalOperationStopped");
-                var args = new GlobalOperationEventArgs(operations, cancelled);
-
-                return _eventQueue.ScheduleTask(() =>
-                {
-                    ev.RaiseEvent(handler => handler(this, args));
-                }).CompletesAsyncOperation(asyncToken);
-            }
-
-            return SpecializedTasks.EmptyTask;
-        }
-
-        public override event EventHandler Started
-        {
-            add
-            {
-                // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
-                // that one.
-                _eventMap.AddEventHandler(GlobalOperationStartedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(GlobalOperationStartedEventName, value);
-            }
-        }
-
-        public override event EventHandler<GlobalOperationEventArgs> Stopped
-        {
-            add
-            {
-                // currently, if one subscribes while a global operation is already in progress, it will not be notified for 
-                // that one.
-                _eventMap.AddEventHandler(GlobalOperationStoppedEventName, value);
-            }
-
-            remove
-            {
-                _eventMap.RemoveEventHandler(GlobalOperationStoppedEventName, value);
-            }
-        }
-
-        public override void Cancel(GlobalOperationRegistration registration)
+        private void Done(GlobalOperationRegistration registration)
         {
             lock (_gate)
             {
@@ -121,29 +79,8 @@ namespace Microsoft.CodeAnalysis.Notification
 
                 if (_registrations.Count == 0)
                 {
-                    var operations = _operations.AsImmutable();
                     _operations.Clear();
-
-                    // We don't care if an individual operation has canceled.
-                    // We only care whether whole thing has cancelled or not.
-                    RaiseGlobalOperationStopped(operations, cancelled: true);
-                }
-            }
-        }
-
-        public override void Done(GlobalOperationRegistration registration)
-        {
-            lock (_gate)
-            {
-                var result = _registrations.Remove(registration);
-                Contract.ThrowIfFalse(result);
-
-                if (_registrations.Count == 0)
-                {
-                    var operations = _operations.AsImmutable();
-                    _operations.Clear();
-
-                    RaiseGlobalOperationStopped(operations, cancelled: false);
+                    RaiseGlobalOperationStopped();
                 }
             }
         }
@@ -153,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Notification
             if (!Environment.HasShutdownStarted)
             {
                 Contract.ThrowIfFalse(_registrations.Count == 0);
-                Contract.ThrowIfFalse(_operations.Count == 0);
+                Contract.ThrowIfFalse(_operations.Count == 0, $"Non-disposed operations: {string.Join(", ", _operations)}");
             }
         }
     }

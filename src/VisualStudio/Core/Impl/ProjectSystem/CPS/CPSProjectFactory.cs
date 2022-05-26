@@ -1,137 +1,109 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
     [Export(typeof(IWorkspaceProjectContextFactory))]
-    internal partial class CPSProjectFactory : ForegroundThreadAffinitizedObject, IWorkspaceProjectContextFactory
+    internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
-        private readonly HostDiagnosticUpdateSource _hostDiagnosticUpdateSource;
-
-        private readonly ImmutableDictionary<string, string> _projectLangaugeToErrorCodePrefixMap =
-            ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
-            {
-                new KeyValuePair<string, string> (LanguageNames.CSharp, "CS"),
-                new KeyValuePair<string, string> (LanguageNames.VisualBasic, "BC"),
-                new KeyValuePair<string, string> (LanguageNames.FSharp, "FS"),
-            });
+        private readonly IThreadingContext _threadingContext;
+        private readonly VisualStudioProjectFactory _projectFactory;
+        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly IProjectCodeModelFactory _projectCodeModelFactory;
+        private readonly Shell.IAsyncServiceProvider _serviceProvider;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CPSProjectFactory(
-            SVsServiceProvider serviceProvider,
-            VisualStudioWorkspaceImpl visualStudioWorkspace,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSource) :
-            base(assertIsForeground: false)
+            IThreadingContext threadingContext,
+            VisualStudioProjectFactory projectFactory,
+            VisualStudioWorkspaceImpl workspace,
+            IProjectCodeModelFactory projectCodeModelFactory,
+            SVsServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider;
-            _visualStudioWorkspace = visualStudioWorkspace;
-            _hostDiagnosticUpdateSource = hostDiagnosticUpdateSource;
+            _threadingContext = threadingContext;
+            _projectFactory = projectFactory;
+            _workspace = workspace;
+            _projectCodeModelFactory = projectCodeModelFactory;
+            _serviceProvider = (Shell.IAsyncServiceProvider)serviceProvider;
         }
 
-        // internal for testing purposes only.
-        internal static CPSProject CreateCPSProject(VisualStudioProjectTracker projectTracker, IServiceProvider serviceProvider, IVsHierarchy hierarchy, string projectDisplayName, string projectFilePath, Guid projectGuid, string language, ICommandLineParserService commandLineParserService, string binOutputPath)
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
         {
-            // this only runs under unit test
-            return new CPSProject(projectTracker, reportExternalErrorCreatorOpt: null, hierarchy: hierarchy, language: language,
-                serviceProvider: serviceProvider, visualStudioWorkspaceOpt: null, hostDiagnosticUpdateSourceOpt: null,
-                projectDisplayName: projectDisplayName, projectFilePath: projectFilePath, projectGuid: projectGuid,
-                binOutputPath: binOutputPath, commandLineParserServiceOpt: commandLineParserService);
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, assemblyName: null, CancellationToken.None));
         }
 
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
+        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(string languageName, string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath, string? assemblyName)
+        {
+            return _threadingContext.JoinableTaskFactory.Run(() =>
+                this.CreateProjectContextAsync(languageName, projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, assemblyName, CancellationToken.None));
+        }
+
+        public async Task<IWorkspaceProjectContext> CreateProjectContextAsync(
             string languageName,
-            string projectDisplayName,
-            string projectFilePath,
+            string projectUniqueName,
+            string? projectFilePath,
             Guid projectGuid,
-            object hierarchy,
-            string binOutputPath)
+            object? hierarchy,
+            string? binOutputPath,
+            string? assemblyName,
+            CancellationToken cancellationToken)
         {
-            AssertIsForeground();
-
-            EnsurePackageLoaded(languageName);
-
-            // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
-            var vsHierarchy = hierarchy as IVsHierarchy;
-
-            IVsReportExternalErrors getExternalErrorReporter(ProjectId id) => GetExternalErrorReporter(id, languageName);
-            return new CPSProject(_visualStudioWorkspace.GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider), getExternalErrorReporter, projectDisplayName, projectFilePath,
-                vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
-                commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
-        }
-
-        // TODO: this is a workaround. Factory has to be refactored so that all callers supply their own error reporters
-        IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
-            string languageName,
-            string projectDisplayName,
-            string projectFilePath,
-            Guid projectGuid,
-            object hierarchy,
-            string binOutputPath,
-            ProjectExternalErrorReporter errorReporter)
-        {
-            AssertIsForeground();
-
-            EnsurePackageLoaded(languageName);
-
-            // NOTE: It is acceptable for hierarchy to be null in Deferred Project Load scenarios.
-            var vsHierarchy = hierarchy as IVsHierarchy;
-
-            IVsReportExternalErrors getExternalErrorReporter(ProjectId id) => errorReporter;
-            return new CPSProject(_visualStudioWorkspace.GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider), getExternalErrorReporter, projectDisplayName, projectFilePath,
-                vsHierarchy, languageName, projectGuid, binOutputPath, _serviceProvider, _visualStudioWorkspace, _hostDiagnosticUpdateSource,
-                commandLineParserServiceOpt: _visualStudioWorkspace.Services.GetLanguageServices(languageName)?.GetService<ICommandLineParserService>());
-        }
-
-        private IVsReportExternalErrors GetExternalErrorReporter(ProjectId projectId, string languageName)
-        {
-            if (!_projectLangaugeToErrorCodePrefixMap.TryGetValue(languageName, out var errorCodePrefix))
+            var creationInfo = new VisualStudioProjectCreationInfo
             {
-                throw new NotSupportedException(nameof(languageName));
+                AssemblyName = assemblyName,
+                FilePath = projectFilePath,
+                Hierarchy = hierarchy as IVsHierarchy,
+                ProjectGuid = projectGuid,
+            };
+
+            var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
+                projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
+
+#pragma warning disable IDE0059 // Unnecessary assignment of a value
+            // At this point we've mutated the workspace.  So we're no longer cancellable.
+            cancellationToken = CancellationToken.None;
+#pragma warning restore IDE0059 // Unnecessary assignment of a value
+
+            if (languageName == LanguageNames.FSharp)
+            {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>(_threadingContext.JoinableTaskFactory).ConfigureAwait(true);
+
+                // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
+                // set up some items, and the F# project system doesn't guarantee that the F# package has been loaded itself
+                // so we're caught in the middle doing this.
+                var packageId = Guids.FSharpPackageId;
+                await shell.LoadPackageAsync(ref packageId);
+
+                await TaskScheduler.Default;
             }
 
-            return new ProjectExternalErrorReporter(projectId, errorCodePrefix, _serviceProvider);
-        }
+            var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid);
 
-        private void EnsurePackageLoaded(string language)
-        {
-            // we need to make sure we load required packages which initialize VS related services 
-            // such as OB, FAR, Error list, Msic workspace, solution crawler before actually
-            // set roslyn CPS up.
-            var shell = (IVsShell)_serviceProvider.GetService(typeof(SVsShell));
-            if (shell == null)
-            {
-                // no shell. can happen in unit test
-                return;
-            }
+            // Set the output path in a batch; if we set the property directly we'll be taking a synchronous lock here and
+            // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
+            project.StartBatch();
+            project.BinOutputPath = binOutputPath;
+            await project.EndBatchAsync().ConfigureAwait(false);
 
-            IVsPackage unused;
-            switch (language)
-            {
-                case LanguageNames.CSharp:
-                    shell.LoadPackage(Guids.CSharpPackageId, out unused);
-                    break;
-                case LanguageNames.VisualBasic:
-                    shell.LoadPackage(Guids.VisualBasicPackageId, out unused);
-                    break;
-                default:
-                    // by default, load roslyn package for things like typescript and etc
-                    shell.LoadPackage(Guids.RoslynPackageId, out unused);
-                    break;
-            }
+            return project;
         }
     }
 }

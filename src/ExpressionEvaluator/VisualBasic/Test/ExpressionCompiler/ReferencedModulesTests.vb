@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
@@ -10,6 +12,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
@@ -844,7 +847,7 @@ End Namespace"
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 Nothing,
-                Function(moduleBuilder, emitOptions) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                Function(moduleBuilder, emitOptions) New PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 peBytes,
                 pdbBytes)
 
@@ -955,15 +958,21 @@ End Class"
                 _objectType = New NamespaceTypeDefinitionNoBase(objectType)
             End Sub
 
-            Friend Overrides Iterator Function GetTopLevelTypesCore(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
-                For Each t In MyBase.GetTopLevelTypesCore(context)
+            Public Overrides Iterator Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of INamespaceTypeDefinition)
+                For Each t In MyBase.GetTopLevelSourceTypeDefinitions(context)
                     Yield If(t Is _objectType.UnderlyingType, _objectType, t)
                 Next
             End Function
 
-            Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+            Public Overrides ReadOnly Property EncSymbolChanges As SymbolChanges
                 Get
-                    Return _builder.CurrentGenerationOrdinal
+                    Return _builder.EncSymbolChanges
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
+                Get
+                    Return Nothing
                 End Get
             End Property
 

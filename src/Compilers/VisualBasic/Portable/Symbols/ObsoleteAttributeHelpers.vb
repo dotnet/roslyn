@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Diagnostics
 Imports System.Reflection.Metadata
@@ -31,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
             ' ignoreByRefLikeMarker := False, since VB does not support ref-like types
-            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, ignoreByRefLikeMarker:=False)
+            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, New MetadataDecoder(containingModule), ignoreByRefLikeMarker:=False)
             Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
             Return obsoleteAttributeData
         End Function
@@ -127,17 +129,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim accessorString = If(accessorSymbol.MethodKind = MethodKind.PropertyGet, "Get", "Set")
 
                 If String.IsNullOrEmpty(data.Message) Then
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor2, ERRID.WRN_UseOfObsoletePropertyAccessor2),
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor2, ERRID.WRN_UseOfObsoletePropertyAccessor2), data,
                                         accessorString, accessorSymbol.AssociatedSymbol)
                 Else
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor3, ERRID.WRN_UseOfObsoletePropertyAccessor3),
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoletePropertyAccessor3, ERRID.WRN_UseOfObsoletePropertyAccessor3), data,
                                         accessorString, accessorSymbol.AssociatedSymbol, data.Message)
                 End If
             Else
                 If String.IsNullOrEmpty(data.Message) Then
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbolNoMessage1, ERRID.WRN_UseOfObsoleteSymbolNoMessage1), symbol)
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbolNoMessage1, ERRID.WRN_UseOfObsoleteSymbolNoMessage1), data, symbol)
                 Else
-                    Return ErrorFactory.ErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbol2, ERRID.WRN_UseOfObsoleteSymbol2), symbol, data.Message)
+                    Return ErrorFactory.ObsoleteErrorInfo(If(data.IsError, ERRID.ERR_UseOfObsoleteSymbol2, ERRID.WRN_UseOfObsoleteSymbol2), data, symbol, data.Message)
                 End If
             End If
 

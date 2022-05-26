@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Linq;
@@ -332,26 +336,36 @@ unsafe interface I
     void M7(A<A<int>.B1[]>.B1 o);
 }";
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (8,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<int>*").WithArguments("A<int>").WithLocation(8, 15),
-                // (9,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<string>.B1*").WithArguments("A<string>.B1").WithLocation(9, 13),
                 // (10,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M3(A<A<int>.B2>.B1* o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(10, 22),
-                // (10,13): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "A<A<int>.B2>.B1*").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 13),
                 // (13,22): error CS0122: 'A<int>.B2' is inaccessible due to its protection level
+                //     void M6(A<A<int>.B2>.B1[] o);
                 Diagnostic(ErrorCode.ERR_BadAccess, "B2").WithArguments("A<int>.B2").WithLocation(13, 22),
-                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M7(A<A<int>.B1[]>.B1 o);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31),
+                // (9,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<string>.B1')
+                //     void M2(A<string>.B1** o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<string>.B1").WithLocation(9, 28),
                 // (9,28): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M2(A<string>.B1** o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(9, 28),
+                // (10,30): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<A<int>.B2>.B1')
+                //     void M3(A<A<int>.B2>.B1* o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<A<int>.B2>.B1").WithLocation(10, 30),
                 // (11,28): error CS0453: The type 'A<int>[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M4(A<A<int>[]>.B1 o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>[]").WithLocation(11, 28),
                 // (12,30): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                //     void M5(A<string>.B1[][] o);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "string").WithLocation(12, 30),
-                // (14,31): error CS0453: The type 'A<int>.B1[]' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "o").WithArguments("A<T>", "T", "A<int>.B1[]").WithLocation(14, 31));
+                // (8,27): error CS0306: The type 'A<int>*' may not be used as a type argument
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "o").WithArguments("A<int>*").WithLocation(8, 27),
+                // (8,27): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('A<int>')
+                //     void M1(A<A<int>*>.B1 o);
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "o").WithArguments("A<int>").WithLocation(8, 27));
         }
 
         [WorkItem(542618, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542618")]
@@ -652,7 +666,7 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class;
     static partial void M3(A<T> a);
     static partial void M4<U, V>() where U : A<V>;
-    static partial A<U> M5<U>();
+    internal static partial A<U> M5<U>();
 }
 partial class B<T> where T : struct
 {
@@ -660,13 +674,9 @@ partial class B<T> where T : struct
     static partial void M2<U>(A<U> a, A<A<int>>.B b) where U : class { }
     static partial void M3(A<T> a) { }
     static partial void M4<U, V>() where U : A<V> { }
-    static partial A<U> M5<U>() { return null; }
+    internal static partial A<U> M5<U>() { return null; }
 }";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (11,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(11, 25),
-                // (19,25): error CS0766: Partial methods must have a void return type
-                Diagnostic(ErrorCode.ERR_PartialMethodMustReturnVoid, "M5").WithLocation(19, 25),
+            CreateCompilation(source, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
                 // (10,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "U").WithArguments("A<T>", "T", "V").WithLocation(10, 28),
                 // (18,28): error CS0453: The type 'V' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
@@ -675,8 +685,8 @@ partial class B<T> where T : struct
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "a").WithArguments("A<T>", "T", "U").WithLocation(8, 36),
                 // (8,51): error CS0453: The type 'A<int>' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "b").WithArguments("A<T>", "T", "A<int>").WithLocation(8, 51),
-                // (19,25): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 25));
+                // (19,34): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'A<T>'
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M5").WithArguments("A<T>", "T", "U").WithLocation(11, 34));
         }
 
         [ClrOnlyFact]
@@ -943,17 +953,23 @@ class C
     event D<I<short>> E;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("I<T>", "T", "int").WithLocation(5, 9),
                 // (8,23): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "E").WithArguments("I<T>", "T", "short").WithLocation(8, 23),
+                // (5,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     C(I<int> i) { }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "i").WithArguments("I<T>", "T", "int").WithLocation(5, 14),
                 // (6,13): error CS0452: The type 'byte' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<byte> P { get; set; }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "P").WithArguments("I<T>", "T", "byte").WithLocation(6, 13),
-                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (7,29): error CS0452: The type 'float' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "index").WithArguments("I<T>", "T", "float").WithLocation(7, 29),
+                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (8,23): warning CS0067: The event 'C.E' is never used
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(8, 23));
         }
 
@@ -991,7 +1007,7 @@ class C
     fixed int F[C<C<T>>.G];
     const int G = 1;
 }";
-            CreateCompilation(source, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (4,15): error CS1642: Fixed size buffer fields may only be members of structs
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "F").WithLocation(4, 15),
                 // (4,19): error CS0310: 'C<T>' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
@@ -1078,12 +1094,12 @@ static class C
     static void F(this object o) { }
     static void F<T>(this T t) where T : struct { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (7,9): error CS0310: 'I' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C.E<T>(T)'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "i.E").WithArguments("C.E<T>(T)", "T", "I").WithLocation(7, 9),
                 // (9,9): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T)'
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "i.F").WithArguments("C.F<T>(T)", "T", "I").WithLocation(9, 9));
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40(text, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
         }
 
         [ClrOnlyFact]
@@ -2050,6 +2066,93 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "U").WithArguments("U", "V").WithLocation(14, 52),
                 // (14,62): error CS0405: Duplicate constraint 'C<T>.IB<T>' for type parameter 'V'
                 Diagnostic(ErrorCode.ERR_DuplicateBound, "IB<T>").WithArguments("C<T>.IB<T>", "V").WithLocation(14, 62));
+        }
+
+        [Fact]
+        public void DuplicateConstraintDifferencesOnPartialMethod()
+        {
+            var source =
+@"interface I<T> { }
+partial class C<T>
+{
+    partial void F<U>() where U : T, T, I<T>;
+    partial void F<U>() where U : T, I<T>, I<T> { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     partial void F<U>() where U : T, T, I<T>;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(4, 38),
+                // (5,44): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     partial void F<U>() where U : T, I<T>, I<T> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(5, 44));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_01()
+        {
+            var source =
+@"interface I { }
+class A { }
+sealed class B { }
+static class S { }
+partial class C<T> where T : S { }
+partial class C<T> where T : S { }
+partial class D<T> where T : A, I { }
+partial class D<T> where T : I, A { }
+partial class D<T> where T : I, A { }
+partial class E<T> where T : B { }
+partial class E<T> where T : I, B { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(5, 30),
+                // (6,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(6, 30),
+                // (7,15): error CS0265: Partial declarations of 'D<T>' have inconsistent constraints for type parameter 'T'
+                // partial class D<T> where T : A, I { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "D").WithArguments("D<T>", "T").WithLocation(7, 15),
+                // (8,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 33),
+                // (9,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(9, 33),
+                // (10,15): error CS0265: Partial declarations of 'E<T>' have inconsistent constraints for type parameter 'T'
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E").WithArguments("E<T>", "T").WithLocation(10, 15),
+                // (10,30): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(10, 30),
+                // (11,33): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : I, B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(11, 33));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_02()
+        {
+            var source =
+@"sealed class A { }
+partial class B<T, U> where T : A where U : T { }
+partial class B<T, U> where T : A { }
+partial class C<T, U> where U : T { }
+partial class C<T, U> where T : A where U : T { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'B<T, U>' have inconsistent constraints for type parameter 'U'
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B").WithArguments("B<T, U>", "U").WithLocation(2, 15),
+                // (2,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(2, 33),
+                // (3,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(3, 33),
+                // (5,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class C<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(5, 33));
         }
 
         [Fact]
@@ -3091,9 +3194,12 @@ abstract class A
 }
 class B: A
 {
-    public override I<T> F<T>() { return null; }
+    public override I<U> F<U>() { return null; }
 }";
-            CompileAndVerify(source);
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp);
+            var method = comp.GetMember<MethodSymbol>("B.F");
+            Assert.Equal("I<U> B.F<U>() where U : class", method.ToDisplayString(SymbolDisplayFormat.TestFormatWithConstraints));
         }
 
         [WorkItem(542264, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542264")]
@@ -3121,12 +3227,21 @@ partial class C
         where T2 : I<T1>;
 }";
             CreateCompilation(source).VerifyDiagnostics(
+                // (7,18): warning CS8826: Partial method declarations 'void C.M<T, U>(T t, U u)' and 'void C.M<X, Y>(X x, Y y)' have signature differences.
+                //     partial void M<X, Y>(X x, Y y)
+                Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M").WithArguments("void C.M<T, U>(T t, U u)", "void C.M<X, Y>(X x, Y y)").WithLocation(7, 18),
                 // (13,9): error CS0103: The name 't' does not exist in the current context
+                //         t.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(13, 9),
                 // (14,9): error CS0103: The name 'u' does not exist in the current context
+                //         u.ToString();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "u").WithArguments("u").WithLocation(14, 9),
                 // (16,18): error CS0756: A partial method may not have multiple defining declarations
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18));
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M").WithLocation(16, 18),
+                // (16,18): error CS0111: Type 'C' already defines a member called 'M' with the same parameter types
+                //     partial void M<T1, T2>(T1 t1, T2 t2)
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M").WithArguments("M", "C").WithLocation(16, 18));
         }
 
         [WorkItem(542331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542331")]
@@ -3241,7 +3356,12 @@ class C2 : IT<A>
 class C<T> : IT<T>
 {
     void M<U>() where U : T { }
-}";
+}
+class C3 : I
+{
+    public virtual void M<T>() where T : A { }
+}
+";
             var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (3,14): error CS0648: '' is a type not supported by the language
@@ -3258,12 +3378,15 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "C").WithArguments("IT<T>", "?", "T", "T").WithLocation(8, 7),
                 // (8,7): error CS0648: '' is a type not supported by the language
                 // class C<T> : IT<T>
-                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
+                Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7),
+                // (14,25): error CS0425: The constraints for type parameter 'T' of method 'C3.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
+                //     public virtual void M<T>() where T : A { }
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("T", "C3.M<T>()", "T", "I.M<T>()").WithLocation(14, 25));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
-            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
-            Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
+            Assert.False(((NamedTypeSymbol)constraintType).IsSerializable);
         }
 
         /// <summary>
@@ -3758,7 +3881,7 @@ class C : I
                     NamedTypeSymbol iEquatable = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T);
                     Assert.False(iEquatable.IsErrorType());
                     Assert.Equal(1, iEquatable.Arity);
-                    Assert.Null(compilation.GetTypeByMetadataName("System.IEquatable`1"));
+                    Assert.Same(iEquatable, compilation.GetTypeByMetadataName("System.IEquatable`1"));
 
                     NamedTypeSymbol iQueryable_T = compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T);
                     Assert.True(iQueryable_T.IsErrorType());
@@ -5514,13 +5637,22 @@ class B : A
     }
 } 
 ";
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (4,23): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+            CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,21): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public virtual T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"),
-                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 21),
+                // (12,22): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
                 //     public override T? Goo<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T"));
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(12, 22),
+                // (12,24): error CS0508: 'B.Goo<T>()': return type must be 'T' to match overridden member 'A.Goo<T>()'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "Goo").WithArguments("B.Goo<T>()", "A.Goo<T>()", "T").WithLocation(12, 24),
+                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? Goo<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Goo").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24),
+                // (6,16): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         return null; 
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(6, 16));
         }
 
         [WorkItem(543710, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543710")]
@@ -5537,7 +5669,7 @@ public class Base2 : Base1<Object>
 {
     public override void Goo<G>(G d) { Console.WriteLine(""Base2""); }
 }",
-                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                compilationOptions: TestOptions.DebugDll);
             var csVerifier = CompileAndVerify(csCompilation);
             csVerifier.VerifyDiagnostics();
 
@@ -5573,7 +5705,7 @@ End Module",
             Assert.Equal(typeParameter.IsValueType, isValueType);
             Assert.Equal(typeParameter.IsReferenceType, isReferenceType);
             Assert.Null(typeParameter.BaseType());
-            Assert.Equal(typeParameter.Interfaces().Length, 0);
+            Assert.Equal(0, typeParameter.Interfaces().Length);
             Utils.CheckSymbol(typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, effectiveBaseClassDescription);
             Utils.CheckSymbol(typeParameter.DeducedBaseTypeNoUseSiteDiagnostics, deducedBaseTypeDescription);
             Utils.CheckSymbols(typeParameter.ConstraintTypes(), constraintTypeDescriptions);
@@ -5651,19 +5783,14 @@ class F<T> : A where T : F<object*>.I
 class G<T> : A where T : G<void*>.I
 {
 }
-class c
+class @c
 {
     static void Main() { }
 }
 ";
-            // NOTE: As in Dev10, we don't report that object* and void* are invalid type arguments, since validation
+            // NOTE: we don't report that object* and void* are invalid type arguments, since validation
             // is performed on A.I, not on F<object*>.I or G<void*>.I.
-            // BREAKING: Dev10 (incorrectly) fails to report that "object*" is an illegal type since the pointed-at
-            // type is managed.
-            CreateCompilation(source).VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
-                // class F<T> : A where T : F<object*>.I
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(545460, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545460")]
@@ -6238,17 +6365,13 @@ public struct S
  
 public class E { }
 ";
-
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,5): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
+                // (4,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "E?").WithArguments("System.Nullable<T>", "T", "E"),
-                // (6,28): error CS0453: The type 'E' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
-                //     public void Test() {   DoSomething(this.eNullableArr);  }
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "DoSomething").WithArguments("System.Nullable<T>", "T", "E"),
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 6),
                 // (4,10): warning CS0649: Field 'S.eNullableArr' is never assigned to, and will always have its default value null
                 //     E?[] eNullableArr;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null"));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "eNullableArr").WithArguments("S.eNullableArr", "null").WithLocation(4, 10));
         }
 
         [WorkItem(575455, "DevDiv")]
@@ -6748,6 +6871,363 @@ class Program
                 // class R2 : R1<int *>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 7)
                 );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Original()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+static class Program
+{
+    static T GetService<T>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(12, 9),
+                // (13,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(13, 9),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(14, 9)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_DoubleTypeArg()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+static class Program
+{
+    static T1 GetService<T1, T2>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+        provider.GetService<>();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(12, 9),
+                // (12,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(12, 18),
+                // (13,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(13, 9),
+                // (13,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(13, 18),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(14, 9),
+                // (14,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(14, 18)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Instance()
+        {
+            var source =
+@"interface I
+{
+    object GetService();
+}
+
+interface J
+{
+    object GetService<T>();
+}
+
+interface K
+{
+    object GetService<T1, T2>();
+}
+
+static class Program
+{
+    static void M(I provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+    }
+
+    static void M(J provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+    }
+    
+    static void M(K provider)
+    {
+        provider.GetService<>();
+        provider.GetService<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (20,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(20, 9),
+                // (20,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(20, 18),
+                // (21,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(21, 9),
+                // (21,18): error CS0308: The non-generic method 'I.GetService()' cannot be used with type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetService<>").WithArguments("I.GetService()", "method").WithLocation(21, 18),
+                // (26,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(26, 9),
+                // (27,9): error CS0305: Using the generic method group 'GetService' requires 1 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "provider.GetService<>").WithArguments("GetService", "method group", "1").WithLocation(27, 9),
+                // (32,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(32, 9),
+                // (32,18): error CS0305: Using the generic method 'K.GetService<T1, T2>()' requires 2 type arguments
+                //         provider.GetService<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetService<>").WithArguments("K.GetService<T1, T2>()", "method", "2").WithLocation(32, 18),
+                // (33,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetService<>").WithLocation(33, 9),
+                // (33,18): error CS0305: Using the generic method 'K.GetService<T1, T2>()' requires 2 type arguments
+                //         provider.GetService<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetService<>").WithArguments("K.GetService<T1, T2>()", "method", "2").WithLocation(33, 18)
+            );
+        }
+
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Extension()
+        {
+            var source =
+@"interface I{}
+
+static class Program
+{
+    static void GetServiceA(this I obj){}
+    static T GetServiceB<T>(this I obj) => default;
+    static T1 GetServiceC<T1, T2>(this I obj) => default;
+    
+    static void M(I provider)
+    {
+        provider.GetServiceA<>();
+        provider.GetServiceA<>().ToString();
+        
+        provider.GetServiceB<>();
+        provider.GetServiceB<>().ToString();
+        
+        provider.GetServiceC<>();
+        provider.GetServiceC<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (11,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceA<>").WithLocation(11, 9),
+                // (11,18): error CS1061: 'I' does not contain a definition for 'GetServiceA' and no accessible extension method 'GetServiceA' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceA<>").WithArguments("I", "GetServiceA").WithLocation(11, 18),
+                // (12,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceA<>").WithLocation(12, 9),
+                // (12,18): error CS1061: 'I' does not contain a definition for 'GetServiceA' and no accessible extension method 'GetServiceA' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceA<>").WithArguments("I", "GetServiceA").WithLocation(12, 18),
+                // (14,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceB<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceB<>").WithLocation(14, 9),
+                // (15,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceB<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceB<>").WithLocation(15, 9),
+                // (17,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceC<>();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceC<>").WithLocation(17, 9),
+                // (17,18): error CS1061: 'I' does not contain a definition for 'GetServiceC' and no accessible extension method 'GetServiceC' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceC<>();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceC<>").WithArguments("I", "GetServiceC").WithLocation(17, 18),
+                // (18,9): error CS8389: Omitting the type argument is not allowed in the current context
+                //         provider.GetServiceC<>().ToString();
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "provider.GetServiceC<>").WithLocation(18, 9),
+                // (18,18): error CS1061: 'I' does not contain a definition for 'GetServiceC' and no accessible extension method 'GetServiceC' accepting a first argument of type 'I' could be found (are you missing a using directive or an assembly reference?)
+                //         provider.GetServiceC<>().ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "GetServiceC<>").WithArguments("I", "GetServiceC").WithLocation(18, 18)
+            );
+        }
+
+        [Fact]
+        [WorkItem(41779, "https://github.com/dotnet/roslyn/issues/41779")]
+        public void Bug41779_Static()
+        {
+            var source =
+@"static class Program
+{
+    static object GetServiceA(){ return null; }
+    static T GetServiceB<T>() => default;
+    static T1 GetServiceC<T1, T2>() => default;
+    
+    static void M()
+    {
+        GetServiceA<>();
+        GetServiceA<>().ToString();
+        GetServiceB<>();
+        GetServiceB<>().ToString();
+        GetServiceC<>();
+        GetServiceC<>().ToString();
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,9): error CS0308: The non-generic method 'Program.GetServiceA()' cannot be used with type arguments
+                //         GetServiceA<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetServiceA<>").WithArguments("Program.GetServiceA()", "method").WithLocation(9, 9),
+                // (10,9): error CS0308: The non-generic method 'Program.GetServiceA()' cannot be used with type arguments
+                //         GetServiceA<>().ToString();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "GetServiceA<>").WithArguments("Program.GetServiceA()", "method").WithLocation(10, 9),
+                // (11,9): error CS0305: Using the generic method group 'GetServiceB' requires 1 type arguments
+                //         GetServiceB<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceB<>").WithArguments("GetServiceB", "method group", "1").WithLocation(11, 9),
+                // (12,9): error CS0305: Using the generic method group 'GetServiceB' requires 1 type arguments
+                //         GetServiceB<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceB<>").WithArguments("GetServiceB", "method group", "1").WithLocation(12, 9),
+                // (13,9): error CS0305: Using the generic method 'Program.GetServiceC<T1, T2>()' requires 2 type arguments
+                //         GetServiceC<>();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceC<>").WithArguments("Program.GetServiceC<T1, T2>()", "method", "2").WithLocation(13, 9),
+                // (14,9): error CS0305: Using the generic method 'Program.GetServiceC<T1, T2>()' requires 2 type arguments
+                //         GetServiceC<>().ToString();
+                Diagnostic(ErrorCode.ERR_BadArity, "GetServiceC<>").WithArguments("Program.GetServiceC<T1, T2>()", "method", "2").WithLocation(14, 9)
+            );
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_1()
+        {
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+";
+            var metadataComp = CreateEmptyCompilation(code, new[] { MscorlibRef_v20 }, assemblyName: "assembly1");
+            metadataComp.VerifyDiagnostics();
+            var comp = CreateCompilation(@"System.Console.WriteLine(typeof(C.D).FullName);",
+                new[] { metadataComp.EmitToImageReference() },
+                targetFramework: TargetFramework.Mscorlib45);
+
+            // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+            DiagnosticDescription expectedDiagnostic = Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "assembly1", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "mscorlib").WithLocation(1, 1);
+
+            // These are unification use-site diagnostics. The original stackoverflow bug here came from checking constraints as part of
+            // unification diagnostic calculation, so we want to verify that these are present to make sure we're testing the correct scenario.
+            comp.VerifyDiagnostics(
+                    expectedDiagnostic,
+                    // warning CS1701: Assuming assembly reference 'mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' used by 'assembly1' matches identity 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' of 'mscorlib', you may need to supply runtime policy
+                    expectedDiagnostic
+                );
+
+            CompileAndVerify(
+                comp.WithOptions(comp.Options.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)),
+                expectedOutput: "C+D");
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
+            Assert.Equal(expectedDiagnostic.Code, c.GetUseSiteDiagnostic().Code);
+        }
+
+        [Fact, WorkItem(1279758, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1279758/")]
+        public void RecursiveConstraintsFromUnifiedAssemblies_2()
+        {
+            var remappedCode = @"public class F {}";
+
+            var remappedComp11 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("1.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var remappedComp12 = CreateCompilation(
+                new AssemblyIdentity("remapped", new Version("2.0.0.0"), publicKeyOrToken: SigningTestHelpers.PublicKey, hasPublicKey: true),
+                new[] { remappedCode },
+                TargetFrameworkUtil.NetStandard20References.ToArray(),
+                TestOptions.ReleaseDll.WithPublicSign(true));
+
+            var code = @"
+public abstract class A<T1, T2>
+    where T1 : A<T1, T2>
+    where T2 : A<T1, T2>.B<T1, T2>
+{
+    public abstract class B<T3, T4>
+        where T3 : A<T3, T4>
+        where T4 : A<T3, T4>.B<T3, T4>
+    { }
+}
+public class C : A<C, C.D>
+{
+    public class D : A<C, C.D>.B<C, D>
+    {
+    }
+}
+
+public class G : F {}
+";
+
+            var metadataComp = CreateCompilation(code, new[] { remappedComp11.EmitToImageReference() }, assemblyName: "intermediate", targetFramework: TargetFramework.NetStandard20);
+            metadataComp.VerifyDiagnostics();
+
+            var comp = CreateCompilation(@"
+System.Console.WriteLine(typeof(C.D).FullName);
+System.Console.WriteLine(typeof(G).FullName);
+",
+                new[] { metadataComp.EmitToImageReference(), remappedComp12.EmitToImageReference() },
+                targetFramework: TargetFramework.NetStandard20);
+
+            comp.VerifyDiagnostics(
+                // warning CS1701: Assuming assembly reference 'remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' used by 'intermediate' matches identity 'remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2' of 'remapped', you may need to supply runtime policy
+                Diagnostic(ErrorCode.WRN_UnifyReferenceMajMin).WithArguments("remapped, Version=1.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "intermediate", "remapped, Version=2.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "remapped").WithLocation(1, 1)
+            );
+
+            var c = comp.GetTypeByMetadataName("C");
+            Assert.Null(c.GetUseSiteDiagnostic());
+            Assert.True(c.ContainingModule.HasUnifiedReferences);
         }
     }
 }

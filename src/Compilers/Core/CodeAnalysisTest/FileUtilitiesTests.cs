@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -37,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [ConditionalFact(typeof(WindowsOnly))]
         public void GetPathRoot()
         {
-            Assert.Equal(null, PathUtilities.GetPathRoot(null));
+            Assert.Null(PathUtilities.GetPathRoot(null));
             Assert.Equal("", PathUtilities.GetPathRoot(""));
             Assert.Equal("", PathUtilities.GetPathRoot("C"));
             Assert.Equal("", PathUtilities.GetPathRoot("abc.txt"));
@@ -93,9 +97,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"C:\x/y", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", null));
             Assert.Equal(@"C:\x/y", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", null));
 
-            Assert.Equal(null, PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:\goo"));
-            Assert.Equal(null, PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:goo"));
-            Assert.Equal(null, PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"\goo"));
+            Assert.Null(PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:\goo"));
+            Assert.Null(PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"C:goo"));
+            Assert.Null(PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\", @"\goo"));
 
             Assert.Equal(@"C:\x\y\goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x\y", @"goo"));
             Assert.Equal(@"C:\x/y\goo", PathUtilities.CombineAbsoluteAndRelativePaths(@"C:\x/y", @"goo"));
@@ -263,6 +267,59 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestChangeExtension(path: null, extension: null, expected: null);
 
             Assert.Equal("*", PathUtilities.RemoveExtension("*.dll"));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"x:\a\b\file.cs", "x:/a/b/file.cs")]
+        [InlineData(@"x:/a/b/file.cs", "x:/a/b/file.cs")]
+        [InlineData(@"x:\a\b\", "x:/a/b/")]
+        [InlineData(@"x:\a\b", "x:/a/b")]
+        [InlineData(@"x:\a\..\b\file.cs", "x:/b/file.cs")]
+        [InlineData(@"x:/a/../b/file.cs", "x:/b/file.cs")]
+        [InlineData(@"x:\a\b\..\c\", "x:/a/c/")]
+        [InlineData(@"x:\a\.\.\b\..\c\", "x:/a/c/")]
+        [InlineData(@"x:\..\..\a\.\.\b\..\c\", "x:/a/c/")]
+        [InlineData(@"\\server\a\b\", @"\\server\a\b\")]
+        [InlineData(@"\\server\..\a\.\.\b\..\c\", @"\\server\..\a\.\.\b\..\c\")]
+        [InlineData(@"x:a.cs", "x:a.cs")]
+        [InlineData(@"x:a//b//..//a.cs", "x:a//b//..//a.cs")]
+        [InlineData(@"ab:\c\d\", @"ab:\c\d\")]
+        [InlineData(@"ab:/c/d", @"ab:/c/d")]
+        [InlineData(@"ab:\c\..\d\", @"ab:\c\..\d\")]
+        [InlineData(@"\\.\C:\a\b.cs", @"\\.\C:\a\b.cs")]
+        [InlineData(@"\\.\C:\a\..\b.cs", @"\\.\C:\a\..\b.cs")]
+        [InlineData(@"\\?\C:\a\b.cs", @"\\?\C:\a\b.cs")]
+        [InlineData(@"\\.\Volume{00000000-0000-0000-0000-000000000000}\a\b.cs", @"\\.\Volume{00000000-0000-0000-0000-000000000000}\a\b.cs")]
+        [InlineData(@"\", @"\")]
+        [InlineData(@"\\", @"\\")]
+        [InlineData(@"\\server", @"\\server")]
+        [InlineData(@"x:", "x:")]
+        [InlineData(@"x:\", @"x:/")]
+        public void TestExpandAbsolutePathWithRelativeParts_Windows(string input, string expected) => TestExpandAbsolutePathWithRelativeParts(input, expected);
+
+        [Theory]
+        [InlineData("/", "/")]
+        [InlineData("/a/b/c", "/a/b/c")]
+        [InlineData("/a/b/c/file.cs", "/a/b/c/file.cs")]
+        [InlineData("/a/b/../c/file.cs", "/a/c/file.cs")]
+        [InlineData("/a/../b/../c/file.cs", "/c/file.cs")]
+        [InlineData("/../../c/file.cs", "/c/file.cs")]
+        [InlineData("/a/../b/./././../c/file.cs", "/c/file.cs")]
+        // not absolute paths
+        [InlineData("a/b/c", "a/b/c")]
+        [InlineData("./a/b/c", "./a/b/c")]
+        [InlineData("./a/../b/c", "./a/../b/c")]
+        [InlineData("../a/../b/c", "../a/../b/c")]
+        [InlineData("foo", "foo")]
+        [InlineData("", "")]
+        [InlineData(".", ".")]
+        [InlineData("..", "..")]
+        [InlineData("../", "../")]
+        [InlineData("./", "./")]
+        public void TestExpandAbsolutePathWithRelativeParts(string input, string expected)
+        {
+            var result = PathUtilities.ExpandAbsolutePathWithRelativeParts(input);
+            Assert.Equal(expected, result);
         }
     }
 }

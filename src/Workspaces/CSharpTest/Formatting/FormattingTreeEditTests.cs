@@ -1,23 +1,24 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
     public class FormattingTreeEditTests : CSharpFormattingTestBase
     {
-        private Document GetDocument(string code)
+        private static Document GetDocument(string code)
         {
             var ws = new AdhocWorkspace();
             var project = ws.AddProject("project", LanguageNames.CSharp);
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
         [Fact]
         public async Task SpaceAfterAttribute()
         {
-            string code = @"
+            var code = @"
 public class C
 {
     void M(int? p) { }
@@ -37,26 +38,33 @@ public class C
             var g = SyntaxGenerator.GetGenerator(document);
             var root = await document.GetSyntaxRootAsync();
             var attr = g.Attribute("MyAttr");
+            var options = CSharpSyntaxFormattingOptions.Default;
 
             var param = root.DescendantNodes().OfType<ParameterSyntax>().First();
+            var root1 = root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr")));
+
+            var result1 = Formatter.Format(root1, document.Project.Solution.Workspace.Services, options, CancellationToken.None);
+
             Assert.Equal(@"
 public class C
 {
     void M([MyAttr] int? p) { }
 }
-", (await Formatter.FormatAsync(root.ReplaceNode(param, g.AddAttributes(param, g.Attribute("MyAttr"))),
-    document.Project.Solution.Workspace)).ToFullString());
+", result1.ToFullString());
 
             // verify change doesn't affect how attributes appear before other kinds of declarations
             var method = root.DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+
+            var root2 = root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr")));
+            var result2 = Formatter.Format(root2, document.Project.Solution.Workspace.Services, options, CancellationToken.None);
+
             Assert.Equal(@"
 public class C
 {
     [MyAttr]
     void M(int? p) { }
 }
-", (await Formatter.FormatAsync(root.ReplaceNode(method, g.AddAttributes(method, g.Attribute("MyAttr"))),
-    document.Project.Solution.Workspace)).ToFullString());
+", result2.ToFullString());
         }
     }
 }

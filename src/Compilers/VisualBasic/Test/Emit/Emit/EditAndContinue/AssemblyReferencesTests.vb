@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
@@ -270,7 +272,9 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
+                    String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.2000.1001, Culture=neutral, PublicKeyToken=null", "1.0.2000.1002")))
         End Sub
 
         <Fact, WorkItem(9004, "https://github.com/dotnet/roslyn/issues/9004")>
@@ -325,7 +329,8 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40({src0}, {ref01, ref11}, assemblyName:="C", options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, ref02, ref12})
 
-            Dim v0 = CompileAndVerify(compilation0)
+            ' ILVerify: Failed to load type 'D1' from assembly 'Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.FailsILVerify)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -338,7 +343,9 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C"))
+                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments("C",
+                    String.Format(CodeAnalysisResources.ChangingVersionOfAssemblyReferenceIsNotAllowedDuringDebugging,
+                        "Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "1.0.0.2")))
         End Sub
 
         Public Sub VerifyAssemblyReferences(reader As AggregatedMetadataReader, expected As String())

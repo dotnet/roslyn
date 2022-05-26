@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -14,14 +16,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal abstract class AbstractInternalsVisibleToCompletionProvider : CommonCompletionProvider
+    internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPCompletionProvider
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 
         protected abstract IImmutableList<SyntaxNode> GetAssemblyScopedAttributeSyntaxNodesOfDocument(SyntaxNode documentRoot);
-        protected abstract SyntaxNode GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute);
+        protected abstract SyntaxNode? GetConstructorArgumentOfInternalsVisibleToAttribute(SyntaxNode internalsVisibleToAttribute);
 
-        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public sealed override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
         {
             // Should trigger in these cases ($$ is the cursor position)
             // [InternalsVisibleTo($$         -> user enters "
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     ch = text[insertedCharacterPosition - 1];
                     if (ch == '\"')
                     {
-                        return true;
+                        return ShouldTriggerAfterQuotes(text, insertedCharacterPosition);
                     }
                 }
             }
@@ -46,13 +48,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return false;
         }
 
+        protected abstract bool ShouldTriggerAfterQuotes(SourceText text, int insertedCharacterPosition);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('\"');
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try
             {
                 var cancellationToken = context.CancellationToken;
                 var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFactsService = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 if (syntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, context.Position, cancellationToken))
                 {
                     var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
@@ -68,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
         }
 
-        private static SyntaxNode GetAttributeSyntaxNodeOfToken(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
+        private static SyntaxNode? GetAttributeSyntaxNodeOfToken(ISyntaxFactsService syntaxFactsService, SyntaxToken token)
         {
             //Supported cases:
             //[Attribute("|
@@ -85,11 +91,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var node = token.Parent;
             if (node != null && syntaxFactsService.IsStringLiteralExpression(node))
             {
-                // Edge case: ElementAccessExpressionSyntax is present if the following statement is another attribute:
+                // Edge cases: 
+                // ElementAccessExpressionSyntax is present if the following statement is another attribute:
                 //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("|
                 //   [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
                 //   [assembly: System.Reflection.AssemblyCompany("Test")]
-                while (syntaxFactsService.IsElementAccessExpression(node.Parent))
+                // BinaryExpression is present if the string literal is concatenated:
+                //   From: https://msdn.microsoft.com/de-de/library/system.runtime.compilerservices.internalsvisibletoattribute(v=vs.110).aspx
+                //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Friend1, PublicKey=002400000480000094" + 
+                //                                                                 "0000000602000000240000525341310004000" + ..
+                while (syntaxFactsService.IsElementAccessExpression(node.Parent) || syntaxFactsService.IsBinaryExpression(node.Parent))
                 {
                     node = node.Parent;
                 }
@@ -107,15 +118,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static async Task<bool> CheckTypeInfoOfAttributeAsync(Document document, SyntaxNode attributeNode, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attributeNode, cancellationToken).ConfigureAwait(false);
-            var typeInfo = semanticModel.GetTypeInfo(attributeNode);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(attributeNode, cancellationToken).ConfigureAwait(false);
+            var typeInfo = semanticModel.GetTypeInfo(attributeNode, cancellationToken);
             var type = typeInfo.Type;
             if (type == null)
             {
                 return false;
             }
 
-            var internalsVisibleToAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(InternalsVisibleToAttribute).FullName);
+            var internalsVisibleToAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(InternalsVisibleToAttribute).FullName!);
             return type.Equals(internalsVisibleToAttributeSymbol);
         }
 
@@ -130,6 +141,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     continue;
                 }
 
+                if (IsProjectTypeUnsupported(project))
+                {
+                    continue;
+                }
+
                 if (allInternalsVisibleToAttributesOfProject.Contains(project.AssemblyName))
                 {
                     continue;
@@ -138,12 +154,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var projectGuid = project.Id.Id.ToString();
                 var completionItem = CommonCompletionItem.Create(
                     displayText: project.AssemblyName,
+                    displayTextSuffix: "",
                     rules: CompletionItemRules.Default,
                     glyph: project.GetGlyph(),
                     properties: ImmutableDictionary.Create<string, string>().Add(ProjectGuidKey, projectGuid));
                 context.AddItem(completionItem);
             }
+
+            if (context.Items.Count > 0)
+            {
+                context.CompletionListSpan = await GetTextChangeSpanAsync(
+                    context.Document, context.CompletionListSpan, cancellationToken).ConfigureAwait(false);
+            }
         }
+
+        private static bool IsProjectTypeUnsupported(Project project)
+            => !project.SupportsCompilation;
 
         private async Task<IImmutableSet<string>> GetAllInternalsVisibleToAssemblyNamesOfProjectAsync(CompletionContext completionContext, CancellationToken cancellationToken)
         {
@@ -151,10 +177,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // sourceAssembly.GivesAccessTo(compilation.Assembly)
             // at the cost of being not so precise (can't check the validity of the PublicKey).
             var project = completionContext.Document.Project;
-            var resultBuilder = default(ImmutableHashSet<string>.Builder);
+            var resultBuilder = (ImmutableHashSet<string>.Builder?)null;
             foreach (var document in project.Documents)
             {
-                var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var assemblyScopedAttributes = GetAssemblyScopedAttributeSyntaxNodesOfDocument(syntaxRoot);
                 foreach (var attribute in assemblyScopedAttributes)
                 {
@@ -186,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var assemblyName = await GetAssemblyNameFromInternalsVisibleToAttributeAsync(document, attribute, completionContext.CancellationToken).ConfigureAwait(false);
                         if (!string.IsNullOrWhiteSpace(assemblyName))
                         {
-                            resultBuilder = resultBuilder ?? ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+                            resultBuilder ??= ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
                             resultBuilder.Add(assemblyName);
                         }
                     }
@@ -206,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return string.Empty;
             }
 
-            var semanticModel = await document.GetSemanticModelForNodeAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
-            var constantCandidate = semanticModel.GetConstantValue(constructorArgument);
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(constructorArgument, cancellationToken).ConfigureAwait(false);
+            var constantCandidate = semanticModel.GetConstantValue(constructorArgument, cancellationToken);
             if (constantCandidate.HasValue && constantCandidate.Value is string argument)
             {
                 if (AssemblyIdentity.TryParseDisplayName(argument, out var assemblyIdentity))
@@ -219,11 +245,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return string.Empty;
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<TextSpan> GetTextChangeSpanAsync(Document document, TextSpan startSpan, CancellationToken cancellationToken)
+        {
+            var result = startSpan;
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var token = root.FindToken(result.Start);
+            if (syntaxFacts.IsStringLiteral(token) || syntaxFacts.IsVerbatimStringLiteral(token))
+            {
+                var text = root.GetText();
+
+                // Expand selection in both directions until a double quote or any line break character is reached
+                static bool IsWordCharacter(char ch) => !(ch == '"' || TextUtilities.IsAnyLineBreakCharacter(ch));
+
+                result = CommonCompletionUtilities.GetWordSpan(
+                    text, startSpan.Start, IsWordCharacter, IsWordCharacter, alwaysExtendEndSpan: true);
+            }
+
+            return result;
+        }
+
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
         {
             var projectIdGuid = item.Properties[ProjectGuidKey];
-            var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));
-            var project = document.Project.Solution.GetProject(projectId);
+            var projectId = ProjectId.CreateFromSerialized(new Guid(projectIdGuid));
+            var project = document.Project.Solution.GetRequiredProject(projectId);
             var assemblyName = item.DisplayText;
             var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);
             if (!string.IsNullOrEmpty(publicKey))
@@ -238,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation.Assembly?.Identity?.IsStrongName == true)
+            if (compilation?.Assembly?.Identity?.IsStrongName == true)
             {
                 return GetPublicKeyAsHexString(compilation.Assembly.Identity.PublicKey);
             }

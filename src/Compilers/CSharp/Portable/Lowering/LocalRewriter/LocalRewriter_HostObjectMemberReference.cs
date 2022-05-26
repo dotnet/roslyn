@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
 
@@ -9,7 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitHostObjectMemberReference(BoundHostObjectMemberReference node)
         {
             Debug.Assert(_previousSubmissionFields != null);
-            Debug.Assert(!_factory.TopLevelMethod.IsStatic);
+            Debug.Assert(_factory.TopLevelMethod is { IsStatic: false });
+            Debug.Assert(_factory.CurrentType is { });
 
             var syntax = node.Syntax;
             var hostObjectReference = _previousSubmissionFields.GetHostObjectField();

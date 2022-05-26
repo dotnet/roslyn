@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -9,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
 #Region "For Each Loop"
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForEachLookAtTheStartOfMethodBody()
             Dim source =
 <compilation>
@@ -31,7 +33,7 @@ End Class
             compilation.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="VB" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M" parameterNames="c">
@@ -71,7 +73,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForEachOverOneDimensionalArray()
             Dim source =
 <compilation>
@@ -139,7 +141,7 @@ Imports System
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForEachOverString()
             Dim source =
 <compilation>
@@ -203,7 +205,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForEachIEnumerableWithNoTryCatch()
             Dim source =
 <compilation>
@@ -276,7 +278,7 @@ End Structure
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForEachIEnumerableWithTryCatchImplementIDisposable()
             Dim source =
 <compilation>
@@ -350,7 +352,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForEachIEnumerableWithTryCatchPossiblyImplementIDisposable()
             Dim source =
 <compilation>
@@ -422,7 +424,7 @@ End Class
 #Region "For Loop"
 
         <WorkItem(529183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForLoop01()
             Dim source =
 <compilation>
@@ -481,7 +483,7 @@ End Module
         End Sub
 
         <WorkItem(529183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529183")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub ForLoop02()
             Dim source =
 <compilation>

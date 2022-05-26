@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -151,7 +153,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Optional commandLineWarnNotAsErrors As String = "",
             Optional commandLineNoWarns As String = "") As VisualBasicCompilationOptions
 
-            ruleSetSpecificOptions = If(ruleSetSpecificOptions Is Nothing, ImmutableDictionary(Of String, ReportDiagnostic).Empty, ruleSetSpecificOptions)
+            ruleSetSpecificOptions = If(ruleSetSpecificOptions, ImmutableDictionary(Of String, ReportDiagnostic).Empty)
 
             Dim compilerOptions = New VBCompilerOptions With
                             {
@@ -161,15 +163,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                                 .wszDisabledWarnings = commandLineNoWarns
                             }
             Dim compilerHost = New MockCompilerHost("C:\SDK")
-            Dim convertedOptions = VisualBasicProjectOptionsHelper.CreateCompilationOptions(
-                                    Nothing,
-                                    VisualBasicParseOptions.Default,
-                                    compilerOptions,
-                                    compilerHost,
-                                    SpecializedCollections.EmptyEnumerable(Of GlobalImport),
-                                    Nothing,
-                                    New MockRuleSetFile(ruleSetGeneralOption, ruleSetSpecificOptions))
-            Return convertedOptions
+            Return VisualBasicProject.OptionsProcessor.ApplyCompilationOptionsFromVBCompilerOptions(
+                New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary) _
+                    .WithParseOptions(VisualBasicParseOptions.Default), compilerOptions,
+                New MockRuleSetFile(ruleSetGeneralOption, ruleSetSpecificOptions))
         End Function
     End Class
 End Namespace

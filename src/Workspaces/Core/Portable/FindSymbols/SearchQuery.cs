@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using Roslyn.Utilities;
@@ -53,21 +57,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public void Dispose()
-        {
-            _wordSimilarityChecker?.Free();
-        }
+            => _wordSimilarityChecker?.Free();
 
         public static SearchQuery Create(string name, SearchKind kind)
-            => new SearchQuery(name, kind);
+            => new(name, kind);
 
         public static SearchQuery Create(string name, bool ignoreCase)
-            => new SearchQuery(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
+            => new(name, ignoreCase ? SearchKind.ExactIgnoreCase : SearchKind.Exact);
 
         public static SearchQuery CreateFuzzy(string name)
-            => new SearchQuery(name, SearchKind.Fuzzy);
+            => new(name, SearchKind.Fuzzy);
 
         public static SearchQuery CreateCustom(Func<string, bool> predicate)
-            => new SearchQuery(predicate);
+            => new(predicate);
 
         public Func<string, bool> GetPredicate()
             => _predicate;

@@ -1,4 +1,10 @@
-﻿using System.Linq;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -31,7 +37,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.Ordinary));
             await VerifyNoModifiers(markup);
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -120,7 +126,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -139,7 +145,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -159,7 +165,7 @@ class C
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -178,7 +184,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers(isReadOnly: true));
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -197,7 +203,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -216,7 +222,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -235,7 +241,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -254,7 +260,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -273,7 +279,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Local));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "int");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -290,7 +296,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "global::C");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -307,7 +313,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "global::C");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -324,7 +330,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "string");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -341,7 +347,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "string");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -359,7 +365,7 @@ class C
                 new SymbolKindOrTypeKind(SymbolKind.Parameter));
             await VerifyModifiers(markup, new DeclarationModifiers());
             await VerifyTypeName(markup, "global::System.Collections.Generic.List<string>");
-            await VerifyAccessibility(markup, Accessibility.NotApplicable);
+            await VerifyAccessibility(markup, null);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -765,12 +771,6 @@ namespace ConsoleApp1
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
         }
 
-        private async Task VerifyNoType(string markup)
-        {
-            var result = await GetResultsAsync(markup);
-            Assert.Null(result.Type);
-        }
-
         private async Task VerifyTypeName(string markup, string typeName)
         {
             var result = await GetResultsAsync(markup);
@@ -780,7 +780,7 @@ namespace ConsoleApp1
         private async Task VerifyNoModifiers(string markup)
         {
             var result = await GetResultsAsync(markup);
-            Assert.Equal(default(DeclarationModifiers), result.Modifiers);
+            Assert.Equal(default, result.Modifiers);
         }
 
         private async Task VerifySymbolKinds(string markup, params SymbolKindOrTypeKind[] expectedSymbolKinds)
@@ -795,7 +795,7 @@ namespace ConsoleApp1
             Assert.Equal(modifiers, result.Modifiers);
         }
 
-        private async Task VerifyAccessibility(string markup, Accessibility accessibility)
+        private async Task VerifyAccessibility(string markup, Accessibility? accessibility)
         {
             var result = await GetResultsAsync(markup);
             Assert.Equal(accessibility, result.DeclaredAccessibility);
@@ -804,7 +804,7 @@ namespace ConsoleApp1
         private async Task<NameDeclarationInfo> GetResultsAsync(string markup)
         {
             var (document, position) = ApplyChangesToFixture(markup);
-            var result = await NameDeclarationInfo.GetDeclarationInfo(document, position, CancellationToken.None);
+            var result = await NameDeclarationInfo.GetDeclarationInfoAsync(document, position, CancellationToken.None);
             return result;
         }
 

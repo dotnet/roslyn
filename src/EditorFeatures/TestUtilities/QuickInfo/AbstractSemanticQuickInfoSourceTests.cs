@@ -1,10 +1,17 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -14,162 +21,140 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
     [UseExportProvider]
     public abstract class AbstractSemanticQuickInfoSourceTests
     {
-        protected AbstractSemanticQuickInfoSourceTests() { }
-
-        protected FormattedClassification Text(string text)
+        protected static FormattedClassification Text(string text)
             => FormattedClassifications.Text(text);
 
-        protected string Lines(params string[] lines)
-        {
-            return string.Join("\r\n", lines);
-        }
+        protected static string Lines(params string[] lines)
+            => string.Join("\r\n", lines);
 
-        protected FormattedClassification[] ExpectedClassifications(
+        protected static FormattedClassification[] ExpectedClassifications(
             params FormattedClassification[] expectedClassifications)
         {
             return expectedClassifications;
         }
 
-        protected FormattedClassification[] NoClassifications()
-        {
-            return null;
-        }
+        protected static Tuple<string, string>[] NoClassifications()
+            => null;
 
-        private static void AssertTextAndClassifications(string expectedText, FormattedClassification[] expectedClassifications, IDeferredQuickInfoContent actualContent)
+        internal static Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
         {
-            var actualClassifications = ((ClassifiableDeferredContent)actualContent).ClassifiableContent;
-
-            ClassificationTestHelper.VerifyTextAndClassifications(expectedText, expectedClassifications, actualClassifications);
-        }
-
-        protected void WaitForDocumentationComment(object content)
-        {
-            if (content is QuickInfoDisplayDeferredContent deferredContent)
+            return qi =>
             {
-                if (deferredContent.Documentation is DocumentationCommentDeferredContent docCommentDeferredContent)
-                {
-                    docCommentDeferredContent.WaitForDocumentationCommentTask_ForTestingPurposesOnly();
-                }
-            }
-        }
-
-        internal Action<object> SymbolGlyph(Glyph expectedGlyph)
-        {
-            return content =>
-            {
-                var actualIcon = (SymbolGlyphDeferredContent)((QuickInfoDisplayDeferredContent)content).SymbolGlyph;
-                Assert.Equal(expectedGlyph, actualIcon.Glyph);
+                Assert.Contains(expectedGlyph, qi.Tags.GetGlyphs());
             };
         }
 
-        protected Action<object> MainDescription(
+        internal static Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
+            => SymbolGlyph(expectedGlyph);
+
+        internal static void AssertSection(
+            string expectedText,
+            ImmutableArray<QuickInfoSection> sections,
+            string textBlockKind,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            var textBlock = sections.FirstOrDefault(tb => tb.Kind == textBlockKind);
+            var text = textBlock != null ? textBlock.TaggedParts : ImmutableArray<TaggedText>.Empty;
+            AssertTaggedText(expectedText, text, expectedClassifications);
+        }
+
+        protected static void AssertTaggedText(
+            string expectedText,
+            ImmutableArray<TaggedText> taggedText,
+#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/45893
+            FormattedClassification[] expectedClassifications = null)
+#pragma warning restore IDE0060 // Remove unused parameter
+        {
+            var actualText = string.Concat(taggedText.Select(tt => tt.Text));
+            Assert.Equal(expectedText, actualText);
+        }
+
+        protected static Action<QuickInfoItem> MainDescription(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return content =>
-            {
-                switch (content)
-                {
-                    case QuickInfoDisplayDeferredContent qiContent:
-                        {
-                            AssertTextAndClassifications(expectedText, expectedClassifications, (ClassifiableDeferredContent)qiContent.MainDescription);
-                        }
-                        break;
-
-                    case ClassifiableDeferredContent classifiable:
-                        {
-                            var actualContent = classifiable.ClassifiableContent;
-                            ClassificationTestHelper.VerifyTextAndClassifications(expectedText, expectedClassifications, actualContent);
-                        }
-                        break;
-                }
-            };
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Description, expectedClassifications);
         }
 
-        protected Action<object> Documentation(
+        protected static Action<QuickInfoItem> Documentation(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return content =>
-            {
-                var documentationCommentContent = ((QuickInfoDisplayDeferredContent)content).Documentation;
-                switch (documentationCommentContent)
-                {
-                    case DocumentationCommentDeferredContent docComment:
-                        {
-                            Assert.Equal(expectedText, docComment.DocumentationComment);
-                        }
-                        break;
-
-                    case ClassifiableDeferredContent classifiable:
-                        {
-                            var actualContent = classifiable.ClassifiableContent;
-                            Assert.Equal(expectedText, actualContent.GetFullText());
-                            ClassificationTestHelper.VerifyTextAndClassifications(expectedText, expectedClassifications, actualContent);
-                        }
-                        break;
-                }
-            };
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.DocumentationComments, expectedClassifications);
         }
 
-        protected Action<object> TypeParameterMap(
+        protected static Action<QuickInfoItem> Remarks(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return content =>
-            {
-                AssertTextAndClassifications(expectedText, expectedClassifications, ((QuickInfoDisplayDeferredContent)content).TypeParameterMap);
-            };
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.RemarksDocumentationComments, expectedClassifications);
         }
 
-        protected Action<object> AnonymousTypes(
+        protected static Action<QuickInfoItem> Returns(
             string expectedText,
             FormattedClassification[] expectedClassifications = null)
         {
-            return content =>
-            {
-                AssertTextAndClassifications(expectedText, expectedClassifications, ((QuickInfoDisplayDeferredContent)content).AnonymousTypes);
-            };
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ReturnsDocumentationComments, expectedClassifications);
         }
 
+        protected static Action<QuickInfoItem> Value(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.ValueDocumentationComments, expectedClassifications);
+        }
 
-        protected Action<object> NoTypeParameterMap
+        protected static Action<QuickInfoItem> TypeParameterMap(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.TypeParameters, expectedClassifications);
+        }
+
+        protected static Action<QuickInfoItem> AnonymousTypes(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.AnonymousTypes, expectedClassifications);
+        }
+
+        protected static Action<QuickInfoItem> NullabilityAnalysis(
+            string expectedText,
+            FormattedClassification[] expectedClassifications = null)
+        {
+            return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.NullabilityAnalysis, expectedClassifications);
+        }
+
+        protected static Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
-                return content =>
-                {
-                    AssertTextAndClassifications("", NoClassifications(), ((QuickInfoDisplayDeferredContent)content).TypeParameterMap);
-                };
+                return item => AssertSection(string.Empty, item.Sections, QuickInfoSectionKinds.TypeParameters);
             }
         }
 
-        protected Action<object> Usage(string expectedText, bool expectsWarningGlyph = false)
+        protected static Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return content =>
+            return item =>
             {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, ((ClassifiableDeferredContent)quickInfoContent.UsageText).ClassifiableContent.GetFullText());
-                var warningGlyph = quickInfoContent.WarningGlyph as SymbolGlyphDeferredContent;
-                Assert.Equal(expectsWarningGlyph, warningGlyph != null && warningGlyph.Glyph == Glyph.CompletionWarning);
+                AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Usage);
+
+                if (expectsWarningGlyph)
+                {
+                    WarningGlyph(Glyph.CompletionWarning)(item);
+                }
+                else
+                {
+                    Assert.DoesNotContain(Glyph.CompletionWarning, item.Tags.GetGlyphs());
+                }
             };
         }
 
-        protected Action<object> Exceptions(string expectedText)
-        {
-            return content =>
-            {
-                AssertTextAndClassifications(expectedText, expectedClassifications: null, actualContent: ((QuickInfoDisplayDeferredContent)content).ExceptionText);
-            };
-        }
+        protected static Action<QuickInfoItem> Exceptions(string expectedText)
+            => item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.Exception);
 
-        protected Action<object> Captures(string expectedText)
-        {
-            return content =>
-            {
-                AssertTextAndClassifications(expectedText, expectedClassifications: null, actualContent: ((QuickInfoDisplayDeferredContent)content).CapturesText);
-            };
-        }
+        protected static Action<QuickInfoItem> Captures(string capturesText)
+            => item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
         {
@@ -179,6 +164,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected abstract Task TestAsync(string markup, params Action<object>[] expectedResults);
+        protected abstract Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults);
     }
 }

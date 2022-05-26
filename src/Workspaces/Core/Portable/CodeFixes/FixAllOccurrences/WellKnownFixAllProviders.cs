@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -14,7 +16,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// This provider batches all the individual diagnostic fixes across the scope of fix all action,
         /// computes fixes in parallel and then merges all the non-conflicting fixes into a single fix all code action.
         /// This fixer supports fixes for the following fix all scopes:
-        /// <see cref="FixAllScope.Document"/>, <see cref="FixAllScope.Project"/> and <see cref="FixAllScope.Solution"/>.
+        /// <see cref="FixAllScope.Document"/>, <see cref="FixAllScope.Project"/>, <see cref="FixAllScope.Solution"/>
+        /// <see cref="FixAllScope.ContainingMember"/> and <see cref="FixAllScope.ContainingType"/>.
         /// </summary>
         /// <remarks>
         /// The batch fix all provider only batches operations (i.e. <see cref="CodeActionOperation"/>) of type

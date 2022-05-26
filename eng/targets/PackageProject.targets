@@ -1,0 +1,19 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!-- 
+    Include this targets file in projects that build meta-packages.
+  -->
+  
+  <!-- 
+    Projects that import this targets file do not produce binaries, they are only used to generate packages. 
+    The Build target only needs to build the project's dependencies (via ResolveProjectReferences).
+  -->
+  <Target Name="CoreBuild" DependsOnTargets="ResolveProjectReferences">
+    <MakeDir Directories="$(IntermediateOutputPath)" ContinueOnError="True"/>
+  </Target>
+
+  <ItemGroup>
+    <!-- These projects will not create intermediate assemblies -->
+    <IntermediateAssembly Remove="@(IntermediateAssembly)"/>
+  </ItemGroup>
+</Project>

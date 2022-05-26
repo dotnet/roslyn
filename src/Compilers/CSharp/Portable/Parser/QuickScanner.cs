@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Diagnostics;
@@ -32,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // to be able to detect exiting conditions in one "state >= Done" test.
             // And we are also relying on this to be the last item in the enum.
             Done,
-            Bad = Done + 1    
+            Bad = Done + 1
         }
 
         private enum CharFlags : byte
@@ -152,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 (byte)QuickScanState.Done,                // Letter
                 (byte)QuickScanState.Number,              // Digit
                 (byte)QuickScanState.Done,                // Punct
-                (byte)QuickScanState.Done,                // Dot
+                (byte)QuickScanState.Bad,                 // Dot (DotDot range token, exit so that we handle it in subsequent scanning code)
                 (byte)QuickScanState.Done,                // Compound
                 (byte)QuickScanState.Bad,                 // Slash
                 (byte)QuickScanState.Bad,                 // Complex
@@ -202,14 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             //localize frequently accessed fields
             var charWindow = TextWindow.CharacterWindow;
-            var charPropLength = s_charProperties.Length;
+            var charPropLength = CharProperties.Length;
 
             for (; i < n; i++)
             {
                 char c = charWindow[i];
                 int uc = unchecked((int)c);
 
-                var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
+                var flags = uc < charPropLength ? (CharFlags)CharProperties[uc] : CharFlags.Complex;
 
                 state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
                 // NOTE: that Bad > Done and it is the only state like that
@@ -227,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             state = QuickScanState.Bad; // ran out of characters in window
-        exitWhile:
+exitWhile:
 
             TextWindow.AdvanceChar(i - TextWindow.Offset);
             Debug.Assert(state == QuickScanState.Bad || state == QuickScanState.Done, "can only exit with Bad or Done");
@@ -269,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // # is marked complex as it may start directives.
         // PERF: Use byte instead of CharFlags so the compiler can use array literal initialization.
         //       The most natural type choice, Enum arrays, are not blittable due to a CLR limitation.
-        private static readonly byte[] s_charProperties = new[]
+        private static ReadOnlySpan<byte> CharProperties => new[]
         {
             // 0 .. 31
             (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex, (byte)CharFlags.Complex,

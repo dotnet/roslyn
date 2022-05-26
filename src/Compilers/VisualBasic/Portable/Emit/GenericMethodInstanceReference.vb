@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -25,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Return From arg In m_UnderlyingMethod.TypeArguments
-                   Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                   Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As Cci.IMethodReference Implements Cci.IGenericMethodInstanceReference.GetGenericMethod
@@ -33,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' NoPia method might come through here.
             Return DirectCast(context.Module, PEModuleBuilder).Translate(
                 m_UnderlyingMethod.OriginalDefinition,
-                DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode),
+                DirectCast(context.SyntaxNode, VisualBasicSyntaxNode),
                 context.Diagnostics,
                 needDeclaration:=True)
         End Function

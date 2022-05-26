@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,32 +14,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
-    internal static class SourceTextExtensions
+    internal static partial class SourceTextExtensions
     {
-        /// <summary>
-        /// Returns the leading whitespace of the line located at the specified position in the given snapshot.
-        /// </summary>
-        public static string GetLeadingWhitespaceOfLineAtPosition(this SourceText text, int position)
-        {
-            Contract.ThrowIfNull(text);
-
-            var line = text.Lines.GetLineFromPosition(position);
-            var linePosition = line.GetFirstNonWhitespacePosition();
-            if (!linePosition.HasValue)
-            {
-                return line.ToString();
-            }
-
-            var lineText = line.ToString();
-            return lineText.Substring(0, linePosition.Value - line.Start);
-        }
-
         public static void GetLineAndOffset(this SourceText text, int position, out int lineNumber, out int offset)
         {
             var line = text.Lines.GetLineFromPosition(position);
 
             lineNumber = line.LineNumber;
             offset = position - line.Start;
+        }
+
+        public static int GetOffset(this SourceText text, int position)
+        {
+            GetLineAndOffset(text, position, out _, out var offset);
+            return offset;
         }
 
         public static void GetLinesAndOffsets(
@@ -50,57 +40,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             text.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
             text.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
-        }
-
-        public static bool OverlapsHiddenPosition(
-            this SourceText text, TextSpan span, Func<int, CancellationToken, bool> isPositionHidden, CancellationToken cancellationToken)
-        {
-            var result = TryOverlapsHiddenPosition(text, span, isPositionHidden, cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-            return result;
-        }
-
-        /// <summary>
-        /// Same as OverlapsHiddenPosition but doesn't throw on cancellation.  Instead, returns false
-        /// in that case.
-        /// </summary>
-        public static bool TryOverlapsHiddenPosition(
-            this SourceText text, TextSpan span, Func<int, CancellationToken, bool> isPositionHidden,
-            CancellationToken cancellationToken)
-        {
-            var startLineNumber = text.Lines.IndexOf(span.Start);
-            var endLineNumber = text.Lines.IndexOf(span.End);
-
-            // NOTE(cyrusn): It's safe to examine the start of a line because you can't have a line
-            // with both a pp directive and code on it.  so, for example, if a node crosses a region
-            // then it must be the case that the start of some line from the start of the node to
-            // the end is hidden.  i.e.:
-#if false
-'           class C
-'           {
-'#line hidden
-'           }
-'#line default
-#endif
-            // The start of the line with the } on it is hidden, and thus the node overlaps a hidden
-            // region.
-
-            for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                var linePosition = text.Lines[lineNumber].Start;
-                var isHidden = isPositionHidden(linePosition, cancellationToken);
-                if (isHidden)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
@@ -185,15 +124,37 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         private static bool Match(char normalizedLeft, char right, bool caseSensitive)
+            => caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+
+        public static bool ContentEquals(this SourceText text, int position, string value)
         {
-            return caseSensitive ? normalizedLeft == right : normalizedLeft == CaseInsensitiveComparison.ToLower(right);
+            if (position + value.Length > text.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (text[position + i] != value[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        public static bool AreOnSameLine(this SourceText text, SyntaxToken token1, SyntaxToken token2)
+        public static int IndexOfNonWhiteSpace(this SourceText text, int start, int length)
         {
-            return token1.RawKind != 0 &&
-                token2.RawKind != 0 &&
-                text.Lines.IndexOf(token1.Span.End) == text.Lines.IndexOf(token2.SpanStart);
+            for (var i = 0; i < length; i++)
+            {
+                if (!char.IsWhiteSpace(text[start + i]))
+                {
+                    return start + i;
+                }
+            }
+
+            return -1;
         }
 
         // 32KB. comes from SourceText char buffer size and less than large object size
@@ -262,12 +223,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding encoding, CancellationToken cancellationToken)
+        public static SourceText ReadFrom(ITextFactoryService textService, ObjectReader reader, Encoding? encoding, CancellationToken cancellationToken)
         {
-            using (var textReader = ObjectReaderTextReader.Create(reader))
-            {
-                return textService.CreateText(textReader, encoding, cancellationToken);
-            }
+            using var textReader = ObjectReaderTextReader.Create(reader);
+
+            return textService.CreateText(textReader, encoding, cancellationToken);
         }
 
         private class ObjectReaderTextReader : TextReaderWithLength
@@ -305,8 +265,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return new ObjectReaderTextReader(builder.ToImmutable(), chunkSize, length);
             }
 
-            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length) :
-                base(length)
+            private ObjectReaderTextReader(ImmutableArray<char[]> chunks, int chunkSize, int length)
+                : base(length)
             {
                 _chunks = chunks;
                 _chunkSize = chunkSize;
@@ -356,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 // adjust to actual char to read
-                var totalCharsToRead = Math.Min(count, (int)(Length - _position));
+                var totalCharsToRead = Math.Min(count, Length - _position);
                 count = totalCharsToRead;
 
                 var chunkIndex = GetIndexFromPosition(_position);

@@ -1,64 +1,66 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.QuickInfo
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Public Class SemanticQuickInfoSourceTests
         Inherits AbstractSemanticQuickInfoSourceTests
 
-        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Protected Overrides Function TestAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Return TestWithReferencesAsync(markup, Array.Empty(Of String)(), expectedResults)
         End Function
 
-        Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
-            Dim provider = New SemanticQuickInfoProvider()
+        Protected Shared Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
+            Dim service = workspace.Services _
+                .GetLanguageServices(LanguageNames.VisualBasic) _
+                .GetService(Of QuickInfoService)
 
-            Await TestSharedAsync(workspace, provider, position, expectedResults)
+            Await TestSharedAsync(workspace, service, position, expectedResults)
 
             ' speculative semantic model
             Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
             If Await CanUseSpeculativeSemanticModelAsync(document, position) Then
-                Dim buffer = workspace.Documents.Single().TextBuffer
+                Dim buffer = workspace.Documents.Single().GetTextBuffer()
                 Using edit = buffer.CreateEdit()
                     edit.Replace(0, buffer.CurrentSnapshot.Length, buffer.CurrentSnapshot.GetText())
                     edit.Apply()
                 End Using
 
-                Await TestSharedAsync(workspace, provider, position, expectedResults)
+                Await TestSharedAsync(workspace, service, position, expectedResults)
             End If
         End Function
 
-        Private Async Function TestSharedAsync(workspace As TestWorkspace, provider As SemanticQuickInfoProvider, position As Integer, expectedResults() As Action(Of Object)) As Task
-            Dim state = Await provider.GetItemAsync(workspace.CurrentSolution.Projects.First().Documents.First(),
-                                         position, cancellationToken:=CancellationToken.None)
-
-            If state IsNot Nothing Then
-                WaitForDocumentationComment(state.Content)
-            End If
+        Private Shared Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
+            Dim info = Await service.GetQuickInfoAsync(
+                workspace.CurrentSolution.Projects.First().Documents.First(),
+                position, SymbolDescriptionOptions.Default, CancellationToken.None)
 
             If expectedResults Is Nothing Then
-                Assert.Null(state)
+                Assert.Null(info)
             Else
-                Assert.NotNull(state)
+                Assert.NotNull(info)
 
                 For Each expected In expectedResults
-                    expected(state.Content)
+                    expected(info)
                 Next
             End If
         End Function
 
-        Protected Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of Object)()) As Task
+        Private Shared Async Function TestFromXmlAsync(markup As String, ParamArray expectedResults As Action(Of QuickInfoItem)()) As Task
             Using workspace = TestWorkspace.Create(markup)
                 Await TestSharedAsync(workspace, workspace.Documents.First().CursorPosition.Value, expectedResults)
             End Using
         End Function
 
-        Protected Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Shared Async Function TestWithReferencesAsync(markup As String, metadataReferences As String(), ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim code As String = Nothing
             Dim position As Integer = Nothing
             MarkupTestFile.GetPosition(markup, code, position)
@@ -68,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             End Using
         End Function
 
-        Protected Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestWithImportsAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupWithImports =
              "Imports System" & vbCrLf &
              "Imports System.Collections.Generic" & vbCrLf &
@@ -78,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestAsync(markupWithImports, expectedResults)
         End Function
 
-        Protected Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestInClassAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              markup & vbCrLf &
@@ -87,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
             Await TestWithImportsAsync(markupInClass, expectedResults)
         End Function
 
-        Protected Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of Object)) As Task
+        Private Async Function TestInMethodAsync(markup As String, ParamArray expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim markupInClass =
              "Class C" & vbCrLf &
              "Sub M()" & vbCrLf &
@@ -511,7 +513,7 @@ End Class
         End Function
 
         <WorkItem(538773, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538773")>
-        <Fact>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestOverriddenMethod() As Task
             Await TestAsync(<Text>
 Class A
@@ -584,7 +586,7 @@ End class
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInFieldDeclaration() As Task
-            Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.Multiple_Types))
+            Await TestInClassAsync("$$Dim x As Integer, y As String", MainDescription(VBFeaturesResources.Multiple_Types))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -606,7 +608,7 @@ End Module
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestDimMultipleInLocalDeclaration() As Task
-            Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBEditorResources.Multiple_Types))
+            Await TestInMethodAsync("$$Dim x As Integer, y As String", MainDescription(VBFeaturesResources.Multiple_Types))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -886,7 +888,7 @@ Class C
 End Class]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543226")>
@@ -904,7 +906,7 @@ Module Program
 End Module]]></Text>.NormalizedValue,
             MainDescription("ReadOnly Property 'a.Name As String"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Name As String, Key .Price As Integer }}"))
         End Function
 
         <WorkItem(543223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543223")>
@@ -919,7 +921,7 @@ End Class
 ]]></Text>.NormalizedValue,
             MainDescription("AnonymousType 'a"),
             NoTypeParameterMap,
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} New With {{ Key .Goo As ? }}"))
         End Function
 
         <WorkItem(543242, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543242")>
@@ -949,7 +951,8 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Sub()>"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} Delegate Sub ()"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -965,7 +968,8 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Function() As Integer>"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf & $"    'a {FeaturesResources.is_} Delegate Function () As Integer"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -980,9 +984,10 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Function() As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} New With {{ .Goo As String }}"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
+                           $"    'a {FeaturesResources.is_} Delegate Function () As 'b" & vbCrLf &
+                           $"    'b {FeaturesResources.is_} New With {{ .Goo As String }}"))
         End Function
 
         <WorkItem(543624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543624")>
@@ -998,9 +1003,11 @@ Module Program
     End Sub
 End Module
 ]]></Text>.NormalizedValue,
-            MainDescription($"({FeaturesResources.local_variable}) a As <Function(i As Integer) As 'a>"),
-            AnonymousTypes(vbCrLf & FeaturesResources.Anonymous_Types_colon & vbCrLf &
-                           $"    'a {FeaturesResources.is_} New With {{ .Sq As Integer, .M As <Function(j As Integer) As Integer> }}"))
+            MainDescription($"({FeaturesResources.local_variable}) a As 'a"),
+            AnonymousTypes(vbCrLf & FeaturesResources.Types_colon & vbCrLf &
+                           $"    'a {FeaturesResources.is_} Delegate Function (i As Integer) As 'b" & vbCrLf &
+                           $"    'b {FeaturesResources.is_} New With {{ .Sq As Integer, .M As 'c }}" & vbCrLf &
+                           $"    'c {FeaturesResources.is_} Delegate Function (j As Integer) As Integer"))
         End Function
 
         <WorkItem(543389, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543389")>
@@ -1414,16 +1421,13 @@ Class C
         go$$o()
     End Function
 End Class
-        </Document>
+                                 </Document>
                              </Project>
                          </Workspace>.ToString()
 
             Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; Function C.goo() As Task</File>.ConvertTestSourceTag()
 
-            Dim doc = StringFromLines("", WorkspacesResources.Usage_colon, $"  {SyntaxFacts.GetText(SyntaxKind.AwaitKeyword)} goo()")
-
-            Await TestFromXmlAsync(markup,
-                 MainDescription(description), Usage(doc))
+            Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
         <WorkItem(7100, "https://github.com/dotnet/roslyn/issues/7100")>
@@ -1515,6 +1519,22 @@ End Class
 
             Await TestAsync(code,
                 MainDescription("Goo.B = 1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(52490, "https://github.com/dotnet/roslyn/issues/52490")>
+        Public Async Function EnumNonDefaultUnderlyingType() As Task
+            Dim code =
+<Code>
+Enum Goo$$ As Byte
+    A
+    B
+    C
+End Enum
+</Code>.NormalizedValue()
+
+            Await TestAsync(code,
+                MainDescription("Enum Goo As Byte"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
@@ -1746,6 +1766,53 @@ End Class]]></text>.NormalizedValue(),
                         Text("cref."))))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestIntegerLiteral() As Task
+            Await TestInMethodAsync("Dim f = 37$$",
+                                    MainDescription("Structure System.Int32"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestDateLiteral() As Task
+            Await TestInMethodAsync("Dim f = #8/23/1970 $$3:45:39 AM#",
+                                    MainDescription("Structure System.DateTime"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestTrueKeyword() As Task
+            Await TestInMethodAsync("Dim f = True$$",
+                                    MainDescription("Structure System.Boolean"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestFalseKeyword() As Task
+            Await TestInMethodAsync("Dim f = False$$",
+                                    MainDescription("Structure System.Boolean"))
+        End Function
+
+        <WorkItem(26027, "https://github.com/dotnet/roslyn/issues/26027")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteral() As Task
+            Await TestInMethodAsync("Dim f As String = Nothing$$",
+                                    MainDescription("Class System.String"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralWithNoType() As Task
+            Await TestInMethodAsync("Dim f = Nothing$$",
+                                    MainDescription("Class System.Object"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestNothingLiteralFieldDimOptionStrict() As Task
+            Await TestAsync("
+Option Strict On
+Class C
+    Dim f = Nothing$$
+End Class",
+                            MainDescription("Class System.Object"))
+        End Function
+
         ''' <Remarks>
         ''' As a part of fix for 756226, quick info for VB Await keyword now displays the type inferred from the AwaitExpression. This is C# behavior.
         ''' In Dev12, quick info for VB Await keyword was the syntactic help "Await &lt;expression&gt;".
@@ -1755,9 +1822,10 @@ End Class]]></text>.NormalizedValue(),
         <WorkItem(756226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem(522342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522342")>
         <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Async Function TestAwaitKeywordOnTaskReturningAsync() As Task
-            Dim markup = <Workspace>
-                             <Project Language="Visual Basic" CommonReferencesNet45="true">
-                                 <Document FilePath="SourceDocument">
+            Dim markup =
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferencesNet45="true">
+                        <Document FilePath="SourceDocument">
 Imports System.Threading.Tasks
 
 Class C
@@ -1766,10 +1834,10 @@ Class C
     End Function
 End Class
         </Document>
-                             </Project>
-                         </Workspace>.ToString()
+                    </Project>
+                </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns_no_value %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1788,11 +1856,11 @@ Class C
         Return 42
     End Function
 End Class
-        </Document>
+                                 </Document>
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, "Structure System.Int32") %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1814,7 +1882,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %><%= " " %><%= FeaturesResources.no_value %></File>.ConvertTestSourceTag()
+            Dim description = <File><%= FeaturesResources.Awaited_task_returns_no_value %></File>.ConvertTestSourceTag()
 
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
@@ -1851,7 +1919,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File>&lt;<%= VBFeaturesResources.Awaitable %>&gt; <%= FeaturesResources.Awaited_task_returns %> Class System.Threading.Tasks.Task(Of TResult)</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, $"<{VBFeaturesResources.Awaitable}> Class System.Threading.Tasks.Task(Of TResult)") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description), TypeParameterMap(vbCrLf & $"TResult {FeaturesResources.is_} Integer"))
         End Function
 
@@ -1887,7 +1955,7 @@ End Class
                              </Project>
                          </Workspace>.ToString()
 
-            Dim description = <File><%= FeaturesResources.Awaited_task_returns %> Structure System.Int32</File>.ConvertTestSourceTag()
+            Dim description = <File><%= String.Format(FeaturesResources.Awaited_task_returns_0, "Structure System.Int32") %></File>.ConvertTestSourceTag()
             Await TestFromXmlAsync(markup, MainDescription(description))
         End Function
 
@@ -2343,6 +2411,430 @@ Class C3
     End Sub
 End Class",
             MainDescription("Function C2.ViewData() As C1"))
+        End Function
+
+        <WorkItem(30642, "https://github.com/dotnet/roslyn/issues/30642")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function BuiltInOperatorWithUserDefinedEquivalent() As Task
+            Await TestAsync(
+"
+class X
+    sub N(a as string, b as string)
+        dim v = a $$= b
+    end sub
+end class",
+                MainDescription("Operator String.=(a As String, b As String) As Boolean"),
+                SymbolGlyph(Glyph.Operator))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestGetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        G$$et
+            Return 0
+        End Get
+        Set(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
+        End Function
+
+        <WorkItem(29703, "https://github.com/dotnet/roslyn/issues/29703")>
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSetAccessorDocumentation() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>Summary for property Goo</summary>
+    Property Goo As Integer
+        Get
+            Return 0
+        End Get
+        S$$et(value As Integer)
+        End Set
+    End Property
+End Class",
+            Documentation("Summary for property Goo"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexerOpenParen() As Task
+            Await TestAsync("
+Class C
+    Default Public ReadOnly Property Item(ByVal index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Sub M()
+        Dim x = New C()
+        Dim y = x$$(4)
+    End Sub
+End Class",
+            MainDescription("ReadOnly Property C.Item(index As Integer) As Integer"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexerCloseParen() As Task
+            Await TestAsync("
+Class C
+    Default Public ReadOnly Property Item(ByVal index As Integer) As Integer
+        Get
+            Return 1
+        End Get
+    End Property
+
+    Sub M()
+        Dim x = New C()
+        Dim y = x(4$$)
+    End Sub
+End Class",
+            MainDescription("ReadOnly Property C.Item(index As Integer) As Integer"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexer_MissingOnRegularMethodCall() As Task
+            Await TestAsync("
+Class C
+    Sub M()
+        M($$)
+    End Sub
+End Class",
+                Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(38283, "https://github.com/dotnet/roslyn/issues/38283")>
+        Public Async Function QuickInfoOnIndexer_MissingOnArrayAccess() As Task
+            Await TestAsync("
+Class C
+    Sub M()
+        Dim x(4) As Integer
+        Dim y = x(3$$)
+    End Sub
+End Class",
+                MainDescription("Structure System.Int32"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithRemarksOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <remarks>
+    ''' Remarks text
+    ''' </remarks>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Remarks($"{vbCrLf}Remarks text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithRemarksOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <remarks>
+    ''' Remarks text
+    ''' </remarks>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Remarks($"{vbCrLf}Remarks text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithReturnsOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <returns>
+    ''' Returns text
+    ''' </returns>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithReturnsOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <returns>
+    ''' Returns text
+    ''' </returns>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Returns($"{vbCrLf}{FeaturesResources.Returns_colon}{vbCrLf}  Returns text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnFunction() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    Function M() As Integer
+        Return $$M()
+    End Function
+End Class",
+                MainDescription("Function C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(31618, "https://github.com/dotnet/roslyn/issues/31618")>
+        Public Async Function QuickInfoWithValueOnPropertyAccessor() As Task
+            Await TestAsync("
+Class C
+    ''' <summary>
+    ''' Summary text
+    ''' </summary>
+    ''' <value>
+    ''' Value text
+    ''' </value>
+    ReadOnly Property M As Integer
+        $$Get
+            Return 0
+        End Get
+    End Property
+End Class",
+                MainDescription("Property Get C.M() As Integer"),
+                Documentation("Summary text"),
+                Value($"{vbCrLf}{FeaturesResources.Value_colon}{vbCrLf}  Value text"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_DotInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c$$.M(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_BeforeMemberNameInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c.$$M(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(57031, "https://github.com/dotnet/roslyn/issues/57031")>
+        Public Async Function QuickInfo_AfterMemberNameInInvocation() As Task
+            Await TestAsync("
+Public Class C
+    Public Sub M(ByVal a As Integer)
+    End Sub
+
+    Public Sub M(ByVal a As Integer, ParamArray b As Integer())
+    End Sub
+End Class
+
+Class Program
+    Private Shared Sub Main()
+        Dim c = New C()
+        c.M$$(1, 2)
+    End Sub
+End Class
+",
+                MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestSingleTupleType() As Task
+            Await TestInClassAsync(
+"sub M(t as (x as integer, y as string))
+ end sub
+
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(t As (x As Integer, y As String))"),
+                NoTypeParameterMap)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesSameType() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String)) { }
+  void N()
+  {
+    $$M(default)
+  }",
+                MainDescription("Sub C.M(s As 'a, t As 'a)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes1() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), u As (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As (x As Integer, y As String), u As (a As Integer, b As String))"),
+                NoTypeParameterMap)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes2() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String), v as (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b, v As 'b)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesDifferentTypes3() As Task
+            Await TestInClassAsync(
+"sub M(s As (x As Integer, y As String), t As (x As Integer, y As String), u As (a As Integer, b As String))
+ end sub
+ sub N()
+    $$M(nothing)
+ end sub",
+                MainDescription("Sub C.M(s As 'a, t As 'a, u As 'b)"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (x As Integer, y As String)
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestMultipleTupleTypesInference() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as (a As Integer, b As String) = nothing
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} (a As Integer, b As String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestAnonymousTypeWithTupleTypesInference1() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as new with { key .x = directcast(nothing, (a As Integer, b As String)) }
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} New With {{ Key .x As (a As Integer, b As String) }}"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        Public Async Function TestAnonymousTypeWithTupleTypesInference2() As Task
+            Await TestInClassAsync(
+"function M(of T)(t as T) as T
+ end function
+  sub N()
+    dim x as new with { key .x = directcast(nothing, (a As Integer, b As String),  key .y = directcast(nothing, (a As Integer, b As String)) }
+    $$M(x)
+  end sub",
+                MainDescription("Function C.M(Of 'a)(t As 'a) As 'a"),
+                NoTypeParameterMap,
+                AnonymousTypes($"
+{FeaturesResources.Types_colon}
+    'a {FeaturesResources.is_} New With {{ Key .x As 'b, Key .y As 'b }}
+    'b {FeaturesResources.is_} (a As Integer, b As String)"))
         End Function
     End Class
 End Namespace

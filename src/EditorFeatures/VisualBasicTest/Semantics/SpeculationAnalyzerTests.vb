@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
@@ -13,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Semantics
 
         <Fact, WorkItem(672396, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/672396")>
         Public Sub SpeculationAnalyzerExtensionMethodExplicitInvocation()
+            ' We consider a change here to be a change in semantics as an instance call became a static call. In
+            ' practice this is fine as the only thing that makes this change i complexification, and we don't test for
+            ' semantics changed after that as the purpose of complexification is to put us in a safe place to make
+            ' changes that won't break semantics.
             Test(<Code>
 Module Oombr
     &lt;System.Runtime.CompilerServices.Extension&gt;
@@ -23,7 +29,97 @@ Module Oombr
         Call [|5.Vain()|]
     End Sub
 End Module
-            </Code>.Value, "Vain(5)", False)
+            </Code>.Value, "Vain(5)", semanticChanges:=True)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerIndexerPropertyWithRedundantCast()
+            Test(<Code>
+Class Indexer
+    Default Public ReadOnly Property Item(ByVal x As Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+Class A
+    Public ReadOnly Property Foo As Indexer
+End Class
+Class B
+    Inherits A
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        Dim y As Integer = [|DirectCast(b, A)|].Foo(2)
+    End Sub
+End Class
+            </Code>.Value, "b", False)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerIndexerPropertyWithRequiredCast()
+            Test(<Code>
+Class Indexer
+    Default Public ReadOnly Property Item(ByVal x As Integer) As Integer
+        Get
+            Return x
+        End Get
+    End Property
+End Class
+Class A
+    Public ReadOnly Property Foo As Indexer
+End Class
+Class B
+    Inherits A
+    Public Shadows ReadOnly Property Foo As Indexer
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        Dim y As Integer = [|DirectCast(b, A)|].Foo(2)
+    End Sub
+End Class
+            </Code>.Value, "b", True)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerDelegatePropertyWithRedundantCast()
+            Test(<Code>
+Public Delegate Sub MyDelegate()
+Class A
+    Public ReadOnly Property Foo As MyDelegate
+End Class
+Class B
+    Inherits A
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        [|DirectCast(b, A)|].Foo.Invoke()
+    End Sub
+End Class
+            </Code>.Value, "b", False)
+        End Sub
+
+        <Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")>
+        Public Sub SpeculationAnalyzerDelegatePropertyWithRequiredCast()
+            Test(<Code>
+Public Delegate Sub MyDelegate()
+Class A
+    Public ReadOnly Property Foo As MyDelegate
+End Class
+Class B
+    Inherits A
+    Public Shadows ReadOnly Property Foo As MyDelegate
+End Class
+Class Program
+    Sub Main()
+        Dim b As B = New B()
+        [|DirectCast(b, A)|].Foo.Invoke()
+    End Sub
+End Class
+            </Code>.Value, "b", True)
         End Sub
 
         Protected Overrides Function Parse(text As String) As SyntaxTree
@@ -39,7 +135,7 @@ End Module
                 CompilationName,
                 {DirectCast(tree, VisualBasicSyntaxTree)},
                 References,
-                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePair.Create("BC0219", ReportDiagnostic.Suppress)}))
+                TestOptions.ReleaseDll.WithSpecificDiagnosticOptions({KeyValuePairUtil.Create("BC0219", ReportDiagnostic.Suppress)}))
         End Function
 
         Protected Overrides Function CompilationSucceeded(compilation As Compilation, temporaryStream As Stream) As Boolean

@@ -1,6 +1,11 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
@@ -391,7 +396,7 @@ class Program
 ";
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor or a variable initializer)
+                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         c.field.x[0] = 12;
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),
                 // (19,27): error CS1649: Members of readonly field 'S1.field' cannot be used as a ref or out value (except in a constructor)
@@ -563,15 +568,15 @@ class Program
 }";
             var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-            var comp2 = CompileAndVerify(s2,
+            var comp2 = (CSharpCompilation)CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12", verify: Verification.Fails).Compilation;
 
             var f = (FieldSymbol)comp2.GlobalNamespace.GetTypeMembers("S")[0].GetMembers("x")[0];
             Assert.Equal("x", f.Name);
-            Assert.True(f.IsFixed);
-            Assert.Equal("int*", f.Type.ToString());
+            Assert.True(f.IsFixedSizeBuffer);
+            Assert.Equal("int*", f.TypeWithAnnotations.ToString());
             Assert.Equal(10, f.FixedSize);
         }
 
@@ -857,10 +862,10 @@ class Program
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "const").WithLocation(8, 18),
     // (8,18): error CS1003: Syntax error, '[' expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
-    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[", "const").WithLocation(8, 18),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("[").WithLocation(8, 18),
     // (8,18): error CS1003: Syntax error, ']' expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
-    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]", "const").WithLocation(8, 18),
+    Diagnostic(ErrorCode.ERR_SyntaxError, "const").WithArguments("]").WithLocation(8, 18),
     // (8,18): error CS0443: Syntax error; value expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_ValueExpected, "const").WithLocation(8, 18),
@@ -970,7 +975,7 @@ public unsafe struct Test
     " + (layout == LayoutKind.Explicit ? "[FieldOffset(0)]" : "") + @"public fixed UInt32 Field[ 16 ];
 }
 ";
-                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
+                    CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
                         symbolValidator: (m) =>
                         {
                             var test = m.GlobalNamespace.GetTypeMember("Test");
@@ -1066,6 +1071,90 @@ unsafe struct Foo
                 // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //     public int* M2 => &Bar[1];
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
+        }
+
+        [Fact]
+        public void StaticField()
+        {
+            var verifier = CompileAndVerify(@"
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+unsafe class C
+{
+    static S s_f;
+    public void M()
+    {
+        s_f.Buf[0] = 1;
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  ldsflda    ""S C.s_f""
+  IL_0005:  ldflda     ""int* S.Buf""
+  IL_000a:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_000f:  ldc.i4.1
+  IL_0010:  stind.i4
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void FixedSizeBufferOffPointerAcess()
+        {
+            var verifier = CompileAndVerify(@"
+using System;
+unsafe struct S
+{
+    public fixed int Buf[1];
+}
+unsafe class C
+{
+    public void M(IntPtr ptr)
+    {
+        S* s = (S*)ptr;
+        int* x = s->Buf;
+        int* y = &s->Buf[0];
+    }
+}", options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       32 (0x20)
+  .maxstack  1
+  .locals init (S* V_0) //s
+  IL_0000:  ldarg.1
+  IL_0001:  call       ""void* System.IntPtr.op_Explicit(System.IntPtr)""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int* S.Buf""
+  IL_000d:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_0012:  pop
+  IL_0013:  ldloc.0
+  IL_0014:  ldflda     ""int* S.Buf""
+  IL_0019:  ldflda     ""int S.<Buf>e__FixedBuffer.FixedElementField""
+  IL_001e:  pop
+  IL_001f:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        public void FixedSizeBufferRetargeting()
+        {
+            var source = @"
+public unsafe struct FixedBuffer
+{
+    public fixed byte buffer[256];
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Mscorlib40, assemblyName: "fixedBuffer");
+            comp.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
+            Assert.True(retargetingField.IsFixedSizeBuffer);
         }
     }
 }

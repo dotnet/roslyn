@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
@@ -25,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly ImmutableArray<char[]> _chunks;
         private readonly int[] _chunkStartOffsets;
         private readonly int _length;
-        private readonly Encoding _encodingOpt;
+        private readonly Encoding? _encodingOpt;
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encodingOpt, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding? encodingOpt, ImmutableArray<byte> checksum, SourceHashAlgorithm checksumAlgorithm, ImmutableArray<byte> embeddedTextBlob)
             : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
             _chunks = chunks;
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Text
             _length = offset;
         }
 
-        internal LargeText(ImmutableArray<char[]> chunks, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+        internal LargeText(ImmutableArray<char[]> chunks, Encoding? encodingOpt, SourceHashAlgorithm checksumAlgorithm)
             : this(chunks, encodingOpt, default(ImmutableArray<byte>), checksumAlgorithm, default(ImmutableArray<byte>))
         {
         }
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        internal static SourceText Decode(TextReader reader, int length, Encoding encodingOpt, SourceHashAlgorithm checksumAlgorithm)
+        internal static SourceText Decode(TextReader reader, int length, Encoding? encodingOpt, SourceHashAlgorithm checksumAlgorithm)
         {
             if (length == 0)
             {
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Text
                 {
                     // maxCharRemainingGuess typically overestimates a little
                     // so we will first fill a slightly smaller (maxCharRemainingGuess - 64) chunk
-                    // and then use 64 char tail, which is likley to be resized.
+                    // and then use 64 char tail, which is likely to be resized.
                     nextChunkSize = Math.Max(maxCharRemainingGuess - 64, 64);
                 }
 
@@ -130,34 +132,6 @@ namespace Microsoft.CodeAnalysis.Text
             return chunks.ToImmutableAndFree();
         }
 
-        /// <summary>
-        /// Check for occurrence of two consecutive NUL (U+0000) characters.
-        /// This is unlikely to appear in genuine text, so it's a good heuristic
-        /// to detect binary files.
-        /// </summary>
-        private static bool IsBinary(char[] chunk)
-        {
-            // PERF: We can advance two chars at a time unless we find a NUL.
-            for (int i = 1; i < chunk.Length;)
-            {
-                if (chunk[i] == '\0')
-                {
-                    if (chunk[i - 1] == '\0')
-                    {
-                        return true;
-                    }
-
-                    i += 1;
-                }
-                else
-                {
-                    i += 2;
-                }
-            }
-
-            return false;
-        }
-
         private int GetIndexFromPosition(int position)
         {
             // Binary search to find the chunk that contains the given position.
@@ -174,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
-        public override Encoding Encoding => _encodingOpt;
+        public override Encoding? Encoding => _encodingOpt;
 
         public override int Length => _length;
 
@@ -300,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Text
                         case '\u0085':
                         case '\u2028':
                         case '\u2029':
-                            line_break:
+line_break:
                             arrayBuilder.Add(position);
                             position = index;
                             break;

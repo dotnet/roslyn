@@ -1,11 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -31,20 +32,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we have no modifiers then the modifiers array is null; if we have any modifiers
         // then the modifiers array is non-null and not empty.
 
-        private Tuple<ImmutableArray<RefKind>, ImmutableArray<TypeSymbol>, ImmutableArray<string>, bool> AnalyzeAnonymousFunction(
-            CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private UnboundLambda AnalyzeAnonymousFunction(
+            AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var names = default(ImmutableArray<string>);
-            var refKinds = default(ImmutableArray<RefKind>);
-            var types = default(ImmutableArray<TypeSymbol>);
-            bool isAsync = false;
+            ImmutableArray<string> names = default;
+            ImmutableArray<RefKind> refKinds = default;
+            ImmutableArray<TypeWithAnnotations> types = default;
+            RefKind returnRefKind = RefKind.None;
+            TypeWithAnnotations returnType = default;
+            ImmutableArray<SyntaxList<AttributeListSyntax>> parameterAttributes = default;
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
+            ImmutableArray<bool> discardsOpt = default;
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
             bool hasSignature;
+
+            if (syntax is LambdaExpressionSyntax lambdaSyntax)
+            {
+                checkAttributes(syntax, lambdaSyntax.AttributeLists, diagnostics);
+            }
 
             switch (syntax.Kind())
             {
@@ -54,16 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
-                    isAsync = (simple.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
                     // (x, y) => ...
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
+                    if (paren.ReturnType is { } returnTypeSyntax)
+                    {
+                        (returnRefKind, returnType) = BindExplicitLambdaReturnType(returnTypeSyntax, diagnostics);
+                    }
                     parameterSyntaxList = paren.ParameterList.Parameters;
                     CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
-                    isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
                     // delegate (int x) { }
@@ -72,19 +83,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
                     {
-                        parameterSyntaxList = anon.ParameterList.Parameters;
+                        parameterSyntaxList = anon.ParameterList!.Parameters;
                     }
-                    isAsync = (anon.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
             }
+
+            var isAsync = syntax.Modifiers.Any(SyntaxKind.AsyncKeyword);
+            var isStatic = syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
             if (parameterSyntaxList != null)
             {
                 var hasExplicitlyTypedParameterList = true;
                 var allValue = true;
 
-                var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
                 // user did something like (int x, y)=>x+y -- but in the IDE scenario we might be in
@@ -94,12 +108,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // However, we still want to give errors on every bad type in the list, even if one
                 // is missing.
 
+                int underscoresCount = 0;
                 foreach (var p in parameterSyntaxList.Value)
                 {
-                    foreach (var attributeList in p.AttributeLists)
+                    if (p.Identifier.IsUnderscoreToken())
                     {
-                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                        underscoresCount++;
                     }
+
+                    checkAttributes(syntax, p.AttributeLists, diagnostics);
 
                     if (p.Default != null)
                     {
@@ -113,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var typeSyntax = p.Type;
-                    TypeSymbol type = null;
+                    TypeWithAnnotations type = default;
                     var refKind = RefKind.None;
 
                     if (typeSyntax == null)
@@ -159,7 +176,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
+
+                discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
 
                 if (hasExplicitlyTypedParameterList)
                 {
@@ -171,8 +191,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
+                if (attributesBuilder.Any(a => a.Count > 0))
+                {
+                    parameterAttributes = attributesBuilder.ToImmutable();
+                }
+
                 typesBuilder.Free();
                 refKindsBuilder.Free();
+                attributesBuilder.Free();
             }
 
             if (hasSignature)
@@ -182,11 +208,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return Tuple.Create(refKinds, types, names, isAsync);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
+
+            static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
+            {
+                if (underscoresCount <= 1)
+                {
+                    return default;
+                }
+
+                // When there are two or more underscores, they are discards
+                var discardsBuilder = ArrayBuilder<bool>.GetInstance(parameters.Count);
+                foreach (var p in parameters)
+                {
+                    discardsBuilder.Add(p.Identifier.IsUnderscoreToken());
+                }
+
+                return discardsBuilder.ToImmutableAndFree();
+            }
+
+            static void checkAttributes(AnonymousFunctionExpressionSyntax syntax, SyntaxList<AttributeListSyntax> attributeLists, BindingDiagnosticBag diagnostics)
+            {
+                foreach (var attributeList in attributeLists)
+                {
+                    if (syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression)
+                    {
+                        MessageID.IDS_FeatureLambdaAttributes.CheckFeatureAvailability(diagnostics, attributeList);
+                    }
+                    else
+                    {
+                        Error(diagnostics, syntax.Kind() == SyntaxKind.SimpleLambdaExpression ? ErrorCode.ERR_AttributesRequireParenthesizedLambdaExpression : ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                    }
+                }
+            }
         }
 
-        private void CheckParenthesizedLambdaParameters(
-            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
+        private (RefKind, TypeWithAnnotations) BindExplicitLambdaReturnType(TypeSyntax syntax, BindingDiagnosticBag diagnostics)
+        {
+            MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
+
+            syntax = syntax.SkipRef(out RefKind refKind);
+            if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
+            {
+                diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
+            }
+
+            var returnType = BindType(syntax, diagnostics);
+            var type = returnType.Type;
+
+            if (returnType.IsStatic)
+            {
+                diagnostics.Add(ErrorFacts.GetStaticClassReturnCode(useWarning: false), syntax.Location, type);
+            }
+            else if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
+            {
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.Location, type);
+            }
+
+            return (refKind, returnType);
+        }
+
+        private static void CheckParenthesizedLambdaParameters(
+            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
             if (parameterSyntaxList.Count > 0)
             {
@@ -211,35 +294,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
+        private UnboundLambda BindAnonymousFunction(AnonymousFunctionExpressionSyntax syntax, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
             Debug.Assert(syntax.IsAnonymousFunction());
 
-            var results = AnalyzeAnonymousFunction(syntax, diagnostics);
-
-            var refKinds = results.Item1;
-            var types = results.Item2;
-            var names = results.Item3;
-            var isAsync = results.Item4;
-
-            if (!types.IsDefault)
+            var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
+            var data = lambda.Data;
+            if (data.HasExplicitlyTypedParameterList)
             {
-                foreach (var type in types)
+                for (int i = 0; i < lambda.ParameterCount; i++)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    if ((object)type != null && type.IsStatic)
+                    var type = lambda.Data.ParameterTypeWithAnnotations(i);
+                    if (type.HasType && type.IsStatic)
                     {
-                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type);
+                        Error(diagnostics, ErrorFacts.GetStaticClassParameterCode(useWarning: false), syntax, type.Type);
                     }
                 }
             }
 
-            var lambda = new UnboundLambda(syntax, this, refKinds, types, names, isAsync);
-            if (!names.IsDefault)
+            // Parser will only have accepted static/async as allowed modifiers on this construct.
+            // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
+            // are reported now.
+            ModifierUtils.ToDeclarationModifiers(syntax.Modifiers, diagnostics.DiagnosticBag ?? new DiagnosticBag());
+
+            if (data.HasSignature)
             {
                 var binder = new LocalScopeBinder(this);
+                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
                 var pNames = PooledHashSet<string>.GetInstance();
+                bool seenDiscard = false;
 
                 for (int i = 0; i < lambda.ParameterCount; i++)
                 {
@@ -250,12 +335,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
+                    if (lambda.ParameterIsDiscard(i))
+                    {
+                        if (seenDiscard)
+                        {
+                            // We only report the diagnostic on the second and subsequent underscores
+                            MessageID.IDS_FeatureLambdaDiscardParameters.CheckFeatureAvailability(
+                                diagnostics,
+                                binder.Compilation,
+                                lambda.ParameterLocation(i));
+                        }
+
+                        seenDiscard = true;
+                        continue;
+                    }
+
                     if (!pNames.Add(name))
                     {
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, lambda.ParameterLocation(i), name);
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
                     }

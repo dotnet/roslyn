@@ -13,7 +13,7 @@ approaches.  The guidelines below are meant to push scripts to this mindset of e
 1. Use Pascal casing for functions and where possible follow the Verb-Name convention.
 1. Use Camel casing for all other identifier.
 1. Use full command names instead of aliass.  For example `Get-Content` vs. `gc`.  Aliases can be 
-overriden by the environment and hence are not considered portable. 
+overridden by the environment and hence are not considered portable. 
 
 # General Guidelines
 
@@ -111,5 +111,18 @@ if (...) {
 Invoke-Expression "& $command $args"
 # DO
 Exec-Command $command $args
+```
+
+## Comarisons with null
+Whenever comparing with `$null` always make sure to put `$null` on the left hand side of the 
+operator. For non-collection types this doesn't really affect behavior. For collection types though
+having a collection on the left hand side changes the meaning of `-ne` and `-eq`. Instead of checking
+for `$null` it will instead compare collection contents.
+
+``` powershell
+# DO NOT
+if ($e -ne $null) { ... }
+# DO
+if ($null -ne $e) { ... }
 ```
 

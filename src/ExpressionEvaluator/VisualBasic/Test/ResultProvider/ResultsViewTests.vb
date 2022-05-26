@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.VisualStudio.Debugger.Clr
@@ -44,13 +46,13 @@ End Class"
                         "{Length=2}",
                         "System.Collections.IEnumerable {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly Or DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method))
                 children = GetChildren(children(1))
                 Verify(children,
@@ -95,13 +97,13 @@ End Class"
                         "{Length=2}",
                         "System.Collections.Generic.IEnumerable(Of Integer) {Integer()}",
                         "o.e",
-                        DkmEvaluationResultFlags.Expandable),
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.CanFavorite),
                     EvalResult(
                         "Results View",
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly Or DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method))
                 children = GetChildren(children(1))
                 Verify(children,
@@ -137,7 +139,7 @@ End Class"
                         "Expanding the Results View will enumerate the IEnumerable",
                         "",
                         "o, results",
-                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly,
+                        DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly Or DkmEvaluationResultFlags.ExpansionHasSideEffects,
                         DkmEvaluationResultCategory.Method))
                 children = GetChildren(children(0))
                 Verify(children,

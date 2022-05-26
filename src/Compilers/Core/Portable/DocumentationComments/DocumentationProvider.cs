@@ -1,9 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
 using System.Globalization;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -29,10 +29,10 @@ namespace Microsoft.CodeAnalysis
         /// results from another culture if the preferred culture was unavailable.</param>
         /// <param name="cancellationToken">A cancellation token for the search.</param>
         /// <returns>A DocumentationComment.</returns>
-        protected internal abstract string GetDocumentationForSymbol(
+        protected internal abstract string? GetDocumentationForSymbol(
             string documentationMemberID,
             CultureInfo preferredCulture,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// DocumentationProviders are compared when determining whether an AssemblySymbol can be reused.
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         /// Equals (and GetHashCode) be overridden to capture this fact.  Otherwise, it is possible to end
         /// up with multiple AssemblySymbols for the same assembly, which plays havoc with the type hierarchy.
         /// </summary>
-        public abstract override bool Equals(object obj);
+        public abstract override bool Equals(object? obj);
 
         /// <summary>
         /// DocumentationProviders are compared when determining whether an AssemblySymbol can be reused.

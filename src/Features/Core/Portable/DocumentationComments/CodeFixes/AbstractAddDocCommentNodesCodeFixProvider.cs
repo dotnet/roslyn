@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +26,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
     {
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public async sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var parentMethod = root.FindNode(context.Span).FirstAncestorOrSelf<TMemberDeclarationSyntax>();
@@ -30,8 +34,10 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             if (parentMethod != null && TryGetDocCommentNode(parentMethod.GetLeadingTrivia()) != null)
             {
                 context.RegisterCodeFix(
-                    new MyCodeAction(
-                        c => AddParamTagAsync(context.Document, context.Span, c)),
+                    CodeAction.Create(
+                        FeaturesResources.Add_missing_param_nodes,
+                        c => AddParamTagAsync(context.Document, context.Span, c),
+                        nameof(FeaturesResources.Add_missing_param_nodes)),
                     context.Diagnostics);
             }
         }
@@ -93,7 +99,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 
                     continue;
                 }
-                
+
                 // At this point, the node has to go at the beginning of the comment
                 var nodeAfterNewParamNode = paramNodes.FirstOrDefault() ?? newDocComment.ChildNodes().First();
 
@@ -169,14 +175,6 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
 
             return null;
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_missing_param_nodes, createChangedDocument)
-            {
-            }
         }
     }
 }

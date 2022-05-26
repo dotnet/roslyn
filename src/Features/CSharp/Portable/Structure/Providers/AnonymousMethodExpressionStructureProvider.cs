@@ -1,9 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure
@@ -11,9 +12,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class AnonymousMethodExpressionStructureProvider : AbstractSyntaxNodeStructureProvider<AnonymousMethodExpressionSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             AnonymousMethodExpressionSyntax anonymousMethod,
-            ArrayBuilder<BlockSpan> spans,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             // fault tolerance
@@ -38,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 anonymousMethod,
                 startToken,
                 lastToken,
+                compressEmptyLines: false,
                 autoCollapse: false,
                 type: BlockTypes.Expression,
                 isCollapsible: true));

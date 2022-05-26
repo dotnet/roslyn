@@ -1,5 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,36 +11,31 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 {
     internal abstract partial class AbstractNavigateToSearchService : INavigateToSearchService
     {
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
-            Document document, string searchPattern, CancellationToken cancellationToken)
-        {
-            var client = await TryGetRemoteHostClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                return await SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await SearchDocumentInRemoteProcessAsync(
-                    client, document, searchPattern, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        public IImmutableSet<string> KindsProvided { get; } = ImmutableHashSet.Create(
+            NavigateToItemKind.Class,
+            NavigateToItemKind.Constant,
+            NavigateToItemKind.Delegate,
+            NavigateToItemKind.Enum,
+            NavigateToItemKind.EnumItem,
+            NavigateToItemKind.Event,
+            NavigateToItemKind.Field,
+            NavigateToItemKind.Interface,
+            NavigateToItemKind.Method,
+            NavigateToItemKind.Module,
+            NavigateToItemKind.Property,
+            NavigateToItemKind.Structure);
 
-        public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
-            Project project, string searchPattern, CancellationToken cancellationToken)
+        public bool CanFilter => true;
+
+        private static Func<RoslynNavigateToItem, Task> GetOnItemFoundCallback(
+            Solution solution, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
         {
-            var client = await TryGetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            return async item =>
             {
-                return await SearchProjectInCurrentProcessAsync(
-                    project, searchPattern, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await SearchProjectInRemoteProcessAsync(
-                    client, project, searchPattern, cancellationToken).ConfigureAwait(false);
-            }
+                var result = await item.TryCreateSearchResultAsync(solution, cancellationToken).ConfigureAwait(false);
+                if (result != null)
+                    await onResultFound(result).ConfigureAwait(false);
+            };
         }
     }
 }

@@ -1,36 +1,52 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
+    /// <summary>
+    /// Some basic concepts:
+    /// - Basic blocks are sequences of statements/operations with no branching. The only branching
+    ///   allowed is at the end of the basic block.
+    /// - Regions group blocks together and represent the lifetime of locals and captures, loosely similar to scopes in C#.
+    ///   There are different kinds of regions, <see cref="ControlFlowRegionKind"/>.
+    /// - <see cref="ControlFlowGraphBuilder.SpillEvalStack"/> converts values on the stack into captures.
+    /// - Error scenarios from initial binding need to be handled.
+    /// </summary>
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
         private readonly Compilation _compilation;
         private readonly BasicBlockBuilder _entry = new BasicBlockBuilder(BasicBlockKind.Entry);
         private readonly BasicBlockBuilder _exit = new BasicBlockBuilder(BasicBlockKind.Exit);
 
-        private ArrayBuilder<BasicBlockBuilder> _blocks;
-        private PooledDictionary<BasicBlockBuilder, RegionBuilder> _regionMap;
-        private BasicBlockBuilder _currentBasicBlock;
-        private RegionBuilder _currentRegion;
-        private PooledDictionary<ILabelSymbol, BasicBlockBuilder> _labeledBlocks;
+        private readonly ArrayBuilder<BasicBlockBuilder> _blocks;
+        private readonly PooledDictionary<BasicBlockBuilder, RegionBuilder> _regionMap;
+        private BasicBlockBuilder? _currentBasicBlock;
+        private RegionBuilder? _currentRegion;
+        private PooledDictionary<ILabelSymbol, BasicBlockBuilder>? _labeledBlocks;
         private bool _haveAnonymousFunction;
 
-        private IOperation _currentStatement;
-        private ArrayBuilder<IOperation> _evalStack;
-        private IOperation _currentConditionalAccessInstance;
-        private IOperation _currentSwitchOperationExpression;
-        private IOperation _forToLoopBinaryOperatorLeftOperand;
-        private IOperation _forToLoopBinaryOperatorRightOperand;
-        private IOperation _currentAggregationGroup;
+        private IOperation? _currentStatement;
+        private readonly ArrayBuilder<(EvalStackFrame? frameOpt, IOperation? operationOpt)> _evalStack;
+        private int _startSpillingAt;
+        private ConditionalAccessOperationTracker _currentConditionalAccessTracker;
+        private InterpolatedStringHandlerArgumentsContext? _currentInterpolatedStringHandlerArgumentContext;
+        private InterpolatedStringHandlerCreationContext? _currentInterpolatedStringHandlerCreationContext;
+        private IOperation? _currentSwitchOperationExpression;
+        private IOperation? _forToLoopBinaryOperatorLeftOperand;
+        private IOperation? _forToLoopBinaryOperatorRightOperand;
+        private IOperation? _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
 
         private readonly CaptureIdDispenser _captureIdDispenser;
@@ -42,11 +58,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         private ImplicitInstanceInfo _currentImplicitInstance;
 
-        private ControlFlowGraphBuilder(Compilation compilation, CaptureIdDispenser captureIdDispenser)
+        private ControlFlowGraphBuilder(Compilation compilation, CaptureIdDispenser? captureIdDispenser, ArrayBuilder<BasicBlockBuilder> blocks)
         {
             Debug.Assert(compilation != null);
             _compilation = compilation;
             _captureIdDispenser = captureIdDispenser ?? new CaptureIdDispenser();
+            _blocks = blocks;
+            _regionMap = PooledDictionary<BasicBlockBuilder, RegionBuilder>.GetInstance();
+            _evalStack = ArrayBuilder<(EvalStackFrame? frameOpt, IOperation? operationOpt)>.GetInstance();
+        }
+
+        private RegionBuilder CurrentRegionRequired
+        {
+            get
+            {
+                Debug.Assert(_currentRegion != null);
+                return _currentRegion;
+            }
         }
 
         private bool IsImplicit(IOperation operation)
@@ -54,34 +82,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null, CaptureIdDispenser captureIdDispenser = null, in Context context = default)
+        public static ControlFlowGraph Create(IOperation body, ControlFlowGraph? parent = null, ControlFlowRegion? enclosing = null, CaptureIdDispenser? captureIdDispenser = null, in Context context = default)
         {
             Debug.Assert(body != null);
-            Debug.Assert(((Operation)body).SemanticModel != null);
+            Debug.Assert(((Operation)body).OwningSemanticModel != null);
 
 #if DEBUG
             if (enclosing == null)
             {
                 Debug.Assert(body.Parent == null);
                 Debug.Assert(body.Kind == OperationKind.Block ||
-                    body.Kind == OperationKind.MethodBodyOperation ||
-                    body.Kind == OperationKind.ConstructorBodyOperation ||
+                    body.Kind == OperationKind.MethodBody ||
+                    body.Kind == OperationKind.ConstructorBody ||
                     body.Kind == OperationKind.FieldInitializer ||
                     body.Kind == OperationKind.PropertyInitializer ||
                     body.Kind == OperationKind.ParameterInitializer,
                     $"Unexpected root operation kind: {body.Kind}");
+                Debug.Assert(parent == null);
             }
             else
             {
                 Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
+                Debug.Assert(parent != null);
             }
-#endif 
+#endif
 
-            var builder = new ControlFlowGraphBuilder(((Operation)body).SemanticModel.Compilation, captureIdDispenser);
             var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();
-            builder._blocks = blocks;
-            builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
-            builder._regionMap = PooledDictionary<BasicBlockBuilder, RegionBuilder>.GetInstance();
+            var builder = new ControlFlowGraphBuilder(((Operation)body).OwningSemanticModel!.Compilation, captureIdDispenser, blocks);
 
             var root = new RegionBuilder(ControlFlowRegionKind.Root);
             builder.EnterRegion(root);
@@ -91,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
-            switch(body.Kind)
+            switch (body.Kind)
             {
                 case OperationKind.LocalFunction:
                     Debug.Assert(captureIdDispenser != null);
@@ -118,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Pack(blocks, root, builder._regionMap);
             var localFunctions = ArrayBuilder<IMethodSymbol>.GetInstance();
             var localFunctionsMap = ImmutableDictionary.CreateBuilder<IMethodSymbol, (ControlFlowRegion, ILocalFunctionOperation, int)>();
-            ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder anonymousFunctionsMapOpt = null;
+            ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder? anonymousFunctionsMapOpt = null;
 
             if (builder._haveAnonymousFunction)
             {
@@ -134,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, builder._captureIdDispenser, ToImmutableBlocks(blocks), region, 
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
@@ -153,8 +180,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //         update the branch information for the created basic blocks.
             foreach (BasicBlockBuilder blockBuilder in blockBuilders)
             {
-                ControlFlowBranch successor = getFallThroughSuccessor(blockBuilder);
-                ControlFlowBranch conditionalSuccessor = getConditionalSuccessor(blockBuilder);
+                ControlFlowBranch? successor = getFallThroughSuccessor(blockBuilder);
+                ControlFlowBranch? conditionalSuccessor = getConditionalSuccessor(blockBuilder);
                 builder[blockBuilder.Ordinal].SetSuccessors(successor, conditionalSuccessor);
             }
 
@@ -166,14 +193,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return builder.ToImmutableAndFree();
 
-            ControlFlowBranch getFallThroughSuccessor(BasicBlockBuilder blockBuilder)
+            ControlFlowBranch? getFallThroughSuccessor(BasicBlockBuilder blockBuilder)
             {
                 return blockBuilder.Kind != BasicBlockKind.Exit ?
                            getBranch(in blockBuilder.FallThrough, blockBuilder, isConditionalSuccessor: false) :
                            null;
             }
 
-            ControlFlowBranch getConditionalSuccessor(BasicBlockBuilder blockBuilder)
+            ControlFlowBranch? getConditionalSuccessor(BasicBlockBuilder blockBuilder)
             {
                 return blockBuilder.HasCondition ?
                            getBranch(in blockBuilder.Conditional, blockBuilder, isConditionalSuccessor: true) :
@@ -192,6 +219,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private static void MarkReachableBlocks(ArrayBuilder<BasicBlockBuilder> blocks)
         {
+            // NOTE: This flow graph walking algorithm has been forked into Workspaces layer's
+            //       implementation of "CustomDataFlowAnalysis",
+            //       we should keep them in sync as much as possible.
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
             MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1,
@@ -207,7 +237,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ArrayBuilder<BasicBlockBuilder> blocks,
             int firstBlockOrdinal,
             int lastBlockOrdinal,
-            ArrayBuilder<BasicBlockBuilder> outOfRangeBlocksToVisit,
+            ArrayBuilder<BasicBlockBuilder>? outOfRangeBlocksToVisit,
             PooledDictionary<ControlFlowRegion, bool> continueDispatchAfterFinally,
             PooledHashSet<ControlFlowRegion> dispatchedExceptionsFromRegions,
             out bool fellThrough)
@@ -224,6 +254,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
                 {
+                    Debug.Assert(outOfRangeBlocksToVisit != null);
                     outOfRangeBlocksToVisit.Push(current);
                     continue;
                 }
@@ -239,7 +270,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (current.HasCondition)
                 {
-                    if (current.BranchValue.ConstantValue.HasValue && current.BranchValue.ConstantValue.Value is bool constant)
+                    if (current.BranchValue.GetConstantValue() is { IsBoolean: true, BooleanValue: bool constant })
                     {
                         if (constant == (current.ConditionKind == ControlFlowConditionKind.WhenTrue))
                         {
@@ -264,10 +295,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     }
                 }
 
-                // We are using very simple approach: 
+                // We are using very simple approach:
                 // If try block is reachable, we should dispatch an exception from it, even if it is empty.
                 // To simplify implementation, we dispatch exception from every reachable basic block and rely
                 // on dispatchedExceptionsFromRegions cache to avoid doing duplicate work.
+                Debug.Assert(current.Region != null);
                 dispatchException(current.Region);
             }
             while (toVisit.Count != 0);
@@ -291,6 +323,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     case ControlFlowBranchSemantics.Regular:
                     case ControlFlowBranchSemantics.Return:
                         Debug.Assert(branch.Destination != null);
+                        Debug.Assert(current.Region != null);
 
                         if (stepThroughFinally(current.Region, branch.Destination))
                         {
@@ -311,6 +344,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 while (!region.ContainsBlock(destinationOrdinal))
                 {
                     Debug.Assert(region.Kind != ControlFlowRegionKind.Root);
+                    Debug.Assert(region.EnclosingRegion != null);
                     ControlFlowRegion enclosing = region.EnclosingRegion;
                     if (region.Kind == ControlFlowRegionKind.Try && enclosing.Kind == ControlFlowRegionKind.TryAndFinally)
                     {
@@ -338,7 +372,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     // For simplicity, we do a complete walk of the finally/filter region in isolation
                     // to make sure that the resume dispatch point is reachable from its beginning.
-                    // It could also be reachable through invalid branches into the finally and we don't want to consider 
+                    // It could also be reachable through invalid branches into the finally and we don't want to consider
                     // these cases for regular finally handling.
                     BitVector isolated = MarkReachableBlocks(blocks,
                                                              @finally.FirstBlockOrdinal,
@@ -358,7 +392,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return continueDispatch;
             }
 
-            void dispatchException(ControlFlowRegion fromRegion)
+            void dispatchException([DisallowNull] ControlFlowRegion? fromRegion)
             {
                 do
                 {
@@ -367,10 +401,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         return;
                     }
 
-                    ControlFlowRegion enclosing = fromRegion.Kind == ControlFlowRegionKind.Root ? null : fromRegion.EnclosingRegion;
+                    ControlFlowRegion? enclosing = fromRegion.Kind == ControlFlowRegionKind.Root ? null : fromRegion.EnclosingRegion;
                     if (fromRegion.Kind == ControlFlowRegionKind.Try)
                     {
-                        switch (enclosing.Kind)
+                        switch (enclosing!.Kind)
                         {
                             case ControlFlowRegionKind.TryAndFinally:
                                 Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
@@ -394,7 +428,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     else if (fromRegion.Kind == ControlFlowRegionKind.Filter)
                     {
                         // If filter throws, dispatch is resumed at the next catch with an original exception
-                        Debug.Assert(enclosing.Kind == ControlFlowRegionKind.FilterAndHandler);
+                        Debug.Assert(enclosing!.Kind == ControlFlowRegionKind.FilterAndHandler);
+                        Debug.Assert(enclosing.EnclosingRegion != null);
                         ControlFlowRegion tryAndCatch = enclosing.EnclosingRegion;
                         Debug.Assert(tryAndCatch.Kind == ControlFlowRegionKind.TryAndCatch);
 
@@ -490,7 +525,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         }
 
                         if (r.Kind == ControlFlowRegionKind.LocalLifetime &&
-                            r.Locals.IsEmpty && !r.HasLocalFunctions)
+                            r.Locals.IsEmpty && !r.HasLocalFunctions && !r.HasCaptureIds)
                         {
                             MergeSubRegionAndFree(r, blocks, regionMap);
                             result = true;
@@ -519,6 +554,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 // Transfer all content of the sub-region into the current region
                                 region.Locals = region.Locals.Concat(subRegion.Locals);
                                 region.AddRange(subRegion.LocalFunctions);
+                                region.AddCaptureIds(subRegion.CaptureIds);
                                 MergeSubRegionAndFree(subRegion, blocks, regionMap);
                                 result = true;
                                 break;
@@ -534,16 +570,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 if (subRegion.Kind == ControlFlowRegionKind.LocalLifetime && !subRegion.HasLocalFunctions &&
                                     !subRegion.HasRegions && subRegion.FirstBlock == subRegion.LastBlock)
                                 {
+                                    Debug.Assert(subRegion.FirstBlock != null);
                                     BasicBlockBuilder block = subRegion.FirstBlock;
 
                                     if (!block.HasStatements && block.BranchValue == null)
                                     {
+                                        Debug.Assert(!subRegion.HasCaptureIds);
+
                                         // This sub-region has no executable code, merge block into the parent and drop the sub-region
                                         Debug.Assert(regionMap[block] == subRegion);
                                         regionMap[block] = region;
 #if DEBUG
                                         subRegion.AboutToFree();
-#endif 
+#endif
                                         subRegion.Free();
                                         region.Regions.RemoveAt(i);
                                         result = true;
@@ -569,14 +608,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Merge content of <paramref name="subRegion"/> into its enclosing region and free it.
         /// </summary>
-        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
+        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap, bool canHaveEmptyRegion = false)
         {
             Debug.Assert(subRegion.Kind != ControlFlowRegionKind.Root);
+            Debug.Assert(subRegion.Enclosing != null);
             RegionBuilder enclosing = subRegion.Enclosing;
 
 #if DEBUG
             subRegion.AboutToFree();
 #endif
+
+            if (subRegion.IsEmpty)
+            {
+                Debug.Assert(canHaveEmptyRegion);
+                Debug.Assert(!subRegion.HasRegions);
+
+                enclosing.Remove(subRegion);
+                subRegion.Free();
+                return;
+            }
 
             int firstBlockToMove = subRegion.FirstBlock.Ordinal;
 
@@ -584,6 +634,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 foreach (RegionBuilder r in subRegion.Regions)
                 {
+                    Debug.Assert(!r.IsEmpty);
                     for (int i = firstBlockToMove; i < r.FirstBlock.Ordinal; i++)
                     {
                         Debug.Assert(regionMap[blocks[i]] == subRegion);
@@ -615,19 +666,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         private static bool PackBlocks(ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
         {
-            ArrayBuilder<RegionBuilder> fromCurrent = null;
-            ArrayBuilder<RegionBuilder> fromDestination = null;
-            ArrayBuilder<RegionBuilder> fromPredecessor = null;
-            ArrayBuilder<BasicBlockBuilder> predecessorsBuilder = null;
+            ArrayBuilder<RegionBuilder>? fromCurrent = null;
+            ArrayBuilder<RegionBuilder>? fromDestination = null;
+            ArrayBuilder<RegionBuilder>? fromPredecessor = null;
+            ArrayBuilder<BasicBlockBuilder>? predecessorsBuilder = null;
 
             bool anyRemoved = false;
             bool retry;
 
             do
             {
-                // We set this local to true during the loop below when we make some changes that might enable 
+                // We set this local to true during the loop below when we make some changes that might enable
                 // transformations for basic blocks that were already looked at. We simply keep repeating the
-                // pass untill no such changes are made.
+                // pass until no such changes are made.
                 retry = false;
 
                 int count = blocks.Count - 1;
@@ -639,7 +690,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     if (block.HasStatements)
                     {
                         // See if we can move all statements to the previous block
-                        BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+                        BasicBlockBuilder? predecessor = block.GetSingletonPredecessorOrDefault();
                         if (predecessor != null &&
                             !predecessor.HasCondition &&
                             predecessor.Ordinal < block.Ordinal &&
@@ -700,17 +751,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 !block.HasPredecessors)
                             {
                                 // Nothing useful is happening in this finally, let's remove it
+                                Debug.Assert(currentRegion.Enclosing != null);
                                 RegionBuilder tryAndFinally = currentRegion.Enclosing;
                                 Debug.Assert(tryAndFinally.Kind == ControlFlowRegionKind.TryAndFinally);
-                                Debug.Assert(tryAndFinally.Regions.Count == 2);
+                                Debug.Assert(tryAndFinally.Regions!.Count == 2);
 
                                 RegionBuilder @try = tryAndFinally.Regions.First();
                                 Debug.Assert(@try.Kind == ControlFlowRegionKind.Try);
                                 Debug.Assert(tryAndFinally.Regions.Last() == currentRegion);
 
-                                // If .try region has locals or methods, let's convert it to .locals, otherwise drop it
-                                if (@try.Locals.IsEmpty && !@try.HasLocalFunctions)
+                                // If .try region has locals or methods or captures, let's convert it to .locals, otherwise drop it
+                                if (@try.Locals.IsEmpty && !@try.HasLocalFunctions && !@try.HasCaptureIds)
                                 {
+                                    Debug.Assert(@try.FirstBlock != null);
                                     i = @try.FirstBlock.Ordinal - 1; // restart at the first block of removed .try region
                                     MergeSubRegionAndFree(@try, blocks, regionMap);
                                 }
@@ -722,6 +775,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                                 MergeSubRegionAndFree(currentRegion, blocks, regionMap);
 
+                                Debug.Assert(tryAndFinally.Enclosing != null);
                                 RegionBuilder tryAndFinallyEnclosing = tryAndFinally.Enclosing;
                                 MergeSubRegionAndFree(tryAndFinally, blocks, regionMap);
 
@@ -743,7 +797,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             // It is safe to drop an unreachable empty basic block
                             if (block.HasPredecessors)
                             {
-                                BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+                                BasicBlockBuilder? predecessor = block.GetSingletonPredecessorOrDefault();
 
                                 if (predecessor == null)
                                 {
@@ -776,9 +830,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                          next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
                             Debug.Assert(!block.HasCondition); // This is ensured by an "if" above.
-                            IOperation value = block.BranchValue;
+                            IOperation? value = block.BranchValue;
 
-                            RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
+                            RegionBuilder? implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
 
                             if (implicitEntryRegion != null)
                             {
@@ -790,7 +844,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                     continue;
                                 }
 
-                                Debug.Assert(implicitEntryRegion.LastBlock.Ordinal >= next.Destination.Ordinal);
+                                Debug.Assert(implicitEntryRegion.LastBlock!.Ordinal >= next.Destination.Ordinal);
                             }
 
                             if (value != null)
@@ -798,6 +852,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 if (!block.HasPredecessors && next.Kind == ControlFlowBranchSemantics.Return)
                                 {
                                     // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
+                                    Debug.Assert(next.Destination != null);
                                     if (next.Destination.Kind != BasicBlockKind.Exit ||
                                         !value.IsImplicit ||
                                         value.Kind != OperationKind.LocalReference ||
@@ -808,7 +863,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 }
                                 else
                                 {
-                                    BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+                                    BasicBlockBuilder? predecessor = block.GetSingletonPredecessorOrDefault();
                                     if (predecessor == null ||
                                         predecessor.BranchValue != null ||
                                         predecessor.Kind == BasicBlockKind.Entry ||
@@ -826,7 +881,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             }
 
                             // For throw/re-throw assume there is no specific destination region
-                            RegionBuilder destinationRegionOpt = next.Destination == null ? null : regionMap[next.Destination];
+                            RegionBuilder? destinationRegionOpt = next.Destination == null ? null : regionMap[next.Destination];
 
                             if (block.HasPredecessors)
                             {
@@ -895,7 +950,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                      next.Kind == ControlFlowBranchSemantics.Error ||
                                      next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                        BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+                        BasicBlockBuilder? predecessor = block.GetSingletonPredecessorOrDefault();
 
                         if (predecessor == null)
                         {
@@ -925,7 +980,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             predecessor.BranchValue = block.BranchValue;
                             predecessor.ConditionKind = block.ConditionKind;
                             predecessor.Conditional = block.Conditional;
-                            BasicBlockBuilder destination = block.Conditional.Destination;
+                            BasicBlockBuilder? destination = block.Conditional.Destination;
                             if (destination != null)
                             {
                                 destination.AddPredecessor(predecessor);
@@ -953,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return anyRemoved;
 
-            RegionBuilder tryGetImplicitEntryRegion(BasicBlockBuilder block, RegionBuilder currentRegion)
+            RegionBuilder? tryGetImplicitEntryRegion(BasicBlockBuilder block, [DisallowNull] RegionBuilder? currentRegion)
             {
                 do
                 {
@@ -979,6 +1034,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             void removeBlock(BasicBlockBuilder block, RegionBuilder region)
             {
+                Debug.Assert(!region.IsEmpty);
                 Debug.Assert(region.FirstBlock.Ordinal >= 0);
                 Debug.Assert(region.FirstBlock.Ordinal <= region.LastBlock.Ordinal);
                 Debug.Assert(region.FirstBlock.Ordinal <= block.Ordinal);
@@ -988,10 +1044,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     BasicBlockBuilder newFirst = blocks[block.Ordinal + 1];
                     region.FirstBlock = newFirst;
+                    Debug.Assert(region.Enclosing != null);
                     RegionBuilder enclosing = region.Enclosing;
                     while (enclosing != null && enclosing.FirstBlock == block)
                     {
                         enclosing.FirstBlock = newFirst;
+                        Debug.Assert(enclosing.Enclosing != null);
                         enclosing = enclosing.Enclosing;
                     }
                 }
@@ -999,10 +1057,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     BasicBlockBuilder newLast = blocks[block.Ordinal - 1];
                     region.LastBlock = newLast;
+                    Debug.Assert(region.Enclosing != null);
                     RegionBuilder enclosing = region.Enclosing;
                     while (enclosing != null && enclosing.LastBlock == block)
                     {
                         enclosing.LastBlock = newLast;
+                        Debug.Assert(enclosing.Enclosing != null);
                         enclosing = enclosing.Enclosing;
                     }
                 }
@@ -1035,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 predecessorBranch.Kind = successorBranch.Kind;
             }
 
-            bool checkBranchesFromPredecessors(ArrayBuilder<BasicBlockBuilder> predecessors, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
+            bool checkBranchesFromPredecessors(ArrayBuilder<BasicBlockBuilder> predecessors, RegionBuilder currentRegion, RegionBuilder? destinationRegionOpt)
             {
                 foreach (BasicBlockBuilder predecessor in predecessors)
                 {
@@ -1062,13 +1122,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         int lastLeftRegionOnTheWayFromPredecessorToDestination = getIndexOfLastLeftRegion(fromPredecessor, fromDestination);
                         int lastLeftRegionOnTheWayFromPredecessorToCurrentBlock = getIndexOfLastLeftRegion(fromPredecessor, fromCurrent);
 
-                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number 
+                        // Since we are navigating up and down the tree and only movements up are significant, if we made the same number
                         // of movements up during direct and indirect transition, we must have made the same movements up.
                         if ((fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToCurrentBlock +
                             fromCurrent.Count - lastLeftRegionOnTheWayFromCurrentToDestination) !=
                             (fromPredecessor.Count - lastLeftRegionOnTheWayFromPredecessorToDestination))
                         {
-                            // We have different transitions 
+                            // We have different transitions
                             return false;
                         }
                     }
@@ -1082,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return true;
             }
 
-            void collectAncestorsAndSelf(RegionBuilder from, ref ArrayBuilder<RegionBuilder> builder)
+            void collectAncestorsAndSelf([DisallowNull] RegionBuilder? from, [NotNull] ref ArrayBuilder<RegionBuilder>? builder)
             {
                 if (builder == null)
                 {
@@ -1120,14 +1180,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Deal with labeled blocks that were not added to the graph because labels were never found
         /// </summary>
-        private static void CheckUnresolvedBranches(ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<ILabelSymbol, BasicBlockBuilder> labeledBlocks)
+        private static void CheckUnresolvedBranches(ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<ILabelSymbol, BasicBlockBuilder>? labeledBlocks)
         {
             if (labeledBlocks == null)
             {
                 return;
             }
 
-            PooledHashSet<BasicBlockBuilder> unresolved = null;
+            PooledHashSet<BasicBlockBuilder>? unresolved = null;
             foreach (BasicBlockBuilder labeled in labeledBlocks.Values)
             {
                 if (labeled.Ordinal == -1)
@@ -1167,14 +1227,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private void VisitStatement(IOperation operation)
+        private void VisitStatement(IOperation? operation)
         {
-            IOperation saveCurrentStatement = _currentStatement;
-            _currentStatement = operation;
-            Debug.Assert(_evalStack.Count == 0);
+#if DEBUG
+            int stackDepth = _evalStack.Count;
+            Debug.Assert(stackDepth == 0 || _evalStack.Peek().frameOpt != null);
+#endif
+            if (operation == null)
+            {
+                return;
+            }
 
-            AddStatement(Visit(operation, null));
-            Debug.Assert(_evalStack.Count == 0);
+            IOperation? saveCurrentStatement = _currentStatement;
+            _currentStatement = operation;
+
+            EvalStackFrame frame = PushStackFrame();
+            AddStatement(base.Visit(operation, null));
+            PopStackFrameAndLeaveRegion(frame);
+#if DEBUG
+            Debug.Assert(_evalStack.Count == stackDepth);
+            Debug.Assert(stackDepth == 0 || _evalStack.Peek().frameOpt != null);
+#endif
             _currentStatement = saveCurrentStatement;
         }
 
@@ -1192,7 +1265,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private void AddStatement(
-            IOperation statement
+            IOperation? statement
 #if DEBUG
             , bool spillingTheStack = false
 #endif
@@ -1200,10 +1273,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
 #if DEBUG
             Debug.Assert(spillingTheStack || _evalStack.All(
-                o => o.Kind == OperationKind.FlowCaptureReference
-                    || o.Kind == OperationKind.DeclarationExpression
-                    || o.Kind == OperationKind.Discard
-                    || o.Kind == OperationKind.OmittedArgument));
+                slot => slot.operationOpt == null
+                    || slot.operationOpt.Kind == OperationKind.FlowCaptureReference
+                    || slot.operationOpt.Kind == OperationKind.DeclarationExpression
+                    || slot.operationOpt.Kind == OperationKind.Discard
+                    || slot.operationOpt.Kind == OperationKind.OmittedArgument));
 #endif
             if (statement == null)
             {
@@ -1214,9 +1288,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             CurrentBasicBlock.AddStatement(statement);
         }
 
+        [MemberNotNull(nameof(_currentBasicBlock))]
         private void AppendNewBlock(BasicBlockBuilder block, bool linkToPrevious = true)
         {
             Debug.Assert(block != null);
+            Debug.Assert(_currentRegion != null);
 
             if (linkToPrevious)
             {
@@ -1240,8 +1316,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _regionMap.Add(block, _currentRegion);
         }
 
-        private void EnterRegion(RegionBuilder region)
+        private void EnterRegion(RegionBuilder region, bool spillingStack = false)
         {
+            if (!spillingStack)
+            {
+                // Make sure all pending stack spilling regions are realised
+                SpillEvalStack();
+#if DEBUG
+                Debug.Assert(_evalStack.Count == _startSpillingAt);
+                VerifySpilledStackFrames();
+#endif
+            }
+
             _currentRegion?.Add(region);
             _currentRegion = region;
             _currentBasicBlock = null;
@@ -1250,13 +1336,28 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private void LeaveRegion()
         {
             // Ensure there is at least one block in the region
+            Debug.Assert(_currentRegion != null);
             if (_currentRegion.IsEmpty)
             {
                 AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
             }
 
             RegionBuilder enclosed = _currentRegion;
+
+#if DEBUG
+            // We shouldn't be leaving regions that are still associated with stack frames
+            foreach ((EvalStackFrame? frameOpt, IOperation? operationOpt) in _evalStack)
+            {
+                Debug.Assert((frameOpt == null) != (operationOpt == null));
+
+                if (frameOpt != null)
+                {
+                    Debug.Assert(enclosed != frameOpt.RegionBuilderOpt);
+                }
+            }
+#endif
             _currentRegion = _currentRegion.Enclosing;
+            Debug.Assert(enclosed.LastBlock != null);
             _currentRegion?.ExtendToInclude(enclosed.LastBlock);
             _currentBasicBlock = null;
         }
@@ -1270,10 +1371,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             nextBlock.AddPredecessor(prevBlock);
         }
 
-        public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
+        private void UnconditionalBranch(BasicBlockBuilder nextBlock)
+        {
+            LinkBlocks(CurrentBasicBlock, nextBlock);
+            _currentBasicBlock = null;
+        }
+
+        public override IOperation? VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
             VisitStatements(operation.Operations);
             LeaveRegion();
@@ -1284,15 +1390,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private void StartVisitingStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
-            Debug.Assert(_evalStack.Count == 0);
+            Debug.Assert(_evalStack.Count == 0 || _evalStack.Peek().frameOpt != null);
             SpillEvalStack();
         }
 
-        private IOperation FinishVisitingStatement(IOperation originalOperation, IOperation result = null)
+        [return: NotNullIfNotNull("result")]
+        private IOperation? FinishVisitingStatement(IOperation originalOperation, IOperation? result = null)
         {
-            Debug.Assert(((Operation)originalOperation).SemanticModel != null, "Not an original node.");
+            Debug.Assert(((Operation)originalOperation).OwningSemanticModel != null, "Not an original node.");
             Debug.Assert(_currentStatement == originalOperation);
-            Debug.Assert(_evalStack.Count == 0);
+            Debug.Assert(_evalStack.Count == 0 || _evalStack.Peek().frameOpt != null);
 
             if (_currentStatement == originalOperation)
             {
@@ -1302,37 +1409,64 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return result ?? MakeInvalidOperation(originalOperation.Syntax, originalOperation.Type, ImmutableArray<IOperation>.Empty);
         }
 
-        private void VisitStatements(ArrayBuilder<IOperation> statements)
-        {
-            foreach (var statement in statements)
-            {
-                VisitStatement(statement);
-            }
-        }
-
         private void VisitStatements(ImmutableArray<IOperation> statements)
         {
-            foreach (var statement in statements)
+            for (int i = 0; i < statements.Length; i++)
             {
-                VisitStatement(statement);
+                if (VisitStatementsOneOrAll(statements[i], statements, i))
+                {
+                    break;
+                }
             }
         }
 
-        private void VisitStatements(IEnumerable<IOperation> statements)
+        /// <summary>
+        /// Either visits a single operation, or a using <see cref="IVariableDeclarationGroupOperation"/> and all subsequent statements
+        /// </summary>
+        /// <param name="operation">The statement to visit</param>
+        /// <param name="statements">All statements in the block containing this node</param>
+        /// <param name="startIndex">The current statement being visited in <paramref name="statements"/></param>
+        /// <returns>True if this visited all of the statements</returns>
+        /// <remarks>
+        /// The operation being visited is not necessarily equal to statements[startIndex]. 
+        /// When traversing down a set of labels, we set operation to the label.Operation and recurse, but statements[startIndex] still refers to the original parent label 
+        /// as we haven't actually moved down the original statement list
+        /// </remarks>
+        private bool VisitStatementsOneOrAll(IOperation? operation, ImmutableArray<IOperation> statements, int startIndex)
         {
-            foreach (var statement in statements)
+            switch (operation)
             {
-                VisitStatement(statement);
+                case IUsingDeclarationOperation usingDeclarationOperation:
+                    VisitUsingVariableDeclarationOperation(usingDeclarationOperation, statements.AsSpan()[(startIndex + 1)..]);
+                    return true;
+                case ILabeledOperation { Operation: { } } labelOperation:
+                    return visitPossibleUsingDeclarationInLabel(labelOperation);
+                default:
+                    VisitStatement(operation);
+                    return false;
+            }
+
+            bool visitPossibleUsingDeclarationInLabel(ILabeledOperation labelOperation)
+            {
+                var savedCurrentStatement = _currentStatement;
+                _currentStatement = labelOperation;
+
+                StartVisitingStatement(labelOperation);
+                VisitLabel(labelOperation.Label);
+                bool visitedAll = VisitStatementsOneOrAll(labelOperation.Operation, statements, startIndex);
+                FinishVisitingStatement(labelOperation);
+
+                _currentStatement = savedCurrentStatement;
+                return visitedAll;
             }
         }
 
-        internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
+        internal override IOperation? VisitWithStatement(IWithStatementOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            int captureId = VisitAndCapture(operation.Value);
 
             ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(GetCaptureReference(captureId, operation.Value));
+            _currentImplicitInstance = new ImplicitInstanceInfo(VisitAndCapture(operation.Value));
 
             VisitStatement(operation.Body);
 
@@ -1340,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
+        public override IOperation? VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -1357,10 +1491,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
+        public override IOperation? VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-
+            Debug.Assert(captureIdForResult is null);
             VisitMethodBodyBaseOperation(operation);
             return FinishVisitingStatement(operation);
         }
@@ -1371,7 +1505,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             VisitMethodBodies(operation.BlockBody, operation.ExpressionBody);
         }
 
-        private void VisitMethodBodies(IBlockOperation blockBody, IBlockOperation expressionBody)
+        private void VisitMethodBodies(IBlockOperation? blockBody, IBlockOperation? expressionBody)
         {
             if (blockBody != null)
             {
@@ -1381,8 +1515,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (expressionBody != null)
                 {
                     // Link last block of visited BlockBody to the exit block.
-                    LinkBlocks(CurrentBasicBlock, _exit);
-                    _currentBasicBlock = null;
+                    UnconditionalBranch(_exit);
 
                     // Generate a special region for unreachable erroneous expression body.
                     EnterRegion(new RegionBuilder(ControlFlowRegionKind.ErroneousBody));
@@ -1396,14 +1529,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        public override IOperation VisitConditional(IConditionalOperation operation, int? captureIdForResult)
+        public override IOperation? VisitConditional(IConditionalOperation operation, int? captureIdForResult)
         {
             if (operation == _currentStatement)
             {
                 if (operation.WhenFalse == null)
                 {
-                    // if (condition) 
-                    //   consequence;  
+                    // if (condition)
+                    //   consequence;
                     //
                     // becomes
                     //
@@ -1411,8 +1544,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // consequence;
                     // afterif:
 
-                    BasicBlockBuilder afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, sense: false);
+                    BasicBlockBuilder? afterIf = null;
+                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
                     VisitStatement(operation.WhenTrue);
                     AppendNewBlock(afterIf);
                 }
@@ -1420,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     // if (condition)
                     //     consequence;
-                    // else 
+                    // else
                     //     alternative
                     //
                     // becomes
@@ -1432,14 +1565,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // alternative;
                     // afterif:
 
-                    BasicBlockBuilder whenFalse = null;
-                    VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
+                    BasicBlockBuilder? whenFalse = null;
+                    VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
 
                     VisitStatement(operation.WhenTrue);
 
                     var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, afterIf);
-                    _currentBasicBlock = null;
+                    UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
                     VisitStatement(operation.WhenFalse);
@@ -1461,12 +1593,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // alt:
                 // capture = alternative;
                 // afterif:
-                // result - capture
+                // result = capture
+
+                Debug.Assert(operation is { WhenTrue: not null, WhenFalse: not null });
 
                 SpillEvalStack();
 
-                BasicBlockBuilder whenFalse = null;
-                VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
+                BasicBlockBuilder? whenFalse = null;
+                VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
 
                 var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                 IOperation result;
@@ -1475,38 +1609,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // capture for the result because there won't be any result from the throwing branches.
                 if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
                 {
-                    IOperation rewrittenThrow = Visit(whenTrueConversion.Operand);
-                    Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                    IOperation? rewrittenThrow = base.Visit(whenTrueConversion.Operand, null);
+                    Debug.Assert(rewrittenThrow!.Kind == OperationKind.None);
+                    Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
 
-                    LinkBlocks(CurrentBasicBlock, afterIf);
-                    _currentBasicBlock = null;
+                    UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
 
-                    result = Visit(operation.WhenFalse);
+                    result = VisitRequired(operation.WhenFalse);
                 }
                 else if (operation.WhenFalse is IConversionOperation whenFalseConversion && whenFalseConversion.Operand.Kind == OperationKind.Throw)
                 {
-                    result = Visit(operation.WhenTrue);
+                    result = VisitRequired(operation.WhenTrue);
 
-                    LinkBlocks(CurrentBasicBlock, afterIf);
-                    _currentBasicBlock = null;
+                    UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
 
-                    IOperation rewrittenThrow = Visit(whenFalseConversion.Operand);
+                    IOperation rewrittenThrow = BaseVisitRequired(whenFalseConversion.Operand, null);
                     Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                    Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
                 }
                 else
                 {
-                    int captureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
+                    var resultCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, isStackSpillRegion: true);
+                    EnterRegion(resultCaptureRegion);
+
+                    int captureId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
                     VisitAndCapture(operation.WhenTrue, captureId);
 
-                    LinkBlocks(CurrentBasicBlock, afterIf);
-                    _currentBasicBlock = null;
+                    UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
 
@@ -1523,69 +1657,335 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private void VisitAndCapture(IOperation operation, int captureId)
         {
-            IOperation result = Visit(operation, captureId);
+            EvalStackFrame frame = PushStackFrame();
+            IOperation result = BaseVisitRequired(operation, captureId);
+            PopStackFrame(frame);
             CaptureResultIfNotAlready(operation.Syntax, captureId, result);
+            LeaveRegionIfAny(frame);
         }
 
-        private int VisitAndCapture(IOperation operation)
+        private IOperation VisitAndCapture(IOperation operation)
         {
-            int currentCaptureId = _captureIdDispenser.GetCurrentId();
-            IOperation rewritten = Visit(operation);
-
-            int captureId;
-            if (rewritten.Kind != OperationKind.FlowCaptureReference ||
-                currentCaptureId >= (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id.Value))
-            {
-                captureId = _captureIdDispenser.GetNextId();
-                AddStatement(new FlowCapture(captureId, operation.Syntax, rewritten));
-            }
-
-            return captureId;
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(BaseVisitRequired(operation, null));
+            SpillEvalStack();
+            return PopStackFrame(frame, PopOperand());
         }
 
         private void CaptureResultIfNotAlready(SyntaxNode syntax, int captureId, IOperation result)
         {
+            Debug.Assert(_startSpillingAt == _evalStack.Count);
             if (result.Kind != OperationKind.FlowCaptureReference ||
                 captureId != ((IFlowCaptureReferenceOperation)result).Id.Value)
             {
-                AddStatement(new FlowCapture(captureId, syntax, result));
+                SpillEvalStack();
+                AddStatement(new FlowCaptureOperation(captureId, syntax, result));
             }
+        }
+
+        /// <summary>
+        /// This class captures information about beginning of stack frame
+        /// and corresponding <see cref="RegionBuilder"/> if one was allocated to
+        /// track <see cref="CaptureId"/>s used by the stack spilling, etc.
+        /// Do not create instances of this type manually, use <see cref="PushStackFrame"/>
+        /// helper instead. Also, do not assign <see cref="RegionBuilderOpt"/> explicitly.
+        /// Let the builder machinery do this when appropriate.
+        /// </summary>
+        private class EvalStackFrame
+        {
+            private RegionBuilder? _lazyRegionBuilder;
+
+            public RegionBuilder? RegionBuilderOpt
+            {
+                get
+                {
+                    return _lazyRegionBuilder;
+                }
+                set
+                {
+                    Debug.Assert(_lazyRegionBuilder == null);
+                    Debug.Assert(value != null);
+                    _lazyRegionBuilder = value;
+                }
+            }
+        }
+
+        private EvalStackFrame PushStackFrame()
+        {
+            var frame = new EvalStackFrame();
+            _evalStack.Push((frame, operationOpt: null));
+            return frame;
+        }
+
+        private void PopStackFrame(EvalStackFrame frame, bool mergeNestedRegions = true)
+        {
+            Debug.Assert(frame != null);
+            int stackDepth = _evalStack.Count;
+            Debug.Assert(_startSpillingAt <= stackDepth);
+
+            if (_startSpillingAt == stackDepth)
+            {
+                _startSpillingAt--;
+            }
+
+            (EvalStackFrame? frameOpt, IOperation? operationOpt) = _evalStack.Pop();
+            Debug.Assert(frame == frameOpt);
+            Debug.Assert(operationOpt == null);
+
+            if (frame.RegionBuilderOpt != null && mergeNestedRegions)
+            {
+                while (_currentRegion != frame.RegionBuilderOpt)
+                {
+                    Debug.Assert(_currentRegion != null);
+                    RegionBuilder toMerge = _currentRegion;
+                    Debug.Assert(toMerge.Enclosing != null);
+                    _currentRegion = toMerge.Enclosing;
+
+                    Debug.Assert(toMerge.IsStackSpillRegion);
+                    Debug.Assert(!toMerge.HasLocalFunctions);
+                    Debug.Assert(toMerge.Locals.IsEmpty);
+
+                    _currentRegion.AddCaptureIds(toMerge.CaptureIds);
+                    // This region can be empty in certain error scenarios, such as `new T {}`, where T does not
+                    // have a class constraint. There are no arguments or initializers, so nothing will have
+                    // been put into the region at this point
+                    if (!toMerge.IsEmpty)
+                    {
+                        _currentRegion.ExtendToInclude(toMerge.LastBlock);
+                    }
+                    MergeSubRegionAndFree(toMerge, _blocks, _regionMap, canHaveEmptyRegion: true);
+                }
+            }
+        }
+
+        private void PopStackFrameAndLeaveRegion(EvalStackFrame frame)
+        {
+            PopStackFrame(frame);
+            LeaveRegionIfAny(frame);
+        }
+
+        private void LeaveRegionIfAny(EvalStackFrame frame)
+        {
+            RegionBuilder? toLeave = frame.RegionBuilderOpt;
+            if (toLeave != null)
+            {
+                while (_currentRegion != toLeave)
+                {
+                    Debug.Assert(_currentRegion!.IsStackSpillRegion);
+                    LeaveRegion();
+                }
+
+                LeaveRegion();
+            }
+        }
+
+        private T PopStackFrame<T>(EvalStackFrame frame, T value)
+        {
+            PopStackFrame(frame);
+            return value;
+        }
+
+        private void LeaveRegionsUpTo(RegionBuilder resultCaptureRegion)
+        {
+            while (_currentRegion != resultCaptureRegion)
+            {
+                LeaveRegion();
+            }
+        }
+
+        private int GetNextCaptureId(RegionBuilder owner)
+        {
+            Debug.Assert(owner != null);
+            int captureId = _captureIdDispenser.GetNextId();
+            owner.AddCaptureId(captureId);
+            return captureId;
         }
 
         private void SpillEvalStack()
         {
-            for (int i = 0; i < _evalStack.Count; i++)
-            {
-                IOperation operation = _evalStack[i];
-                // Declarations cannot have control flow, so we don't need to spill them.
-                if (operation.Kind != OperationKind.FlowCaptureReference
-                    && operation.Kind != OperationKind.DeclarationExpression
-                    && operation.Kind != OperationKind.Discard
-                    && operation.Kind != OperationKind.OmittedArgument)
-                {
-                    int captureId = _captureIdDispenser.GetNextId();
+            Debug.Assert(_startSpillingAt <= _evalStack.Count);
+#if DEBUG
+            VerifySpilledStackFrames();
+#endif
+            int currentFrameIndex = -1;
 
-                    AddStatement(new FlowCapture(captureId, operation.Syntax, operation)
+            for (int i = _startSpillingAt - 1; i >= 0; i--)
+            {
+                (EvalStackFrame? frameOpt, _) = _evalStack[i];
+                if (frameOpt != null)
+                {
+                    currentFrameIndex = i;
+                    Debug.Assert(frameOpt.RegionBuilderOpt != null);
+                    break;
+                }
+            }
+
+            for (int i = _startSpillingAt; i < _evalStack.Count; i++)
+            {
+                (EvalStackFrame? frameOpt, IOperation? operationOpt) = _evalStack[i];
+                Debug.Assert((frameOpt == null) != (operationOpt == null));
+
+                if (frameOpt != null)
+                {
+                    currentFrameIndex = i;
+                    Debug.Assert(frameOpt.RegionBuilderOpt == null);
+                    frameOpt.RegionBuilderOpt = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, isStackSpillRegion: true);
+                    EnterRegion(frameOpt.RegionBuilderOpt, spillingStack: true);
+                    continue;
+                }
+
+                Debug.Assert(operationOpt != null);
+
+                // Declarations cannot have control flow, so we don't need to spill them.
+                if (operationOpt.Kind != OperationKind.FlowCaptureReference
+                    && operationOpt.Kind != OperationKind.DeclarationExpression
+                    && operationOpt.Kind != OperationKind.Discard
+                    && operationOpt.Kind != OperationKind.OmittedArgument)
+                {
+                    // Here we need to decide what region should own the new capture. Due to the spilling operations occurred before,
+                    // we currently might be in a region that is not associated with the stack frame we are in, but it is one of its
+                    // directly or indirectly nested regions. The operation that we are about to spill is likely to remove references
+                    // to some captures from the stack. That means that, after the spilling, we should be able to leave the spill
+                    // regions that no longer own captures referenced on the stack. The new capture that we create, should belong to
+                    // the region that will become current after that. Here we are trying to compute what will be that region.
+                    // Obviously, we shouldn’t be leaving the region associated with the frame.
+                    EvalStackFrame? currentFrame = _evalStack[currentFrameIndex].frameOpt;
+                    Debug.Assert(currentFrame != null);
+                    RegionBuilder? currentSpillRegion = currentFrame.RegionBuilderOpt;
+                    Debug.Assert(currentSpillRegion != null);
+
+                    if (_currentRegion != currentSpillRegion)
+                    {
+                        var idsStillOnTheStack = PooledHashSet<CaptureId>.GetInstance();
+
+                        for (int j = currentFrameIndex + 1; j < _evalStack.Count; j++)
+                        {
+                            IOperation? operation = _evalStack[j].operationOpt;
+                            if (operation != null)
+                            {
+                                if (j < i)
+                                {
+                                    if (operation is IFlowCaptureReferenceOperation reference)
+                                    {
+                                        idsStillOnTheStack.Add(reference.Id);
+                                    }
+                                }
+                                else if (j > i)
+                                {
+                                    foreach (IFlowCaptureReferenceOperation reference in operation.DescendantsAndSelf().OfType<IFlowCaptureReferenceOperation>())
+                                    {
+                                        idsStillOnTheStack.Add(reference.Id);
+                                    }
+                                }
+                            }
+                        }
+
+                        RegionBuilder candidate = CurrentRegionRequired;
+                        do
+                        {
+                            Debug.Assert(candidate.IsStackSpillRegion);
+                            if (candidate.HasCaptureIds && candidate.CaptureIds.Any((id, set) => set.Contains(id), idsStillOnTheStack))
+                            {
+                                currentSpillRegion = candidate;
+                                break;
+                            }
+
+                            Debug.Assert(candidate.Enclosing != null);
+                            candidate = candidate.Enclosing;
+                        }
+                        while (candidate != currentSpillRegion);
+
+                        idsStillOnTheStack.Free();
+                    }
+
+                    int captureId = GetNextCaptureId(currentSpillRegion);
+
+                    AddStatement(new FlowCaptureOperation(captureId, operationOpt.Syntax, operationOpt)
 #if DEBUG
                                  , spillingTheStack: true
 #endif
                                 );
 
-                    _evalStack[i] = GetCaptureReference(captureId, operation);
+                    _evalStack[i] = (frameOpt: null, operationOpt: GetCaptureReference(captureId, operationOpt));
+
+                    while (_currentRegion != currentSpillRegion)
+                    {
+                        Debug.Assert(CurrentRegionRequired.IsStackSpillRegion);
+                        LeaveRegion();
+                    }
+                }
+            }
+
+            _startSpillingAt = _evalStack.Count;
+        }
+
+#if DEBUG
+        private void VerifySpilledStackFrames()
+        {
+            for (int i = 0; i < _startSpillingAt; i++)
+            {
+                (EvalStackFrame? frameOpt, IOperation? operationOpt) = _evalStack[i];
+                if (frameOpt != null)
+                {
+                    Debug.Assert(operationOpt == null);
+                    Debug.Assert(frameOpt.RegionBuilderOpt != null);
+                }
+                else
+                {
+                    Debug.Assert(operationOpt != null);
                 }
             }
         }
+#endif
 
-        private void VisitAndPushArray<T>(ImmutableArray<T> array, Func<T, IOperation> unwrapper = null) where T : IOperation
+        private void PushOperand(IOperation operation)
+        {
+            Debug.Assert(_evalStack.Count != 0);
+            Debug.Assert(_evalStack.First().frameOpt != null);
+            Debug.Assert(_evalStack.First().operationOpt == null);
+            Debug.Assert(_startSpillingAt <= _evalStack.Count);
+            Debug.Assert(operation != null);
+            _evalStack.Push((frameOpt: null, operation));
+        }
+
+        private IOperation PopOperand()
+        {
+            int stackDepth = _evalStack.Count;
+            Debug.Assert(_startSpillingAt <= stackDepth);
+
+            if (_startSpillingAt == stackDepth)
+            {
+                _startSpillingAt--;
+            }
+
+            (EvalStackFrame? frameOpt, IOperation? operationOpt) = _evalStack.Pop();
+            Debug.Assert(frameOpt == null);
+            Debug.Assert(operationOpt != null);
+
+            return operationOpt;
+        }
+
+        private IOperation PeekOperand()
+        {
+            Debug.Assert(_startSpillingAt <= _evalStack.Count);
+
+            (EvalStackFrame? frameOpt, IOperation? operationOpt) = _evalStack.Peek();
+            Debug.Assert(frameOpt == null);
+            Debug.Assert(operationOpt != null);
+
+            return operationOpt;
+        }
+
+        private void VisitAndPushArray<T>(ImmutableArray<T> array, Func<T, IOperation>? unwrapper = null) where T : IOperation
         {
             Debug.Assert(unwrapper != null || typeof(T) == typeof(IOperation));
             foreach (var element in array)
             {
-                _evalStack.Push(Visit(unwrapper == null ? element : unwrapper(element)));
+                PushOperand(VisitRequired(unwrapper == null ? element : unwrapper(element)));
             }
         }
 
-        private ImmutableArray<T> PopArray<T>(ImmutableArray<T> originalArray, Func<IOperation, int, ImmutableArray<T>, T> wrapper = null) where T : IOperation
+        private ImmutableArray<T> PopArray<T>(ImmutableArray<T> originalArray, Func<IOperation, int, ImmutableArray<T>, T>? wrapper = null) where T : IOperation
         {
             Debug.Assert(wrapper != null || typeof(T) == typeof(IOperation));
             int numElements = originalArray.Length;
@@ -1599,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // Iterate in reverse order so the index corresponds to the original index when pushed onto the stack
                 for (int i = numElements - 1; i >= 0; i--)
                 {
-                    IOperation visitedElement = _evalStack.Pop();
+                    IOperation visitedElement = PopOperand();
                     builder.Add(wrapper != null ? wrapper(visitedElement, i, originalArray) : (T)visitedElement);
                 }
                 builder.ReverseContents();
@@ -1607,7 +2007,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> originalArray, Func<T, IOperation> unwrapper = null, Func<IOperation, int, ImmutableArray<T>, T> wrapper = null) where T : IOperation
+        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> originalArray, Func<T, IOperation>? unwrapper = null, Func<IOperation, int, ImmutableArray<T>, T>? wrapper = null) where T : IOperation
         {
 #if DEBUG
             int stackSizeBefore = _evalStack.Count;
@@ -1623,50 +2023,110 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return visitedArray;
         }
 
-        private ImmutableArray<IArgumentOperation> VisitArguments(ImmutableArray<IArgumentOperation> arguments)
+        private ImmutableArray<IArgumentOperation> VisitArguments(ImmutableArray<IArgumentOperation> arguments, bool instancePushed)
         {
-            return VisitArray(arguments, UnwrapArgument, RewriteArgumentFromArray);
+            VisitAndPushArguments(arguments, instancePushed);
 
-            IOperation UnwrapArgument(IArgumentOperation argument)
+            var visitedArguments = PopArray(arguments, RewriteArgumentFromArray);
+            return visitedArguments;
+        }
+
+        private void VisitAndPushArguments(ImmutableArray<IArgumentOperation> arguments, bool instancePushed)
+        {
+            var previousInterpolatedStringHandlerContext = _currentInterpolatedStringHandlerArgumentContext;
+
+            ArrayBuilder<IInterpolatedStringHandlerCreationOperation>? interpolatedStringBuilder = null;
+            int lastIndexForSpilling = -1;
+
+            for (int i = 0; i < arguments.Length; i++)
             {
-                return argument.Value;
+                if (arguments[i].Value is IInterpolatedStringHandlerCreationOperation creation)
+                {
+                    lastIndexForSpilling = i;
+                    interpolatedStringBuilder ??= ArrayBuilder<IInterpolatedStringHandlerCreationOperation>.GetInstance();
+                    interpolatedStringBuilder.Add(creation);
+                }
             }
 
-            IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
+            if (lastIndexForSpilling > -1)
             {
-                Debug.Assert(index >= 0 && index < args.Length);
-                var originalArgument = (BaseArgument)args[index];
-                return new ArgumentOperation(visitedArgument, originalArgument.ArgumentKind, originalArgument.Parameter,
-                                             originalArgument.InConversionConvertibleOpt, originalArgument.OutConversionConvertibleOpt,
-                                             semanticModel: null, originalArgument.Syntax, IsImplicit(originalArgument));
+                Debug.Assert(interpolatedStringBuilder != null);
+                _currentInterpolatedStringHandlerArgumentContext = new InterpolatedStringHandlerArgumentsContext(
+                    interpolatedStringBuilder.ToImmutableAndFree(),
+                    startingStackDepth: _evalStack.Count - (instancePushed ? 1 : 0),
+                    hasReceiver: instancePushed);
             }
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                // If there are declaration expressions in the arguments before an interpolated string handler, and that declaration
+                // expression is referenced by the handler constructor, we need to spill it to ensure the declaration doesn't end
+                // up in the tree twice. However, we don't want to generally introduce spilling for these declarations: that could
+                // have unexpected affects on consumers. So we limit the spilling to those indexes before the last interpolated string
+                // handler. We _could_ limit this further by only spilling declaration expressions if the handler in question actually
+                // referenced a specific declaration expression in the argument list, but we think that the difficulty in implementing
+                // this check is more complexity than this scenario needs.
+                var argument = arguments[i].Value switch
+                {
+                    IDeclarationExpressionOperation declaration when i < lastIndexForSpilling => declaration.Expression,
+                    var value => value
+                };
+
+                PushOperand(VisitRequired(argument));
+            }
+
+            _currentInterpolatedStringHandlerArgumentContext = previousInterpolatedStringHandlerContext;
+        }
+
+        private IArgumentOperation RewriteArgumentFromArray(IOperation visitedArgument, int index, ImmutableArray<IArgumentOperation> args)
+        {
+            Debug.Assert(index >= 0 && index < args.Length);
+            var originalArgument = (ArgumentOperation)args[index];
+            return new ArgumentOperation(originalArgument.ArgumentKind, originalArgument.Parameter, visitedArgument,
+                                         originalArgument.InConversionConvertible, originalArgument.OutConversionConvertible,
+                                         semanticModel: null, originalArgument.Syntax, IsImplicit(originalArgument));
         }
 
         public override IOperation VisitSimpleAssignment(ISimpleAssignmentOperation operation, int? captureIdForResult)
         {
-            _evalStack.Push(Visit(operation.Target));
-            IOperation value = Visit(operation.Value);
-            return new SimpleAssignmentExpression(_evalStack.Pop(), operation.IsRef, value, null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Target));
+            IOperation value = VisitRequired(operation.Value);
+            return PopStackFrame(frame, new SimpleAssignmentOperation(operation.IsRef, PopOperand(), value, null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
 
         public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, int? captureIdForResult)
         {
-            var compoundAssignment = (BaseCompoundAssignmentExpression)operation;
-            _evalStack.Push(Visit(compoundAssignment.Target));
-            IOperation value = Visit(compoundAssignment.Value);
+            EvalStackFrame frame = PushStackFrame();
+            var compoundAssignment = (CompoundAssignmentOperation)operation;
+            PushOperand(VisitRequired(compoundAssignment.Target));
+            IOperation value = VisitRequired(compoundAssignment.Value);
 
-            return new CompoundAssignmentOperation(_evalStack.Pop(), value, compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible,
-                                                   operation.OperatorKind, operation.IsLifted, operation.IsChecked, operation.OperatorMethod, semanticModel: null,
-                                                   operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return PopStackFrame(frame, new CompoundAssignmentOperation(compoundAssignment.InConversionConvertible, compoundAssignment.OutConversionConvertible, operation.OperatorKind, operation.IsLifted,
+                operation.IsChecked, operation.OperatorMethod, PopOperand(), value, semanticModel: null,
+                syntax: operation.Syntax, type: operation.Type, isImplicit: IsImplicit(operation)));
         }
 
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
         {
-            _evalStack.Push(Visit(operation.ArrayReference));
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.ArrayReference));
             ImmutableArray<IOperation> visitedIndices = VisitArray(operation.Indices);
-            IOperation visitedArrayReference = _evalStack.Pop();
-            return new ArrayElementReferenceExpression(visitedArrayReference, visitedIndices, semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            IOperation visitedArrayReference = PopOperand();
+            PopStackFrame(frame);
+            return new ArrayElementReferenceOperation(visitedArrayReference, visitedIndices, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, int? captureIdForResult)
+        {
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Instance));
+            IOperation argument = VisitRequired(operation.Argument);
+            IOperation instance = PopOperand();
+            PopStackFrame(frame);
+            return new ImplicitIndexerReferenceOperation(instance, argument, operation.LengthSymbol, operation.IndexerSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         private static bool IsConditional(IBinaryOperation operation)
@@ -1721,28 +2181,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            _evalStack.Push(Visit(operation.LeftOperand));
-            IOperation rightOperand = Visit(operation.RightOperand);
-            return new BinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
-                                                operation.OperatorMethod, ((BaseBinaryOperatorExpression)operation).UnaryOperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.LeftOperand));
+            IOperation rightOperand = VisitRequired(operation.RightOperand);
+            return PopStackFrame(frame, new BinaryOperation(operation.OperatorKind, PopOperand(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
+                                                            operation.OperatorMethod, ((BinaryOperation)operation).UnaryOperatorMethod, semanticModel: null,
+                                                            operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
         }
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
         {
             (IOperation visitedLeft, IOperation visitedRight) = VisitPreservingTupleOperations(operation.LeftOperand, operation.RightOperand);
-            return new TupleBinaryOperatorExpression(operation.OperatorKind, visitedLeft, visitedRight,
-                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new TupleBinaryOperation(operation.OperatorKind, visitedLeft, visitedRight,
+                semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
             if (IsBooleanLogicalNot(operation))
             {
-                return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                return VisitConditionalExpression(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
 
-            return new UnaryOperatorExpression(operation.OperatorKind, Visit(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod,
-                                               semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new UnaryOperation(operation.OperatorKind, VisitRequired(operation.Operand), operation.IsLifted, operation.IsChecked, operation.OperatorMethod,
+                                               semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         private static bool IsBooleanLogicalNot(IUnaryOperation operation)
@@ -1770,7 +2232,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private IOperation VisitBinaryConditionalOperator(IBinaryOperation binOp, bool sense, int? captureIdForResult,
-                                                          BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
+                                                          BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             // ~(a && b) is equivalent to (~a || ~b)
             if (!CalculateAndOrSense(binOp, sense))
@@ -1799,8 +2261,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //        Dim result As Boolean?
             //
             //        If left.GetValueOrDefault Then
-            //            result = left
-            //            GoTo done
+            //            GoTo resultIsLeft
             //        End If
             //
             //        If Not ((Not right).GetValueOrDefault) Then
@@ -1808,7 +2269,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //            GoTo done
             //        End If
             //
+            //resultIsLeft:
             //        result = left
+            //
             //done:
             //        Return result
 
@@ -1816,8 +2279,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //        Dim result As Boolean?
             //
             //        If (Not left).GetValueOrDefault() Then
-            //            result = left
-            //            GoTo done
+            //            GoTo resultIsLeft
             //        End If
             //
             //        If Not (right.GetValueOrDefault()) Then
@@ -1825,52 +2287,58 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //            GoTo done
             //        End If
             //
+            //resultIsLeft:
             //        result = left
             //
             //done:
             //        Return result
 
+            var resultCaptureRegion = CurrentRegionRequired;
+
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
             var resultIsLeft = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            int leftId = VisitAndCapture(left);
-            condition = GetCaptureReference(leftId, left);
+            IOperation capturedLeft = VisitAndCapture(left);
+
+            condition = capturedLeft;
 
             if (isAndAlso)
             {
                 condition = negateNullable(condition);
             }
 
-            condition = UnwrapNullableValue(condition);
-            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(checkRight));
-            _currentBasicBlock = null;
+            condition = CallNullableMember(condition, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            ConditionalBranch(condition, jumpIfTrue: true, resultIsLeft);
+            UnconditionalBranch(checkRight);
 
-            int resultId = captureIdForResult ?? _captureIdDispenser.GetNextId();
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(leftId, left)));
-            LinkBlocks(CurrentBasicBlock, done);
-            _currentBasicBlock = null;
+            int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
             AppendNewBlock(checkRight);
 
-            int rightId = VisitAndCapture(right);
-            condition = GetCaptureReference(rightId, right);
+            EvalStackFrame frame = PushStackFrame();
+            IOperation capturedRight = VisitAndCapture(right);
+
+            condition = capturedRight;
 
             if (!isAndAlso)
             {
                 condition = negateNullable(condition);
             }
 
-            condition = UnwrapNullableValue(condition);
-            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: true, RegularBranch(resultIsLeft));
+            condition = CallNullableMember(condition, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            ConditionalBranch(condition, jumpIfTrue: true, resultIsLeft);
             _currentBasicBlock = null;
 
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(rightId, right)));
-            LinkBlocks(CurrentBasicBlock, done);
-            _currentBasicBlock = null;
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax, OperationCloner.CloneOperation(capturedRight)));
+            UnconditionalBranch(done);
+
+            PopStackFrameAndLeaveRegion(frame);
 
             AppendNewBlock(resultIsLeft);
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(leftId, left)));
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax, OperationCloner.CloneOperation(capturedLeft)));
+
+            LeaveRegionsUpTo(resultCaptureRegion);
 
             AppendNewBlock(done);
 
@@ -1878,8 +2346,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             IOperation negateNullable(IOperation operand)
             {
-                return new UnaryOperatorExpression(UnaryOperatorKind.Not, operand, isLifted: true, isChecked: false, operatorMethod: null,
-                                                   semanticModel: null, operand.Syntax, operand.Type, constantValue: default, isImplicit: true);
+                return new UnaryOperation(UnaryOperatorKind.Not, operand, isLifted: true, isChecked: false, operatorMethod: null,
+                                                   semanticModel: null, operand.Syntax, operand.Type, constantValue: null, isImplicit: true);
 
             }
         }
@@ -1898,43 +2366,58 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            condition = CreateConversion(Visit(left), booleanType);
+            EvalStackFrame frame = PushStackFrame();
 
-            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: isAndAlso, RegularBranch(checkRight));
+            condition = CreateConversion(VisitRequired(left), booleanType);
+
+            ConditionalBranch(condition, jumpIfTrue: isAndAlso, checkRight);
             _currentBasicBlock = null;
 
-            int resultId = _captureIdDispenser.GetNextId();
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, new LiteralExpression(semanticModel: null, left.Syntax, booleanType, constantValue: !isAndAlso, isImplicit: true)));
-            LinkBlocks(CurrentBasicBlock, done);
-            _currentBasicBlock = null;
+            PopStackFrameAndLeaveRegion(frame);
+
+            var resultCaptureRegion = CurrentRegionRequired;
+
+            int resultId = GetNextCaptureId(resultCaptureRegion);
+            ConstantValue constantValue = ConstantValue.Create(!isAndAlso);
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax, new LiteralOperation(semanticModel: null, left.Syntax, booleanType, constantValue, isImplicit: true)));
+            UnconditionalBranch(done);
 
             AppendNewBlock(checkRight);
 
-            condition = CreateConversion(Visit(right), booleanType);
+            frame = PushStackFrame();
 
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, condition));
+            condition = CreateConversion(VisitRequired(right), booleanType);
+
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax, condition));
+
+            PopStackFrame(frame);
+            LeaveRegionsUpTo(resultCaptureRegion);
 
             AppendNewBlock(done);
 
-            condition = new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default);
+            condition = new FlowCaptureReferenceOperation(resultId, binOp.Syntax, booleanType, constantValue: null);
+            Debug.Assert(binOp.Type is not null);
             return new ConversionOperation(condition, _compilation.ClassifyConvertibleConversion(condition, binOp.Type, out _), isTryCast: false, isChecked: false,
-                                           semanticModel: null, binOp.Syntax, binOp.Type, binOp.ConstantValue, isImplicit: true);
+                                           semanticModel: null, binOp.Syntax, binOp.Type, binOp.GetConstantValue(), isImplicit: true);
         }
 
         private IOperation CreateConversion(IOperation operand, ITypeSymbol type)
         {
-            return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, type, out Optional<object> constantValue), isTryCast: false, isChecked: false,
+            return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, type, out ConstantValue? constantValue), isTryCast: false, isChecked: false,
                                            semanticModel: null, operand.Syntax, type, constantValue, isImplicit: true);
         }
 
         private IOperation VisitDynamicBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
         {
             SpillEvalStack();
+            Debug.Assert(binOp.Type is not null);
+
+            var resultCaptureRegion = CurrentRegionRequired;
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
-            IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
+            IMethodSymbol? unaryOperatorMethod = ((BinaryOperation)binOp).UnaryOperatorMethod;
             bool isAndAlso = CalculateAndOrSense(binOp, true);
             bool jumpIfTrue;
             IOperation condition;
@@ -1946,9 +2429,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var doBitWise = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            int leftId = VisitAndCapture(left);
+            IOperation capturedLeft = VisitAndCapture(left);
 
-            condition = GetCaptureReference(leftId, left);
+            condition = capturedLeft;
 
             if (ITypeSymbolHelpers.IsBooleanType(left.Type))
             {
@@ -1959,13 +2442,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 jumpIfTrue = false;
 
-                if (unaryOperatorMethod == null || 
+                if (unaryOperatorMethod == null ||
                     (ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType) &&
                      (ITypeSymbolHelpers.IsNullableType(left.Type) || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))))
                 {
-                    condition = new UnaryOperatorExpression(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
+                    condition = new UnaryOperation(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
                                                             condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
-                                                            semanticModel: null, condition.Syntax, booleanType, constantValue: default, isImplicit: true);
+                                                            semanticModel: null, condition.Syntax, booleanType, constantValue: null, isImplicit: true);
                 }
                 else
                 {
@@ -1979,27 +2462,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 jumpIfTrue = isAndAlso;
             }
 
-            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue, RegularBranch(doBitWise));
+            ConditionalBranch(condition, jumpIfTrue, doBitWise);
             _currentBasicBlock = null;
 
-            int resultId = captureIdForResult ?? _captureIdDispenser.GetNextId();
-            IOperation resultFromLeft = GetCaptureReference(leftId, left);
+            int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+            IOperation resultFromLeft = OperationCloner.CloneOperation(capturedLeft);
 
             if (!ITypeSymbolHelpers.IsDynamicType(left.Type))
             {
                 resultFromLeft = CreateConversion(resultFromLeft, binOp.Type);
             }
 
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, resultFromLeft));
-            LinkBlocks(CurrentBasicBlock, done);
-            _currentBasicBlock = null;
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax, resultFromLeft));
+            UnconditionalBranch(done);
 
             AppendNewBlock(doBitWise);
 
-            AddStatement(new FlowCapture(resultId, binOp.Syntax,
-                                         new BinaryOperatorExpression(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
-                                                                      GetCaptureReference(leftId, left),
-                                                                      Visit(right),
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(OperationCloner.CloneOperation(capturedLeft));
+            IOperation visitedRight = VisitRequired(right);
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax,
+                                         new BinaryOperation(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
+                                                                      PopOperand(),
+                                                                      visitedRight,
                                                                       isLifted: false,
                                                                       binOp.IsChecked,
                                                                       binOp.IsCompareText,
@@ -2008,7 +2493,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                                       semanticModel: null,
                                                                       binOp.Syntax,
                                                                       binOp.Type,
-                                                                      binOp.ConstantValue, IsImplicit(binOp))));
+                                                                      binOp.GetConstantValue(),
+                                                                      IsImplicit(binOp))));
+
+            PopStackFrameAndLeaveRegion(frame);
+            LeaveRegionsUpTo(resultCaptureRegion);
 
             AppendNewBlock(done);
 
@@ -2019,31 +2508,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             SpillEvalStack();
 
+            var resultCaptureRegion = CurrentRegionRequired;
+
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             bool isLifted = binOp.IsLifted;
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
-            IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
+            IMethodSymbol? unaryOperatorMethod = ((BinaryOperation)binOp).UnaryOperatorMethod;
             bool isAndAlso = CalculateAndOrSense(binOp, true);
             IOperation condition;
 
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var doBitWise = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            int leftId = VisitAndCapture(left);
+            IOperation capturedLeft = VisitAndCapture(left);
 
-            condition = GetCaptureReference(leftId, left);
+            condition = capturedLeft;
 
             if (ITypeSymbolHelpers.IsNullableType(left.Type))
             {
                 if (unaryOperatorMethod == null ? isLifted : !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
                 {
                     condition = MakeIsNullOperation(condition, booleanType);
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: true, RegularBranch(doBitWise));
+                    ConditionalBranch(condition, jumpIfTrue: true, doBitWise);
                     _currentBasicBlock = null;
 
                     Debug.Assert(unaryOperatorMethod == null || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type));
-                    condition = UnwrapNullableValue(GetCaptureReference(leftId, left));
+                    condition = CallNullableMember(OperationCloner.CloneOperation(capturedLeft), SpecialMember.System_Nullable_T_GetValueOrDefault);
                 }
             }
             else if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
@@ -2053,38 +2544,44 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType))
             {
-                condition = new UnaryOperatorExpression(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
+                condition = new UnaryOperation(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
                                                         condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
-                                                        semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: default, isImplicit: true);
+                                                        semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: null, isImplicit: true);
             }
             else
             {
                 condition = MakeInvalidOperation(booleanType, condition);
             }
 
-            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(doBitWise));
+            ConditionalBranch(condition, jumpIfTrue: false, doBitWise);
             _currentBasicBlock = null;
 
-            int resultId = captureIdForResult ?? _captureIdDispenser.GetNextId();
-            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(leftId, left)));
-            LinkBlocks(CurrentBasicBlock, done);
-            _currentBasicBlock = null;
+            int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax, OperationCloner.CloneOperation(capturedLeft)));
+            UnconditionalBranch(done);
 
             AppendNewBlock(doBitWise);
 
-            AddStatement(new FlowCapture(resultId, binOp.Syntax,
-                                         new BinaryOperatorExpression(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
-                                                                      GetCaptureReference(leftId, left), 
-                                                                      Visit(right), 
-                                                                      isLifted, 
-                                                                      binOp.IsChecked, 
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(OperationCloner.CloneOperation(capturedLeft));
+            IOperation visitedRight = VisitRequired(right);
+
+            AddStatement(new FlowCaptureOperation(resultId, binOp.Syntax,
+                                         new BinaryOperation(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
+                                                                      PopOperand(),
+                                                                      visitedRight,
+                                                                      isLifted,
+                                                                      binOp.IsChecked,
                                                                       binOp.IsCompareText,
-                                                                      binOp.OperatorMethod, 
-                                                                      unaryOperatorMethod: null, 
+                                                                      binOp.OperatorMethod,
+                                                                      unaryOperatorMethod: null,
                                                                       semanticModel: null,
-                                                                      binOp.Syntax, 
-                                                                      binOp.Type, 
-                                                                      binOp.ConstantValue, IsImplicit(binOp))));
+                                                                      binOp.Syntax,
+                                                                      binOp.Type,
+                                                                      binOp.GetConstantValue(), IsImplicit(binOp))));
+
+            PopStackFrameAndLeaveRegion(frame);
+            LeaveRegionsUpTo(resultCaptureRegion);
 
             AppendNewBlock(done);
 
@@ -2092,10 +2589,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue,
-                                                        int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
+                                                        int? captureIdForResult, BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             Debug.Assert(IsBooleanConditionalOperator(condition));
-                    
+
             // we generate:
             //
             // gotoif (a == stopSense) fallThrough
@@ -2110,28 +2607,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // stopValue  |     0         1
 
             SpillEvalStack();
-            int captureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
 
-            ref BasicBlockBuilder lazyFallThrough = ref stopValue ? ref fallToTrueOpt : ref fallToFalseOpt;
+            ref BasicBlockBuilder? lazyFallThrough = ref stopValue ? ref fallToTrueOpt : ref fallToFalseOpt;
             bool newFallThroughBlock = (lazyFallThrough == null);
 
             VisitConditionalBranch(condition.LeftOperand, ref lazyFallThrough, stopSense);
+
+            var resultCaptureRegion = CurrentRegionRequired;
+            int captureId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
             IOperation resultFromRight = VisitConditionalExpression(condition.RightOperand, sense, captureId, fallToTrueOpt, fallToFalseOpt);
 
             CaptureResultIfNotAlready(condition.RightOperand.Syntax, captureId, resultFromRight);
 
+            LeaveRegionsUpTo(resultCaptureRegion);
+
             if (newFallThroughBlock)
             {
                 var labEnd = new BasicBlockBuilder(BasicBlockKind.Block);
-                LinkBlocks(CurrentBasicBlock, labEnd);
-                _currentBasicBlock = null;
+                UnconditionalBranch(labEnd);
 
                 AppendNewBlock(lazyFallThrough);
 
-                var constantValue = new Optional<object>(stopValue);
-                SyntaxNode leftSyntax = (lazyFallThrough.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
-                AddStatement(new FlowCapture(captureId, leftSyntax, new LiteralExpression(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true)));
+                var constantValue = ConstantValue.Create(stopValue);
+                SyntaxNode leftSyntax = (lazyFallThrough!.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
+                AddStatement(new FlowCaptureOperation(captureId, leftSyntax, new LiteralOperation(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true)));
 
                 AppendNewBlock(labEnd);
             }
@@ -2139,11 +2639,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return GetCaptureReference(captureId, condition);
         }
 
-        private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
+        private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder? fallToTrueOpt, BasicBlockBuilder? fallToFalseOpt)
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
 
-            IUnaryOperation lastUnary = null;
+            IUnaryOperation? lastUnary = null;
 
             do
             {
@@ -2162,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 break;
             } while (true);
 
-            if (condition.Kind == OperationKind.BinaryOperator)
+            if (condition.Kind == OperationKind.Binary)
             {
                 var binOp = (IBinaryOperation)condition;
                 if (IsBooleanConditionalOperator(binOp))
@@ -2171,16 +2671,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            condition = Visit(condition);
+            condition = VisitRequired(condition);
             if (!sense)
             {
                 return lastUnary != null
-                    ? new UnaryOperatorExpression(lastUnary.OperatorKind, condition, lastUnary.IsLifted, lastUnary.IsChecked,
+                    ? new UnaryOperation(lastUnary.OperatorKind, condition, lastUnary.IsLifted, lastUnary.IsChecked,
                                                   lastUnary.OperatorMethod, semanticModel: null, lastUnary.Syntax,
-                                                  lastUnary.Type, lastUnary.ConstantValue, IsImplicit(lastUnary))
-                    : new UnaryOperatorExpression(UnaryOperatorKind.Not, condition, isLifted: false, isChecked: false,
+                                                  lastUnary.Type, lastUnary.GetConstantValue(), IsImplicit(lastUnary))
+                    : new UnaryOperation(UnaryOperatorKind.Not, condition, isLifted: false, isChecked: false,
                                                   operatorMethod: null, semanticModel: null, condition.Syntax,
-                                                  condition.Type, constantValue: default, isImplicit: true);
+                                                  condition.Type, constantValue: null, isImplicit: true);
             }
 
             return condition;
@@ -2195,9 +2695,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
         }
 
-        private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool sense)
+        private void VisitConditionalBranch(IOperation condition, [NotNull] ref BasicBlockBuilder? dest, bool jumpIfTrue)
+        {
+            SpillEvalStack();
+#if DEBUG
+            RegionBuilder? current = _currentRegion;
+#endif
+            VisitConditionalBranchCore(condition, ref dest, jumpIfTrue);
+#if DEBUG
+            Debug.Assert(current == _currentRegion);
+#endif
+        }
+
+        /// <summary>
+        /// This function does not change the current region. The stack should be spilled before calling it.
+        /// </summary>
+        private void VisitConditionalBranchCore(IOperation condition, [NotNull] ref BasicBlockBuilder? dest, bool jumpIfTrue)
         {
 oneMoreTime:
+            Debug.Assert(_startSpillingAt == _evalStack.Count);
 
             while (condition.Kind == OperationKind.Parenthesized)
             {
@@ -2206,21 +2722,21 @@ oneMoreTime:
 
             switch (condition.Kind)
             {
-                case OperationKind.BinaryOperator:
+                case OperationKind.Binary:
                     var binOp = (IBinaryOperation)condition;
 
                     if (IsBooleanConditionalOperator(binOp))
                     {
-                        if (CalculateAndOrSense(binOp, sense))
+                        if (CalculateAndOrSense(binOp, jumpIfTrue))
                         {
                             // gotoif(LeftOperand != sense) fallThrough
                             // gotoif(RightOperand == sense) dest
                             // fallThrough:
 
-                            BasicBlockBuilder fallThrough = null;
+                            BasicBlockBuilder? fallThrough = null;
 
-                            VisitConditionalBranch(binOp.LeftOperand, ref fallThrough, !sense);
-                            VisitConditionalBranch(binOp.RightOperand, ref dest, sense);
+                            VisitConditionalBranchCore(binOp.LeftOperand, ref fallThrough, !jumpIfTrue);
+                            VisitConditionalBranchCore(binOp.RightOperand, ref dest, jumpIfTrue);
                             AppendNewBlock(fallThrough);
                             return;
                         }
@@ -2229,22 +2745,22 @@ oneMoreTime:
                             // gotoif(LeftOperand == sense) dest
                             // gotoif(RightOperand == sense) dest
 
-                            VisitConditionalBranch(binOp.LeftOperand, ref dest, sense);
+                            VisitConditionalBranchCore(binOp.LeftOperand, ref dest, jumpIfTrue);
                             condition = binOp.RightOperand;
                             goto oneMoreTime;
                         }
                     }
 
-                    // none of above. 
+                    // none of above.
                     // then it is regular binary expression - Or, And, Xor ...
                     goto default;
 
-                case OperationKind.UnaryOperator:
+                case OperationKind.Unary:
                     var unOp = (IUnaryOperation)condition;
 
                     if (IsBooleanLogicalNot(unOp))
                     {
-                        sense = !sense;
+                        jumpIfTrue = !jumpIfTrue;
                         condition = unOp.Operand;
                         goto oneMoreTime;
                     }
@@ -2255,19 +2771,19 @@ oneMoreTime:
                     {
                         var conditional = (IConditionalOperation)condition;
 
+                        Debug.Assert(conditional.WhenFalse is not null);
                         if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
                             ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
                         {
-                            BasicBlockBuilder whenFalse = null;
-                            VisitConditionalBranch(conditional.Condition, ref whenFalse, sense: false);
-                            VisitConditionalBranch(conditional.WhenTrue, ref dest, sense);
+                            BasicBlockBuilder? whenFalse = null;
+                            VisitConditionalBranchCore(conditional.Condition, ref whenFalse, jumpIfTrue: false);
+                            VisitConditionalBranchCore(conditional.WhenTrue, ref dest, jumpIfTrue);
 
                             var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
-                            LinkBlocks(CurrentBasicBlock, afterIf);
-                            _currentBasicBlock = null;
+                            UnconditionalBranch(afterIf);
 
                             AppendNewBlock(whenFalse);
-                            VisitConditionalBranch(conditional.WhenFalse, ref dest, sense);
+                            VisitConditionalBranchCore(conditional.WhenFalse, ref dest, jumpIfTrue);
                             AppendNewBlock(afterIf);
 
                             return;
@@ -2283,19 +2799,22 @@ oneMoreTime:
                         if (ITypeSymbolHelpers.IsBooleanType(coalesce.WhenNull.Type))
                         {
                             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                            EvalStackFrame frame = PushStackFrame();
+
                             IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
 
-                            convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
                             dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                            LinkBlocks(CurrentBasicBlock, convertedTestExpression, sense, RegularBranch(dest));
+                            ConditionalBranch(convertedTestExpression, jumpIfTrue, dest);
                             _currentBasicBlock = null;
 
                             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
-                            LinkBlocks(CurrentBasicBlock, afterCoalesce);
-                            _currentBasicBlock = null;
+                            UnconditionalBranch(afterCoalesce);
+
+                            PopStackFrameAndLeaveRegion(frame);
 
                             AppendNewBlock(whenNull);
-                            VisitConditionalBranch(coalesce.WhenNull, ref dest, sense);
+                            VisitConditionalBranchCore(coalesce.WhenNull, ref dest, jumpIfTrue);
 
                             AppendNewBlock(afterCoalesce);
 
@@ -2309,27 +2828,39 @@ oneMoreTime:
 
                     if (conversion.Operand.Kind == OperationKind.Throw)
                     {
-                        Visit(conversion.Operand);
+                        IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
+                        Debug.Assert(rewrittenThrow != null);
+                        Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
+                        Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
                         dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
                         return;
                     }
                     goto default;
 
                 default:
-                    condition = Operation.SetParentOperation(Visit(condition), null);
-                    dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, condition, sense, RegularBranch(dest));
-                    _currentBasicBlock = null;
-                    return;
+                    {
+                        EvalStackFrame frame = PushStackFrame();
+
+                        condition = VisitRequired(condition);
+                        dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
+                        ConditionalBranch(condition, jumpIfTrue, dest);
+                        _currentBasicBlock = null;
+
+                        PopStackFrameAndLeaveRegion(frame);
+                        return;
+                    }
             }
         }
 
-        private static void LinkBlocks(BasicBlockBuilder previous, IOperation condition, bool jumpIfTrue, BasicBlockBuilder.Branch branch)
+        private void ConditionalBranch(IOperation condition, bool jumpIfTrue, BasicBlockBuilder destination)
         {
+            BasicBlockBuilder previous = CurrentBasicBlock;
+            BasicBlockBuilder.Branch branch = RegularBranch(destination);
             Debug.Assert(previous.BranchValue == null);
             Debug.Assert(!previous.HasCondition);
             Debug.Assert(condition != null);
-            Debug.Assert(condition.Parent == null);
+            Debug.Assert(branch.Destination != null);
+            Operation.SetParentOperation(condition, null);
             branch.Destination.AddPredecessor(previous);
             previous.BranchValue = condition;
             previous.ConditionKind = jumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
@@ -2337,38 +2868,39 @@ oneMoreTime:
         }
 
         /// <summary>
-        /// Returns converted test expression
+        /// Returns converted test expression.
+        /// Caller is responsible for spilling the stack and pushing a stack frame before calling this helper.
         /// </summary>
         private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlockBuilder whenNull)
         {
+            Debug.Assert(_evalStack.Last().frameOpt != null);
+            Debug.Assert(_startSpillingAt >= _evalStack.Count - 1);
+
             IOperation operationValue = operation.Value;
             SyntaxNode valueSyntax = operationValue.Syntax;
-            ITypeSymbol valueTypeOpt = operationValue.Type;
+            ITypeSymbol? valueTypeOpt = operationValue.Type;
 
+            PushOperand(VisitRequired(operationValue));
             SpillEvalStack();
-            int testExpressionCaptureId = VisitAndCapture(operationValue);
+            IOperation testExpression = PopOperand();
 
-            Optional<object> constantValue = operationValue.ConstantValue;
-
-            LinkBlocks(CurrentBasicBlock,
-                       Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, operationValue)),
-                                                    null),
-                       jumpIfTrue: true,
-                       RegularBranch(whenNull));
+            ConditionalBranch(MakeIsNullOperation(testExpression),
+                jumpIfTrue: true,
+                whenNull);
             _currentBasicBlock = null;
 
             CommonConversion testConversion = operation.ValueConversion;
-            FlowCaptureReference capturedValue = GetCaptureReference(testExpressionCaptureId, operationValue);
-            IOperation convertedTestExpression = null;
+            IOperation capturedValue = OperationCloner.CloneOperation(testExpression);
+            IOperation? convertedTestExpression = null;
 
             if (testConversion.Exists)
             {
-                IOperation possiblyUnwrappedValue;
+                IOperation? possiblyUnwrappedValue;
 
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
-                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue);
+                    possiblyUnwrappedValue = TryCallNullableMember(capturedValue, SpecialMember.System_Nullable_T_GetValueOrDefault);
                 }
                 else
                 {
@@ -2383,9 +2915,9 @@ oneMoreTime:
                     }
                     else
                     {
-                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((BaseCoalesceExpression)operation).ConvertibleValueConversion,
+                        convertedTestExpression = new ConversionOperation(possiblyUnwrappedValue, ((CoalesceOperation)operation).ValueConversionConvertible,
                                                                           isTryCast: false, isChecked: false, semanticModel: null, valueSyntax, operation.Type,
-                                                                          constantValue: default, isImplicit: true);
+                                                                          constantValue: null, isImplicit: true);
                     }
                 }
             }
@@ -2400,40 +2932,54 @@ oneMoreTime:
 
         public override IOperation VisitCoalesce(ICoalesceOperation operation, int? captureIdForResult)
         {
+            SpillEvalStack();
+
+            var conversion = operation.WhenNull as IConversionOperation;
+            bool alternativeThrows = conversion?.Operand.Kind == OperationKind.Throw;
+
+            RegionBuilder resultCaptureRegion = CurrentRegionRequired;
+
+            EvalStackFrame frame = PushStackFrame();
+
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
             IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(operation, whenNull);
 
             IOperation result;
             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            if (operation.WhenNull is IConversionOperation conversion && conversion.Operand.Kind == OperationKind.Throw)
+            if (alternativeThrows)
             {
                 // This is a special case with "throw" as an alternative. We don't need to create an additional
                 // capture for the result because there won't be any result from the alternative branch.
                 result = convertedTestExpression;
 
-                LinkBlocks(CurrentBasicBlock, afterCoalesce);
-                _currentBasicBlock = null;
+                UnconditionalBranch(afterCoalesce);
+                PopStackFrame(frame);
 
                 AppendNewBlock(whenNull);
 
-                IOperation rewrittenThrow = Visit(conversion.Operand);
+                Debug.Assert(conversion is not null);
+                IOperation? rewrittenThrow = base.Visit(conversion.Operand, null);
+                Debug.Assert(rewrittenThrow != null);
                 Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
-                Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
             }
             else
             {
-                int resultCaptureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
+                int resultCaptureId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
-                AddStatement(new FlowCapture(resultCaptureId, operation.Value.Syntax, convertedTestExpression));
+                AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Value.Syntax, convertedTestExpression));
                 result = GetCaptureReference(resultCaptureId, operation);
 
-                LinkBlocks(CurrentBasicBlock, afterCoalesce);
-                _currentBasicBlock = null;
+                UnconditionalBranch(afterCoalesce);
+
+                PopStackFrameAndLeaveRegion(frame);
 
                 AppendNewBlock(whenNull);
 
                 VisitAndCapture(operation.WhenNull, resultCaptureId);
+
+                LeaveRegionsUpTo(resultCaptureRegion);
             }
 
             AppendNewBlock(afterCoalesce);
@@ -2441,28 +2987,214 @@ oneMoreTime:
             return result;
         }
 
+        public override IOperation? VisitCoalesceAssignment(ICoalesceAssignmentOperation operation, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            // If we're in a statement context, we elide the capture of the result of the assignment, as it will
+            // just be wrapped in an expression statement that isn't used anywhere and isn't observed by anything.
+            Debug.Assert(operation.Parent != null);
+            bool isStatement = _currentStatement == operation || operation.Parent.Kind == OperationKind.ExpressionStatement;
+            Debug.Assert(captureIdForResult == null || !isStatement);
+
+            RegionBuilder resultCaptureRegion = CurrentRegionRequired;
+
+            EvalStackFrame frame = PushStackFrame();
+
+            PushOperand(VisitRequired(operation.Target));
+            SpillEvalStack();
+            IOperation locationCapture = PopOperand();
+
+            // Capture the value, as it will only be evaluated once. The location will be used separately later for
+            // the null case
+            EvalStackFrame valueFrame = PushStackFrame();
+            SpillEvalStack();
+            Debug.Assert(valueFrame.RegionBuilderOpt != null);
+            int valueCaptureId = GetNextCaptureId(valueFrame.RegionBuilderOpt);
+            AddStatement(new FlowCaptureOperation(valueCaptureId, locationCapture.Syntax, locationCapture));
+            IOperation valueCapture = GetCaptureReference(valueCaptureId, locationCapture);
+
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+            var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
+
+            int resultCaptureId = isStatement ? -1 : captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+
+            if (operation.Target?.Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
+                ((INamedTypeSymbol)operation.Target.Type!).TypeArguments[0].Equals(operation.Type))
+            {
+                nullableValueTypeReturn();
+            }
+            else
+            {
+                standardReturn();
+            }
+
+            PopStackFrame(frame);
+
+            LeaveRegionsUpTo(resultCaptureRegion);
+            AppendNewBlock(afterCoalesce);
+
+            return isStatement ? null : GetCaptureReference(resultCaptureId, operation);
+
+            void nullableValueTypeReturn()
+            {
+                // We'll transform this into one of two possibilities, depending on whether we're using
+                // this as an expression or a statement.
+                //
+                // Expression Form:
+                // intermediate1 = valueCapture.GetValueOrDefault();
+                // branch if false to whenNull: valueCapture.HasValue()
+                // result = intermediate
+                // branch to after
+                //
+                // whenNull:
+                // intermediate2 = rightValue
+                // result = intermediate2
+                // locationCapture = Convert(intermediate2)
+                //
+                // after:
+                // result
+                //
+                // Statement Form
+                // branch if false to whenNull: valueCapture.HasValue()
+                // branch to after
+                //
+                // whenNull:
+                // locationCapture = Convert(rightValue)
+                //
+                // after:
+
+                int intermediateResult = -1;
+                EvalStackFrame? intermediateFrame = null;
+
+                if (!isStatement)
+                {
+                    intermediateFrame = PushStackFrame();
+                    SpillEvalStack();
+                    Debug.Assert(intermediateFrame.RegionBuilderOpt != null);
+                    intermediateResult = GetNextCaptureId(intermediateFrame.RegionBuilderOpt);
+                    AddStatement(
+                        new FlowCaptureOperation(intermediateResult,
+                                                 operation.Target.Syntax,
+                                                 CallNullableMember(valueCapture, SpecialMember.System_Nullable_T_GetValueOrDefault)));
+                }
+
+                ConditionalBranch(
+                    CallNullableMember(OperationCloner.CloneOperation(valueCapture), SpecialMember.System_Nullable_T_get_HasValue),
+                    jumpIfTrue: false,
+                    whenNull);
+
+                if (!isStatement)
+                {
+                    Debug.Assert(intermediateFrame != null);
+                    _currentBasicBlock = null;
+                    AddStatement(
+                        new FlowCaptureOperation(resultCaptureId,
+                                                 operation.Syntax,
+                                                 GetCaptureReference(intermediateResult, operation.Target)));
+                    PopStackFrame(intermediateFrame);
+                }
+
+                PopStackFrame(valueFrame);
+
+                UnconditionalBranch(afterCoalesce);
+
+                AppendNewBlock(whenNull);
+
+                EvalStackFrame whenNullFrame = PushStackFrame();
+                SpillEvalStack();
+
+                IOperation whenNullValue = VisitRequired(operation.Value);
+                if (!isStatement)
+                {
+                    Debug.Assert(whenNullFrame.RegionBuilderOpt != null);
+                    int intermediateValueCaptureId = GetNextCaptureId(whenNullFrame.RegionBuilderOpt);
+                    AddStatement(new FlowCaptureOperation(intermediateValueCaptureId, whenNullValue.Syntax, whenNullValue));
+                    whenNullValue = GetCaptureReference(intermediateValueCaptureId, whenNullValue);
+                    AddStatement(
+                        new FlowCaptureOperation(
+                            resultCaptureId,
+                            operation.Syntax,
+                            GetCaptureReference(intermediateValueCaptureId, whenNullValue)));
+                }
+
+                AddStatement(
+                    new SimpleAssignmentOperation(
+                        isRef: false,
+                        target: OperationCloner.CloneOperation(locationCapture),
+                        value: CreateConversion(whenNullValue, operation.Target.Type),
+                        semanticModel: null,
+                        syntax: operation.Syntax,
+                        type: operation.Target.Type,
+                        constantValue: operation.GetConstantValue(),
+                        isImplicit: true));
+
+                PopStackFrameAndLeaveRegion(whenNullFrame);
+            }
+
+            void standardReturn()
+            {
+                ConditionalBranch(MakeIsNullOperation(valueCapture),
+                    jumpIfTrue: true,
+                    whenNull);
+
+                if (!isStatement)
+                {
+                    _currentBasicBlock = null;
+
+                    AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Syntax, OperationCloner.CloneOperation(valueCapture)));
+                }
+
+                PopStackFrameAndLeaveRegion(valueFrame);
+
+                UnconditionalBranch(afterCoalesce);
+
+                AppendNewBlock(whenNull);
+
+                // The return of Visit(operation.WhenNull) can be a flow capture that wasn't used in the non-null branch. We want to create a
+                // region around it to ensure that the scope of the flow capture is as narrow as possible. If there was no flow capture, region
+                // packing will take care of removing the empty region.
+                EvalStackFrame whenNullFrame = PushStackFrame();
+
+                IOperation whenNullValue = VisitRequired(operation.Value);
+                IOperation whenNullAssignment = new SimpleAssignmentOperation(isRef: false, OperationCloner.CloneOperation(locationCapture), whenNullValue, semanticModel: null,
+                    operation.Syntax, operation.Type, constantValue: operation.GetConstantValue(), isImplicit: true);
+
+                if (isStatement)
+                {
+                    AddStatement(whenNullAssignment);
+                }
+                else
+                {
+                    AddStatement(new FlowCaptureOperation(resultCaptureId, operation.Syntax, whenNullAssignment));
+                }
+
+                PopStackFrameAndLeaveRegion(whenNullFrame);
+            }
+        }
+
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
         {
             return new BasicBlockBuilder.Branch() { Destination = destination, Kind = ControlFlowBranchSemantics.Regular };
         }
 
-        private static IOperation MakeInvalidOperation(ITypeSymbol type, IOperation child)
+        private static IOperation MakeInvalidOperation(ITypeSymbol? type, IOperation child)
         {
             return new InvalidOperation(ImmutableArray.Create<IOperation>(child),
                                         semanticModel: null, child.Syntax, type,
-                                        constantValue: default, isImplicit: true);
+                                        constantValue: null, isImplicit: true);
         }
 
-        private static IOperation MakeInvalidOperation(SyntaxNode syntax, ITypeSymbol type, IOperation child1, IOperation child2)
+        private static IOperation MakeInvalidOperation(SyntaxNode syntax, ITypeSymbol? type, IOperation child1, IOperation child2)
         {
             return MakeInvalidOperation(syntax, type, ImmutableArray.Create<IOperation>(child1, child2));
         }
 
-        private static IOperation MakeInvalidOperation(SyntaxNode syntax, ITypeSymbol type, ImmutableArray<IOperation> children)
+        private static IOperation MakeInvalidOperation(SyntaxNode syntax, ITypeSymbol? type, ImmutableArray<IOperation> children)
         {
             return new InvalidOperation(children,
                                         semanticModel: null, syntax, type,
-                                        constantValue: default, isImplicit: true);
+                                        constantValue: null, isImplicit: true);
         }
 
         private IsNullOperation MakeIsNullOperation(IOperation operand)
@@ -2473,19 +3205,26 @@ oneMoreTime:
         private static IsNullOperation MakeIsNullOperation(IOperation operand, ITypeSymbol booleanType)
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(booleanType));
-            Optional<object> constantValue = operand.ConstantValue;
+            ConstantValue? constantValue = operand.GetConstantValue() is { IsNull: var isNull }
+                ? ConstantValue.Create(isNull)
+                : null;
             return new IsNullOperation(operand.Syntax, operand,
                                        booleanType,
-                                       constantValue.HasValue ? new Optional<object>(constantValue.Value == null) : default);
+                                       constantValue);
         }
 
-        private IOperation TryUnwrapNullableValue(IOperation value)
+        private IOperation? TryCallNullableMember(IOperation value, SpecialMember nullableMember)
         {
-            ITypeSymbol valueType = value.Type;
+            Debug.Assert(nullableMember == SpecialMember.System_Nullable_T_GetValueOrDefault ||
+                         nullableMember == SpecialMember.System_Nullable_T_get_HasValue ||
+                         nullableMember == SpecialMember.System_Nullable_T_get_Value ||
+                         nullableMember == SpecialMember.System_Nullable_T__op_Explicit_ToT ||
+                         nullableMember == SpecialMember.System_Nullable_T__op_Implicit_FromT);
+            ITypeSymbol? valueType = value.Type;
 
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(valueType));
 
-            var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            var method = (IMethodSymbol?)_compilation.CommonGetSpecialTypeMember(nullableMember)?.GetISymbol();
 
             if (method != null)
             {
@@ -2494,9 +3233,9 @@ oneMoreTime:
                     if (candidate.OriginalDefinition.Equals(method))
                     {
                         method = (IMethodSymbol)candidate;
-                        return new InvocationExpression(method, value, isVirtual: false,
-                                                        ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
-                                                        method.ReturnType, constantValue: default, isImplicit: true);
+                        return new InvocationOperation(method, value, isVirtual: false,
+                                                       ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
+                                                       method.ReturnType, isImplicit: true);
                     }
                 }
             }
@@ -2504,76 +3243,72 @@ oneMoreTime:
             return null;
         }
 
-        private IOperation UnwrapNullableValue(IOperation value)
+        private IOperation CallNullableMember(IOperation value, SpecialMember nullableMember)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(value.Type));
-            return TryUnwrapNullableValue(value) ??
+            return TryCallNullableMember(value, nullableMember) ??
                    MakeInvalidOperation(ITypeSymbolHelpers.GetNullableUnderlyingType(value.Type), value);
         }
 
-        public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
+        public override IOperation? VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
         {
             SpillEvalStack();
 
-            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+            RegionBuilder resultCaptureRegion = CurrentRegionRequired;
+
+            // Avoid creation of default values and FlowCapture for conditional access on a statement level.
+            bool isOnStatementLevel = _currentStatement == operation || (_currentStatement == operation.Parent && _currentStatement?.Kind == OperationKind.ExpressionStatement);
+            EvalStackFrame? expressionFrame = null;
+            var operations = ArrayBuilder<IOperation>.GetInstance();
+
+            if (!isOnStatementLevel)
+            {
+                expressionFrame = PushStackFrame();
+            }
 
             IConditionalAccessOperation currentConditionalAccess = operation;
             IOperation testExpression;
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
+            var previousTracker = _currentConditionalAccessTracker;
+            _currentConditionalAccessTracker = new ConditionalAccessOperationTracker(operations, whenNull);
 
             while (true)
             {
                 testExpression = currentConditionalAccess.Operation;
-                SyntaxNode testExpressionSyntax = testExpression.Syntax;
-                ITypeSymbol testExpressionType = testExpression.Type;
-
-                int testExpressionCaptureId = VisitAndCapture(testExpression);
-                Optional<object> constantValue = testExpression.ConstantValue;
-
-                LinkBlocks(CurrentBasicBlock,
-                           Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, testExpression)),
-                                                        null),
-                           jumpIfTrue: true,
-                           RegularBranch(whenNull));
-                _currentBasicBlock = null;
-
-                IOperation receiver = GetCaptureReference(testExpressionCaptureId, testExpression);
-
-                if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
+                if (!isConditionalAccessInstancePresentInChildren(currentConditionalAccess.WhenNotNull))
                 {
-                    receiver = UnwrapNullableValue(receiver);
+                    // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                    //                      a None operation is created and all children are dropped.
+                    //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
+                    //                      Because of this, the recursion to visit the child operations will never occur if we visit the WhenNull of the current
+                    //                      conditional access, so we need to manually visit the Operation of the conditional access now.
+                    _ = VisitConditionalAccessTestExpression(testExpression);
+                    break;
                 }
 
-                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
-                //                      a None operation is created and all children are dropped.
-                //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.AnonymousTypeMemberName_01
-                //                      The following assert is triggered because of that. Disabling it for now.
-                //Debug.Assert(_currentConditionalAccessInstance == null);
-                _currentConditionalAccessInstance = receiver;
+                operations.Push(testExpression);
 
-                if (currentConditionalAccess.WhenNotNull.Kind != OperationKind.ConditionalAccess)
+                if (currentConditionalAccess.WhenNotNull is not IConditionalAccessOperation nested)
                 {
                     break;
                 }
 
-                currentConditionalAccess = (IConditionalAccessOperation)currentConditionalAccess.WhenNotNull;
+                currentConditionalAccess = nested;
             }
 
-            // Avoid creation of default values and FlowCapture for conditional access on a statement level.
-            if (_currentStatement == operation ||
-                (_currentStatement == operation.Parent && _currentStatement?.Kind == OperationKind.ExpressionStatement))
+            if (isOnStatementLevel)
             {
                 Debug.Assert(captureIdForResult == null);
 
-                IOperation result = Visit(currentConditionalAccess.WhenNotNull);
-                Debug.Assert(_currentConditionalAccessInstance == null);
-                _currentConditionalAccessInstance = null;
+                IOperation result = VisitRequired(currentConditionalAccess.WhenNotNull);
+                resetConditionalAccessTracker();
 
                 if (_currentStatement != operation)
                 {
+                    Debug.Assert(_currentStatement is not null);
                     var expressionStatement = (IExpressionStatementOperation)_currentStatement;
-                    result = new ExpressionStatement(result, semanticModel: null, expressionStatement.Syntax,
-                                                     expressionStatement.Type, expressionStatement.ConstantValue,
-                                                     IsImplicit(expressionStatement));
+                    result = new ExpressionStatementOperation(result, semanticModel: null, expressionStatement.Syntax,
+                                                              IsImplicit(expressionStatement));
                 }
 
                 AddStatement(result);
@@ -2582,64 +3317,142 @@ oneMoreTime:
             }
             else
             {
-                int resultCaptureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
+                Debug.Assert(expressionFrame != null);
+                int resultCaptureId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
                 if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
                 {
-                    IOperation access = Visit(currentConditionalAccess.WhenNotNull);
-                    AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
+                    IOperation access = VisitRequired(currentConditionalAccess.WhenNotNull);
+                    AddStatement(new FlowCaptureOperation(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
                         MakeNullable(access, operation.Type)));
                 }
                 else
                 {
-                    VisitAndCapture(currentConditionalAccess.WhenNotNull, resultCaptureId);
+                    CaptureResultIfNotAlready(currentConditionalAccess.WhenNotNull.Syntax, resultCaptureId,
+                                              VisitRequired(currentConditionalAccess.WhenNotNull, resultCaptureId));
                 }
 
-                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
-                //                      a None operation is created and all children are dropped.
-                //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
-                //                      The following assert is triggered because of that. Disabling it for now.
-                //Debug.Assert(_currentConditionalAccessInstance == null);
-                _currentConditionalAccessInstance = null;
+                PopStackFrame(expressionFrame);
+                LeaveRegionsUpTo(resultCaptureRegion);
+
+                resetConditionalAccessTracker();
 
                 var afterAccess = new BasicBlockBuilder(BasicBlockKind.Block);
-                LinkBlocks(CurrentBasicBlock, afterAccess);
-                _currentBasicBlock = null;
+                UnconditionalBranch(afterAccess);
 
                 AppendNewBlock(whenNull);
 
                 SyntaxNode defaultValueSyntax = (operation.Operation == testExpression ? testExpression : operation).Syntax;
 
-                AddStatement(new FlowCapture(resultCaptureId,
+                Debug.Assert(operation.Type is not null);
+                AddStatement(new FlowCaptureOperation(resultCaptureId,
                                              defaultValueSyntax,
-                                             new DefaultValueExpression(semanticModel: null, defaultValueSyntax, operation.Type,
-                                                                        (operation.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(operation.Type)) ?
-                                                                            new Optional<object>(null) : default,
+                                             new DefaultValueOperation(semanticModel: null, defaultValueSyntax, operation.Type,
+                                                                        (operation.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(operation.Type))
+                                                                            ? ConstantValue.Null
+                                                                            : null,
                                                                         isImplicit: true)));
 
                 AppendNewBlock(afterAccess);
 
                 return GetCaptureReference(resultCaptureId, operation);
             }
+
+            void resetConditionalAccessTracker()
+            {
+                Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
+                Debug.Assert(_currentConditionalAccessTracker.Operations.Count == 0);
+                _currentConditionalAccessTracker.Free();
+                _currentConditionalAccessTracker = previousTracker;
+            }
+
+            static bool isConditionalAccessInstancePresentInChildren(IOperation operation)
+            {
+                if (operation is InvalidOperation invalidOperation)
+                {
+                    return checkInvalidChildren(invalidOperation);
+                }
+
+                // The conditional access should always be first leaf node in the subtree when performing a depth-first search. Visit the first child recursively
+                // until we either reach the bottom, or find the conditional access.
+                Operation currentOperation = (Operation)operation;
+                while (currentOperation.ChildOperations.GetEnumerator() is var enumerator && enumerator.MoveNext())
+                {
+                    if (enumerator.Current is IConditionalAccessInstanceOperation)
+                    {
+                        return true;
+                    }
+                    else if (enumerator.Current is InvalidOperation invalidChild)
+                    {
+                        return checkInvalidChildren(invalidChild);
+                    }
+
+                    currentOperation = (Operation)enumerator.Current;
+                }
+
+                return false;
+            }
+
+            static bool checkInvalidChildren(InvalidOperation operation)
+            {
+                // Invalid operations can have children ordering that doesn't put the conditional access instance first. For these cases,
+                // use a recursive check
+                foreach (var child in operation.ChildOperations)
+                {
+                    if (child is IConditionalAccessInstanceOperation || isConditionalAccessInstancePresentInChildren(child))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentConditionalAccessInstance != null);
-            IOperation result = _currentConditionalAccessInstance;
-            _currentConditionalAccessInstance = null;
-            return result;
+            Debug.Assert(!_currentConditionalAccessTracker.IsDefault && _currentConditionalAccessTracker.Operations.Count > 0);
+
+            IOperation testExpression = _currentConditionalAccessTracker.Operations.Pop();
+            return VisitConditionalAccessTestExpression(testExpression);
         }
 
-        public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
+        private IOperation VisitConditionalAccessTestExpression(IOperation testExpression)
+        {
+            Debug.Assert(!_currentConditionalAccessTracker.IsDefault);
+            SyntaxNode testExpressionSyntax = testExpression.Syntax;
+            ITypeSymbol? testExpressionType = testExpression.Type;
+
+            var frame = PushStackFrame();
+            PushOperand(VisitRequired(testExpression));
+            SpillEvalStack();
+            IOperation spilledTestExpression = PopOperand();
+            PopStackFrame(frame);
+
+            ConditionalBranch(MakeIsNullOperation(spilledTestExpression),
+                jumpIfTrue: true,
+                _currentConditionalAccessTracker.WhenNull);
+            _currentBasicBlock = null;
+
+            IOperation receiver = OperationCloner.CloneOperation(spilledTestExpression);
+
+            if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
+            {
+                receiver = CallNullableMember(receiver, SpecialMember.System_Nullable_T_GetValueOrDefault);
+            }
+
+            return receiver;
+        }
+
+        public override IOperation? VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
-            IOperation underlying = Visit(operation.Operation);
+            IOperation? underlying = Visit(operation.Operation);
 
             if (underlying == null)
             {
-                Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
+                Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess || operation.Operation.Kind == OperationKind.CoalesceAssignment);
                 return FinishVisitingStatement(operation);
             }
             else if (operation.Operation.Kind == OperationKind.Throw)
@@ -2647,10 +3460,10 @@ oneMoreTime:
                 return FinishVisitingStatement(operation);
             }
 
-            return FinishVisitingStatement(operation, new ExpressionStatement(underlying, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
+            return FinishVisitingStatement(operation, new ExpressionStatementOperation(underlying, semanticModel: null, operation.Syntax, IsImplicit(operation)));
         }
 
-        public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             var locals = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
@@ -2660,7 +3473,7 @@ oneMoreTime:
 
             if (operation.ConditionIsTop)
             {
-                // while (condition) 
+                // while (condition)
                 //   body;
                 //
                 // becomes
@@ -2676,10 +3489,11 @@ oneMoreTime:
                 AppendNewBlock(@continue);
                 EnterRegion(locals);
 
-                VisitConditionalBranch(operation.Condition, ref @break, sense: operation.ConditionIsUntil);
+                Debug.Assert(operation.Condition is not null);
+                VisitConditionalBranch(operation.Condition, ref @break, jumpIfTrue: operation.ConditionIsUntil);
 
                 VisitStatement(operation.Body);
-                LinkBlocks(CurrentBasicBlock, @continue);
+                UnconditionalBranch(@continue);
             }
             else
             {
@@ -2689,7 +3503,7 @@ oneMoreTime:
                 //
                 // becomes
                 //
-                // start: 
+                // start:
                 // {
                 //   body
                 //   continue:
@@ -2707,12 +3521,11 @@ oneMoreTime:
 
                 if (operation.Condition != null)
                 {
-                    VisitConditionalBranch(operation.Condition, ref start, sense: !operation.ConditionIsUntil);
+                    VisitConditionalBranch(operation.Condition, ref start, jumpIfTrue: !operation.ConditionIsUntil);
                 }
                 else
                 {
-                    LinkBlocks(CurrentBasicBlock, start);
-                    _currentBasicBlock = null;
+                    UnconditionalBranch(start);
                 }
             }
 
@@ -2723,7 +3536,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitTry(ITryOperation operation, int? captureIdForResult)
+        public override IOperation? VisitTry(ITryOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -2739,7 +3552,7 @@ oneMoreTime:
                 return FinishVisitingStatement(operation);
             }
 
-            RegionBuilder tryAndFinallyRegion = null;
+            RegionBuilder? tryAndFinallyRegion = null;
             bool haveFinally = operation.Finally != null;
             if (haveFinally)
             {
@@ -2755,20 +3568,20 @@ oneMoreTime:
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
             }
 
+            Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.Try);
             VisitStatement(operation.Body);
-            LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
+            UnconditionalBranch(afterTryCatchFinally);
 
             if (haveCatches)
             {
-                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
                 foreach (ICatchClauseOperation catchClause in operation.Catches)
                 {
-                    RegionBuilder filterAndHandlerRegion = null;
+                    RegionBuilder? filterAndHandlerRegion = null;
 
-                    IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
-                    IOperation filter = catchClause.Filter;
+                    IOperation? exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
+                    IOperation? filter = catchClause.Filter;
                     bool haveFilter = filter != null;
                     var catchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
@@ -2782,12 +3595,13 @@ oneMoreTime:
 
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
 
-                        VisitConditionalBranch(filter, ref catchBlock, sense: true);
+                        VisitConditionalBranch(filter!, ref catchBlock, jumpIfTrue: true);
                         var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
                         continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                         LeaveRegion();
 
+                        Debug.Assert(!filterRegion.IsEmpty);
                         Debug.Assert(filterRegion.LastBlock.FallThrough.Destination == null);
                         Debug.Assert(!filterRegion.FirstBlock.HasPredecessors);
                     }
@@ -2804,25 +3618,26 @@ oneMoreTime:
                     }
 
                     VisitStatement(catchClause.Handler);
-                    LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
+                    UnconditionalBranch(afterTryCatchFinally);
 
                     LeaveRegion();
 
+                    Debug.Assert(!handlerRegion.IsEmpty);
                     if (haveFilter)
                     {
-                        Debug.Assert(_currentRegion == filterAndHandlerRegion);
+                        Debug.Assert(CurrentRegionRequired == filterAndHandlerRegion);
                         LeaveRegion();
 #if DEBUG
-                        Debug.Assert(filterAndHandlerRegion.Regions[0].LastBlock.FallThrough.Destination == null);
+                        Debug.Assert(filterAndHandlerRegion.Regions![0].LastBlock!.FallThrough.Destination == null);
                         if (handlerRegion.FirstBlock.HasPredecessors)
                         {
                             var predecessors = ArrayBuilder<BasicBlockBuilder>.GetInstance();
                             handlerRegion.FirstBlock.GetPredecessors(predecessors);
-                            Debug.Assert(predecessors.All(p => filterAndHandlerRegion.Regions[0].FirstBlock.Ordinal <= p.Ordinal &&
-                                                          filterAndHandlerRegion.Regions[0].LastBlock.Ordinal >= p.Ordinal));
+                            Debug.Assert(predecessors.All(p => filterAndHandlerRegion.Regions[0].FirstBlock!.Ordinal <= p.Ordinal &&
+                                                          filterAndHandlerRegion.Regions[0].LastBlock!.Ordinal >= p.Ordinal));
                             predecessors.Free();
                         }
-#endif 
+#endif
                     }
                     else
                     {
@@ -2830,13 +3645,13 @@ oneMoreTime:
                     }
                 }
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndCatch);
+                Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndCatch);
                 LeaveRegion();
             }
 
             if (haveFinally)
             {
-                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
+                Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
                 var finallyRegion = new RegionBuilder(ControlFlowRegionKind.Finally);
@@ -2849,17 +3664,18 @@ oneMoreTime:
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
+                Debug.Assert(!finallyRegion.IsEmpty);
                 Debug.Assert(finallyRegion.LastBlock.FallThrough.Destination == null);
                 Debug.Assert(!finallyRegion.FirstBlock.HasPredecessors);
             }
 
             AppendNewBlock(afterTryCatchFinally, linkToPrevious: false);
-            Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.FallThrough.Destination == null);
+            Debug.Assert(tryAndFinallyRegion?.Regions![1].LastBlock!.FallThrough.Destination == null);
 
             return FinishVisitingStatement(operation);
         }
 
-        private void AddExceptionStore(ITypeSymbol exceptionType, IOperation exceptionDeclarationOrExpression)
+        private void AddExceptionStore(ITypeSymbol exceptionType, IOperation? exceptionDeclarationOrExpression)
         {
             if (exceptionDeclarationOrExpression != null)
             {
@@ -2868,30 +3684,30 @@ oneMoreTime:
                 if (exceptionDeclarationOrExpression.Kind == OperationKind.VariableDeclarator)
                 {
                     ILocalSymbol local = ((IVariableDeclaratorOperation)exceptionDeclarationOrExpression).Symbol;
-                    exceptionTarget = new LocalReferenceExpression(local,
+                    exceptionTarget = new LocalReferenceOperation(local,
                                                                   isDeclaration: true,
                                                                   semanticModel: null,
                                                                   syntax,
                                                                   local.Type,
-                                                                  constantValue: default,
+                                                                  constantValue: null,
                                                                   isImplicit: true);
                 }
                 else
                 {
-                    exceptionTarget = Visit(exceptionDeclarationOrExpression);
+                    exceptionTarget = VisitRequired(exceptionDeclarationOrExpression);
                 }
 
                 if (exceptionTarget != null)
                 {
-                    AddStatement(new SimpleAssignmentExpression(
-                                         exceptionTarget,
-                                         isRef: false,
-                                         new CaughtExceptionOperation(syntax, exceptionType),
-                                         semanticModel: null,
-                                         syntax,
-                                         type: null,
-                                         constantValue: default,
-                                         isImplicit: true));
+                    AddStatement(new SimpleAssignmentOperation(
+                        isRef: false,
+                        target: exceptionTarget,
+                        value: new CaughtExceptionOperation(syntax, exceptionType),
+                        semanticModel: null,
+                        syntax: syntax,
+                        type: null,
+                        constantValue: null,
+                        isImplicit: true));
                 }
             }
         }
@@ -2901,15 +3717,15 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitReturn(IReturnOperation operation, int? captureIdForResult)
+        public override IOperation? VisitReturn(IReturnOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            IOperation returnedValue = Visit(operation.ReturnedValue);
+            IOperation? returnedValue = Visit(operation.ReturnedValue);
 
             switch (operation.Kind)
             {
                 case OperationKind.YieldReturn:
-                    AddStatement(new ReturnStatement(OperationKind.YieldReturn, returnedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
+                    AddStatement(new ReturnOperation(returnedValue, OperationKind.YieldReturn, semanticModel: null, operation.Syntax, IsImplicit(operation)));
                     break;
 
                 case OperationKind.YieldBreak:
@@ -2929,11 +3745,17 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
+        public override IOperation? VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+            VisitLabel(operation.Label);
+            VisitStatement(operation.Operation);
+            return FinishVisitingStatement(operation);
+        }
 
-            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation.Label);
+        public void VisitLabel(ILabelSymbol operation)
+        {
+            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation);
 
             if (labeled.Ordinal != -1)
             {
@@ -2942,18 +3764,16 @@ oneMoreTime:
             }
 
             AppendNewBlock(labeled);
-            VisitStatement(operation.Operation);
-            return FinishVisitingStatement(operation);
         }
 
-        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
+        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol? labelOpt)
         {
             if (labelOpt == null)
             {
                 return new BasicBlockBuilder(BasicBlockKind.Block);
             }
 
-            BasicBlockBuilder labeledBlock;
+            BasicBlockBuilder? labeledBlock;
 
             if (_labeledBlocks == null)
             {
@@ -2969,21 +3789,20 @@ oneMoreTime:
             return labeledBlock;
         }
 
-        public override IOperation VisitBranch(IBranchOperation operation, int? captureIdForResult)
+        public override IOperation? VisitBranch(IBranchOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
-            LinkBlocks(CurrentBasicBlock, GetLabeledOrNewBlock(operation.Target));
-            _currentBasicBlock = null;
+            UnconditionalBranch(GetLabeledOrNewBlock(operation.Target));
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
+        public override IOperation? VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
+        public override IOperation? VisitThrow(IThrowOperation operation, int? captureIdForResult)
         {
             bool isStatement = (_currentStatement == operation);
 
@@ -2992,16 +3811,10 @@ oneMoreTime:
                 SpillEvalStack();
             }
 
-            IOperation exception = Operation.SetParentOperation(Visit(operation.Exception), null);
-
-            BasicBlockBuilder current = CurrentBasicBlock;
+            EvalStackFrame frame = PushStackFrame();
+            LinkThrowStatement(Visit(operation.Exception));
+            PopStackFrameAndLeaveRegion(frame);
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
-            Debug.Assert(current.BranchValue == null);
-            Debug.Assert(!current.HasCondition);
-            Debug.Assert(current.FallThrough.Destination == null);
-            Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
-            current.BranchValue = exception;
-            current.FallThrough.Kind = operation.Exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
 
             if (isStatement)
             {
@@ -3009,23 +3822,42 @@ oneMoreTime:
             }
             else
             {
-                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, constantValue: default, children: ImmutableArray<IOperation>.Empty, isImplicit: true);
+                return new NoneOperation(children: ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, constantValue: null, isImplicit: true, type: null);
             }
         }
 
-        public override IOperation VisitUsing(IUsingOperation operation, int? captureIdForResult)
+        private void LinkThrowStatement(IOperation? exception)
+        {
+            BasicBlockBuilder current = CurrentBasicBlock;
+            Debug.Assert(current.BranchValue == null);
+            Debug.Assert(!current.HasCondition);
+            Debug.Assert(current.FallThrough.Destination == null);
+            Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
+            current.BranchValue = Operation.SetParentOperation(exception, null);
+            current.FallThrough.Kind = exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
+        }
+
+        public override IOperation? VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+            DisposeOperationInfo disposeInfo = ((UsingOperation)operation).DisposeInfo;
+            HandleUsingOperationParts(operation.Resources, operation.Body, disposeInfo.DisposeMethod, disposeInfo.DisposeArguments, operation.Locals, operation.IsAsynchronous);
+            return FinishVisitingStatement(operation);
+        }
 
-            ITypeSymbol iDisposable = _compilation.GetSpecialType(SpecialType.System_IDisposable);
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        {
+            var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
+            EnterRegion(usingRegion);
 
-            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
+            ITypeSymbol iDisposable = isAsynchronous
+                ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable).GetITypeSymbol()
+                : _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-            if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
+            if (resources is IVariableDeclarationGroupOperation declarationGroup)
             {
-                var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-                
+
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
@@ -3035,42 +3867,47 @@ oneMoreTime:
                 }
 
                 resourceQueue.ReverseContents();
-                
+
                 processQueue(resourceQueue);
             }
             else
             {
-                Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclaration);
-                Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclarator);
+                Debug.Assert(resources.Kind != OperationKind.VariableDeclaration);
+                Debug.Assert(resources.Kind != OperationKind.VariableDeclarator);
 
-                IOperation resource = Visit(operation.Resources);
-                int captureId = _captureIdDispenser.GetNextId();
+                EvalStackFrame frame = PushStackFrame();
+                IOperation resource = VisitRequired(resources);
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
                     resource = ConvertToIDisposable(resource, iDisposable);
                 }
 
-                AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                processResource(GetCaptureReference(captureId, resource), resourceQueueOpt: null);
+                PushOperand(resource);
+                SpillEvalStack();
+                resource = PopOperand();
+                PopStackFrame(frame);
+
+                processResource(resource, resourceQueueOpt: null);
+                LeaveRegionIfAny(frame);
             }
 
+            Debug.Assert(_currentRegion == usingRegion);
             LeaveRegion();
-            return FinishVisitingStatement(operation);
 
-            void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
+            void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>? resourceQueueOpt)
             {
                 if (resourceQueueOpt == null || resourceQueueOpt.Count == 0)
                 {
-                    VisitStatement(operation.Body);
+                    VisitStatement(body);
                 }
                 else
                 {
                     (IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator) = resourceQueueOpt.Pop();
                     HandleVariableDeclarator(declaration, declarator);
                     ILocalSymbol localSymbol = declarator.Symbol;
-                    processResource(new LocalReferenceExpression(localSymbol, isDeclaration: false, semanticModel: null, declarator.Syntax, localSymbol.Type,
-                                                                 constantValue: default, isImplicit: true),
+                    processResource(new LocalReferenceOperation(localSymbol, isDeclaration: false, semanticModel: null, declarator.Syntax, localSymbol.Type,
+                                                                 constantValue: null, isImplicit: true),
                                     resourceQueueOpt);
                 }
             }
@@ -3080,38 +3917,58 @@ oneMoreTime:
                 return resource.Type == null || resource.Type.Kind == SymbolKind.DynamicType;
             }
 
-            void processResource(IOperation resource, ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
+            void processResource(IOperation resource, ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>? resourceQueueOpt)
             {
-                // When ResourceType is a non-nullable value type, the expansion is:
-                // 
-                // { 
-                //   ResourceType resource = expr; 
-                //   try { statement; } 
+                // When ResourceType is a non-nullable value type that implements IDisposable, the expansion is:
+                //
+                // {
+                //   ResourceType resource = expr;
+                //   try { statement; }
                 //   finally { ((IDisposable)resource).Dispose(); }
                 // }
-                // 
+                //
+                // Otherwise, when ResourceType is a non-nullable value type that implements
+                // disposal via pattern, the expansion is:
+                //
+                // {
+                //   try { statement; }
+                //   finally { resource.Dispose(); }
+                // }
                 // Otherwise, when Resource type is a nullable value type or
-                // a reference type other than dynamic, the expansion is:
-                // 
-                // { 
-                //   ResourceType resource = expr; 
-                //   try { statement; } 
+                // a reference type other than dynamic that implements IDisposable, the expansion is:
+                //
+                // {
+                //   ResourceType resource = expr;
+                //   try { statement; }
                 //   finally { if (resource != null) ((IDisposable)resource).Dispose(); }
                 // }
-                // 
+                //
+                // Otherwise, when Resource type is a reference type other than dynamic
+                // that implements disposal via pattern, the expansion is:
+                //
+                // {
+                //   ResourceType resource = expr;
+                //   try { statement; }
+                //   finally { if (resource != null) resource.Dispose(); }
+                // }
+                //
                 // Otherwise, when ResourceType is dynamic, the expansion is:
-                // { 
-                //   dynamic resource = expr; 
+                // {
+                //   dynamic resource = expr;
                 //   IDisposable d = (IDisposable)resource;
-                //   try { statement; } 
+                //   try { statement; }
                 //   finally { if (d != null) d.Dispose(); }
                 // }
 
+                RegionBuilder? resourceRegion = null;
+
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
+                    resourceRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+                    EnterRegion(resourceRegion);
                     resource = ConvertToIDisposable(resource, iDisposable);
-                    int captureId = _captureIdDispenser.GetNextId();
-                    AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
+                    int captureId = GetNextCaptureId(resourceRegion);
+                    AddStatement(new FlowCaptureOperation(captureId, resource.Syntax, resource));
                     resource = GetCaptureReference(captureId, resource);
                 }
 
@@ -3122,76 +3979,109 @@ oneMoreTime:
 
                 processQueue(resourceQueueOpt);
 
-                LinkBlocks(CurrentBasicBlock, afterTryFinally);
+                Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.Try);
+                UnconditionalBranch(afterTryFinally);
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
-                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable);
+                AddDisposingFinally(resource, requiresRuntimeConversion: false, iDisposable, disposeMethod, disposeArguments, isAsynchronous);
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
+                Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
+
+                if (resourceRegion != null)
+                {
+                    Debug.Assert(_currentRegion == resourceRegion);
+                    LeaveRegion();
+                }
 
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
             }
         }
 
-        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable)
+        private void AddDisposingFinally(IOperation resource, bool requiresRuntimeConversion, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, bool isAsynchronous)
         {
-            Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
+            Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
             endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
-            EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
+            var finallyRegion = new RegionBuilder(ControlFlowRegionKind.Finally);
+            EnterRegion(finallyRegion);
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
 
-            if (!knownToImplementIDisposable)
+            if (requiresRuntimeConversion)
             {
                 Debug.Assert(!isNotNullableValueType(resource.Type));
                 resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
-                int captureId = _captureIdDispenser.GetNextId();
-                AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
+                int captureId = GetNextCaptureId(finallyRegion);
+                AddStatement(new FlowCaptureOperation(captureId, resource.Syntax, resource));
                 resource = GetCaptureReference(captureId, resource);
             }
 
-            if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
+            if (requiresRuntimeConversion || !isNotNullableValueType(resource.Type))
             {
                 IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource));
-                condition = Operation.SetParentOperation(condition, null);
-                LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: true, RegularBranch(endOfFinally));
+                ConditionalBranch(condition, jumpIfTrue: true, endOfFinally);
                 _currentBasicBlock = null;
             }
 
-            if (!resource.Type.Equals(iDisposable))
+            if (!iDisposable.Equals(resource.Type) && disposeMethod is null)
             {
                 resource = ConvertToIDisposable(resource, iDisposable);
             }
 
+            EvalStackFrame disposeFrame = PushStackFrame();
+
             AddStatement(tryDispose(resource) ??
                          MakeInvalidOperation(type: null, resource));
 
+            PopStackFrameAndLeaveRegion(disposeFrame);
+
             AppendNewBlock(endOfFinally);
 
+            Debug.Assert(_currentRegion == finallyRegion);
             LeaveRegion();
             return;
 
-            IOperation tryDispose(IOperation value)
+            IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert(value.Type == iDisposable);
+                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || (value.Type!.Equals(iDisposable) && disposeArguments.IsDefaultOrEmpty));
 
-                var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                var method = disposeMethod ?? (isAsynchronous
+                    ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
+                    : (IMethodSymbol?)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose)?.GetISymbol());
+
                 if (method != null)
                 {
-                    return new InvocationExpression(method, value, isVirtual: true,
-                                                    ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, value.Syntax,
-                                                    method.ReturnType, constantValue: default, isImplicit: true);
+                    ImmutableArray<IArgumentOperation> args;
+                    if (disposeMethod is not null)
+                    {
+                        PushOperand(value);
+                        args = VisitArguments(disposeArguments, instancePushed: true);
+                        value = PopOperand();
+                    }
+                    else
+                    {
+                        args = ImmutableArray<IArgumentOperation>.Empty;
+                    }
+
+                    var invocation = new InvocationOperation(method, value, isVirtual: disposeMethod?.IsVirtual ?? true,
+                                                             args, semanticModel: null, value.Syntax,
+                                                             method.ReturnType, isImplicit: true);
+
+                    if (isAsynchronous)
+                    {
+                        return new AwaitOperation(invocation, semanticModel: null, value.Syntax, _compilation.GetSpecialType(SpecialType.System_Void), isImplicit: true);
+                    }
+
+                    return invocation;
                 }
 
                 return null;
             }
 
-            bool isNotNullableValueType(ITypeSymbol type)
+            bool isNotNullableValueType([NotNullWhen(true)] ITypeSymbol? type)
             {
                 return type?.IsValueType == true && !ITypeSymbolHelpers.IsNullableType(type);
             }
@@ -3199,12 +4089,13 @@ oneMoreTime:
 
         private IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
         {
-            Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable);
+            Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable ||
+                iDisposable.Equals(_compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable)?.GetITypeSymbol()));
             return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
                                            semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
 
-        public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
+        public override IOperation? VisitLock(ILockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -3212,53 +4103,63 @@ oneMoreTime:
 
             // If Monitor.Enter(object, ref bool) is available:
             //
-            // L $lock = `LockedValue`;  
-            // bool $lockTaken = false;                   
+            // L $lock = `LockedValue`;
+            // bool $lockTaken = false;
             // try
             // {
             //     Monitor.Enter($lock, ref $lockTaken);
-            //     `body`                               
+            //     `body`
             // }
             // finally
-            // {                                        
-            //     if ($lockTaken) Monitor.Exit($lock);   
+            // {
+            //     if ($lockTaken) Monitor.Exit($lock);
             // }
 
             // If Monitor.Enter(object, ref bool) is not available:
             //
             // L $lock = `LockedValue`;
             // Monitor.Enter($lock);           // NB: before try-finally so we don't Exit if an exception prevents us from acquiring the lock.
-            // try 
+            // try
             // {
             //     `body`
-            // } 
-            // finally 
+            // }
+            // finally
             // {
-            //     Monitor.Exit($lock); 
+            //     Monitor.Exit($lock);
             // }
 
             // If original type of the LockedValue object is System.Object, VB calls runtime helper (if one is available)
-            // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is 
-            // used. 
+            // Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.CheckForSyncLockOnValueType to ensure no value type is
+            // used.
             // For simplicity, we will not synthesize this call because its presence is unlikely to affect graph analysis.
+            var lockStatement = (LockOperation)operation;
 
-            IOperation lockedValue = Visit(operation.LockedValue);
+            var lockRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime,
+                                               locals: lockStatement.LockTakenSymbol != null ?
+                                                   ImmutableArray.Create(lockStatement.LockTakenSymbol) :
+                                                   ImmutableArray<ILocalSymbol>.Empty);
+            EnterRegion(lockRegion);
+
+            EvalStackFrame frame = PushStackFrame();
+            IOperation lockedValue = VisitRequired(operation.LockedValue);
 
             if (!objectType.Equals(lockedValue.Type))
             {
                 lockedValue = CreateConversion(lockedValue, objectType);
             }
 
-            int captureId = _captureIdDispenser.GetNextId();
-            AddStatement(new FlowCapture(captureId, lockedValue.Syntax, lockedValue));
-            lockedValue = GetCaptureReference(captureId, lockedValue);
+            PushOperand(lockedValue);
+            SpillEvalStack();
+            lockedValue = PopOperand();
+            PopStackFrame(frame);
 
-            var enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
+            var enterMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2)?.GetISymbol();
             bool legacyMode = (enterMethod == null);
 
             if (legacyMode)
             {
-                enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter);
+                Debug.Assert(lockStatement.LockTakenSymbol == null);
+                enterMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter)?.GetISymbol();
 
                 // Monitor.Enter($lock);
                 if (enterMethod == null)
@@ -3267,18 +4168,18 @@ oneMoreTime:
                 }
                 else
                 {
-                    AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
+                    AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                           ImmutableArray.Create<IArgumentOperation>(
-                                                                    new ArgumentOperation(lockedValue,
-                                                                                          ArgumentKind.Explicit,
+                                                                    new ArgumentOperation(ArgumentKind.Explicit,
                                                                                           enterMethod.Parameters[0],
-                                                                                          inConversionOpt: null,
-                                                                                          outConversionOpt: null,
+                                                                                          lockedValue,
+                                                                                          inConversion: OperationFactory.IdentityConversion,
+                                                                                          outConversion: OperationFactory.IdentityConversion,
                                                                                           semanticModel: null,
                                                                                           lockedValue.Syntax,
                                                                                           isImplicit: true)),
                                                           semanticModel: null, lockedValue.Syntax,
-                                                          enterMethod.ReturnType, constantValue: default, isImplicit: true));
+                                                          enterMethod.ReturnType, isImplicit: true));
                 }
             }
 
@@ -3287,38 +4188,41 @@ oneMoreTime:
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
 
-            IOperation lockTaken = null;
+            IOperation? lockTaken = null;
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                lockTaken = new FlowCaptureReference(_captureIdDispenser.GetNextId(), lockedValue.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: default);
-                AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
+                Debug.Assert(lockStatement.LockTakenSymbol is not null);
+                Debug.Assert(enterMethod is not null);
+                lockTaken = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: true, semanticModel: null, lockedValue.Syntax,
+                                                         lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                AddStatement(new InvocationOperation(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
-                                                                new ArgumentOperation(lockedValue,
-                                                                                      ArgumentKind.Explicit,
+                                                                new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       enterMethod.Parameters[0],
-                                                                                      inConversionOpt: null,
-                                                                                      outConversionOpt: null,
+                                                                                      lockedValue,
+                                                                                      inConversion: OperationFactory.IdentityConversion,
+                                                                                      outConversion: OperationFactory.IdentityConversion,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
                                                                                       isImplicit: true),
-                                                                new ArgumentOperation(lockTaken,
-                                                                                      ArgumentKind.Explicit,
+                                                                new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       enterMethod.Parameters[1],
-                                                                                      inConversionOpt: null,
-                                                                                      outConversionOpt: null,
+                                                                                      lockTaken,
+                                                                                      inConversion: OperationFactory.IdentityConversion,
+                                                                                      outConversion: OperationFactory.IdentityConversion,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
                                                                                       isImplicit: true)),
                                                       semanticModel: null, lockedValue.Syntax,
-                                                      enterMethod.ReturnType, constantValue: default, isImplicit: true));
+                                                      enterMethod.ReturnType, isImplicit: true));
             }
 
             VisitStatement(operation.Body);
 
-            LinkBlocks(CurrentBasicBlock, afterTryFinally);
+            Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.Try);
+            UnconditionalBranch(afterTryFinally);
 
-            Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
             LeaveRegion();
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -3330,14 +4234,15 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // if ($lockTaken)
-                IOperation condition = OperationCloner.CloneOperation(lockTaken);
-                condition = Operation.SetParentOperation(condition, null);
-                LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(endOfFinally));
+                Debug.Assert(lockStatement.LockTakenSymbol is not null);
+                IOperation condition = new LocalReferenceOperation(lockStatement.LockTakenSymbol, isDeclaration: false, semanticModel: null, lockedValue.Syntax,
+                                                                    lockStatement.LockTakenSymbol.Type, constantValue: null, isImplicit: true);
+                ConditionalBranch(condition, jumpIfTrue: false, endOfFinally);
                 _currentBasicBlock = null;
             }
 
             // Monitor.Exit($lock);
-            var exitMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit);
+            var exitMethod = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit)?.GetISymbol();
             lockedValue = OperationCloner.CloneOperation(lockedValue);
 
             if (exitMethod == null)
@@ -3346,24 +4251,27 @@ oneMoreTime:
             }
             else
             {
-                AddStatement(new InvocationExpression(exitMethod, instance: null, isVirtual: false,
+                AddStatement(new InvocationOperation(exitMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
-                                                                new ArgumentOperation(lockedValue,
-                                                                                      ArgumentKind.Explicit,
+                                                                new ArgumentOperation(ArgumentKind.Explicit,
                                                                                       exitMethod.Parameters[0],
-                                                                                      inConversionOpt: null,
-                                                                                      outConversionOpt: null,
+                                                                                      lockedValue,
+                                                                                      inConversion: OperationFactory.IdentityConversion,
+                                                                                      outConversion: OperationFactory.IdentityConversion,
                                                                                       semanticModel: null,
                                                                                       lockedValue.Syntax,
                                                                                       isImplicit: true)),
                                                       semanticModel: null, lockedValue.Syntax,
-                                                      exitMethod.ReturnType, constantValue: default, isImplicit: true));
+                                                      exitMethod.ReturnType, isImplicit: true));
             }
 
             AppendNewBlock(endOfFinally);
 
             LeaveRegion();
-            Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
+            Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
+            LeaveRegion();
+
+            LeaveRegionsUpTo(lockRegion);
             LeaveRegion();
 
             AppendNewBlock(afterTryFinally, linkToPrevious: false);
@@ -3371,24 +4279,27 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
-            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            var enumeratorCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+            EnterRegion(enumeratorCaptureRegion);
 
-            bool createdRegionForCollection = false;
+            ForEachLoopOperationInfo? info = ((ForEachLoopOperation)operation).Info;
+
+            RegionBuilder? regionForCollection = null;
 
             if (!operation.Locals.IsEmpty && operation.LoopControlVariable.Kind == OperationKind.VariableDeclarator)
             {
                 // VB has rather interesting scoping rules for control variable.
-                // It is in scope in the collection expression. However, it is considered to be 
+                // It is in scope in the collection expression. However, it is considered to be
                 // "a different" version of that local. Effectively when the code is emitted,
-                // there are two distinct locals, one is used in the collection expression and the 
-                // other is used as a loop control variable. This is done to have proper hoisting 
+                // there are two distinct locals, one is used in the collection expression and the
+                // other is used as a loop control variable. This is done to have proper hoisting
                 // and lifetime in presence of lambdas.
-                // Rather than introducing a separate local symbol, we will simply add another 
-                // lifetime region for that local around the collection expression. 
+                // Rather than introducing a separate local symbol, we will simply add another
+                // lifetime region for that local around the collection expression.
 
                 var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                 ILocalSymbol local = declarator.Symbol;
@@ -3397,8 +4308,8 @@ oneMoreTime:
                 {
                     if (op is ILocalReferenceOperation l && l.Local.Equals(local))
                     {
-                        EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: ImmutableArray.Create(local)));
-                        createdRegionForCollection = true;
+                        regionForCollection = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: ImmutableArray.Create(local));
+                        EnterRegion(regionForCollection);
                         break;
                     }
                 }
@@ -3406,12 +4317,13 @@ oneMoreTime:
 
             IOperation enumerator = getEnumerator();
 
-            if (createdRegionForCollection)
+            if (regionForCollection != null)
             {
+                Debug.Assert(regionForCollection == _currentRegion);
                 LeaveRegion();
             }
 
-            if (info.NeedsDispose)
+            if (info?.NeedsDispose == true)
             {
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
@@ -3422,31 +4334,45 @@ oneMoreTime:
 
             AppendNewBlock(@continue);
 
-            IOperation condition = Operation.SetParentOperation(getCondition(enumerator), null);
-            LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(@break));
+            EvalStackFrame frame = PushStackFrame();
+            ConditionalBranch(getCondition(enumerator), jumpIfTrue: false, @break);
             _currentBasicBlock = null;
+            PopStackFrameAndLeaveRegion(frame);
 
-            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
+            var localsRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
+            EnterRegion(localsRegion);
 
-            AddStatement(getLoopControlVariableAssignment(applyConversion(info.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info.ElementType)));
+            frame = PushStackFrame();
+            AddStatement(getLoopControlVariableAssignment(applyConversion(info?.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info?.ElementType)));
+            PopStackFrameAndLeaveRegion(frame);
+
             VisitStatement(operation.Body);
-            LinkBlocks(CurrentBasicBlock, @continue);
+            Debug.Assert(localsRegion == _currentRegion);
+            UnconditionalBranch(@continue);
 
             LeaveRegion();
 
             AppendNewBlock(@break);
 
-            if (info.NeedsDispose)
+            if (info?.NeedsDispose == true)
             {
                 var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
-                LinkBlocks(CurrentBasicBlock, afterTryFinally);
-
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
+                UnconditionalBranch(afterTryFinally);
+
                 LeaveRegion();
 
+                bool isAsynchronous = info.IsAsynchronous;
+                var iDisposable = isAsynchronous
+                    ? _compilation.CommonGetWellKnownType(WellKnownType.System_IAsyncDisposable).GetITypeSymbol()
+                    : _compilation.GetSpecialType(SpecialType.System_IDisposable);
+
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
-                                    info.KnownToImplementIDisposable,
-                                    _compilation.GetSpecialType(SpecialType.System_IDisposable));
+                                    requiresRuntimeConversion: !info.KnownToImplementIDisposable && info.PatternDisposeMethod == null,
+                                    iDisposable,
+                                    info.PatternDisposeMethod,
+                                    info.DisposeArguments,
+                                    isAsynchronous);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -3454,14 +4380,17 @@ oneMoreTime:
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
             }
 
+            Debug.Assert(_currentRegion == enumeratorCaptureRegion);
+            LeaveRegion();
+
             return FinishVisitingStatement(operation);
 
-            IOperation applyConversion(IConvertibleConversion conversionOpt, IOperation operand, ITypeSymbol targetType)
+            IOperation applyConversion(IConvertibleConversion? conversionOpt, IOperation operand, ITypeSymbol? targetType)
             {
                 if (conversionOpt?.ToCommonConversion().IsIdentity == false)
                 {
                     operand = new ConversionOperation(operand, conversionOpt, isTryCast: false, isChecked: false, semanticModel: null,
-                                                      operand.Syntax, targetType, constantValue: default, isImplicit: true);
+                                                      operand.Syntax, targetType, constantValue: null, isImplicit: true);
                 }
 
                 return operand;
@@ -3469,32 +4398,43 @@ oneMoreTime:
 
             IOperation getEnumerator()
             {
-                if (info.GetEnumeratorMethod != null)
+                IOperation result;
+                EvalStackFrame getEnumeratorFrame = PushStackFrame();
+
+                if (info?.GetEnumeratorMethod != null)
                 {
                     IOperation invocation = makeInvocation(operation.Collection.Syntax,
                                                            info.GetEnumeratorMethod,
                                                            info.GetEnumeratorMethod.IsStatic ? null : Visit(operation.Collection),
                                                            info.GetEnumeratorArguments);
 
-                    int enumeratorCaptureId = _captureIdDispenser.GetNextId();
-                    AddStatement(new FlowCapture(enumeratorCaptureId, operation.Collection.Syntax, invocation));
+                    int enumeratorCaptureId = GetNextCaptureId(enumeratorCaptureRegion);
+                    AddStatement(new FlowCaptureOperation(enumeratorCaptureId, operation.Collection.Syntax, invocation));
 
-                    return new FlowCaptureReference(enumeratorCaptureId, operation.Collection.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: default);
+                    result = new FlowCaptureReferenceOperation(enumeratorCaptureId, operation.Collection.Syntax, info.GetEnumeratorMethod.ReturnType, constantValue: null);
                 }
                 else
                 {
                     // This must be an error case
-                    AddStatement(MakeInvalidOperation(type: null, Visit(operation.Collection)));
-                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
-                                                type: null,constantValue: default, isImplicit: true);
+                    AddStatement(MakeInvalidOperation(type: null, VisitRequired(operation.Collection)));
+                    result = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Collection.Syntax,
+                                                  type: null, constantValue: null, isImplicit: true);
                 }
+
+                PopStackFrameAndLeaveRegion(getEnumeratorFrame);
+                return result;
             }
 
             IOperation getCondition(IOperation enumeratorRef)
             {
-                if (info.MoveNextMethod != null)
+                if (info?.MoveNextMethod != null)
                 {
-                    return makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
+                    var moveNext = makeInvocationDroppingInstanceForStaticMethods(info.MoveNextMethod, enumeratorRef, info.MoveNextArguments);
+                    if (operation.IsAsynchronous)
+                    {
+                        return new AwaitOperation(moveNext, semanticModel: null, operation.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), isImplicit: true);
+                    }
+                    return moveNext;
                 }
                 else
                 {
@@ -3505,13 +4445,16 @@ oneMoreTime:
 
             IOperation getCurrent(IOperation enumeratorRef)
             {
-                if (info.CurrentProperty != null)
+                if (info?.CurrentProperty != null)
                 {
-                    return new PropertyReferenceExpression(info.CurrentProperty,
-                                                           info.CurrentProperty.IsStatic ? null : enumeratorRef,
-                                                           makeArguments(info.CurrentArguments), semanticModel: null,
-                                                           operation.LoopControlVariable.Syntax,
-                                                           info.CurrentProperty.Type, constantValue: default, isImplicit: true);
+                    var instance = info.CurrentProperty.IsStatic ? null : enumeratorRef;
+                    var visitedArguments = makeArguments(info.CurrentArguments, ref instance);
+                    return new PropertyReferenceOperation(info.CurrentProperty,
+                                                          visitedArguments,
+                                                          instance,
+                                                          semanticModel: null,
+                                                          operation.LoopControlVariable.Syntax,
+                                                          info.CurrentProperty.Type, isImplicit: true);
                 }
                 else
                 {
@@ -3527,81 +4470,101 @@ oneMoreTime:
                     case OperationKind.VariableDeclarator:
                         var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                         ILocalSymbol local = declarator.Symbol;
-                        current = applyConversion(info.ElementConversion, current, local.Type);
+                        current = applyConversion(info?.ElementConversion, current, local.Type);
 
-                        return new SimpleAssignmentExpression(new LocalReferenceExpression(local, isDeclaration: true, semanticModel: null,
-                                                                                           declarator.Syntax, local.Type, constantValue: default, isImplicit: true),
-                                                              isRef: local.RefKind != RefKind.None, current, semanticModel: null, declarator.Syntax, type: null,
-                                                              constantValue: default, isImplicit: true);
+                        return new SimpleAssignmentOperation(isRef: local.RefKind != RefKind.None,
+                                                             new LocalReferenceOperation(local,
+                                                                                         isDeclaration: true,
+                                                                                         semanticModel: null,
+                                                                                         declarator.Syntax,
+                                                                                         local.Type,
+                                                                                         constantValue: null,
+                                                                                         isImplicit: true),
+                                                             current,
+                                                             semanticModel: null,
+                                                             declarator.Syntax,
+                                                             type: null,
+                                                             constantValue: null,
+                                                             isImplicit: true);
 
                     case OperationKind.Tuple:
                     case OperationKind.DeclarationExpression:
-                        Debug.Assert(info.ElementConversion?.ToCommonConversion().IsIdentity != false);
+                        Debug.Assert(info?.ElementConversion?.ToCommonConversion().IsIdentity != false);
 
-                        return new DeconstructionAssignmentExpression(VisitPreservingTupleOperations(operation.LoopControlVariable),
-                                                                      current, semanticModel: null,
-                                                                      operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
-                                                                      constantValue: default, isImplicit: true);
+                        return new DeconstructionAssignmentOperation(VisitPreservingTupleOperations(operation.LoopControlVariable),
+                                                                     current, semanticModel: null,
+                                                                     operation.LoopControlVariable.Syntax, operation.LoopControlVariable.Type,
+                                                                     isImplicit: true);
                     default:
-                        return new SimpleAssignmentExpression(Visit(operation.LoopControlVariable),
-                                                              isRef: false, // In C# this is an error case and VB doesn't support ref locals
-                                                              current, semanticModel: null, operation.LoopControlVariable.Syntax,
-                                                              operation.LoopControlVariable.Type,
-                                                              constantValue: default, isImplicit: true);
+                        return new SimpleAssignmentOperation(isRef: false, // In C# this is an error case and VB doesn't support ref locals
+                            VisitRequired(operation.LoopControlVariable),
+                            current, semanticModel: null, operation.LoopControlVariable.Syntax,
+                            operation.LoopControlVariable.Type,
+                            constantValue: null, isImplicit: true);
                 }
             }
 
-            InvocationExpression makeInvocationDroppingInstanceForStaticMethods(IMethodSymbol method, IOperation instance, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            InvocationOperation makeInvocationDroppingInstanceForStaticMethods(IMethodSymbol method, IOperation instance, ImmutableArray<IArgumentOperation> arguments)
             {
                 return makeInvocation(instance.Syntax, method, method.IsStatic ? null : instance, arguments);
             }
 
-            InvocationExpression makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation instanceOpt, Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            InvocationOperation makeInvocation(SyntaxNode syntax, IMethodSymbol method, IOperation? instanceOpt, ImmutableArray<IArgumentOperation> arguments)
             {
                 Debug.Assert(method.IsStatic == (instanceOpt == null));
-                return new InvocationExpression(method, instanceOpt,
-                                                isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
-                                                makeArguments(arguments), semanticModel: null, syntax,
-                                                method.ReturnType, constantValue: default, isImplicit: true);
+                var visitedArguments = makeArguments(arguments, ref instanceOpt);
+                return new InvocationOperation(method, instanceOpt,
+                                               isVirtual: method.IsVirtual || method.IsAbstract || method.IsOverride,
+                                               visitedArguments, semanticModel: null, syntax,
+                                               method.ReturnType, isImplicit: true);
             }
 
-            ImmutableArray<IArgumentOperation> makeArguments(Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            ImmutableArray<IArgumentOperation> makeArguments(ImmutableArray<IArgumentOperation> arguments, ref IOperation? instance)
             {
-                if (arguments != null)
+                if (!arguments.IsDefaultOrEmpty)
                 {
-                    return VisitArguments(arguments.Value);
+                    bool hasInstance = instance != null;
+                    if (hasInstance)
+                    {
+                        PushOperand(instance!);
+                    }
+                    arguments = VisitArguments(arguments, hasInstance);
+                    instance = hasInstance ? PopOperand() : null;
+
+                    return arguments;
                 }
 
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
         }
 
-        public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((ForToLoopOperation)operation).Info;
             bool isObjectLoop = (loopObject != null);
             ImmutableArray<ILocalSymbol> locals = operation.Locals;
 
             if (isObjectLoop)
             {
-                locals = locals.Insert(0, loopObject);
+                locals = locals.Insert(0, loopObject!);
             }
 
             ITypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             BasicBlockBuilder @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
-            BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            BasicBlockBuilder? @break = GetLabeledOrNewBlock(operation.ExitLabel);
             BasicBlockBuilder checkConditionBlock = new BasicBlockBuilder(BasicBlockKind.Block);
             BasicBlockBuilder bodyBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
+            var loopRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
+            EnterRegion(loopRegion);
 
             // Handle loop initialization
             int limitValueId = -1;
             int stepValueId = -1;
-            IFlowCaptureReferenceOperation positiveFlag = null;
-            ITypeSymbol stepEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(operation.StepValue.Type);
+            IFlowCaptureReferenceOperation? positiveFlag = null;
+            ITypeSymbol? stepEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(operation.StepValue.Type);
 
             initializeLoop();
 
@@ -3617,8 +4580,7 @@ oneMoreTime:
             AppendNewBlock(@continue);
             incrementLoopControlVariable();
 
-            LinkBlocks(CurrentBasicBlock, checkConditionBlock);
-            _currentBasicBlock = null;
+            UnconditionalBranch(checkConditionBlock);
 
             LeaveRegion();
 
@@ -3627,60 +4589,72 @@ oneMoreTime:
 
             IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
             {
+                Debug.Assert(isObjectLoop && loopObject is not null);
                 bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                var loopObjectReference = new LocalReferenceExpression(loopObject, 
-                                                                       isDeclaration: isInitialization, 
+                var loopObjectReference = new LocalReferenceOperation(loopObject,
+                                                                       isDeclaration: isInitialization,
                                                                        semanticModel: null,
                                                                        operation.LoopControlVariable.Syntax, loopObject.Type,
-                                                                       constantValue: default, isImplicit: true);
+                                                                       constantValue: null, isImplicit: true);
 
-                var method = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(helper);
+                var method = (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(helper)?.GetISymbol();
                 int parametersCount = WellKnownMembers.GetDescriptor(helper).ParametersCount;
 
                 if (method is null)
                 {
-                    var builder = ArrayBuilder<IOperation>.GetInstance(--parametersCount, fillWithValue: null);
+                    var builder = ArrayBuilder<IOperation>.GetInstance(--parametersCount, fillWithValue: null!);
                     builder[--parametersCount] = loopObjectReference;
                     do
                     {
-                        builder[--parametersCount] = _evalStack.Pop();
+                        builder[--parametersCount] = PopOperand();
                     }
                     while (parametersCount != 0);
 
+                    Debug.Assert(builder.All(o => o != null));
                     return MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
                 }
                 else
                 {
-                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null);
+                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null!);
 
-                    builder[--parametersCount] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
-                                                                       inConversionOpt: null, outConversionOpt: null,
+                    builder[--parametersCount] = new ArgumentOperation(ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                       inConversion: OperationFactory.IdentityConversion,
+                                                                       outConversion: OperationFactory.IdentityConversion,
                                                                        semanticModel: null, syntax, isImplicit: true);
 
-                    builder[--parametersCount] = new ArgumentOperation(loopObjectReference,
-                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
-                                                                       inConversionOpt: null, outConversionOpt: null,
+                    builder[--parametersCount] = new ArgumentOperation(ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       loopObjectReference,
+                                                                       inConversion: OperationFactory.IdentityConversion,
+                                                                       outConversion: OperationFactory.IdentityConversion,
                                                                        semanticModel: null, syntax, isImplicit: true);
 
                     do
                     {
-                        IOperation value = _evalStack.Pop();
-                        builder[--parametersCount] = new ArgumentOperation(value,
-                                                                           ArgumentKind.Explicit, method.Parameters[parametersCount],
-                                                                           inConversionOpt: null, outConversionOpt: null,
+                        IOperation value = PopOperand();
+                        builder[--parametersCount] = new ArgumentOperation(ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                           value,
+                                                                           inConversion: OperationFactory.IdentityConversion,
+                                                                           outConversion: OperationFactory.IdentityConversion,
                                                                            semanticModel: null, isInitialization ? value.Syntax : syntax, isImplicit: true);
                     }
                     while (parametersCount != 0);
 
-                    return new InvocationExpression(method, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                    semanticModel: null, operation.LimitValue.Syntax, method.ReturnType,
-                                                    constantValue: default, isImplicit: true);
+                    Debug.Assert(builder.All(op => op is not null));
+
+                    return new InvocationOperation(method, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                                                   semanticModel: null, operation.LimitValue.Syntax, method.ReturnType,
+                                                   isImplicit: true);
                 }
             }
 
             void initializeLoop()
             {
+                EvalStackFrame frame = PushStackFrame();
+
+                PushOperand(visitLoopControlVariableReference(forceImplicit: false));
+                PushOperand(VisitRequired(operation.InitialValue));
+
                 if (isObjectLoop)
                 {
                     // For i as Object = 3 To 6 step 2
@@ -3693,44 +4667,38 @@ oneMoreTime:
                     //   Dim loopObj        ' mysterious object that holds the loop state
                     //
                     //   ' helper does internal initialization and tells if we need to do any iterations
-                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
+                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl)
                     //                               goto exit:
                     //   start:
                     //       body
                     //
                     //   continue:
                     //       ' helper updates loop state and tells if we need to do another iteration.
-                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
+                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl)
                     //                               GoTo start
                     // }
                     // exit:
 
-#if DEBUG
-                    int stackSize = _evalStack.Count;
-#endif
-                    _evalStack.Push(getLoopControlVariableReference(forceImplicit: false));
-                    _evalStack.Push(Visit(operation.InitialValue));
-                    _evalStack.Push(Visit(operation.LimitValue));
-                    _evalStack.Push(Visit(operation.StepValue));
+                    PushOperand(VisitRequired(operation.LimitValue));
+                    PushOperand(VisitRequired(operation.StepValue));
 
                     IOperation condition = tryCallObjectForLoopControlHelper(operation.LoopControlVariable.Syntax,
                                                                              WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-#if DEBUG
-                    Debug.Assert(stackSize == _evalStack.Count);
-#endif
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
-                    LinkBlocks(CurrentBasicBlock, bodyBlock);
-                    _currentBasicBlock = null;
+
+                    ConditionalBranch(condition, jumpIfTrue: false, @break);
+                    UnconditionalBranch(bodyBlock);
                 }
                 else
                 {
-                    int captureId = _captureIdDispenser.GetNextId();
-                    IOperation controlVarReferenceForInitialization = getLoopControlVariableReference(forceImplicit: false, captureId);
-                    CaptureResultIfNotAlready(controlVarReferenceForInitialization.Syntax, captureId, controlVarReferenceForInitialization);
+                    SpillEvalStack();
+                    RegionBuilder currentRegion = CurrentRegionRequired;
 
-                    int initialValueId = VisitAndCapture(operation.InitialValue);
-                    limitValueId = VisitAndCapture(operation.LimitValue);
-                    stepValueId = VisitAndCapture(operation.StepValue);
+                    limitValueId = GetNextCaptureId(loopRegion);
+                    VisitAndCapture(operation.LimitValue, limitValueId);
+
+                    stepValueId = GetNextCaptureId(loopRegion);
+                    VisitAndCapture(operation.StepValue, stepValueId);
+
                     IOperation stepValue = GetCaptureReference(stepValueId, operation.StepValue);
 
                     if (userDefinedInfo != null)
@@ -3742,33 +4710,32 @@ oneMoreTime:
                         _forToLoopBinaryOperatorLeftOperand = GetCaptureReference(stepValueId, operation.StepValue);
                         _forToLoopBinaryOperatorRightOperand = GetCaptureReference(stepValueId, operation.StepValue);
 
-                        IOperation subtraction = Visit(userDefinedInfo.Subtraction.Value);
+                        IOperation subtraction = VisitRequired(userDefinedInfo.Subtraction);
 
                         _forToLoopBinaryOperatorLeftOperand = stepValue;
                         _forToLoopBinaryOperatorRightOperand = subtraction;
 
-                        IOperation greaterThanOrEqual = Visit(userDefinedInfo.GreaterThanOrEqual.Value);
+                        int positiveFlagId = GetNextCaptureId(loopRegion);
+                        VisitAndCapture(userDefinedInfo.GreaterThanOrEqual, positiveFlagId);
 
-                        int positiveFlagId = _captureIdDispenser.GetNextId();
-                        AddStatement(new FlowCapture(positiveFlagId, greaterThanOrEqual.Syntax, greaterThanOrEqual));
-                        positiveFlag = new FlowCaptureReference(positiveFlagId, greaterThanOrEqual.Syntax, greaterThanOrEqual.Type, constantValue: default);
+                        positiveFlag = GetCaptureReference(positiveFlagId, userDefinedInfo.GreaterThanOrEqual);
 
                         _forToLoopBinaryOperatorLeftOperand = null;
                         _forToLoopBinaryOperatorRightOperand = null;
                     }
-                    else if (!operation.StepValue.ConstantValue.HasValue &&
+                    else if (!(operation.StepValue.GetConstantValue() is { IsBad: false }) &&
                              !ITypeSymbolHelpers.IsSignedIntegralType(stepEnumUnderlyingTypeOrSelf) &&
                              !ITypeSymbolHelpers.IsUnsignedIntegralType(stepEnumUnderlyingTypeOrSelf))
                     {
-                        IOperation stepValueIsNull = null;
+                        IOperation? stepValueIsNull = null;
 
                         if (ITypeSymbolHelpers.IsNullableType(stepValue.Type))
                         {
                             stepValueIsNull = MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType);
-                            stepValue = UnwrapNullableValue(stepValue);
+                            stepValue = CallNullableMember(stepValue, SpecialMember.System_Nullable_T_GetValueOrDefault);
                         }
 
-                        ITypeSymbol stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
+                        ITypeSymbol? stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
 
                         if (ITypeSymbolHelpers.IsNumericType(stepValueEnumUnderlyingTypeOrSelf))
                         {
@@ -3779,30 +4746,30 @@ oneMoreTime:
                             // which implies that "step = null" ==> "isUp = false"
 
                             IOperation isUp;
-                            int positiveFlagId = _captureIdDispenser.GetNextId();
+                            int positiveFlagId = GetNextCaptureId(loopRegion);
                             var afterPositiveCheck = new BasicBlockBuilder(BasicBlockKind.Block);
 
                             if (stepValueIsNull != null)
                             {
                                 var whenNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                                LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(stepValueIsNull, null), jumpIfTrue: false, RegularBranch(whenNotNull));
+                                ConditionalBranch(stepValueIsNull, jumpIfTrue: false, whenNotNull);
                                 _currentBasicBlock = null;
 
                                 // "isUp = false"
-                                isUp = new LiteralExpression(semanticModel: null, stepValue.Syntax, booleanType, constantValue: false, isImplicit: true);
+                                isUp = new LiteralOperation(semanticModel: null, stepValue.Syntax, booleanType, constantValue: ConstantValue.Create(false), isImplicit: true);
 
-                                AddStatement(new FlowCapture(positiveFlagId, isUp.Syntax, isUp));
+                                AddStatement(new FlowCaptureOperation(positiveFlagId, isUp.Syntax, isUp));
 
-                                LinkBlocks(CurrentBasicBlock, afterPositiveCheck);
+                                UnconditionalBranch(afterPositiveCheck);
                                 AppendNewBlock(whenNotNull);
                             }
 
-                            IOperation literal = new LiteralExpression(semanticModel: null, stepValue.Syntax, stepValue.Type,
-                                                                       constantValue: ConstantValue.Default(stepValueEnumUnderlyingTypeOrSelf.SpecialType).Value, 
+                            IOperation literal = new LiteralOperation(semanticModel: null, stepValue.Syntax, stepValue.Type,
+                                                                       constantValue: ConstantValue.Default(stepValueEnumUnderlyingTypeOrSelf.SpecialType),
                                                                        isImplicit: true);
 
-                            isUp = new BinaryOperatorExpression(BinaryOperatorKind.GreaterThanOrEqual,
+                            isUp = new BinaryOperation(BinaryOperatorKind.GreaterThanOrEqual,
                                                                 stepValue,
                                                                 literal,
                                                                 isLifted: false,
@@ -3813,28 +4780,31 @@ oneMoreTime:
                                                                 semanticModel: null,
                                                                 stepValue.Syntax,
                                                                 booleanType,
-                                                                constantValue: default,
+                                                                constantValue: null,
                                                                 isImplicit: true);
 
-                            AddStatement(new FlowCapture(positiveFlagId, isUp.Syntax, isUp));
+                            AddStatement(new FlowCaptureOperation(positiveFlagId, isUp.Syntax, isUp));
 
                             AppendNewBlock(afterPositiveCheck);
 
-                            positiveFlag = new FlowCaptureReference(positiveFlagId, isUp.Syntax, isUp.Type, constantValue: default);
+                            positiveFlag = GetCaptureReference(positiveFlagId, isUp);
                         }
                         else
                         {
                             // This must be an error case.
-                            // It is fine to do nothing in this case, we are in recovery mode. 
+                            // It is fine to do nothing in this case, we are in recovery mode.
                         }
                     }
 
-                    AddStatement(new SimpleAssignmentExpression(GetCaptureReference(captureId, controlVarReferenceForInitialization),
-                                                                isRef: false,
-                                                                GetCaptureReference(initialValueId, operation.InitialValue),
-                                                                semanticModel: null, operation.InitialValue.Syntax, type: null,
-                                                                constantValue: default, isImplicit: true));
+                    IOperation initialValue = PopOperand();
+                    AddStatement(new SimpleAssignmentOperation(isRef: false, // Loop control variable
+                        PopOperand(),
+                        initialValue,
+                        semanticModel: null, operation.InitialValue.Syntax, type: null,
+                        constantValue: null, isImplicit: true));
                 }
+
+                PopStackFrameAndLeaveRegion(frame);
             }
 
             void checkLoopCondition()
@@ -3851,31 +4821,27 @@ oneMoreTime:
                     //   Dim loopObj        ' mysterious object that holds the loop state
                     //
                     //   ' helper does internal initialization and tells if we need to do any iterations
-                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
+                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl)
                     //                               goto exit:
                     //   start:
                     //       body
                     //
                     //   continue:
                     //       ' helper updates loop state and tells if we need to do another iteration.
-                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
+                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl)
                     //                               GoTo start
                     // }
                     // exit:
 
-#if DEBUG
-                    int stackSize = _evalStack.Count;
-#endif
-                    _evalStack.Push(getLoopControlVariableReference(forceImplicit: true));
+                    EvalStackFrame frame = PushStackFrame();
+                    PushOperand(visitLoopControlVariableReference(forceImplicit: true));
 
                     IOperation condition = tryCallObjectForLoopControlHelper(operation.LimitValue.Syntax,
                                                                              WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
-#if DEBUG
-                    Debug.Assert(stackSize == _evalStack.Count);
-#endif
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
-                    LinkBlocks(CurrentBasicBlock, bodyBlock);
-                    _currentBasicBlock = null;
+                    ConditionalBranch(condition, jumpIfTrue: false, @break);
+                    UnconditionalBranch(bodyBlock);
+
+                    PopStackFrameAndLeaveRegion(frame);
                     return;
                 }
                 else if (userDefinedInfo != null)
@@ -3884,31 +4850,33 @@ oneMoreTime:
                     Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
                     // Generate If(positiveFlag, controlVariable <= limit, controlVariable >= limit)
+                    EvalStackFrame frame = PushStackFrame();
 
                     // Spill control variable reference, we are going to have branches here.
-                    int captureId = _captureIdDispenser.GetNextId();
-                    IOperation controlVariableReferenceForCondition = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to evaluate it again
-                    CaptureResultIfNotAlready(controlVariableReferenceForCondition.Syntax, captureId, controlVariableReferenceForCondition);
-                    controlVariableReferenceForCondition = GetCaptureReference(captureId, controlVariableReferenceForCondition);
+                    PushOperand(visitLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
+                    SpillEvalStack();
+                    IOperation controlVariableReferenceForCondition = PopOperand();
 
                     var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(positiveFlag, null), jumpIfTrue: false, RegularBranch(notPositive));
+                    Debug.Assert(positiveFlag is not null);
+                    ConditionalBranch(positiveFlag, jumpIfTrue: false, notPositive);
                     _currentBasicBlock = null;
 
                     _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceForCondition;
                     _forToLoopBinaryOperatorRightOperand = GetCaptureReference(limitValueId, operation.LimitValue);
 
-                    VisitConditionalBranch(userDefinedInfo.LessThanOrEqual.Value, ref @break, sense: false);
-                    LinkBlocks(CurrentBasicBlock, bodyBlock);
+                    VisitConditionalBranch(userDefinedInfo.LessThanOrEqual, ref @break, jumpIfTrue: false);
+                    UnconditionalBranch(bodyBlock);
 
                     AppendNewBlock(notPositive);
 
                     _forToLoopBinaryOperatorLeftOperand = OperationCloner.CloneOperation(_forToLoopBinaryOperatorLeftOperand);
                     _forToLoopBinaryOperatorRightOperand = OperationCloner.CloneOperation(_forToLoopBinaryOperatorRightOperand);
 
-                    VisitConditionalBranch(userDefinedInfo.GreaterThanOrEqual.Value, ref @break, sense: false);
-                    LinkBlocks(CurrentBasicBlock, bodyBlock);
-                    _currentBasicBlock = null;
+                    VisitConditionalBranch(userDefinedInfo.GreaterThanOrEqual, ref @break, jumpIfTrue: false);
+                    UnconditionalBranch(bodyBlock);
+
+                    PopStackFrameAndLeaveRegion(frame);
 
                     _forToLoopBinaryOperatorLeftOperand = null;
                     _forToLoopBinaryOperatorRightOperand = null;
@@ -3916,7 +4884,9 @@ oneMoreTime:
                 }
                 else
                 {
-                    IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
+                    EvalStackFrame frame = PushStackFrame();
+
+                    PushOperand(visitLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
                     IOperation limitReference = GetCaptureReference(limitValueId, operation.LimitValue);
                     var comparisonKind = BinaryOperatorKind.None;
 
@@ -3925,24 +4895,16 @@ oneMoreTime:
                     {
                         comparisonKind = BinaryOperatorKind.LessThanOrEqual;
                     }
-                    else if (operation.StepValue.ConstantValue.HasValue)
+                    else if (operation.StepValue.GetConstantValue() is { IsBad: false } value)
                     {
-                        // Up/Down for numeric constants is also simple 
-                        object value = operation.StepValue.ConstantValue.Value;
-                        ConstantValueTypeDiscriminator discriminator = ConstantValue.GetDiscriminator(stepEnumUnderlyingTypeOrSelf.SpecialType);
-
-                        if (value != null && discriminator != ConstantValueTypeDiscriminator.Bad)
+                        Debug.Assert(value.Discriminator != ConstantValueTypeDiscriminator.Bad);
+                        if (value.IsNegativeNumeric)
                         {
-                            var constStep = ConstantValue.Create(value, discriminator);
-
-                            if (constStep.IsNegativeNumeric)
-                            {
-                                comparisonKind = BinaryOperatorKind.GreaterThanOrEqual;
-                            }
-                            else if (constStep.IsNumeric)
-                            {
-                                comparisonKind = BinaryOperatorKind.LessThanOrEqual;
-                            }
+                            comparisonKind = BinaryOperatorKind.GreaterThanOrEqual;
+                        }
+                        else if (value.IsNumeric)
+                        {
+                            comparisonKind = BinaryOperatorKind.LessThanOrEqual;
                         }
                     }
 
@@ -3952,7 +4914,7 @@ oneMoreTime:
                     if (comparisonKind == BinaryOperatorKind.None && ITypeSymbolHelpers.IsSignedIntegralType(stepEnumUnderlyingTypeOrSelf))
                     {
                         comparisonKind = BinaryOperatorKind.LessThanOrEqual;
-                        controlVariableReferenceforCondition = negateIfStepNegative(controlVariableReferenceforCondition);
+                        PushOperand(negateIfStepNegative(PopOperand()));
                         limitReference = negateIfStepNegative(limitReference);
                     }
 
@@ -3960,8 +4922,8 @@ oneMoreTime:
 
                     if (comparisonKind != BinaryOperatorKind.None)
                     {
-                        condition = new BinaryOperatorExpression(comparisonKind,
-                                                                 controlVariableReferenceforCondition,
+                        condition = new BinaryOperation(comparisonKind,
+                                                                 PopOperand(),
                                                                  limitReference,
                                                                  isLifted: false,
                                                                  isChecked: false,
@@ -3971,32 +4933,34 @@ oneMoreTime:
                                                                  semanticModel: null,
                                                                  operation.LimitValue.Syntax,
                                                                  booleanType,
-                                                                 constantValue: default,
+                                                                 constantValue: null,
                                                                  isImplicit: true);
 
-                        LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
-                        LinkBlocks(CurrentBasicBlock, bodyBlock);
-                        _currentBasicBlock = null;
+                        ConditionalBranch(condition, jumpIfTrue: false, @break);
+                        UnconditionalBranch(bodyBlock);
+
+                        PopStackFrameAndLeaveRegion(frame);
                         return;
                     }
 
                     if (positiveFlag == null)
                     {
                         // Must be an error case.
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, controlVariableReferenceforCondition, limitReference);
-                        LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
-                        LinkBlocks(CurrentBasicBlock, bodyBlock);
-                        _currentBasicBlock = null;
+                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, PopOperand(), limitReference);
+                        ConditionalBranch(condition, jumpIfTrue: false, @break);
+                        UnconditionalBranch(bodyBlock);
+
+                        PopStackFrameAndLeaveRegion(frame);
                         return;
                     }
 
-                    IOperation eitherLimitOrControlVariableIsNull = null;
+                    IOperation? eitherLimitOrControlVariableIsNull = null;
 
                     if (ITypeSymbolHelpers.IsNullableType(operation.LimitValue.Type))
                     {
-                        eitherLimitOrControlVariableIsNull = new BinaryOperatorExpression(BinaryOperatorKind.Or,
+                        eitherLimitOrControlVariableIsNull = new BinaryOperation(BinaryOperatorKind.Or,
                                                                                           MakeIsNullOperation(limitReference, booleanType),
-                                                                                          MakeIsNullOperation(controlVariableReferenceforCondition, booleanType),
+                                                                                          MakeIsNullOperation(PopOperand(), booleanType),
                                                                                           isLifted: false,
                                                                                           isChecked: false,
                                                                                           isCompareText: false,
@@ -4005,38 +4969,36 @@ oneMoreTime:
                                                                                           semanticModel: null,
                                                                                           operation.StepValue.Syntax,
                                                                                           _compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                                                          constantValue: default,
+                                                                                          constantValue: null,
                                                                                           isImplicit: true);
 
                         // if either limit or control variable is null, we exit the loop
                         var whenBothNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                        LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(eitherLimitOrControlVariableIsNull, null), jumpIfTrue: false, RegularBranch(whenBothNotNull));
-                        LinkBlocks(CurrentBasicBlock, @break);
+                        ConditionalBranch(eitherLimitOrControlVariableIsNull, jumpIfTrue: false, whenBothNotNull);
+                        UnconditionalBranch(@break);
+
+                        PopStackFrameAndLeaveRegion(frame);
+
                         AppendNewBlock(whenBothNotNull);
 
-                        controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
-                        limitReference = GetCaptureReference(limitValueId, operation.LimitValue);
+                        frame = PushStackFrame();
 
-                        Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceforCondition.Type));
-                        controlVariableReferenceforCondition = UnwrapNullableValue(controlVariableReferenceforCondition);
-                        limitReference = UnwrapNullableValue(limitReference);
+                        PushOperand(CallNullableMember(visitLoopControlVariableReference(forceImplicit: true), SpecialMember.System_Nullable_T_GetValueOrDefault)); // Yes we are going to evaluate it again
+                        limitReference = CallNullableMember(GetCaptureReference(limitValueId, operation.LimitValue), SpecialMember.System_Nullable_T_GetValueOrDefault);
                     }
 
                     // If (positiveFlag, ctrl <= limit, ctrl >= limit)
 
-                    if (controlVariableReferenceforCondition.Kind != OperationKind.FlowCaptureReference)
-                    {
-                        int captureId = _captureIdDispenser.GetNextId();
-                        AddStatement(new FlowCapture(captureId, controlVariableReferenceforCondition.Syntax, controlVariableReferenceforCondition));
-                        controlVariableReferenceforCondition = GetCaptureReference(captureId, controlVariableReferenceforCondition);
-                    }
+                    SpillEvalStack();
+
+                    IOperation controlVariableReferenceforCondition = PopOperand();
 
                     var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(positiveFlag, null), jumpIfTrue: false, RegularBranch(notPositive));
+                    ConditionalBranch(positiveFlag, jumpIfTrue: false, notPositive);
                     _currentBasicBlock = null;
 
-                    condition = new BinaryOperatorExpression(BinaryOperatorKind.LessThanOrEqual,
+                    condition = new BinaryOperation(BinaryOperatorKind.LessThanOrEqual,
                                                              controlVariableReferenceforCondition,
                                                              limitReference,
                                                              isLifted: false,
@@ -4047,15 +5009,15 @@ oneMoreTime:
                                                              semanticModel: null,
                                                              operation.LimitValue.Syntax,
                                                              booleanType,
-                                                             constantValue: default,
+                                                             constantValue: null,
                                                              isImplicit: true);
 
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
-                    LinkBlocks(CurrentBasicBlock, bodyBlock);
+                    ConditionalBranch(condition, jumpIfTrue: false, @break);
+                    UnconditionalBranch(bodyBlock);
 
                     AppendNewBlock(notPositive);
 
-                    condition = new BinaryOperatorExpression(BinaryOperatorKind.GreaterThanOrEqual,
+                    condition = new BinaryOperation(BinaryOperatorKind.GreaterThanOrEqual,
                                                              OperationCloner.CloneOperation(controlVariableReferenceforCondition),
                                                              OperationCloner.CloneOperation(limitReference),
                                                              isLifted: false,
@@ -4066,12 +5028,13 @@ oneMoreTime:
                                                              semanticModel: null,
                                                              operation.LimitValue.Syntax,
                                                              booleanType,
-                                                             constantValue: default,
+                                                             constantValue: null,
                                                              isImplicit: true);
 
-                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
-                    LinkBlocks(CurrentBasicBlock, bodyBlock);
-                    _currentBasicBlock = null;
+                    ConditionalBranch(condition, jumpIfTrue: false, @break);
+                    UnconditionalBranch(bodyBlock);
+
+                    PopStackFrameAndLeaveRegion(frame);
                     return;
                 }
 
@@ -4084,10 +5047,10 @@ oneMoreTime:
             {
                 int bits = stepEnumUnderlyingTypeOrSelf.SpecialType.VBForToShiftBits();
 
-                var shiftConst = new LiteralExpression(semanticModel: null, operand.Syntax, _compilation.GetSpecialType(SpecialType.System_Int32),
-                                                       constantValue: bits, isImplicit: true);
+                var shiftConst = new LiteralOperation(semanticModel: null, operand.Syntax, _compilation.GetSpecialType(SpecialType.System_Int32),
+                                                       constantValue: ConstantValue.Create(bits), isImplicit: true);
 
-                var shiftedStep = new BinaryOperatorExpression(BinaryOperatorKind.RightShift,
+                var shiftedStep = new BinaryOperation(BinaryOperatorKind.RightShift,
                                                                GetCaptureReference(stepValueId, operation.StepValue),
                                                                shiftConst,
                                                                isLifted: false,
@@ -4098,10 +5061,10 @@ oneMoreTime:
                                                                semanticModel: null,
                                                                operand.Syntax,
                                                                operation.StepValue.Type,
-                                                               constantValue: default,
+                                                               constantValue: null,
                                                                isImplicit: true);
 
-                return new BinaryOperatorExpression(BinaryOperatorKind.ExclusiveOr,
+                return new BinaryOperation(BinaryOperatorKind.ExclusiveOr,
                                                     shiftedStep,
                                                     operand,
                                                     isLifted: false,
@@ -4112,7 +5075,7 @@ oneMoreTime:
                                                     semanticModel: null,
                                                     operand.Syntax,
                                                     operand.Type,
-                                                    constantValue: default,
+                                                    constantValue: null,
                                                     isImplicit: true);
             }
 
@@ -4128,29 +5091,32 @@ oneMoreTime:
                     Debug.Assert(_forToLoopBinaryOperatorLeftOperand == null);
                     Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
-                    IOperation controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
+                    EvalStackFrame frame = PushStackFrame();
+                    IOperation controlVariableReferenceForAssignment = visitLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
 
                     // We are going to evaluate control variable again and that might require branches
-                    _evalStack.Push(controlVariableReferenceForAssignment);
+                    PushOperand(controlVariableReferenceForAssignment);
 
                     // Generate: controlVariable + stepValue
-                    _forToLoopBinaryOperatorLeftOperand = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
+                    _forToLoopBinaryOperatorLeftOperand = visitLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     _forToLoopBinaryOperatorRightOperand = GetCaptureReference(stepValueId, operation.StepValue);
 
-                    IOperation increment = Visit(userDefinedInfo.Addition.Value);
+                    IOperation increment = VisitRequired(userDefinedInfo.Addition);
 
                     _forToLoopBinaryOperatorLeftOperand = null;
                     _forToLoopBinaryOperatorRightOperand = null;
 
-                    controlVariableReferenceForAssignment = _evalStack.Pop();
-                    AddStatement(new SimpleAssignmentExpression(controlVariableReferenceForAssignment,
-                                                                isRef: false,
-                                                                increment,
-                                                                semanticModel: null,
-                                                                controlVariableReferenceForAssignment.Syntax,
-                                                                type: null,
-                                                                constantValue: default,
-                                                                isImplicit: true));
+                    controlVariableReferenceForAssignment = PopOperand();
+                    AddStatement(new SimpleAssignmentOperation(isRef: false,
+                        controlVariableReferenceForAssignment,
+                        increment,
+                        semanticModel: null,
+                        controlVariableReferenceForAssignment.Syntax,
+                        type: null,
+                        constantValue: null,
+                        isImplicit: true));
+
+                    PopStackFrameAndLeaveRegion(frame);
                 }
                 else
                 {
@@ -4158,19 +5124,20 @@ oneMoreTime:
                     IOperation controlVariableReferenceForAssignment;
                     bool isNullable = ITypeSymbolHelpers.IsNullableType(operation.StepValue.Type);
 
+                    EvalStackFrame frame = PushStackFrame();
+                    PushOperand(visitLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
+
                     if (isNullable)
                     {
                         // Spill control variable reference, we are going to have branches here.
-                        int captureId = _captureIdDispenser.GetNextId();
-                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to evaluate it again
-                        CaptureResultIfNotAlready(controlVariableReferenceForAssignment.Syntax, captureId, controlVariableReferenceForAssignment);
-                        controlVariableReferenceForAssignment = GetCaptureReference(captureId, controlVariableReferenceForAssignment);
+                        SpillEvalStack();
 
                         BasicBlockBuilder whenNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                        IOperation condition = new BinaryOperatorExpression(BinaryOperatorKind.Or,
+                        EvalStackFrame nullCheckFrame = PushStackFrame();
+                        IOperation condition = new BinaryOperation(BinaryOperatorKind.Or,
                                                                             MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType),
-                                                                            MakeIsNullOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                            MakeIsNullOperation(visitLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
                                                                                                 booleanType),
                                                                             isLifted: false,
                                                                             isChecked: false,
@@ -4180,51 +5147,46 @@ oneMoreTime:
                                                                             semanticModel: null,
                                                                             operation.StepValue.Syntax,
                                                                             _compilation.GetSpecialType(SpecialType.System_Boolean),
-                                                                            constantValue: default,
+                                                                            constantValue: null,
                                                                             isImplicit: true);
 
-                        condition = Operation.SetParentOperation(condition, null);
-                        LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(whenNotNull));
+                        ConditionalBranch(condition, jumpIfTrue: false, whenNotNull);
                         _currentBasicBlock = null;
 
-                        AddStatement(new SimpleAssignmentExpression(controlVariableReferenceForAssignment,
-                                                                    isRef: false,
-                                                                    new DefaultValueExpression(semanticModel: null,
-                                                                                               controlVariableReferenceForAssignment.Syntax,
-                                                                                               controlVariableReferenceForAssignment.Type, 
-                                                                                               constantValue: default,
-                                                                                               isImplicit: true), 
-                                                                    semanticModel: null,
-                                                                    controlVariableReferenceForAssignment.Syntax, 
-                                                                    type: null, 
-                                                                    constantValue: default, 
-                                                                    isImplicit: true));
+                        PopStackFrameAndLeaveRegion(nullCheckFrame);
 
-                        LinkBlocks(CurrentBasicBlock, afterIncrement);
+                        controlVariableReferenceForAssignment = OperationCloner.CloneOperation(PeekOperand());
+                        Debug.Assert(controlVariableReferenceForAssignment.Kind == OperationKind.FlowCaptureReference);
+
+                        AddStatement(new SimpleAssignmentOperation(isRef: false,
+                            controlVariableReferenceForAssignment,
+                            new DefaultValueOperation(semanticModel: null,
+                                controlVariableReferenceForAssignment.Syntax,
+                                controlVariableReferenceForAssignment.Type,
+                                constantValue: null,
+                                isImplicit: true),
+                            semanticModel: null,
+                            controlVariableReferenceForAssignment.Syntax,
+                            type: null,
+                            constantValue: null,
+                            isImplicit: true));
+
+                        UnconditionalBranch(afterIncrement);
 
                         AppendNewBlock(whenNotNull);
-
-                        controlVariableReferenceForAssignment = GetCaptureReference(captureId, controlVariableReferenceForAssignment);
-                    }
-                    else
-                    {
-                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     }
 
-                    // We are going to evaluate control variable again and that might require branches
-                    _evalStack.Push(controlVariableReferenceForAssignment);
-
-                    IOperation controlVariableReferenceForIncrement = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
+                    IOperation controlVariableReferenceForIncrement = visitLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     IOperation stepValueForIncrement = GetCaptureReference(stepValueId, operation.StepValue);
 
                     if (isNullable)
                     {
                         Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceForIncrement.Type));
-                        controlVariableReferenceForIncrement = UnwrapNullableValue(controlVariableReferenceForIncrement);
-                        stepValueForIncrement = UnwrapNullableValue(stepValueForIncrement);
+                        controlVariableReferenceForIncrement = CallNullableMember(controlVariableReferenceForIncrement, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                        stepValueForIncrement = CallNullableMember(stepValueForIncrement, SpecialMember.System_Nullable_T_GetValueOrDefault);
                     }
 
-                    IOperation increment = new BinaryOperatorExpression(BinaryOperatorKind.Add,
+                    IOperation increment = new BinaryOperation(BinaryOperatorKind.Add,
                                                                         controlVariableReferenceForIncrement,
                                                                         stepValueForIncrement,
                                                                         isLifted: false,
@@ -4235,29 +5197,33 @@ oneMoreTime:
                                                                         semanticModel: null,
                                                                         operation.StepValue.Syntax,
                                                                         controlVariableReferenceForIncrement.Type,
-                                                                        constantValue: default,
+                                                                        constantValue: null,
                                                                         isImplicit: true);
+
+                    controlVariableReferenceForAssignment = PopOperand();
 
                     if (isNullable)
                     {
+                        Debug.Assert(controlVariableReferenceForAssignment.Type != null);
                         increment = MakeNullable(increment, controlVariableReferenceForAssignment.Type);
                     }
 
-                    controlVariableReferenceForAssignment = _evalStack.Pop();
-                    AddStatement(new SimpleAssignmentExpression(controlVariableReferenceForAssignment,
-                                                                isRef: false,
-                                                                increment,
-                                                                semanticModel: null,
-                                                                controlVariableReferenceForAssignment.Syntax,
-                                                                type: null,
-                                                                constantValue: default,
-                                                                isImplicit: true));
+                    AddStatement(new SimpleAssignmentOperation(isRef: false,
+                        controlVariableReferenceForAssignment,
+                        increment,
+                        semanticModel: null,
+                        controlVariableReferenceForAssignment.Syntax,
+                        type: null,
+                        constantValue: null,
+                        isImplicit: true));
 
+                    PopStackFrame(frame, mergeNestedRegions: !isNullable); // We have a branch out in between when nullable is involved
+                    LeaveRegionIfAny(frame);
                     AppendNewBlock(afterIncrement);
                 }
             }
 
-            IOperation getLoopControlVariableReference(bool forceImplicit, int? captureIdForReference = null)
+            IOperation visitLoopControlVariableReference(bool forceImplicit)
             {
                 switch (operation.LoopControlVariable.Kind)
                 {
@@ -4265,51 +5231,49 @@ oneMoreTime:
                         var declarator = (IVariableDeclaratorOperation)operation.LoopControlVariable;
                         ILocalSymbol local = declarator.Symbol;
 
-                        return new LocalReferenceExpression(local, isDeclaration: true, semanticModel: null,
-                                                            declarator.Syntax, local.Type, constantValue: default, isImplicit: true);
+                        return new LocalReferenceOperation(local, isDeclaration: true, semanticModel: null,
+                                                            declarator.Syntax, local.Type, constantValue: null, isImplicit: true);
 
                     default:
                         Debug.Assert(!_forceImplicit);
                         _forceImplicit = forceImplicit;
-                        IOperation result = Visit(operation.LoopControlVariable, captureIdForReference);
+                        IOperation result = VisitRequired(operation.LoopControlVariable);
                         _forceImplicit = false;
                         return result;
                 }
             }
         }
 
-        private static FlowCaptureReference GetCaptureReference(int id, IOperation underlying)
+        private static FlowCaptureReferenceOperation GetCaptureReference(int id, IOperation underlying)
         {
-            return new FlowCaptureReference(id, underlying.Syntax, underlying.Type, underlying.ConstantValue);
+            return new FlowCaptureReferenceOperation(id, underlying.Syntax, underlying.Type, underlying.GetConstantValue());
         }
 
         internal override IOperation VisitAggregateQuery(IAggregateQueryOperation operation, int? captureIdForResult)
         {
             SpillEvalStack();
 
-            int groupCaptureId = VisitAndCapture(operation.Group);
+            IOperation? previousAggregationGroup = _currentAggregationGroup;
+            _currentAggregationGroup = VisitAndCapture(operation.Group);
 
-            IOperation previousAggregationGroup = _currentAggregationGroup;
-            _currentAggregationGroup = GetCaptureReference(groupCaptureId, operation.Group);
-
-            IOperation result = Visit(operation.Aggregation);
+            IOperation result = VisitRequired(operation.Aggregation);
 
             _currentAggregationGroup = previousAggregationGroup;
             return result;
         }
 
-        public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
+        public override IOperation? VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
-            int expressionCaptureId = VisitAndCapture(operation.Value);
-            FlowCaptureReference switchValue = GetCaptureReference(expressionCaptureId, operation.Value);
+            IOperation switchValue = VisitAndCapture(operation.Value);
 
             ImmutableArray<ILocalSymbol> locals = getLocals();
-            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
+            var switchRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
+            EnterRegion(switchRegion);
 
-            BasicBlockBuilder defaultBody = null; // Adjusted in handleSection
+            BasicBlockBuilder? defaultBody = null; // Adjusted in handleSection
             BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
 
             foreach (ISwitchCaseOperation section in operation.Cases)
@@ -4317,9 +5281,10 @@ oneMoreTime:
                 handleSection(section);
             }
 
+            Debug.Assert(_currentRegion == switchRegion);
             if (defaultBody != null)
             {
-                LinkBlocks(CurrentBasicBlock, defaultBody); 
+                UnconditionalBranch(defaultBody);
             }
 
             LeaveRegion();
@@ -4344,13 +5309,13 @@ oneMoreTime:
                 var body = new BasicBlockBuilder(BasicBlockKind.Block);
                 var nextSection = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                IOperation condition = ((BaseSwitchCase)section).Condition;
+                IOperation? condition = ((SwitchCaseOperation)section).Condition;
                 if (condition != null)
                 {
                     Debug.Assert(section.Clauses.All(c => c.Label == null));
                     Debug.Assert(_currentSwitchOperationExpression == null);
                     _currentSwitchOperationExpression = switchValue;
-                    VisitConditionalBranch(condition, ref nextSection, sense: false);
+                    VisitConditionalBranch(condition, ref nextSection, jumpIfTrue: false);
                     _currentSwitchOperationExpression = null;
                 }
                 else
@@ -4362,19 +5327,19 @@ oneMoreTime:
                         AppendNewBlock(nextCase);
                     }
 
-                    LinkBlocks(CurrentBasicBlock, nextSection);
+                    UnconditionalBranch(nextSection);
                 }
 
                 AppendNewBlock(body);
 
                 VisitStatements(section.Body);
 
-                LinkBlocks(CurrentBasicBlock, @break);
+                UnconditionalBranch(@break);
 
                 AppendNewBlock(nextSection);
             }
 
-            void handleCase(ICaseClauseOperation caseClause, BasicBlockBuilder body, BasicBlockBuilder nextCase)
+            void handleCase(ICaseClauseOperation caseClause, BasicBlockBuilder body, [DisallowNull] BasicBlockBuilder? nextCase)
             {
                 IOperation condition;
                 BasicBlockBuilder labeled = GetLabeledOrNewBlock(caseClause.Label);
@@ -4391,8 +5356,11 @@ oneMoreTime:
                             bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
                             bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(compareWith.Type);
                             bool isLifted = leftIsNullable || rightIsNullable;
-                            IOperation leftOperand = OperationCloner.CloneOperation(switchValue);
-                            IOperation rightOperand = Visit(compareWith);
+
+                            EvalStackFrame frame = PushStackFrame();
+                            PushOperand(OperationCloner.CloneOperation(switchValue));
+                            IOperation rightOperand = VisitRequired(compareWith);
+                            IOperation leftOperand = PopOperand();
 
                             if (isLifted)
                             {
@@ -4400,16 +5368,18 @@ oneMoreTime:
                                 {
                                     if (leftOperand.Type != null)
                                     {
+                                        Debug.Assert(compareWith.Type != null);
                                         leftOperand = MakeNullable(leftOperand, compareWith.Type);
                                     }
                                 }
                                 else if (!rightIsNullable && rightOperand.Type != null)
                                 {
+                                    Debug.Assert(operation.Value.Type != null);
                                     rightOperand = MakeNullable(rightOperand, operation.Value.Type);
                                 }
                             }
 
-                            condition = new BinaryOperatorExpression(BinaryOperatorKind.Equals,
+                            condition = new BinaryOperation(BinaryOperatorKind.Equals,
                                                                      leftOperand,
                                                                      rightOperand,
                                                                      isLifted,
@@ -4420,31 +5390,39 @@ oneMoreTime:
                                                                      semanticModel: null,
                                                                      compareWith.Syntax,
                                                                      booleanType,
-                                                                     constantValue: default,
+                                                                     constantValue: null,
                                                                      isImplicit: true);
 
-                            condition = Operation.SetParentOperation(condition, null);
-                            LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
+                            ConditionalBranch(condition, jumpIfTrue: false, nextCase);
+
+                            PopStackFrameAndLeaveRegion(frame);
+
                             AppendNewBlock(labeled);
                             _currentBasicBlock = null;
                         }
 
                     case CaseKind.Pattern:
-                        var patternClause = (IPatternCaseClauseOperation)caseClause;
-
-                        condition = new IsPatternExpression(OperationCloner.CloneOperation(switchValue), Visit(patternClause.Pattern), semanticModel: null,
-                                                            patternClause.Pattern.Syntax, booleanType, constantValue: default, isImplicit: true);
-                        condition = Operation.SetParentOperation(condition, null);
-                        LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
-
-                        if (patternClause.Guard != null)
                         {
-                            AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
-                            VisitConditionalBranch(patternClause.Guard, ref nextCase, sense: false);
-                        }
+                            var patternClause = (IPatternCaseClauseOperation)caseClause;
 
-                        AppendNewBlock(labeled);
-                        _currentBasicBlock = null;
+                            EvalStackFrame frame = PushStackFrame();
+                            PushOperand(OperationCloner.CloneOperation(switchValue));
+                            var pattern = (IPatternOperation)VisitRequired(patternClause.Pattern);
+                            condition = new IsPatternOperation(PopOperand(), pattern, semanticModel: null,
+                                                               patternClause.Pattern.Syntax, booleanType, isImplicit: true);
+                            ConditionalBranch(condition, jumpIfTrue: false, nextCase);
+
+                            PopStackFrameAndLeaveRegion(frame);
+
+                            if (patternClause.Guard != null)
+                            {
+                                AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
+                                VisitConditionalBranch(patternClause.Guard, ref nextCase, jumpIfTrue: false);
+                            }
+
+                            AppendNewBlock(labeled);
+                            _currentBasicBlock = null;
+                        }
                         break;
 
                     case CaseKind.Relational:
@@ -4456,7 +5434,7 @@ oneMoreTime:
                             break;
                         }
 
-                        // A switch section with a relational case other than an equality must have 
+                        // A switch section with a relational case other than an equality must have
                         // a condition associated with it. This point should not be reachable.
                         throw ExceptionUtilities.UnexpectedValue(relationalValueClause.Relation);
 
@@ -4467,16 +5445,16 @@ oneMoreTime:
                             defaultBody = labeled;
                         }
 
-                        // 'default' clause is never entered from the top, we'll jump back to it after all 
+                        // 'default' clause is never entered from the top, we'll jump back to it after all
                         // sections are processed.
-                        LinkBlocks(CurrentBasicBlock, nextCase);
+                        UnconditionalBranch(nextCase);
                         AppendNewBlock(labeled);
                         _currentBasicBlock = null;
                         break;
 
                     case CaseKind.Range:
-                        // A switch section with a range case must have a condition associated with it.
-                        // This point should not be reachable.
+                    // A switch section with a range case must have a condition associated with it.
+                    // This point should not be reachable.
                     default:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
@@ -4493,7 +5471,7 @@ oneMoreTime:
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable; 
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitSingleValueCaseClause(ISingleValueCaseClauseOperation operation, int? captureIdForResult)
@@ -4521,7 +5499,7 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
+        public override IOperation? VisitEnd(IEndOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             BasicBlockBuilder current = CurrentBasicBlock;
@@ -4534,7 +5512,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
+        public override IOperation? VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -4577,7 +5555,7 @@ oneMoreTime:
             var @break = GetLabeledOrNewBlock(operation.ExitLabel);
             if (operation.Condition != null)
             {
-                VisitConditionalBranch(operation.Condition, ref @break, sense: false);
+                VisitConditionalBranch(operation.Condition, ref @break, jumpIfTrue: false);
             }
 
             VisitStatement(operation.Body);
@@ -4587,7 +5565,7 @@ oneMoreTime:
 
             VisitStatements(operation.AtLoopBottom);
 
-            LinkBlocks(CurrentBasicBlock, start);
+            UnconditionalBranch(start);
 
             LeaveRegion(); // ConditionLocals
             LeaveRegion(); // Locals
@@ -4597,7 +5575,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
+        internal override IOperation? VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
@@ -4610,7 +5588,7 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
+        public override IOperation? VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
             // this should only be encountered by the visitor for declaration statements.
@@ -4640,26 +5618,31 @@ oneMoreTime:
 
         private void HandleVariableDeclarator(IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator)
         {
+            if (declarator.Initializer == null && declaration.Initializer == null)
+            {
+                return;
+            }
+
             ILocalSymbol localSymbol = declarator.Symbol;
 
             // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
-            BasicBlockBuilder afterInitialization = null;
-            if (localSymbol.IsStatic && (declarator.Initializer != null || declaration.Initializer != null))
+            BasicBlockBuilder? afterInitialization = null;
+            if (localSymbol.IsStatic)
             {
                 afterInitialization = new BasicBlockBuilder(BasicBlockKind.Block);
 
                 ITypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
                 var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);
-                Operation.SetParentOperation(initializationSemaphore, null);
-
-                LinkBlocks(CurrentBasicBlock, initializationSemaphore, jumpIfTrue: false, RegularBranch(afterInitialization));
+                ConditionalBranch(initializationSemaphore, jumpIfTrue: false, afterInitialization);
 
                 _currentBasicBlock = null;
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.StaticLocalInitializer));
             }
 
-            IOperation initializer = null;
-            SyntaxNode assignmentSyntax = null;
+            EvalStackFrame frame = PushStackFrame();
+
+            IOperation? initializer = null;
+            SyntaxNode? assignmentSyntax = null;
             if (declarator.Initializer != null)
             {
                 initializer = Visit(declarator.Initializer.Value);
@@ -4668,7 +5651,7 @@ oneMoreTime:
 
             if (declaration.Initializer != null)
             {
-                IOperation operationInitializer = Visit(declaration.Initializer.Value);
+                IOperation operationInitializer = VisitRequired(declaration.Initializer.Value);
                 assignmentSyntax = declaration.Syntax;
                 if (initializer != null)
                 {
@@ -4676,7 +5659,7 @@ oneMoreTime:
                                                         semanticModel: null,
                                                         declaration.Syntax,
                                                         type: localSymbol.Type,
-                                                        constantValue: default,
+                                                        constantValue: null,
                                                         isImplicit: true);
                 }
                 else
@@ -4685,22 +5668,23 @@ oneMoreTime:
                 }
             }
 
+            Debug.Assert(initializer != null && assignmentSyntax != null);
+
             // If we have an afterInitialization, then we must have static local and an initializer to ensure we don't create empty regions that can't be cleaned up.
-            Debug.Assert(afterInitialization == null || (localSymbol.IsStatic && initializer != null));
+            Debug.Assert((afterInitialization, localSymbol.IsStatic) is (null, false) or (not null, true));
 
-            if (initializer != null)
+            // We can't use the IdentifierToken as the syntax for the local reference, so we use the
+            // entire declarator as the node
+            var localRef = new LocalReferenceOperation(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: null, isImplicit: true);
+            var assignment = new SimpleAssignmentOperation(isRef: localSymbol.IsRef, localRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: null, isImplicit: true);
+            AddStatement(assignment);
+
+            PopStackFrameAndLeaveRegion(frame);
+
+            if (localSymbol.IsStatic)
             {
-                // We can't use the IdentifierToken as the syntax for the local reference, so we use the
-                // entire declarator as the node
-                var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
-                var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
-                AddStatement(assignment);
-
-                if (localSymbol.IsStatic)
-                {
-                    LeaveRegion();
-                    AppendNewBlock(afterInitialization);
-                }
+                LeaveRegion();
+                AppendNewBlock(afterInitialization!);
             }
         }
 
@@ -4744,76 +5728,104 @@ oneMoreTime:
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
-            IOperation instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
-            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
-            return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
-                                            operation.Type, operation.ConstantValue, IsImplicit(operation));
+            EvalStackFrame frame = PushStackFrame();
+            IOperation? instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
+            (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
+            PopStackFrame(frame);
+            return new InvocationOperation(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
+                                           operation.Type, IsImplicit(operation));
         }
 
-        private (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation instance, ImmutableArray<IArgumentOperation> arguments)
+        public override IOperation? VisitFunctionPointerInvocation(IFunctionPointerInvocationOperation operation, int? argument)
         {
-            if (instance != null)
+            EvalStackFrame frame = PushStackFrame();
+            var target = operation.Target;
+            var (visitedPointer, visitedArguments) = handlePointerAndArguments(target, operation.Arguments);
+            PopStackFrame(frame);
+            return new FunctionPointerInvocationOperation(visitedPointer, visitedArguments, semanticModel: null, operation.Syntax,
+                                           operation.Type, IsImplicit(operation));
+
+            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) handlePointerAndArguments(
+                IOperation targetPointer, ImmutableArray<IArgumentOperation> arguments)
             {
-                _evalStack.Push(Visit(instance));
+                PushOperand(VisitRequired(targetPointer));
+
+                ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments, instancePushed: false);
+                IOperation visitedInstance = PopOperand();
+
+                return (visitedInstance, visitedArguments);
+            }
+        }
+
+        private (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
+        {
+            bool hasInstance = instance != null;
+            if (hasInstance)
+            {
+                PushOperand(VisitRequired(instance!));
             }
 
-            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
-            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments, instancePushed: hasInstance);
+            IOperation? visitedInstance = hasInstance ? PopOperand() : null;
 
             return (visitedInstance, visitedArguments);
         }
 
         internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, int? argument)
         {
+            EvalStackFrame frame = PushStackFrame();
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
-            IOperation initializedInstance = new NoPiaObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type,
-                                                                              operation.ConstantValue, IsImplicit(operation));
-            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+            IOperation initializedInstance = new NoPiaObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
 
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
         {
-            ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
-
+            EvalStackFrame frame = PushStackFrame();
+            EvalStackFrame argumentsFrame = PushStackFrame();
+            ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments, instancePushed: false);
+            PopStackFrame(argumentsFrame);
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
-            IOperation initializedInstance = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type,
-                                                                          operation.ConstantValue, IsImplicit(operation));
+            IOperation initializedInstance = new ObjectCreationOperation(operation.Constructor, initializer: null, visitedArgs, semanticModel: null,
+                                                                          operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
 
-            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
-            var initializedInstance = new TypeParameterObjectCreationExpression(initializer: null, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+            EvalStackFrame frame = PushStackFrame();
+            var initializedInstance = new TypeParameterObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
         {
+            EvalStackFrame frame = PushStackFrame();
+            EvalStackFrame argumentsFrame = PushStackFrame();
             ImmutableArray<IOperation> visitedArguments = VisitArray(operation.Arguments);
+            PopStackFrame(argumentsFrame);
 
             var hasDynamicArguments = (HasDynamicArgumentsExpression)operation;
-            IOperation initializedInstance = new DynamicObjectCreationExpression(visitedArguments, hasDynamicArguments.ArgumentNames, hasDynamicArguments.ArgumentRefKinds,
-                                                                                 initializer: null, semanticModel: null, operation.Syntax, operation.Type,
-                                                                                 operation.ConstantValue, IsImplicit(operation));
+            IOperation initializedInstance = new DynamicObjectCreationOperation(initializer: null, visitedArguments, hasDynamicArguments.ArgumentNames,
+                                                                                hasDynamicArguments.ArgumentRefKinds, semanticModel: null, operation.Syntax,
+                                                                                operation.Type, IsImplicit(operation));
 
-            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance));
         }
 
-        private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation objectCreation)
+        private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation? initializer, IOperation objectCreation)
         {
             // If the initializer is null, nothing to spill. Just return the original instance.
-            if (initializer == null)
+            if (initializer == null || initializer.Initializers.IsEmpty)
             {
                 return objectCreation;
             }
 
             // Initializer wasn't null, so spill the stack and capture the initialized instance. Returns a reference to the captured instance.
+            PushOperand(objectCreation);
             SpillEvalStack();
-
-            int initializerCaptureId = _captureIdDispenser.GetNextId();
-            AddStatement(new FlowCapture(initializerCaptureId, objectCreation.Syntax, objectCreation));
-            objectCreation = GetCaptureReference(initializerCaptureId, objectCreation);
+            objectCreation = PopOperand();
 
             visitInitializer(initializer, objectCreation);
 
@@ -4841,7 +5853,7 @@ oneMoreTime:
                         return;
 
                     case OperationKind.SimpleAssignment:
-                        AddStatement(handleSimpleAssignment((ISimpleAssignmentOperation)innerInitializer));
+                        handleSimpleAssignment((ISimpleAssignmentOperation)innerInitializer);
                         return;
 
                     default:
@@ -4851,34 +5863,43 @@ oneMoreTime:
                         // special handling in the context of a collection or object initializer before just assuming that it's fine.
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
-                                                               OperationKind.LocalReference, OperationKind.BinaryOperator, OperationKind.FieldReference, OperationKind.Invalid);
+                                                               OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
-
+                        EvalStackFrame frame = PushStackFrame();
                         AddStatement(Visit(innerInitializer));
+                        PopStackFrameAndLeaveRegion(frame);
                         return;
                 }
             }
 
-            IOperation handleSimpleAssignment(ISimpleAssignmentOperation assignmentOperation)
+            void handleSimpleAssignment(ISimpleAssignmentOperation assignmentOperation)
             {
-                (bool pushSuccess, ImmutableArray<IOperation> arguments) = tryPushTarget(assignmentOperation.Target);
+                EvalStackFrame frame = PushStackFrame();
+
+                bool pushSuccess = tryPushTarget(assignmentOperation.Target);
+                IOperation result;
 
                 if (!pushSuccess)
                 {
                     // Error case. We don't try any error recovery here, just return whatever the default visit would.
-                    return Visit(assignmentOperation);
+                    result = VisitRequired(assignmentOperation);
+                }
+                else
+                {
+                    // We push the target, which effectively pushes individual components of the target (ie the instance, and arguments if present).
+                    // After that has been pushed, we visit the value of the assignment, to ensure that the instance is captured if
+                    // needed. Finally, we reassemble the target, which will pull the potentially captured instance from the stack
+                    // and reassemble the member reference from the parts.
+                    IOperation right = VisitRequired(assignmentOperation.Value);
+                    IOperation left = popTarget(assignmentOperation.Target);
+
+                    result = new SimpleAssignmentOperation(assignmentOperation.IsRef, left, right, semanticModel: null, assignmentOperation.Syntax,
+                        assignmentOperation.Type, assignmentOperation.GetConstantValue(), IsImplicit(assignmentOperation));
                 }
 
-                // We push the target, which effectively pushes individual components of the target (ie the instance, and arguments if present).
-                // After that has been pushed, we visit the value of the assignment, to ensure that the instance is captured if
-                // needed. Finally, we reassemble the target, which will pull the potentially captured instance from the stack
-                // and reassemble the member reference from the parts.
-                IOperation right = Visit(assignmentOperation.Value);
-                IOperation left = popTarget(assignmentOperation.Target, arguments);
-
-                return new SimpleAssignmentExpression(left, assignmentOperation.IsRef, right, semanticModel: null, assignmentOperation.Syntax,
-                                                      assignmentOperation.Type, assignmentOperation.ConstantValue, IsImplicit(assignmentOperation));
+                AddStatement(result);
+                PopStackFrameAndLeaveRegion(frame);
             }
 
             void handleMemberInitializer(IMemberInitializerOperation memberInitializer)
@@ -4920,12 +5941,14 @@ oneMoreTime:
                 // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
                 // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
 
-                (bool pushSuccess, ImmutableArray<IOperation> arguments) = tryPushTarget(memberInitializer.InitializedMember);
-                IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember, arguments) : Visit(memberInitializer.InitializedMember);
+                EvalStackFrame frame = PushStackFrame();
+                bool pushSuccess = tryPushTarget(memberInitializer.InitializedMember);
+                IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember) : VisitRequired(memberInitializer.InitializedMember);
                 visitInitializer(memberInitializer.Initializer, instance);
+                PopStackFrameAndLeaveRegion(frame);
             }
 
-            (bool success, ImmutableArray<IOperation> arguments) tryPushTarget(IOperation instance)
+            bool tryPushTarget(IOperation instance)
             {
                 switch (instance.Kind)
                 {
@@ -4933,64 +5956,47 @@ oneMoreTime:
                     case OperationKind.EventReference:
                     case OperationKind.PropertyReference:
                         var memberReference = (IMemberReferenceOperation)instance;
-                        IPropertyReferenceOperation propertyReference = null;
-                        ImmutableArray<IArgumentOperation> propertyArguments = ImmutableArray<IArgumentOperation>.Empty;
 
-                        if (memberReference.Kind == OperationKind.PropertyReference &&
-                            !(propertyReference = (IPropertyReferenceOperation)memberReference).Arguments.IsEmpty)
+                        if (memberReference.Kind == OperationKind.PropertyReference)
                         {
-                            var propertyArgumentsBuilder = ArrayBuilder<IArgumentOperation>.GetInstance(propertyReference.Arguments.Length);
-                            foreach (IArgumentOperation arg in propertyReference.Arguments)
-                            {
-                                // We assume all arguments have side effects and spill them. We only avoid capturing literals, and
-                                // recapturing things that have already been captured once.
-                                IOperation value = arg.Value;
-                                int captureId = VisitAndCapture(value);
-                                IOperation capturedValue = GetCaptureReference(captureId, value);
-                                BaseArgument baseArgument = (BaseArgument)arg;
-                                propertyArgumentsBuilder.Add(new ArgumentOperation(capturedValue, arg.ArgumentKind, arg.Parameter,
-                                                                                   baseArgument.InConversionConvertibleOpt,
-                                                                                   baseArgument.OutConversionConvertibleOpt,
-                                                                                   semanticModel: null, arg.Syntax, IsImplicit(arg)));
-                            }
+                            // We assume all arguments have side effects and spill them. We only avoid recapturing things that have already been captured once.
+                            // We do not pass an instance here, as the instance is not yet available. For arguments that need the instance (such as interpolated
+                            // string handlers), they will handle the missing instance by substituting an IInvalidOperation
 
-                            propertyArguments = propertyArgumentsBuilder.ToImmutableAndFree();
+                            VisitAndPushArguments(((IPropertyReferenceOperation)memberReference).Arguments, instancePushed: false);
+                            SpillEvalStack();
                         }
-
-                        Debug.Assert((propertyReference == null && propertyArguments.IsEmpty) ||
-                                     (propertyArguments.Length == propertyReference.Arguments.Length));
 
                         // If there is control flow in the value being assigned, we want to make sure that
                         // the instance is captured appropriately, but the setter/field load in the reference will only be evaluated after
                         // the value has been evaluated. So we assemble the reference after visiting the value.
-
-                        _evalStack.Push(Visit(memberReference.Instance));
-                        return (success: true, ImmutableArray<IOperation>.CastUp(propertyArguments));
+                        if (!memberReference.Member.IsStatic && memberReference.Instance != null)
+                        {
+                            PushOperand(VisitRequired(memberReference.Instance));
+                        }
+                        return true;
 
                     case OperationKind.ArrayElementReference:
                         var arrayReference = (IArrayElementReferenceOperation)instance;
-                        ImmutableArray<IOperation> indicies = arrayReference.Indices.SelectAsArray(indexExpr =>
-                        {
-                            int captureId = VisitAndCapture(indexExpr);
-                            return (IOperation)GetCaptureReference(captureId, indexExpr);
-                        });
-                        _evalStack.Push(Visit(arrayReference.ArrayReference));
-                        return (success: true, indicies);
+                        VisitAndPushArray(arrayReference.Indices);
+                        SpillEvalStack();
+                        PushOperand(VisitRequired(arrayReference.ArrayReference));
+                        return true;
 
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicIndexer = (IDynamicIndexerAccessOperation)instance;
-                        ImmutableArray<IOperation> arguments = dynamicIndexer.Arguments.SelectAsArray(argument =>
-                        {
-                            int captureId = VisitAndCapture(argument);
-                            return (IOperation)GetCaptureReference(captureId, argument);
-                        });
-                        _evalStack.Push(Visit(dynamicIndexer.Operation));
-                        return (success: true, arguments);
+                        VisitAndPushArray(dynamicIndexer.Arguments);
+                        SpillEvalStack();
+                        PushOperand(VisitRequired(dynamicIndexer.Operation));
+                        return true;
 
                     case OperationKind.DynamicMemberReference:
                         var dynamicReference = (IDynamicMemberReferenceOperation)instance;
-                        _evalStack.Push(Visit(dynamicReference.Instance));
-                        return (success: true, arguments: ImmutableArray<IOperation>.Empty);
+                        if (dynamicReference.Instance != null)
+                        {
+                            PushOperand(VisitRequired(dynamicReference.Instance));
+                        }
+                        return true;
 
                     default:
                         // As in the assert in handleInitializer, this assert documents the operation kinds that we know go through this path,
@@ -4998,44 +6004,48 @@ oneMoreTime:
                         // that they don't have any interesting semantics in object or collection initialization contexts and add them to the
                         // assert.
                         Debug.Assert(instance.Kind == OperationKind.Invalid || instance.Kind == OperationKind.None);
-                        return (success: false, arguments: ImmutableArray<IOperation>.Empty);
+                        return false;
                 }
             }
 
-            IOperation popTarget(IOperation originalTarget, ImmutableArray<IOperation> arguments)
+            IOperation popTarget(IOperation originalTarget)
             {
-                IOperation instance = _evalStack.Pop();
+                IOperation? instance;
                 switch (originalTarget.Kind)
                 {
                     case OperationKind.FieldReference:
                         var fieldReference = (IFieldReferenceOperation)originalTarget;
-                        return new FieldReferenceExpression(fieldReference.Field, fieldReference.IsDeclaration, instance, semanticModel: null,
-                                                            fieldReference.Syntax, fieldReference.Type, fieldReference.ConstantValue, IsImplicit(fieldReference));
+                        instance = (!fieldReference.Member.IsStatic && fieldReference.Instance != null) ? PopOperand() : null;
+                        return new FieldReferenceOperation(fieldReference.Field, fieldReference.IsDeclaration, instance, semanticModel: null,
+                                                            fieldReference.Syntax, fieldReference.Type, fieldReference.GetConstantValue(), IsImplicit(fieldReference));
                     case OperationKind.EventReference:
                         var eventReference = (IEventReferenceOperation)originalTarget;
-                        return new EventReferenceExpression(eventReference.Event, instance, semanticModel: null, eventReference.Syntax,
-                                                            eventReference.Type, eventReference.ConstantValue, IsImplicit(eventReference));
+                        instance = (!eventReference.Member.IsStatic && eventReference.Instance != null) ? PopOperand() : null;
+                        return new EventReferenceOperation(eventReference.Event, instance, semanticModel: null, eventReference.Syntax,
+                                                            eventReference.Type, IsImplicit(eventReference));
                     case OperationKind.PropertyReference:
                         var propertyReference = (IPropertyReferenceOperation)originalTarget;
-                        Debug.Assert(propertyReference.Arguments.Length == arguments.Length);
-                        var castArguments = arguments.CastDown<IOperation, IArgumentOperation>();
-                        return new PropertyReferenceExpression(propertyReference.Property, instance, castArguments, semanticModel: null, propertyReference.Syntax,
-                                                               propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
+                        instance = (!propertyReference.Member.IsStatic && propertyReference.Instance != null) ? PopOperand() : null;
+                        ImmutableArray<IArgumentOperation> propertyArguments = PopArray(propertyReference.Arguments, RewriteArgumentFromArray);
+                        return new PropertyReferenceOperation(propertyReference.Property, propertyArguments, instance, semanticModel: null, propertyReference.Syntax,
+                                                               propertyReference.Type, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
-                        Debug.Assert(((IArrayElementReferenceOperation)originalTarget).Indices.Length == arguments.Length);
-                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type,
-                                                                   originalTarget.ConstantValue, IsImplicit(originalTarget));
+                        var arrayElementReference = (IArrayElementReferenceOperation)originalTarget;
+                        instance = PopOperand();
+                        ImmutableArray<IOperation> indices = PopArray(arrayElementReference.Indices);
+                        return new ArrayElementReferenceOperation(instance, indices, semanticModel: null, originalTarget.Syntax, originalTarget.Type, IsImplicit(originalTarget));
                     case OperationKind.DynamicIndexerAccess:
-                        var dynamicAccess = (HasDynamicArgumentsExpression)originalTarget;
-                        Debug.Assert(dynamicAccess.Arguments.Length == arguments.Length);
-                        return new DynamicIndexerAccessExpression(instance, arguments, dynamicAccess.ArgumentNames, dynamicAccess.ArgumentRefKinds, semanticModel: null,
-                                                                  dynamicAccess.Syntax, dynamicAccess.Type, dynamicAccess.ConstantValue, IsImplicit(dynamicAccess));
+                        var dynamicAccess = (DynamicIndexerAccessOperation)originalTarget;
+                        instance = PopOperand();
+                        ImmutableArray<IOperation> arguments = PopArray(dynamicAccess.Arguments);
+                        return new DynamicIndexerAccessOperation(instance, arguments, dynamicAccess.ArgumentNames, dynamicAccess.ArgumentRefKinds, semanticModel: null,
+                                                                  dynamicAccess.Syntax, dynamicAccess.Type, IsImplicit(dynamicAccess));
                     case OperationKind.DynamicMemberReference:
                         var dynamicReference = (IDynamicMemberReferenceOperation)originalTarget;
-                        Debug.Assert(arguments.IsEmpty);
-                        return new DynamicMemberReferenceExpression(instance, dynamicReference.MemberName, dynamicReference.TypeArguments,
+                        instance = dynamicReference.Instance != null ? PopOperand() : null;
+                        return new DynamicMemberReferenceOperation(instance, dynamicReference.MemberName, dynamicReference.TypeArguments,
                                                                     dynamicReference.ContainingType, semanticModel: null, dynamicReference.Syntax,
-                                                                    dynamicReference.Type, dynamicReference.ConstantValue, IsImplicit(dynamicReference));
+                                                                    dynamicReference.Type, IsImplicit(dynamicReference));
                     default:
                         // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
                         // this must be one of the explicitly handled kinds
@@ -5060,82 +6070,86 @@ oneMoreTime:
         {
             if (operation.Initializers.IsEmpty)
             {
-                return new AnonymousObjectCreationExpression(initializers: ImmutableArray<IOperation>.Empty, semanticModel: null,
-                    operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+                return new AnonymousObjectCreationOperation(initializers: ImmutableArray<IOperation>.Empty, semanticModel: null,
+                    operation.Syntax, operation.Type, IsImplicit(operation));
             }
 
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
+            Debug.Assert(operation.Type is not null);
             _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
-
-            var properties = operation.Type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
-            Debug.Assert(properties.Length == operation.Initializers.Length);
+            Debug.Assert(_currentImplicitInstance.AnonymousTypePropertyValues is not null);
 
             SpillEvalStack();
+
+            EvalStackFrame frame = PushStackFrame();
 
             var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(operation.Initializers.Length);
             for (int i = 0; i < operation.Initializers.Length; i++)
             {
-                IOperation initializer = operation.Initializers[i];
-                IPropertySymbol initializedProperty = properties[i];
+                var simpleAssignment = (ISimpleAssignmentOperation)operation.Initializers[i];
+                var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
 
-                // Due to https://github.com/dotnet/roslyn/issues/25266,
-                // the initializer may or may not be a simple assignment to anonymous type property.
-                if (initializer.Kind == OperationKind.SimpleAssignment)
-                {
-                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
-                    if (simpleAssignment.Target.Kind == OperationKind.PropertyReference)
-                    {
-                        var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                Debug.Assert(propertyReference != null);
+                Debug.Assert(propertyReference.Arguments.IsEmpty);
+                Debug.Assert(propertyReference.Instance != null);
+                Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
+                Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
 
-                        // Due to https://github.com/dotnet/roslyn/issues/22736,
-                        // Instance is null for property reference in an anonymous initializer.
-                        if (propertyReference.Instance == null &&
-                            propertyReference.Property == initializedProperty &&
-                            propertyReference.Arguments.IsEmpty)
-                        {
-                            IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, propertyReference.Instance, ImmutableArray<IArgumentOperation>.Empty,
-                                semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
-                            IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
-                            var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
-                                semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
-                            initializerBuilder.Add(visitedAssignment);
-                            continue;
-                        }
-                    }
-                }
-
-                initializerBuilder.Add(visitAndCaptureInitializer(initializedProperty, initializer));
+                var visitedPropertyInstance = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver, semanticModel: null,
+                    propertyReference.Instance.Syntax, propertyReference.Instance.Type, IsImplicit(propertyReference.Instance));
+                IOperation visitedTarget = new PropertyReferenceOperation(propertyReference.Property, ImmutableArray<IArgumentOperation>.Empty, visitedPropertyInstance,
+                    semanticModel: null, propertyReference.Syntax, propertyReference.Type, IsImplicit(propertyReference));
+                IOperation visitedValue = visitAndCaptureInitializer(propertyReference.Property, simpleAssignment.Value);
+                var visitedAssignment = new SimpleAssignmentOperation(isRef: simpleAssignment.IsRef, visitedTarget, visitedValue,
+                    semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.GetConstantValue(), IsImplicit(simpleAssignment));
+                initializerBuilder.Add(visitedAssignment);
             }
 
             _currentImplicitInstance.Free();
             _currentImplicitInstance = savedCurrentImplicitInstance;
 
-            return new AnonymousObjectCreationExpression(initializerBuilder.ToImmutableAndFree(), semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-
-            FlowCaptureReference visitAndCaptureInitializer(IPropertySymbol initializedProperty, IOperation initializer)
+            for (int i = 0; i < initializerBuilder.Count; i++)
             {
-                int captureId = VisitAndCapture(initializer);
-                
+                PopOperand();
+            }
+
+            PopStackFrame(frame);
+            return new AnonymousObjectCreationOperation(initializerBuilder.ToImmutableAndFree(), semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+
+            IOperation visitAndCaptureInitializer(IPropertySymbol initializedProperty, IOperation initializer)
+            {
+                PushOperand(VisitRequired(initializer));
+                SpillEvalStack();
+                IOperation captured = PeekOperand(); // Keep it on the stack so that we know it is still used.
+
                 // For VB, previously initialized properties can be referenced in subsequent initializers.
                 // We store the capture Id for the property for such property references.
                 // Note that for VB error cases with duplicate property names, all the property symbols are considered equal.
                 // We use the last duplicate property's capture id and use it in subsequent property references.
-                _currentImplicitInstance.AnonymousTypePropertyCaptureIds[initializedProperty] = captureId;
+                _currentImplicitInstance.AnonymousTypePropertyValues[initializedProperty] = captured;
 
-                return GetCaptureReference(captureId, initializer);
+                return captured;
             }
         }
 
-        public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
+        public override IOperation? VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
-            _currentRegion.Add(operation.Symbol, operation);
+            RegionBuilder owner = CurrentRegionRequired;
+
+            while (owner.IsStackSpillRegion)
+            {
+                Debug.Assert(owner.Enclosing != null);
+                owner = owner.Enclosing;
+            }
+
+            owner.Add(operation.Symbol, operation);
             return FinishVisitingStatement(operation);
         }
 
-        private IOperation VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
+        private IOperation? VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
         {
             Debug.Assert(_currentStatement == null);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
@@ -5169,18 +6183,20 @@ oneMoreTime:
             //     before visiting the initializers or not.
             //
             //  In future, based on the customer feedback, we can consider switching to approach #2 and lower the initializer into assignment(s).
-
+            EvalStackFrame frame = PushStackFrame();
             VisitAndPushArray(operation.DimensionSizes);
-            IArrayInitializerOperation visitedInitializer = Visit(operation.Initializer);
+            var visitedInitializer = (IArrayInitializerOperation?)Visit(operation.Initializer);
             ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
-            return new ArrayCreationExpression(visitedDimensions, visitedInitializer, semanticModel: null,
-                                               operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            PopStackFrame(frame);
+            return new ArrayCreationOperation(visitedDimensions, visitedInitializer, semanticModel: null,
+                                               operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
         {
+            EvalStackFrame frame = PushStackFrame();
             visitAndPushArrayInitializerValues(operation);
-            return popAndAssembleArrayInitializerValues(operation);
+            return PopStackFrame(frame, popAndAssembleArrayInitializerValues(operation));
 
             void visitAndPushArrayInitializerValues(IArrayInitializerOperation initializer)
             {
@@ -5193,7 +6209,7 @@ oneMoreTime:
                     }
                     else
                     {
-                        _evalStack.Push(Visit(elementValue));
+                        PushOperand(VisitRequired(elementValue));
                     }
                 }
             }
@@ -5212,106 +6228,102 @@ oneMoreTime:
                     }
                     else
                     {
-                        visitedElementValue = _evalStack.Pop();
+                        visitedElementValue = PopOperand();
                     }
 
                     builder.Add(visitedElementValue);
                 }
 
                 builder.ReverseContents();
-                return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, initializer.ConstantValue, IsImplicit(initializer));
+                return new ArrayInitializerOperation(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, IsImplicit(initializer));
             }
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
-            if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
+            switch (operation.ReferenceKind)
             {
-                // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
-                Debug.Assert(operation.IsImplicit);
+                case InstanceReferenceKind.ImplicitReceiver:
+                    // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
+                    Debug.Assert(operation.IsImplicit);
 
-                if (_currentImplicitInstance.ImplicitInstance != null)
-                {
-                    return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
-                }
-                else
-                {
-                    Debug.Fail("This code path should not be reachable.");
-                    return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
-                }
-            }
-            else
-            {
-                return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, 
-                                                       operation.ConstantValue, IsImplicit(operation));
+                    if (_currentImplicitInstance.ImplicitInstance != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
+                    }
+                    else
+                    {
+                        Debug.Fail("This code path should not be reachable.");
+                        return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+                    }
+
+                case InstanceReferenceKind.InterpolatedStringHandler:
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: false);
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerCreationContext.HandlerPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue());
+
+                default:
+                    return new InstanceReferenceOperation(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
             }
         }
 
         public override IOperation VisitDynamicInvocation(IDynamicInvocationOperation operation, int? captureIdForResult)
         {
-            if (operation.Operation != null)
+            EvalStackFrame frame = PushStackFrame();
+
+            if (operation.Operation.Kind == OperationKind.DynamicMemberReference)
             {
-                if (operation.Operation.Kind == OperationKind.DynamicMemberReference)
+                var instance = ((IDynamicMemberReferenceOperation)operation.Operation).Instance;
+                if (instance != null)
                 {
-                    var instance = ((IDynamicMemberReferenceOperation)operation.Operation).Instance;
-                    if (instance != null)
-                    {
-                        _evalStack.Push(Visit(instance));
-                    }
+                    PushOperand(VisitRequired(instance));
                 }
-                else
-                {
-                    _evalStack.Push(Visit(operation.Operation));
-                }
+            }
+            else
+            {
+                PushOperand(VisitRequired(operation.Operation));
             }
 
             ImmutableArray<IOperation> rewrittenArguments = VisitArray(operation.Arguments);
 
             IOperation rewrittenOperation;
-            if (operation.Operation == null)
-            {
-                rewrittenOperation = null;
-            }
-            else if (operation.Operation.Kind == OperationKind.DynamicMemberReference)
+            if (operation.Operation.Kind == OperationKind.DynamicMemberReference)
             {
                 var dynamicMemberReference = (IDynamicMemberReferenceOperation)operation.Operation;
-                IOperation rewrittenInstance = dynamicMemberReference.Instance != null ? _evalStack.Pop() : null;
-                rewrittenOperation = new DynamicMemberReferenceExpression(rewrittenInstance, dynamicMemberReference.MemberName, dynamicMemberReference.TypeArguments,
-                    dynamicMemberReference.ContainingType, semanticModel: null, dynamicMemberReference.Syntax, dynamicMemberReference.Type, dynamicMemberReference.ConstantValue, IsImplicit(dynamicMemberReference));
+                IOperation? rewrittenInstance = dynamicMemberReference.Instance != null ? PopOperand() : null;
+                rewrittenOperation = new DynamicMemberReferenceOperation(rewrittenInstance, dynamicMemberReference.MemberName, dynamicMemberReference.TypeArguments,
+                    dynamicMemberReference.ContainingType, semanticModel: null, dynamicMemberReference.Syntax, dynamicMemberReference.Type, IsImplicit(dynamicMemberReference));
             }
             else
             {
-                rewrittenOperation = _evalStack.Pop();
+                rewrittenOperation = PopOperand();
             }
 
-            return new DynamicInvocationExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
-                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            PopStackFrame(frame);
+            return new DynamicInvocationOperation(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
+                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation, int? captureIdForResult)
         {
-            if (operation.Operation != null)
-            {
-                _evalStack.Push(Visit(operation.Operation));
-            }
+            PushOperand(VisitRequired(operation.Operation));
 
             ImmutableArray<IOperation> rewrittenArguments = VisitArray(operation.Arguments);
-            IOperation rewrittenOperation = operation.Operation != null ? _evalStack.Pop() : null;
+            IOperation rewrittenOperation = PopOperand();
 
-            return new DynamicIndexerAccessExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
-                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DynamicIndexerAccessOperation(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
+                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, int? captureIdForResult)
         {
-            return new DynamicMemberReferenceExpression(Visit(operation.Instance), operation.MemberName, operation.TypeArguments,
-                operation.ContainingType, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DynamicMemberReferenceOperation(Visit(operation.Instance), operation.MemberName, operation.TypeArguments,
+                operation.ContainingType, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, int? captureIdForResult)
         {
             (IOperation visitedTarget, IOperation visitedValue) = VisitPreservingTupleOperations(operation.Target, operation.Value);
-            return new DeconstructionAssignmentExpression(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DeconstructionAssignmentOperation(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         /// <summary>
@@ -5330,7 +6342,7 @@ oneMoreTime:
             }
             else
             {
-                _evalStack.Push(Visit(value));
+                PushOperand(VisitRequired(value));
             }
         }
 
@@ -5349,23 +6361,24 @@ oneMoreTime:
                     elementBuilder.Add(PopTargetAndWrapTupleIfNecessary(tuple.Elements[i]));
                 }
                 elementBuilder.ReverseContents();
-                return new TupleExpression(elementBuilder.ToImmutableAndFree(), semanticModel: null, tuple.Syntax, tuple.Type, tuple.NaturalType, tuple.ConstantValue, IsImplicit(tuple));
+                return new TupleOperation(elementBuilder.ToImmutableAndFree(), tuple.NaturalType, semanticModel: null, tuple.Syntax, tuple.Type, IsImplicit(tuple));
             }
             else
             {
-                return _evalStack.Pop();
+                return PopOperand();
             }
         }
 
         public override IOperation VisitDeclarationExpression(IDeclarationExpressionOperation operation, int? captureIdForResult)
         {
-            return new DeclarationExpression(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DeclarationExpressionOperation(VisitPreservingTupleOperations(operation.Expression), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         private IOperation VisitPreservingTupleOperations(IOperation operation)
         {
+            EvalStackFrame frame = PushStackFrame();
             PushTargetAndUnwrapTupleIfNecessary(operation);
-            return PopTargetAndWrapTupleIfNecessary(operation);
+            return PopStackFrame(frame, PopTargetAndWrapTupleIfNecessary(operation));
         }
 
         private (IOperation visitedLeft, IOperation visitedRight) VisitPreservingTupleOperations(IOperation left, IOperation right)
@@ -5377,9 +6390,11 @@ oneMoreTime:
             // has control flow the individual elements are captured. Then we can recompose the tuple after the right has been visited.
             // We do this to keep the graph sane, so that users don't have to track a tuple captured via flow control when it's not really
             // the tuple that's been captured, it's the operands to the tuple.
+            EvalStackFrame frame = PushStackFrame();
             PushTargetAndUnwrapTupleIfNecessary(left);
-            IOperation visitedRight = Visit(right);
+            IOperation visitedRight = VisitRequired(right);
             IOperation visitedLeft = PopTargetAndWrapTupleIfNecessary(left);
+            PopStackFrame(frame);
             return (visitedLeft, visitedRight);
         }
 
@@ -5403,13 +6418,269 @@ oneMoreTime:
         private IOperation VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
-            VisitStatements(operation.Children);
-            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
+            VisitStatements(((Operation)operation).ChildOperations.ToImmutableArray());
+            return new NoneOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
         {
-            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, VisitArray(operation.Children.ToImmutableArray()), IsImplicit(operation));
+            return PopStackFrame(PushStackFrame(),
+                                 new NoneOperation(VisitArray(((Operation)operation).ChildOperations.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+        }
+
+        public override IOperation? VisitInterpolatedStringHandlerCreation(IInterpolatedStringHandlerCreationOperation operation, int? captureIdForResult)
+        {
+            // We turn the interpolated string into a call to create the handler type, a series of append calls (potentially with branches, depending on the
+            // handler semantics), and then evaluate to the handler flow capture temp.
+
+            SpillEvalStack();
+            int maxStackDepth = _evalStack.Count - 2;
+
+#if DEBUG
+            Debug.Assert(_evalStack[maxStackDepth + 1].frameOpt != null);
+            if (_currentInterpolatedStringHandlerArgumentContext?.ApplicableCreationOperations.Contains(operation) == true)
+            {
+                for (int i = _currentInterpolatedStringHandlerArgumentContext.StartingStackDepth;
+                     i < maxStackDepth;
+                     i++)
+                {
+                    Debug.Assert(_evalStack[i].frameOpt == null);
+                    Debug.Assert(_evalStack[i].operationOpt != null);
+                }
+            }
+#endif
+
+            RegionBuilder resultRegion = CurrentRegionRequired;
+            var handlerCaptureId = captureIdForResult ?? GetNextCaptureId(resultRegion);
+
+            var constructorRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+            EnterRegion(constructorRegion);
+
+            BasicBlockBuilder? resultBlock = null;
+            if (operation.HandlerCreationHasSuccessParameter || operation.HandlerAppendCallsReturnBool)
+            {
+                resultBlock = new BasicBlockBuilder(BasicBlockKind.Block);
+            }
+
+            // Any placeholders for arguments should have already been created, except for the out parameter if it exists.
+            int outParameterFlowCapture = -1;
+            IInterpolatedStringHandlerArgumentPlaceholderOperation? outParameterPlaceholder = null;
+
+            if (operation.HandlerCreationHasSuccessParameter)
+            {
+                // Only successful constructor binds will have a trailing parameter
+                Debug.Assert(operation.HandlerCreation is IObjectCreationOperation);
+                outParameterFlowCapture = GetNextCaptureId(constructorRegion);
+                var arguments = ((IObjectCreationOperation)operation.HandlerCreation).Arguments;
+                IArgumentOperation? outParameterArgument = null;
+
+                for (int i = arguments.Length - 1; i > 1; i--)
+                {
+                    if (arguments[i] is { Value: IInterpolatedStringHandlerArgumentPlaceholderOperation { PlaceholderKind: InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument } } arg)
+                    {
+                        outParameterArgument = arg;
+                        break;
+                    }
+                }
+
+                Debug.Assert(outParameterArgument is { Parameter: { RefKind: RefKind.Out, Type.SpecialType: SpecialType.System_Boolean } });
+                outParameterPlaceholder = (IInterpolatedStringHandlerArgumentPlaceholderOperation)outParameterArgument.Value;
+            }
+
+            var previousHandlerContext = _currentInterpolatedStringHandlerCreationContext;
+            _currentInterpolatedStringHandlerCreationContext = new InterpolatedStringHandlerCreationContext(operation, maxStackDepth, handlerCaptureId, outParameterFlowCapture);
+
+            VisitAndCapture(operation.HandlerCreation, handlerCaptureId);
+
+            if (operation.HandlerCreationHasSuccessParameter)
+            {
+                // Branch on the success parameter to the next block
+                Debug.Assert(resultBlock != null);
+                Debug.Assert(outParameterPlaceholder != null);
+                Debug.Assert(outParameterFlowCapture != -1);
+
+                // if (!outParameterFlowCapture) goto resultBlock;
+                // else goto next block;
+                ConditionalBranch(new FlowCaptureReferenceOperation(outParameterFlowCapture, outParameterPlaceholder.Syntax, outParameterPlaceholder.Type, constantValue: null), jumpIfTrue: false, resultBlock);
+                _currentBasicBlock = null;
+            }
+
+            LeaveRegionsUpTo(resultRegion);
+
+            var appendCalls = ArrayBuilder<IInterpolatedStringAppendOperation>.GetInstance();
+            collectAppendCalls(operation, appendCalls);
+
+            int appendCallsLength = appendCalls.Count;
+            for (var i = 0; i < appendCallsLength; i++)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
+                var appendCall = appendCalls[i];
+                IOperation visitedAppendCall = VisitRequired(appendCall.AppendCall);
+                if (operation.HandlerAppendCallsReturnBool)
+                {
+                    Debug.Assert(resultBlock != null);
+
+                    if (i == appendCallsLength - 1)
+                    {
+                        // No matter the result, we're going to the result block next. So just visit the statement, and if the current block can be
+                        // combined with the result block, the compaction machinery will take care of it
+                        AddStatement(visitedAppendCall);
+                    }
+                    else
+                    {
+                        // if (!appendCall()) goto result else goto next block
+                        ConditionalBranch(visitedAppendCall, jumpIfTrue: false, resultBlock);
+                        _currentBasicBlock = null;
+                    }
+                }
+                else
+                {
+                    AddStatement(visitedAppendCall);
+                }
+
+                LeaveRegionsUpTo(resultRegion);
+            }
+
+            if (resultBlock != null)
+            {
+                AppendNewBlock(resultBlock, linkToPrevious: true);
+            }
+
+            _currentInterpolatedStringHandlerCreationContext = previousHandlerContext;
+            appendCalls.Free();
+            return new FlowCaptureReferenceOperation(handlerCaptureId, operation.Syntax, operation.Type, operation.GetConstantValue());
+
+            static void collectAppendCalls(IInterpolatedStringHandlerCreationOperation creation, ArrayBuilder<IInterpolatedStringAppendOperation> appendCalls)
+            {
+                if (creation.Content is IInterpolatedStringOperation interpolatedString)
+                {
+                    // Simple case
+                    appendStringCalls(interpolatedString, appendCalls);
+                    return;
+                }
+
+                var stack = ArrayBuilder<IInterpolatedStringAdditionOperation>.GetInstance();
+                pushLeftNodes((IInterpolatedStringAdditionOperation)creation.Content, stack);
+
+                while (stack.TryPop(out IInterpolatedStringAdditionOperation? currentAddition))
+                {
+                    switch (currentAddition.Left)
+                    {
+                        case IInterpolatedStringOperation interpolatedString1:
+                            appendStringCalls(interpolatedString1, appendCalls);
+                            break;
+                        case IInterpolatedStringAdditionOperation:
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(currentAddition.Left.Kind);
+                    }
+
+                    switch (currentAddition.Right)
+                    {
+                        case IInterpolatedStringOperation interpolatedString1:
+                            appendStringCalls(interpolatedString1, appendCalls);
+                            break;
+                        case IInterpolatedStringAdditionOperation additionOperation:
+                            pushLeftNodes(additionOperation, stack);
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(currentAddition.Left.Kind);
+                    }
+                }
+
+                stack.Free();
+                return;
+
+                static void appendStringCalls(IInterpolatedStringOperation interpolatedString, ArrayBuilder<IInterpolatedStringAppendOperation> appendCalls)
+                {
+                    foreach (var part in interpolatedString.Parts)
+                    {
+                        appendCalls.Add((IInterpolatedStringAppendOperation)part);
+                    }
+                }
+
+                static void pushLeftNodes(IInterpolatedStringAdditionOperation addition, ArrayBuilder<IInterpolatedStringAdditionOperation> stack)
+                {
+                    IInterpolatedStringAdditionOperation? current = addition;
+                    do
+                    {
+                        stack.Push(current);
+                        current = current.Left as IInterpolatedStringAdditionOperation;
+                    }
+                    while (current != null);
+                }
+            }
+        }
+
+        public override IOperation? VisitInterpolatedStringAddition(IInterpolatedStringAdditionOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation? VisitInterpolatedStringAppend(IInterpolatedStringAppendOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation? VisitInterpolatedStringHandlerArgumentPlaceholder(IInterpolatedStringHandlerArgumentPlaceholderOperation operation, int? captureIdForResult)
+        {
+            switch (operation.PlaceholderKind)
+            {
+                case InterpolatedStringArgumentPlaceholderKind.TrailingValidityArgument:
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: false);
+
+                    return new FlowCaptureReferenceOperation(_currentInterpolatedStringHandlerCreationContext.OutPlaceholder, operation.Syntax, operation.Type, operation.GetConstantValue(), isInitialization: true);
+
+                case InterpolatedStringArgumentPlaceholderKind.CallsiteReceiver:
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
+                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
+                    if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver && tryGetArgumentOrReceiver(-1) is IOperation receiverCapture)
+                    {
+                        Debug.Assert(receiverCapture is IFlowCaptureReferenceOperation);
+                        return OperationCloner.CloneOperation(receiverCapture);
+                    }
+                    else
+                    {
+                        return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), isImplicit: true);
+                    }
+
+                case InterpolatedStringArgumentPlaceholderKind.CallsiteArgument:
+                    AssertContainingContextIsForThisCreation(operation, assertArgumentContext: true);
+                    Debug.Assert(_currentInterpolatedStringHandlerArgumentContext != null);
+                    if (tryGetArgumentOrReceiver(operation.ArgumentIndex) is IOperation argumentCapture)
+                    {
+                        Debug.Assert(argumentCapture is IFlowCaptureReferenceOperation or IDiscardOperation);
+                        return OperationCloner.CloneOperation(argumentCapture);
+                    }
+                    else
+                    {
+                        return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), isImplicit: true);
+                    }
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(operation.PlaceholderKind);
+            }
+
+            IOperation? tryGetArgumentOrReceiver(int argumentIndex)
+            {
+
+                if (_currentInterpolatedStringHandlerArgumentContext.HasReceiver)
+                {
+                    argumentIndex++;
+                }
+
+                int targetStackDepth = _currentInterpolatedStringHandlerArgumentContext.StartingStackDepth + argumentIndex;
+
+                Debug.Assert(_evalStack.Count > _currentInterpolatedStringHandlerCreationContext.MaximumStackDepth);
+
+                if (targetStackDepth > _currentInterpolatedStringHandlerCreationContext.MaximumStackDepth
+                    || targetStackDepth >= _evalStack.Count)
+                {
+                    return null;
+                }
+
+                return _evalStack[targetStackDepth].operationOpt;
+            }
         }
 
         public override IOperation VisitInterpolatedString(IInterpolatedStringOperation operation, int? captureIdForResult)
@@ -5417,17 +6688,17 @@ oneMoreTime:
             // We visit and rewrite the interpolation parts in two phases:
             //  1. Visit all the non-literal parts of the interpolation and push them onto the eval stack.
             //  2. Traverse the parts in reverse order, popping the non-literal values from the eval stack and visiting the literal values.
-
+            EvalStackFrame frame = PushStackFrame();
             foreach (IInterpolatedStringContentOperation element in operation.Parts)
             {
                 if (element.Kind == OperationKind.Interpolation)
                 {
                     var interpolation = (IInterpolationOperation)element;
-                    _evalStack.Push(Visit(interpolation.Expression));
+                    PushOperand(VisitRequired(interpolation.Expression));
 
                     if (interpolation.Alignment != null)
                     {
-                        _evalStack.Push(Visit(interpolation.Alignment));
+                        PushOperand(VisitRequired(interpolation.Alignment));
                     }
                 }
             }
@@ -5437,39 +6708,40 @@ oneMoreTime:
             {
                 IInterpolatedStringContentOperation element = operation.Parts[i];
                 IInterpolatedStringContentOperation rewrittenElement;
-                if (element.Kind == OperationKind.Interpolation)
+                switch (element)
                 {
-                    var interpolation = (IInterpolationOperation)element;
+                    case IInterpolationOperation interpolation:
+                        IOperation? rewrittenFormatString;
+                        if (interpolation.FormatString != null)
+                        {
+                            Debug.Assert(interpolation.FormatString is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                            rewrittenFormatString = VisitRequired(interpolation.FormatString, argument: null);
+                        }
+                        else
+                        {
+                            rewrittenFormatString = null;
+                        }
 
-                    IOperation rewrittenFormatString;
-                    if (interpolation.FormatString != null)
-                    {
-                        Debug.Assert(interpolation.FormatString.Kind == OperationKind.Literal);
-                        rewrittenFormatString = VisitLiteral((ILiteralOperation)interpolation.FormatString, captureIdForResult: null);
-                    }
-                    else
-                    {
-                        rewrittenFormatString = null;
-                    }
+                        var rewrittenAlignment = interpolation.Alignment != null ? PopOperand() : null;
+                        var rewrittenExpression = PopOperand();
+                        rewrittenElement = new InterpolationOperation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax, IsImplicit(element));
+                        break;
+                    case IInterpolatedStringTextOperation interpolatedStringText:
+                        Debug.Assert(interpolatedStringText.Text is ILiteralOperation or IConversionOperation { Operand: ILiteralOperation });
+                        var rewrittenInterpolationText = VisitRequired(interpolatedStringText.Text, argument: null);
+                        rewrittenElement = new InterpolatedStringTextOperation(rewrittenInterpolationText, semanticModel: null, element.Syntax, IsImplicit(element));
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(element.Kind);
 
-                    var rewrittenAlignment = interpolation.Alignment != null ? _evalStack.Pop() : null;
-                    var rewrittenExpression = _evalStack.Pop();
-                    rewrittenElement = new Interpolation(rewrittenExpression, rewrittenAlignment, rewrittenFormatString, semanticModel: null, element.Syntax,
-                                                         element.Type, element.ConstantValue, IsImplicit(element));
-                }
-                else
-                {
-                    var interpolatedStringText = (IInterpolatedStringTextOperation)element;
-                    Debug.Assert(interpolatedStringText.Text.Kind == OperationKind.Literal);
-                    var rewrittenInterpolationText = VisitLiteral((ILiteralOperation)interpolatedStringText.Text, captureIdForResult: null);
-                    rewrittenElement = new InterpolatedStringText(rewrittenInterpolationText, semanticModel: null, element.Syntax, element.Type, element.ConstantValue, IsImplicit(element));
                 }
 
                 partsBuilder.Add(rewrittenElement);
             }
 
             partsBuilder.ReverseContents();
-            return new InterpolatedStringExpression(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            PopStackFrame(frame);
+            return new InterpolatedStringOperation(partsBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitInterpolatedStringText(IInterpolatedStringTextOperation operation, int? captureIdForResult)
@@ -5484,53 +6756,60 @@ oneMoreTime:
 
         public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(operation.ConstantValue.HasValue);
-            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            Debug.Assert(operation.GetConstantValue() != null);
+            return new LiteralOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitLiteral(ILiteralOperation operation, int? captureIdForResult)
         {
-            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new LiteralOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
+        }
+
+        public override IOperation? VisitUTF8String(IUTF8StringOperation operation, int? captureIdForResult)
+        {
+            return new UTF8StringOperation(operation.Value, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitLocalReference(ILocalReferenceOperation operation, int? captureIdForResult)
         {
-            return new LocalReferenceExpression(operation.Local, operation.IsDeclaration, semanticModel: null, operation.Syntax,
-                                                operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new LocalReferenceOperation(operation.Local, operation.IsDeclaration, semanticModel: null, operation.Syntax,
+                                                operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitParameterReference(IParameterReferenceOperation operation, int? captureIdForResult)
         {
-            return new ParameterReferenceExpression(operation.Parameter, semanticModel: null, operation.Syntax,
-                                                    operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new ParameterReferenceOperation(operation.Parameter, semanticModel: null, operation.Syntax,
+                                                   operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
         {
-            IOperation visitedInstance = operation.Field.IsStatic ? null : Visit(operation.Instance);
-            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, visitedInstance, semanticModel: null,
-                                                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            IOperation? visitedInstance = operation.Field.IsStatic ? null : Visit(operation.Instance);
+            return new FieldReferenceOperation(operation.Field, operation.IsDeclaration, visitedInstance, semanticModel: null,
+                                                operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
         {
-            IOperation visitedInstance = operation.Method.IsStatic ? null : Visit(operation.Instance);
-            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, visitedInstance, semanticModel: null,
-                                                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            IOperation? visitedInstance = operation.Method.IsStatic ? null : Visit(operation.Instance);
+            return new MethodReferenceOperation(operation.Method, operation.IsVirtual, visitedInstance, semanticModel: null,
+                                                operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
         {
             // Check if this is an anonymous type property reference with an implicit receiver within an anonymous object initializer.
-            // Due to https://github.com/dotnet/roslyn/issues/22736,
-            // Instance is null for property reference with implicit instance reference within an anonymous initializer.
-            if (operation.Instance == null &&
+            if (operation.Instance is IInstanceReferenceOperation instanceReference &&
+                instanceReference.ReferenceKind == InstanceReferenceKind.ImplicitReceiver &&
                 operation.Property.ContainingType.IsAnonymousType &&
                 operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
             {
-                if (_currentImplicitInstance.AnonymousTypePropertyCaptureIds.TryGetValue(operation.Property, out int captureId))
+                Debug.Assert(_currentImplicitInstance.AnonymousTypePropertyValues is not null);
+                if (_currentImplicitInstance.AnonymousTypePropertyValues.TryGetValue(operation.Property, out IOperation? captured))
                 {
-                    return GetCaptureReference(captureId, operation);
+                    return captured is IFlowCaptureReferenceOperation reference ?
+                               GetCaptureReference(reference.Id.Value, operation) :
+                               OperationCloner.CloneOperation(captured);
                 }
                 else
                 {
@@ -5538,78 +6817,80 @@ oneMoreTime:
                 }
             }
 
-            IOperation instance = operation.Property.IsStatic ? null : operation.Instance;
-            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
-            return new PropertyReferenceExpression(operation.Property, visitedInstance, visitedArguments, semanticModel: null,
-                                                   operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            EvalStackFrame frame = PushStackFrame();
+            IOperation? instance = operation.Property.IsStatic ? null : operation.Instance;
+            (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
+            PopStackFrame(frame);
+            return new PropertyReferenceOperation(operation.Property, visitedArguments, visitedInstance, semanticModel: null,
+                                                  operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitEventReference(IEventReferenceOperation operation, int? captureIdForResult)
         {
-            IOperation visitedInstance = operation.Event.IsStatic ? null : Visit(operation.Instance);
-            return new EventReferenceExpression(operation.Event, visitedInstance, semanticModel: null,
-                                                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            IOperation? visitedInstance = operation.Event.IsStatic ? null : Visit(operation.Instance);
+            return new EventReferenceOperation(operation.Event, visitedInstance, semanticModel: null,
+                                               operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
-            return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new TypeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitParenthesized(IParenthesizedOperation operation, int? captureIdForResult)
         {
-            return new ParenthesizedExpression(Visit(operation.Operand), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new ParenthesizedOperation(VisitRequired(operation.Operand), semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
         {
-            return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new AwaitOperation(VisitRequired(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
         {
-            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new SizeOfOperation(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
-        
+
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
-            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new StopOperation(semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
 
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
         {
-            return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new IsTypeOperation(VisitRequired(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-        public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
+        public override IOperation? VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
-            var parameterRef = new ParameterReferenceExpression(operation.Parameter, semanticModel: null,
-                operation.Syntax, operation.Parameter.Type, constantValue: default, isImplicit: true);
+            var parameterRef = new ParameterReferenceOperation(operation.Parameter, semanticModel: null,
+                operation.Syntax, operation.Parameter.Type, isImplicit: true);
             VisitInitializer(rewrittenTarget: parameterRef, initializer: operation);
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
+        public override IOperation? VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
             foreach (IFieldSymbol fieldSymbol in operation.InitializedFields)
             {
-                IInstanceReferenceOperation instance = fieldSymbol.IsStatic ?
+                IInstanceReferenceOperation? instance = fieldSymbol.IsStatic ?
                     null :
-                    new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
-                        operation.Syntax, fieldSymbol.ContainingType, constantValue: default, isImplicit: true);
-                var fieldRef = new FieldReferenceExpression(fieldSymbol, isDeclaration: false, instance, semanticModel: null,
-                    operation.Syntax, fieldSymbol.Type, constantValue: default, isImplicit: true);
+                    new InstanceReferenceOperation(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
+                        operation.Syntax, fieldSymbol.ContainingType, isImplicit: true);
+                var fieldRef = new FieldReferenceOperation(fieldSymbol, isDeclaration: false, instance, semanticModel: null,
+                    operation.Syntax, fieldSymbol.Type, constantValue: null, isImplicit: true);
                 VisitInitializer(rewrittenTarget: fieldRef, initializer: operation);
             }
 
             return FinishVisitingStatement(operation);
         }
 
-        public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
+        public override IOperation? VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
 
@@ -5617,8 +6898,8 @@ oneMoreTime:
             {
                 var instance = propertySymbol.IsStatic ?
                     null :
-                    new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
-                        operation.Syntax, propertySymbol.ContainingType, constantValue: default, isImplicit: true);
+                    new InstanceReferenceOperation(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
+                        operation.Syntax, propertySymbol.ContainingType, isImplicit: true);
 
                 ImmutableArray<IArgumentOperation> arguments;
                 if (!propertySymbol.Parameters.IsEmpty)
@@ -5628,9 +6909,11 @@ oneMoreTime:
                     foreach (var parameter in propertySymbol.Parameters)
                     {
                         var value = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null,
-                            operation.Syntax, parameter.Type, constantValue: default, isImplicit: true);
-                        var argument = new ArgumentOperation(value, ArgumentKind.Explicit, parameter, inConversionOpt: null,
-                            outConversionOpt: null, semanticModel: null, operation.Syntax, isImplicit: true);
+                            operation.Syntax, parameter.Type, constantValue: null, isImplicit: true);
+                        var argument = new ArgumentOperation(ArgumentKind.Explicit, parameter, value,
+                                                             inConversion: OperationFactory.IdentityConversion,
+                                                             outConversion: OperationFactory.IdentityConversion,
+                                                             semanticModel: null, operation.Syntax, isImplicit: true);
                         builder.Add(argument);
                     }
 
@@ -5641,8 +6924,8 @@ oneMoreTime:
                     arguments = ImmutableArray<IArgumentOperation>.Empty;
                 }
 
-                IOperation propertyRef = new PropertyReferenceExpression(propertySymbol, instance, arguments,
-                    semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: default, isImplicit: true);
+                IOperation propertyRef = new PropertyReferenceOperation(propertySymbol, arguments, instance,
+                    semanticModel: null, operation.Syntax, propertySymbol.Type, isImplicit: true);
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
 
@@ -5653,48 +6936,52 @@ oneMoreTime:
         {
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: initializer.Locals));
 
-            var assignment = new SimpleAssignmentExpression(rewrittenTarget, isRef: false, Visit(initializer.Value), semanticModel: null,
-                    initializer.Syntax, rewrittenTarget.Type, constantValue: default, isImplicit: true);
+            EvalStackFrame frame = PushStackFrame();
+            var assignment = new SimpleAssignmentOperation(isRef: false, rewrittenTarget, VisitRequired(initializer.Value), semanticModel: null,
+                initializer.Syntax, rewrittenTarget.Type, constantValue: null, isImplicit: true);
             AddStatement(assignment);
+            PopStackFrameAndLeaveRegion(frame);
 
             LeaveRegion();
         }
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
+            EvalStackFrame frame = PushStackFrame();
             IOperation visitedEventReference, visitedHandler;
 
             // Get the IEventReferenceOperation, digging through IParenthesizedOperation.
             // Note that for error cases, the event reference might be an IInvalidOperation.
-            IEventReferenceOperation eventReference = getEventReference();
+            IEventReferenceOperation? eventReference = getEventReference();
             if (eventReference != null)
             {
                 // Preserve the IEventReferenceOperation.
                 var eventReferenceInstance = eventReference.Event.IsStatic ? null : eventReference.Instance;
                 if (eventReferenceInstance != null)
                 {
-                    _evalStack.Push(Visit(eventReferenceInstance));
+                    PushOperand(VisitRequired(eventReferenceInstance));
                 }
 
-                visitedHandler = Visit(operation.HandlerValue);
+                visitedHandler = VisitRequired(operation.HandlerValue);
 
-                IOperation visitedInstance = eventReferenceInstance == null ? null : _evalStack.Pop();
-                visitedEventReference = new EventReferenceExpression(eventReference.Event, visitedInstance,
-                    semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+                IOperation? visitedInstance = eventReferenceInstance == null ? null : PopOperand();
+                visitedEventReference = new EventReferenceOperation(eventReference.Event, visitedInstance,
+                    semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
             }
             else
             {
                 Debug.Assert(operation.EventReference != null);
-                
-                _evalStack.Push(Visit(operation.EventReference));
-                visitedHandler = Visit(operation.HandlerValue);
-                visitedEventReference = _evalStack.Pop();
-            }
-            
-            return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
 
-            IEventReferenceOperation getEventReference()
+                PushOperand(VisitRequired(operation.EventReference));
+                visitedHandler = VisitRequired(operation.HandlerValue);
+                visitedEventReference = PopOperand();
+            }
+
+            PopStackFrame(frame);
+            return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
+
+            IEventReferenceOperation? getEventReference()
             {
                 IOperation current = operation.EventReference;
 
@@ -5720,40 +7007,42 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
-            if (instance != null)
-            {
-                _evalStack.Push(Visit(instance));
-            }
+            EvalStackFrame frame = PushStackFrame();
 
-            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
-            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
-            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
-                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
-            return FinishVisitingStatement(operation, new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
-                                                                              operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
+            (IOperation? visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) =
+                VisitInstanceWithArguments(operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance, operation.Arguments);
+            var visitedEventReference = new EventReferenceOperation(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, IsImplicit(operation.EventReference));
+
+            PopStackFrame(frame);
+            return FinishVisitingStatement(operation, new RaiseEventOperation(visitedEventReference, visitedArguments, semanticModel: null,
+                                                                              operation.Syntax, IsImplicit(operation)));
         }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
         {
-            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new AddressOfOperation(VisitRequired(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
         {
-            bool isDecrement = operation.Kind == OperationKind.Decrement;
-            return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, 
-                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new IncrementOrDecrementOperation(operation.IsPostfix, operation.IsLifted, operation.IsChecked, VisitRequired(operation.Target), operation.OperatorMethod,
+                                                     operation.Kind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
         {
-            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
+        }
+
+        public override IOperation VisitDiscardPattern(IDiscardPatternOperation pat, int? captureIdForResult)
+        {
+            return new DiscardPatternOperation(pat.InputType, pat.NarrowedType, semanticModel: null, pat.Syntax, IsImplicit(pat));
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
         {
-            return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new OmittedArgumentOperation(semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
@@ -5787,32 +7076,34 @@ oneMoreTime:
             }
 
             Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
-            return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new PlaceholderOperation(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
         {
-            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new ConversionOperation(VisitRequired(operation.Operand), ((ConversionOperation)operation).ConversionConvertible, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
         {
-            return new DefaultValueExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DefaultValueOperation(semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation));
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
-            _evalStack.Push(Visit(operation.Value));
-            IPatternOperation visitedPattern = Visit(operation.Pattern);
-            IOperation visitedValue = _evalStack.Pop();
-            return new IsPatternExpression(visitedValue, visitedPattern, semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            EvalStackFrame frame = PushStackFrame();
+            PushOperand(VisitRequired(operation.Value));
+            var visitedPattern = (IPatternOperation)VisitRequired(operation.Pattern);
+            IOperation visitedValue = PopOperand();
+            PopStackFrame(frame);
+            return new IsPatternOperation(visitedValue, visitedPattern, semanticModel: null,
+                                          operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
         {
             var children = ArrayBuilder<IOperation>.GetInstance();
-            children.AddRange(operation.Children);
+            children.AddRange(((InvalidOperation)operation).Children);
 
             if (children.Count != 0 && children.Last().Kind == OperationKind.ObjectOrCollectionInitializer)
             {
@@ -5820,27 +7111,32 @@ oneMoreTime:
                 // but overload resolution failed.
                 SpillEvalStack();
 
+                EvalStackFrame frame = PushStackFrame();
                 var initializer = (IObjectOrCollectionInitializerOperation)children.Last();
                 children.RemoveLast();
 
+                EvalStackFrame argumentsFrame = PushStackFrame();
+
                 foreach (var argument in children)
                 {
-                    _evalStack.Push(Visit(argument));
+                    PushOperand(VisitRequired(argument));
                 }
 
                 for (int i = children.Count - 1; i >= 0; i--)
                 {
-                    children[i] = _evalStack.Pop();
+                    children[i] = PopOperand();
                 }
 
+                PopStackFrame(argumentsFrame);
+
                 IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
-                                                                      operation.ConstantValue, IsImplicit(operation));
+                                                                      operation.GetConstantValue(), IsImplicit(operation));
 
                 initializedInstance = HandleObjectOrCollectionInitializer(initializer, initializedInstance);
-
+                PopStackFrame(frame);
                 return initializedInstance;
             }
-        
+
             IOperation result;
             if (_currentStatement == operation)
             {
@@ -5850,56 +7146,377 @@ oneMoreTime:
             {
                 result = visitInvalidOperationExpression(operation);
             }
-            
-            children.Free();
+
             return result;
 
             IOperation visitInvalidOperationStatement(IInvalidOperation invalidOperation)
             {
                 Debug.Assert(_currentStatement == invalidOperation);
-                VisitStatements(children);
-                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(invalidOperation));
+                VisitStatements(children.ToImmutableAndFree());
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.GetConstantValue(), IsImplicit(invalidOperation));
             }
 
             IOperation visitInvalidOperationExpression(IInvalidOperation invalidOperation)
             {
-                return new InvalidOperation(VisitArray(invalidOperation.Children.ToImmutableArray()), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
+                return PopStackFrame(PushStackFrame(),
+                                     new InvalidOperation(VisitArray(children.ToImmutableAndFree()), semanticModel: null,
+                                                                 invalidOperation.Syntax, invalidOperation.Type, invalidOperation.GetConstantValue(), IsImplicit(operation)));
             }
+        }
+
+        public override IOperation? VisitReDim(IReDimOperation operation, int? argument)
+        {
+            StartVisitingStatement(operation);
+
+            // We split the ReDim clauses into separate ReDim operations to ensure that we preserve the evaluation order,
+            // i.e. each ReDim clause operand is re-allocated prior to evaluating the next clause.
+
+            // Mark the split ReDim operations as implicit if we have more than one ReDim clause.
+            bool isImplicit = operation.Clauses.Length > 1 || IsImplicit(operation);
+
+            foreach (var clause in operation.Clauses)
+            {
+                EvalStackFrame frame = PushStackFrame();
+                var visitedReDimClause = visitReDimClause(clause);
+                var visitedReDimOperation = new ReDimOperation(ImmutableArray.Create(visitedReDimClause), operation.Preserve,
+                    semanticModel: null, operation.Syntax, isImplicit);
+                AddStatement(visitedReDimOperation);
+                PopStackFrameAndLeaveRegion(frame);
+            }
+
+            return FinishVisitingStatement(operation);
+
+            IReDimClauseOperation visitReDimClause(IReDimClauseOperation clause)
+            {
+                PushOperand(VisitRequired(clause.Operand));
+                var visitedDimensionSizes = VisitArray(clause.DimensionSizes);
+                var visitedOperand = PopOperand();
+                return new ReDimClauseOperation(visitedOperand, visitedDimensionSizes, semanticModel: null, clause.Syntax, IsImplicit(clause));
+            }
+        }
+
+        public override IOperation VisitReDimClause(IReDimClauseOperation operation, int? argument)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
-            return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new TranslatedQueryOperation(VisitRequired(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
-            return new ConstantPattern(Visit(operation.Value), semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new ConstantPatternOperation(VisitRequired(operation.Value), operation.InputType, operation.NarrowedType, semanticModel: null,
+                syntax: operation.Syntax, isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitRelationalPattern(IRelationalPatternOperation operation, int? argument)
+        {
+            return new RelationalPatternOperation(
+                operatorKind: operation.OperatorKind,
+                value: VisitRequired(operation.Value),
+                inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
+                semanticModel: null,
+                syntax: operation.Syntax,
+                isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitBinaryPattern(IBinaryPatternOperation operation, int? argument)
+        {
+            return new BinaryPatternOperation(
+                operatorKind: operation.OperatorKind,
+                leftPattern: (IPatternOperation)VisitRequired(operation.LeftPattern),
+                rightPattern: (IPatternOperation)VisitRequired(operation.RightPattern),
+                inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
+                semanticModel: null,
+                syntax: operation.Syntax,
+                isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)
+        {
+            return new NegatedPatternOperation(
+                pattern: (IPatternOperation)VisitRequired(operation.Pattern),
+                inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
+                semanticModel: null,
+                syntax: operation.Syntax,
+                isImplicit: IsImplicit(operation));
+        }
+
+        public override IOperation VisitTypePattern(ITypePatternOperation operation, int? argument)
+        {
+            return new TypePatternOperation(
+                matchedType: operation.MatchedType,
+                inputType: operation.InputType,
+                narrowedType: operation.NarrowedType,
+                semanticModel: null,
+                syntax: operation.Syntax,
+                isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
-            return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DeclarationPatternOperation(
+                operation.MatchedType,
+                operation.MatchesNull,
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitSlicePattern(ISlicePatternOperation operation, int? argument)
+        {
+            return new SlicePatternOperation(
+                operation.SliceSymbol,
+                (IPatternOperation?)Visit(operation.Pattern),
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitListPattern(IListPatternOperation operation, int? argument)
+        {
+            return new ListPatternOperation(
+                operation.LengthSymbol,
+                operation.IndexerSymbol,
+                operation.Patterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitRecursivePattern(IRecursivePatternOperation operation, int? argument)
+        {
+            return new RecursivePatternOperation(
+                operation.MatchedType,
+                operation.DeconstructSymbol,
+                operation.DeconstructionSubpatterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
+                operation.PropertySubpatterns.SelectAsArray((p, @this) => (IPropertySubpatternOperation)@this.VisitRequired(p), this),
+                operation.DeclaredSymbol,
+                operation.InputType,
+                operation.NarrowedType,
+                semanticModel: null,
+                operation.Syntax,
+                IsImplicit(operation));
+        }
+
+        public override IOperation VisitPropertySubpattern(IPropertySubpatternOperation operation, int? argument)
+        {
+            return new PropertySubpatternOperation(
+                VisitRequired(operation.Member),
+                (IPatternOperation)VisitRequired(operation.Pattern),
+                semanticModel: null,
+                syntax: operation.Syntax,
+                isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
-            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DelegateCreationOperation(VisitRequired(operation.Target), semanticModel: null,
+                operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
-        private T Visit<T>(T node) where T : IOperation
+        public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)
         {
-            return (T)Visit(node, argument: null);
+            if (operation.LeftOperand is object)
+            {
+                PushOperand(VisitRequired(operation.LeftOperand));
+            }
+
+            IOperation? visitedRightOperand = null;
+            if (operation.RightOperand is object)
+            {
+                visitedRightOperand = Visit(operation.RightOperand);
+            }
+
+            IOperation? visitedLeftOperand = operation.LeftOperand is null ? null : PopOperand();
+
+            return new RangeOperation(visitedLeftOperand, visitedRightOperand, operation.IsLifted, operation.Method, semanticModel: null, operation.Syntax, operation.Type, isImplicit: IsImplicit(operation));
         }
 
-        public IOperation Visit(IOperation operation)
+        public override IOperation VisitSwitchExpression(ISwitchExpressionOperation operation, int? captureIdForResult)
+        {
+            // expression switch { pat1 when g1 => e1, pat2 when g2 => e2 }
+            //
+            // becomes
+            //
+            // captureInput = expression
+            // START scope 1 (arm1 locals)
+            // GotoIfFalse (captureInput is pat1 && g1) label1;
+            // captureOutput = e1
+            // goto afterSwitch
+            // label1:
+            // END scope 1
+            // START scope 2
+            // GotoIfFalse (captureInput is pat2 && g2) label2;
+            // captureOutput = e2
+            // goto afterSwitch
+            // label2:
+            // END scope 2
+            // throw new switch failure
+            // afterSwitch:
+            // result = captureOutput
+
+            INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
+            SpillEvalStack();
+            RegionBuilder resultCaptureRegion = CurrentRegionRequired;
+            int captureOutput = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+            var capturedInput = VisitAndCapture(operation.Value);
+            var afterSwitch = new BasicBlockBuilder(BasicBlockKind.Block);
+
+            foreach (var arm in operation.Arms)
+            {
+                // START scope (arm locals)
+                var armScopeRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: arm.Locals);
+                EnterRegion(armScopeRegion);
+                var afterArm = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                // GotoIfFalse (captureInput is pat1) label;
+                {
+                    EvalStackFrame frame = PushStackFrame();
+                    var visitedPattern = (IPatternOperation)VisitRequired(arm.Pattern);
+                    var patternTest = new IsPatternOperation(
+                        OperationCloner.CloneOperation(capturedInput), visitedPattern, semanticModel: null,
+                        arm.Syntax, booleanType, IsImplicit(arm));
+                    ConditionalBranch(patternTest, jumpIfTrue: false, afterArm);
+                    _currentBasicBlock = null;
+                    PopStackFrameAndLeaveRegion(frame);
+                }
+
+                // GotoIfFalse (guard) afterArm;
+                if (arm.Guard != null)
+                {
+                    EvalStackFrame frame = PushStackFrame();
+                    VisitConditionalBranch(arm.Guard, ref afterArm, jumpIfTrue: false);
+                    _currentBasicBlock = null;
+                    PopStackFrameAndLeaveRegion(frame);
+                }
+
+                // captureOutput = e
+                VisitAndCapture(arm.Value, captureOutput);
+
+                // goto afterSwitch
+                UnconditionalBranch(afterSwitch);
+
+                // afterArm:
+                AppendNewBlock(afterArm);
+
+                // END scope 1
+                LeaveRegion(); // armScopeRegion
+            }
+
+            LeaveRegionsUpTo(resultCaptureRegion);
+
+            // throw new SwitchExpressionException
+            var matchFailureCtor =
+                (IMethodSymbol?)(_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor) ??
+                                _compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_InvalidOperationException__ctor))?.GetISymbol();
+            var makeException = (matchFailureCtor is null)
+                ? MakeInvalidOperation(operation.Syntax, type: _compilation.GetSpecialType(SpecialType.System_Object), ImmutableArray<IOperation>.Empty)
+                : new ObjectCreationOperation(
+                    matchFailureCtor, initializer: null, ImmutableArray<IArgumentOperation>.Empty, semanticModel: null, operation.Syntax,
+                    type: matchFailureCtor.ContainingType, constantValue: null, isImplicit: true);
+            LinkThrowStatement(makeException);
+            _currentBasicBlock = null;
+
+            // afterSwitch:
+            AppendNewBlock(afterSwitch, linkToPrevious: false);
+
+            // result = captureOutput
+            return GetCaptureReference(captureOutput, operation);
+        }
+
+        private void VisitUsingVariableDeclarationOperation(IUsingDeclarationOperation operation, ReadOnlySpan<IOperation> statements)
+        {
+            IOperation? saveCurrentStatement = _currentStatement;
+            _currentStatement = operation;
+            StartVisitingStatement(operation);
+
+            // a using statement introduces a 'logical' block after declaration, we synthesize one here in order to analyze it like a regular using. Don't include
+            // local functions in this block: they still belong in the containing block. We'll visit any local functions in the list after we visit the statements
+            // in this block.
+            ArrayBuilder<IOperation> statementsBuilder = ArrayBuilder<IOperation>.GetInstance(statements.Length);
+            ArrayBuilder<IOperation>? localFunctionsBuilder = null;
+
+            foreach (var statement in statements)
+            {
+                if (statement.Kind == OperationKind.LocalFunction)
+                {
+                    (localFunctionsBuilder ??= ArrayBuilder<IOperation>.GetInstance()).Add(statement);
+                }
+                else
+                {
+                    statementsBuilder.Add(statement);
+                }
+            }
+
+            BlockOperation logicalBlock = BlockOperation.CreateTemporaryBlock(statementsBuilder.ToImmutableAndFree(), ((Operation)operation).OwningSemanticModel!, operation.Syntax);
+
+            DisposeOperationInfo disposeInfo = ((UsingDeclarationOperation)operation).DisposeInfo;
+
+            HandleUsingOperationParts(
+                resources: operation.DeclarationGroup,
+                body: logicalBlock,
+                disposeInfo.DisposeMethod,
+                disposeInfo.DisposeArguments,
+                locals: ImmutableArray<ILocalSymbol>.Empty,
+                isAsynchronous: operation.IsAsynchronous);
+
+            FinishVisitingStatement(operation);
+            _currentStatement = saveCurrentStatement;
+
+            if (localFunctionsBuilder != null)
+            {
+                VisitStatements(localFunctionsBuilder.ToImmutableAndFree());
+            }
+        }
+
+        public IOperation? Visit(IOperation? operation)
         {
             // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.
-            Debug.Assert(operation == null || ((Operation)operation).SemanticModel.Compilation == _compilation);
+            Debug.Assert(operation == null || ((Operation)operation).OwningSemanticModel!.Compilation == _compilation);
             return Visit(operation, argument: null);
+        }
+
+        [return: NotNullIfNotNull("operation")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IOperation? VisitRequired(IOperation? operation, int? argument = null)
+        {
+            Debug.Assert(operation == null || ((Operation)operation).OwningSemanticModel!.Compilation == _compilation);
+            var result = Visit(operation, argument);
+            Debug.Assert((result == null) == (operation == null));
+            return result;
+        }
+
+        [return: NotNullIfNotNull("operation")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IOperation? BaseVisitRequired(IOperation? operation, int? argument)
+        {
+            var result = base.Visit(operation, argument);
+            Debug.Assert((result == null) == (operation == null));
+            return result;
+        }
+
+        public override IOperation? Visit(IOperation? operation, int? argument)
+        {
+            if (operation == null)
+            {
+                return null;
+            }
+
+            return PopStackFrame(PushStackFrame(), base.Visit(operation, argument));
         }
 
         public override IOperation DefaultVisit(IOperation operation, int? captureIdForResult)
@@ -5913,5 +7530,189 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override IOperation VisitUsingDeclaration(IUsingDeclarationOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        public override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
+        {
+            if (operation.Type!.IsAnonymousType)
+            {
+                return handleAnonymousTypeWithExpression((WithOperation)operation, captureIdForResult);
+            }
+
+            EvalStackFrame frame = PushStackFrame();
+            // Initializer is removed from the tree and turned into a series of statements that assign to the cloned instance
+            IOperation visitedInstance = VisitRequired(operation.Operand);
+            IOperation cloned;
+            if (operation.Type.IsValueType)
+            {
+                cloned = visitedInstance;
+            }
+            else
+            {
+                cloned = operation.CloneMethod is null
+                    ? MakeInvalidOperation(visitedInstance.Type, visitedInstance)
+                    : new InvocationOperation(operation.CloneMethod, visitedInstance,
+                        isVirtual: true, arguments: ImmutableArray<IArgumentOperation>.Empty,
+                        semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
+            }
+
+            return PopStackFrame(frame, HandleObjectOrCollectionInitializer(operation.Initializer, cloned));
+
+            // For `old with { Property = ... }` we're going to do the same as `new { Property = ..., OtherProperty = old.OtherProperty }`
+            IOperation handleAnonymousTypeWithExpression(WithOperation operation, int? captureIdForResult)
+            {
+                Debug.Assert(operation.Type!.IsAnonymousType);
+                SpillEvalStack(); // before entering a new region, we ensure that anything that needs spilling was spilled
+
+                // The outer region holds captures for all the values for the anonymous object creation
+                var outerCaptureRegion = CurrentRegionRequired;
+
+                // The inner region holds the capture for the operand (ie. old value)
+                var innerCaptureRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime);
+                EnterRegion(innerCaptureRegion);
+
+                var initializers = operation.Initializer.Initializers;
+
+                var properties = operation.Type.GetMembers()
+                    .Where(m => m.Kind == SymbolKind.Property)
+                    .Select(m => (IPropertySymbol)m);
+
+                int oldValueCaptureId;
+                if (setsAllProperties(initializers, properties))
+                {
+                    // Avoid capturing the old value since we won't need it
+                    oldValueCaptureId = -1;
+                    AddStatement(VisitRequired(operation.Operand));
+                }
+                else
+                {
+                    oldValueCaptureId = GetNextCaptureId(innerCaptureRegion);
+                    VisitAndCapture(operation.Operand, oldValueCaptureId);
+                }
+                // calls to Visit may enter regions, so we reset things
+                LeaveRegionsUpTo(innerCaptureRegion);
+
+                var explicitProperties = new Dictionary<IPropertySymbol, IOperation>(SymbolEqualityComparer.IgnoreAll);
+                var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(initializers.Length);
+
+                // Visit and capture all the values, and construct assignments using capture references
+                foreach (IOperation initializer in initializers)
+                {
+                    if (initializer is not ISimpleAssignmentOperation simpleAssignment)
+                    {
+                        AddStatement(VisitRequired(initializer));
+                        continue;
+                    }
+
+                    if (simpleAssignment.Target.Kind != OperationKind.PropertyReference)
+                    {
+                        Debug.Assert(simpleAssignment.Target is InvalidOperation);
+                        AddStatement(VisitRequired(simpleAssignment.Value));
+                        continue;
+                    }
+
+                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+
+                    Debug.Assert(propertyReference != null);
+                    Debug.Assert(propertyReference.Arguments.IsEmpty);
+                    Debug.Assert(propertyReference.Instance != null);
+                    Debug.Assert(propertyReference.Instance.Kind == OperationKind.InstanceReference);
+                    Debug.Assert(((IInstanceReferenceOperation)propertyReference.Instance).ReferenceKind == InstanceReferenceKind.ImplicitReceiver);
+
+                    var property = propertyReference.Property;
+                    if (explicitProperties.ContainsKey(property))
+                    {
+                        AddStatement(VisitRequired(simpleAssignment.Value));
+                        continue;
+                    }
+
+                    int valueCaptureId = GetNextCaptureId(outerCaptureRegion);
+                    VisitAndCapture(simpleAssignment.Value, valueCaptureId);
+                    LeaveRegionsUpTo(innerCaptureRegion);
+                    var valueCaptureRef = new FlowCaptureReferenceOperation(valueCaptureId, operation.Operand.Syntax,
+                        operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                    var assignment = makeAssignment(property, valueCaptureRef, operation);
+
+                    explicitProperties.Add(property, assignment);
+                }
+
+                // Make a sequence for all properties (in order), constructing assignments for the implicitly set properties
+                var type = (INamedTypeSymbol)operation.Type;
+                foreach (IPropertySymbol property in properties)
+                {
+                    if (explicitProperties.TryGetValue(property, out var assignment))
+                    {
+                        initializerBuilder.Add(assignment);
+                    }
+                    else
+                    {
+                        Debug.Assert(oldValueCaptureId >= 0);
+
+                        // `oldInstance`
+                        var oldInstance = new FlowCaptureReferenceOperation(oldValueCaptureId, operation.Operand.Syntax,
+                            operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                        // `oldInstance.Property`
+                        var visitedValue = new PropertyReferenceOperation(property, ImmutableArray<IArgumentOperation>.Empty, oldInstance,
+                            semanticModel: null, operation.Syntax, property.Type, isImplicit: true);
+
+                        int extraValueCaptureId = GetNextCaptureId(outerCaptureRegion);
+                        AddStatement(new FlowCaptureOperation(extraValueCaptureId, operation.Syntax, visitedValue));
+
+                        var extraValueCaptureRef = new FlowCaptureReferenceOperation(extraValueCaptureId, operation.Operand.Syntax,
+                            operation.Operand.Type, constantValue: operation.Operand.GetConstantValue());
+
+                        assignment = makeAssignment(property, extraValueCaptureRef, operation);
+                        initializerBuilder.Add(assignment);
+                    }
+                }
+                LeaveRegionsUpTo(outerCaptureRegion);
+
+                return new AnonymousObjectCreationOperation(initializerBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.IsImplicit);
+            }
+
+            // Build an operation for `<implicitReceiver>.Property = <capturedValue>`
+            SimpleAssignmentOperation makeAssignment(IPropertySymbol property, IOperation capturedValue, WithOperation operation)
+            {
+                // <implicitReceiver>
+                var implicitReceiver = new InstanceReferenceOperation(InstanceReferenceKind.ImplicitReceiver,
+                    semanticModel: null, operation.Syntax, operation.Type, isImplicit: true);
+
+                // <implicitReceiver>.Property
+                var target = new PropertyReferenceOperation(property, ImmutableArray<IArgumentOperation>.Empty, implicitReceiver,
+                    semanticModel: null, operation.Syntax, property.Type, isImplicit: true);
+
+                // <implicitReceiver>.Property = <capturedValue>
+                return new SimpleAssignmentOperation(isRef: false, target, capturedValue,
+                    semanticModel: null, operation.Syntax, property.Type, constantValue: null, isImplicit: true);
+            }
+
+            static bool setsAllProperties(ImmutableArray<IOperation> initializers, IEnumerable<IPropertySymbol> properties)
+            {
+                var set = new HashSet<IPropertySymbol>(SymbolEqualityComparer.IgnoreAll);
+                foreach (var initializer in initializers)
+                {
+                    if (initializer is not ISimpleAssignmentOperation simpleAssignment)
+                    {
+                        continue;
+                    }
+                    if (simpleAssignment.Target.Kind != OperationKind.PropertyReference)
+                    {
+                        Debug.Assert(simpleAssignment.Target is InvalidOperation);
+                        continue;
+                    }
+
+                    var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+                    Debug.Assert(properties.Contains(propertyReference.Property, SymbolEqualityComparer.IgnoreAll));
+                    set.Add(propertyReference.Property);
+                }
+
+                return set.Count == properties.Count();
+            }
+        }
     }
 }

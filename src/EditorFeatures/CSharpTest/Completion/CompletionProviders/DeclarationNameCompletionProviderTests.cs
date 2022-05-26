@@ -1,15 +1,19 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -22,13 +26,326 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class DeclarationNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public DeclarationNameCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
+        private const string Span = @"
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        private readonly T[] arr;
+        public ref T this[int i] => ref arr[i];
+        public override int GetHashCode() => 1;
+        public int Length { get; }
+        unsafe public Span(void* pointer, int length)
         {
+            this.arr = Helpers.ToArray<T>(pointer, length);
+            this.Length = length;
         }
-
-        internal override CompletionProvider CreateCompletionProvider()
+        public Span(T[] arr)
         {
-            return new DeclarationNameCompletionProvider();
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+        public void CopyTo(Span<T> other) { }
+        /// <summary>Gets an enumerator for this span.</summary>
+        public Enumerator GetEnumerator() => new Enumerator(this);
+        /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
+        public ref struct Enumerator
+        {
+            /// <summary>The span being enumerated.</summary>
+            private readonly Span<T> _span;
+            /// <summary>The next index to yield.</summary>
+            private int _index;
+            /// <summary>Initialize the enumerator.</summary>
+            /// <param name=""span"">The span to enumerate.</param>
+            internal Enumerator(Span<T> span)
+            {
+                _span = span;
+                _index = -1;
+            }
+            /// <summary>Advances the enumerator to the next element of the span.</summary>
+            public bool MoveNext()
+            {
+                int index = _index + 1;
+                if (index < _span.Length)
+                {
+                    _index = index;
+                    return true;
+                }
+                return false;
+            }
+            /// <summary>Gets the element at the current position of the enumerator.</summary>
+            public ref T Current
+            {
+                get => ref _span[_index];
+            }
+        }
+        public static implicit operator Span<T>(T[] array) => new Span<T>(array);
+        public Span<T> Slice(int offset, int length)
+        {
+            var copy = new T[length];
+            Array.Copy(arr, offset, copy, 0, length);
+            return new Span<T>(copy);
+        }
+    }
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] arr;
+        public ref readonly T this[int i] => ref arr[i];
+        public override int GetHashCode() => 2;
+        public int Length { get; }
+        unsafe public ReadOnlySpan(void* pointer, int length)
+        {
+            this.arr = Helpers.ToArray<T>(pointer, length);
+            this.Length = length;
+        }
+        public ReadOnlySpan(T[] arr)
+        {
+            this.arr = arr;
+            this.Length = arr.Length;
+        }
+        public void CopyTo(Span<T> other) { }
+        /// <summary>Gets an enumerator for this span.</summary>
+        public Enumerator GetEnumerator() => new Enumerator(this);
+        /// <summary>Enumerates the elements of a <see cref=""Span{T}""/>.</summary>
+        public ref struct Enumerator
+        {
+            /// <summary>The span being enumerated.</summary>
+            private readonly ReadOnlySpan<T> _span;
+            /// <summary>The next index to yield.</summary>
+            private int _index;
+            /// <summary>Initialize the enumerator.</summary>
+            /// <param name=""span"">The span to enumerate.</param>
+            internal Enumerator(ReadOnlySpan<T> span)
+            {
+                _span = span;
+                _index = -1;
+            }
+            /// <summary>Advances the enumerator to the next element of the span.</summary>
+            public bool MoveNext()
+            {
+                int index = _index + 1;
+                if (index < _span.Length)
+                {
+                    _index = index;
+                    return true;
+                }
+                return false;
+            }
+            /// <summary>Gets the element at the current position of the enumerator.</summary>
+            public ref readonly T Current
+            {
+                get => ref _span[_index];
+            }
+        }
+        public static implicit operator ReadOnlySpan<T>(T[] array) => array == null ? default : new ReadOnlySpan<T>(array);
+        public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
+        public ReadOnlySpan<T> Slice(int offset, int length)
+        {
+            var copy = new T[length];
+            Array.Copy(arr, offset, copy, 0, length);
+            return new ReadOnlySpan<T>(copy);
+        }
+    }
+    public readonly ref struct SpanLike<T>
+    {
+        public readonly Span<T> field;
+    }
+    public enum Color: sbyte
+    {
+        Red,
+        Green,
+        Blue
+    }
+    public static unsafe class Helpers
+    {
+        public static T[] ToArray<T>(void* ptr, int count)
+        {
+            if (ptr == null)
+            {
+                return null;
+            }
+            if (typeof(T) == typeof(int))
+            {
+                var arr = new int[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((int*)ptr)[i];
+                }
+                return (T[])(object)arr;
+            }
+            if (typeof(T) == typeof(byte))
+            {
+                var arr = new byte[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((byte*)ptr)[i];
+                }
+                return (T[])(object)arr;
+            }
+            if (typeof(T) == typeof(char))
+            {
+                var arr = new char[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((char*)ptr)[i];
+                }
+                return (T[])(object)arr;
+            }
+            if (typeof(T) == typeof(Color))
+            {
+                var arr = new Color[count];
+                for(int i = 0; i < count; i++)
+                {
+                    arr[i] = ((Color*)ptr)[i];
+                }
+                return (T[])(object)arr;
+            }
+            throw new Exception(""add a case for: "" + typeof(T));
+        }
+    }
+}";
+
+        private const string IAsyncEnumerable = @"
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Threading.Tasks;
+
+    public sealed class AsyncMethodBuilderAttribute : Attribute
+    {
+        public AsyncMethodBuilderAttribute(Type builderType) { }
+        public Type BuilderType { get; }
+    }
+
+    public struct AsyncValueTaskMethodBuilder
+    {
+        public ValueTask Task => default;
+
+        public static AsyncValueTaskMethodBuilder Create() => default;
+        public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : INotifyCompletion
+            where TStateMachine : IAsyncStateMachine {}
+
+        public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+            where TAwaiter : ICriticalNotifyCompletion
+            where TStateMachine : IAsyncStateMachine {}
+        public void SetException(Exception exception) {}
+        public void SetResult() {}
+        public void SetStateMachine(IAsyncStateMachine stateMachine) {}
+        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine {}
+    }
+
+    public readonly struct ValueTaskAwaiter : ICriticalNotifyCompletion, INotifyCompletion
+    {
+        public bool IsCompleted => default;
+
+        public void GetResult() { }
+        public void OnCompleted(Action continuation) { }
+        public void UnsafeOnCompleted(Action continuation) { }
+    }
+
+    public readonly struct ValueTaskAwaiter<TResult> : ICriticalNotifyCompletion, INotifyCompletion
+    {
+        public bool IsCompleted => default;
+        public TResult GetResult() => default;
+        public void OnCompleted(Action continuation) { }
+        public void UnsafeOnCompleted(Action continuation) { }
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    using System.Runtime.CompilerServices;
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder))]
+    public readonly struct ValueTask : IEquatable<ValueTask>
+    {
+        public ValueTask(Task task) {}
+        public ValueTask(IValueTaskSource source, short token) {}
+
+        public bool IsCompleted => default;
+        public bool IsCompletedSuccessfully => default;
+        public bool IsFaulted => default;
+        public bool IsCanceled => default;
+
+        public Task AsTask() => default;
+        public ConfiguredValueTaskAwaitable ConfigureAwait(bool continueOnCapturedContext) => default;
+        public override bool Equals(object obj) => default;
+        public bool Equals(ValueTask other) => default;
+        public ValueTaskAwaiter GetAwaiter() => default;
+        public override int GetHashCode() => default;
+        public ValueTask Preserve() => default;
+
+        public static bool operator ==(ValueTask left, ValueTask right) => default;
+        public static bool operator !=(ValueTask left, ValueTask right) => default;
+    }
+
+    [AsyncMethodBuilder(typeof(AsyncValueTaskMethodBuilder<>))]
+    public readonly struct ValueTask<TResult> : IEquatable<ValueTask<TResult>>
+    {
+        public ValueTask(TResult result) {}
+        public ValueTask(Task<TResult> task) {}
+        public ValueTask(IValueTaskSource<TResult> source, short token) {}
+
+        public bool IsFaulted => default;
+        public bool IsCompletedSuccessfully => default;
+        public bool IsCompleted => default;
+        public bool IsCanceled => default;
+        public TResult Result => default;
+
+        public Task<TResult> AsTask() => default;
+        public ConfiguredValueTaskAwaitable<TResult> ConfigureAwait(bool continueOnCapturedContext) => default;
+
+        public bool Equals(ValueTask<TResult> other) => default;
+        public override bool Equals(object obj) => default;
+        public ValueTaskAwaiter<TResult> GetAwaiter() => default;
+        public override int GetHashCode() => default;
+        public ValueTask<TResult> Preserve() => default;
+        public override string ToString() => default;
+        public static bool operator ==(ValueTask<TResult> left, ValueTask<TResult> right) => default;
+        public static bool operator !=(ValueTask<TResult> left, ValueTask<TResult> right) => default;
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator();
+    }
+
+    public interface IAsyncEnumerator<out T> : IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}";
+
+        internal override Type GetCompletionProviderType()
+            => typeof(DeclarationNameCompletionProvider);
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(48310, "https://github.com/dotnet/roslyn/issues/48310")]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TreatRecordPositionalParameterAsProperty(string record)
+        {
+            var markup = $@"
+public class MyClass
+{{
+}}
+
+public {record} R(MyClass $$
+";
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.PropertyPublic);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -185,7 +502,6 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Parameter3()
         {
@@ -197,6 +513,305 @@ public class C
 }
 ";
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter4()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Other(CancellationToken cancellationToken) {}
+    void Goo(CancellationToken c$$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Parameter5()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter6()
+        {
+            var markup = @"
+using System.Threading;
+
+void Other(CancellationToken cancellationToken) {}
+void Goo(CancellationToken c$$) {}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task Parameter7()
+        {
+            var markup = @"
+using System.Threading;
+
+void Goo(CancellationToken cancellationToken, CancellationToken c$$) {}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter8()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    int this[CancellationToken cancellationToken] => throw null;
+    int this[CancellationToken c$$] => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter9()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    int this[CancellationToken cancellationToken] => throw null;
+    int this[CancellationToken cancellationToken, CancellationToken c$$] => throw null;
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken1", glyph: (int)Glyph.Parameter);
+        }
+
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter10(LanguageVersion languageVersion)
+        {
+            var source = @"
+public class DbContext { }
+public class C
+{
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            var markup = GetMarkup(source, languageVersion);
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            }
+        }
+
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter11(LanguageVersion languageVersion)
+        {
+            var source = @"
+public class DbContext { }
+public class C
+{
+    void Goo() {
+        DbContext context;
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            var markup = GetMarkup(source, languageVersion);
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            }
+        }
+
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        [WorkItem(45492, "https://github.com/dotnet/roslyn/issues/45492")]
+        public async Task Parameter12(LanguageVersion languageVersion)
+        {
+            var source = @"
+public class DbContext { }
+public class C
+{
+    DbContext dbContext;
+    void Goo(DbContext context) {
+        void InnerGoo(DbContext $$) { }
+    }
+}
+";
+            var markup = GetMarkup(source, languageVersion);
+            await VerifyItemExistsAsync(markup, "dbContext", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "db", glyph: (int)Glyph.Parameter);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            {
+                await VerifyItemExistsAsync(markup, "context", glyph: (int)Glyph.Parameter);
+            }
+            else
+            {
+                await VerifyItemExistsAsync(markup, "context1", glyph: (int)Glyph.Parameter);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(36248, "https://github.com/dotnet/roslyn/issues/36248")]
+        public async Task Parameter13()
+        {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+
+            var options = new CompletionOptions()
+            {
+                NamingStyleFallbackOptions = ParameterCamelCaseWithPascalCaseFallback()
+            };
+
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Goo(CancellationToken $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter, options: options);
+            await VerifyItemIsAbsentAsync(markup, "CancellationToken", options: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task SuggestParameterNamesFromExistingOverloads()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void M(CancellationToken myTok) { }
+
+    void M(CancellationToken $$
+}
+";
+            await VerifyItemExistsAsync(markup, "myTok", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task SuggestParameterNamesFromExistingOverloads_Constructor()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    public C(string firstName, string middleName, string lastName) { }
+
+    public C(string firstName, string $$)
+}
+";
+            await VerifyItemExistsAsync(markup, "middleName", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "lastName", glyph: (int)Glyph.Parameter);
+            await VerifyItemIsAbsentAsync(markup, "firstName");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestParameterNamesFromTheSameOverload()
+        {
+            var markup = @"
+public class C
+{
+    void M(string name, string $$) { }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "name");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestParameterNamesFromNonOverloads()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void M1(CancellationToken myTok) { }
+
+    void M2(CancellationToken $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "myTok");
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestInGenericType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+public class C
+{
+    void M(IEnumerable<int> numbers) { }
+
+    void M(List<$$>) { }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestInOptionalParameterDefaultValue()
+        {
+            var markup = @"
+using System.Collections.Generic;
+public class C
+{
+    private const int ZERO = 0;
+    void M(int num = ZERO) { }
+
+    void M(int x, int num = $$) { }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
@@ -704,7 +1319,6 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
-
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TupleExpressionDeclaration1()
@@ -995,6 +1609,121 @@ class Test
             await VerifyItemExistsAsync(markup, "tokens");
         }
 
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeSpan()
+        {
+            var markup = @"
+using System;
+
+class Test
+{
+    void M(Span<Test> $$) { }
+}
+" + Span;
+            await VerifyItemExistsAsync(markup, "tests");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeValidGetEnumerator()
+        {
+            var markup = @"
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T>
+{
+    public MyEnumerator GetEnumerator()
+    {
+        return new MyEnumerator();
+    }
+
+    public class MyEnumerator
+    {
+        public T Current { get; }
+        
+        public bool MoveNext() { return false; }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeValidGetAsyncEnumerator()
+        {
+            var markup = @"
+using System.Threading.Tasks;
+
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T>
+{
+    public MyEnumerator GetAsyncEnumerator()
+    {
+        return new MyEnumerator();
+    }
+
+    public class MyEnumerator
+    {
+        public T Current { get; }
+        
+        public Task<bool> MoveNextAsync() { return Task.FromResult(false); }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeForUnimplementedIEnumerable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T> : IEnumerable<T>
+{
+}
+";
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
+        [WorkItem(37366, "https://github.com/dotnet/roslyn/issues/37366")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PluralizeForUnimplementedIAsyncEnumerable()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class MyClass
+{
+    public void M(MyOwnCollection<MyClass> $$) { }
+}
+
+
+class MyOwnCollection<T> : IAsyncEnumerable<T>
+{
+}
+" + IAsyncEnumerable;
+            await VerifyItemExistsAsync(markup, "myClasses");
+        }
+
         [WorkItem(23497, "https://github.com/dotnet/roslyn/issues/23497")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InPatternMatching1()
@@ -1264,25 +1993,15 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = WorkspaceFixture.GetWorkspace().Options;
-            try
-            {
-                workspace.Options = originalOptions.
-                    WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false);
+            ShowNameSuggestions = false;
 
-                var markup = @"
+            var markup = @"
 class Test
 {
     Test $$
 }
 ";
-                await VerifyNoItemsExistAsync(markup);
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyNoItemsExistAsync(markup);
         }
 
         [WorkItem(23590, "https://github.com/dotnet/roslyn/issues/23590")]
@@ -1454,52 +2173,287 @@ public class Class1
             await VerifyItemExistsAsync(markup, "nullables");
         }
 
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInLocalWithNullableTypeName()
+        {
+            var markup = @"
+using System;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method()
+  {
+      Nullable<ImmutableArray<int>> $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInLocalWithQuestionMark()
+        {
+            var markup = @"
+using System.Collections.Immutable;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method()
+  {
+      ImmutableArray<int>? $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableReferenceInLocal()
+        {
+            var markup = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method()
+  {
+      IEnumerable<int>? $$
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInParameterWithNullableTypeName()
+        {
+            var markup = @"
+using System;
+
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method(Nullable<ImmutableArray<int>> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableStructInParameterWithQuestionMark()
+        {
+            var markup = @"
+public struct ImmutableArray<T> : System.Collections.Generic.IEnumerable<T> { }
+
+public class Class1
+{
+  public void Method(ImmutableArray<int>? $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(1220195, "https://developercommunity2.visualstudio.com/t/Regression-from-1675-Suggested-varia/1220195")]
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeIsNullableReferenceInParameter()
+        {
+            var markup = @"
+#nullable enable
+
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<int>? $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfUnmanagedType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<int> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "ints");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfObject()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<object> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "objects");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableParameterOfString()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method(IEnumerable<string> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "strings");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<T>(IEnumerable<T> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "values");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTNameParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<TResult>(IEnumerable<TResult> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "results");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Arg>(IEnumerable<Arg> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "args");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameterBeginsWithT()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Type>(IEnumerable<Type> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "types");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = workspace.Options;
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            try
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+
+            var options = new CompletionOptions()
             {
-                workspace.Options = workspace.Options.WithChangedOption(
-                    new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
-                    NamesEndWithSuffixPreferences());
+                NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
+            };
 
-                var markup = @"
+            var markup = @"
 class Configuration
 {
     Configuration $$
 }
 ";
-                await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
-                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
-            }
-            finally
-            {
-                workspace.Options = originalOptions;
-            }
+            await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal", options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction", options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideMethod()
         {
-            var workspace = WorkspaceFixture.GetWorkspace();
-            var originalOptions = workspace.Options;
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
-            try
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+
+            var options = new CompletionOptions()
             {
-                workspace.Options = workspace.Options.WithChangedOption(
-                    new OptionKey(SimplificationOptions.NamingPreferences, LanguageNames.CSharp),
-                    NamesEndWithSuffixPreferences());
+                NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
+            };
 
-                var markup = @"
+            var markup = @"
 class Configuration
 {
     void M()
@@ -1508,17 +2462,472 @@ class Configuration
     }
 }
 ";
-                await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
+            await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
+                expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationField", options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod", options: options);
+            await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty", options: options);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseForeachVariableName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB {}
+
+    readonly List<ClassB> classBList;
+
+    void M()
+    {
+        foreach (var classB in classBList)
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseParameterName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M(ClassB classB)
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
-                await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
-            }
-            finally
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUsePropertyName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    ClassB classB { get; set; }
+
+    void M()
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseFieldName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    ClassB classB;
+
+    void M()
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalName()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB();
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalNameMultiple()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB();
+        ClassB classB1 = new ClassB();
+        ClassB $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemIsAbsentAsync(markup, "classB1");
+            await VerifyItemExistsAsync(markup, "classB2", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalInsideIf()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M(bool flag)
+    {
+        ClassB $$
+        if (flag)
+        {
+            ClassB classB = new ClassB();
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+            await VerifyItemExistsAsync(markup, "classB1", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseClassName()
+        {
+            var markup = @"
+class classA
+{
+    void M()
+    {
+        classA $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classA", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(31304, "https://github.com/dotnet/roslyn/issues/31304")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalInDifferentScope()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+
+    void M()
+    {
+        ClassB classB = new ClassB(); 
+    }
+
+    void M2()
+    {
+        ClassB $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        public async Task TestUseLocalAsLocalFunctionParameter(LanguageVersion languageVersion)
+        {
+            var source = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        ClassB classB = new ClassB();
+        void LocalM1(ClassB $$) { }
+    }
+}
+";
+            var markup = GetMarkup(source, languageVersion);
+
+            if (languageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
-                workspace.Options = originalOptions;
+                await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+                        expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+            }
+            else
+            {
+                await VerifyItemIsAbsentAsync(markup, "classB");
+            }
+        }
+
+        [InlineData(LanguageVersion.CSharp7)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.Latest)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [WorkItem(42049, "https://github.com/dotnet/roslyn/issues/42049")]
+        public async Task TestCompletionDoesNotUseLocalAsLocalFunctionVariable(LanguageVersion languageVersion)
+        {
+            var source = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        ClassB classB = new ClassB();
+        void LocalM1()
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            var markup = GetMarkup(source, languageVersion);
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalInNestedLocalFunction()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        ClassB classB = new ClassB();
+        void LocalM1()
+        {
+            void LocalM2()
+            {
+                ClassB $$
+            }
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionDoesNotUseLocalFunctionParameterInNestedLocalFunction()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1(ClassB classB)
+        {
+            void LocalM2()
+            {
+                ClassB $$
+            }
+        }
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "classB");
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionParameterAsParameter()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1(ClassB classB) { }
+        void LocalM2(ClassB $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionVariableAsParameter()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1()
+        {
+            ClassB classB
+        }
+        void LocalM2(ClassB $$) { }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Parameter,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionParameterAsVariable()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1(ClassB classB) { }
+        void LocalM2()
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [WorkItem(35891, "https://github.com/dotnet/roslyn/issues/35891")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestCompletionCanUseLocalFunctionVariableAsVariable()
+        {
+            var markup = @"
+class ClassA
+{
+    class ClassB { }
+    void M()
+    {
+        void LocalM1()
+        {
+            ClassB classB
+        }
+        void LocalM2()
+        {
+            ClassB $$
+        }
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "classB", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestNotForUnboundAsync()
+        {
+            var markup = @"
+class C
+{
+    async $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "async");
+            await VerifyItemIsAbsentAsync(markup, "Async");
+            await VerifyItemIsAbsentAsync(markup, "GetAsync");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(43816, "https://github.com/dotnet/roslyn/pull/43816")]
+        public async Task ConflictingLocalVariable()
+        {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+
+            var options = new CompletionOptions()
+            {
+                NamingStyleFallbackOptions = MultipleCamelCaseLocalRules()
+            };
+
+            var markup = @"
+public class MyClass
+{
+    void M()
+    {
+        MyClass myClass;
+        MyClass $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
+        }
+
+        private static NamingStylePreferences MultipleCamelCaseLocalRules()
+        {
+            var styles = new[]
+            {
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), name: "Local1"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), name: "Local1"),
+            };
+
+            return new NamingStylePreferences(
+                styles.Select(t => t.specification).ToImmutableArray(),
+                styles.Select(t => t.style).ToImmutableArray(),
+                styles.Select(t => CreateRule(t.specification, t.style)).ToImmutableArray());
+
+            // Local functions
+
+            static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string name)
+            {
+                var symbolSpecification = new SymbolSpecification(
+                    Guid.NewGuid(),
+                    name,
+                    ImmutableArray.Create(kind));
+
+                var namingStyle = new NamingStyle(
+                    Guid.NewGuid(),
+                    name,
+                    capitalizationScheme: Capitalization.CamelCase);
+
+                return (symbolSpecification, namingStyle);
             }
         }
 
@@ -1540,14 +2949,14 @@ class Configuration
 
             // Local functions
 
-            (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
+            static (SymbolSpecification specification, NamingStyle style) SpecificationStyle(SymbolKindOrTypeKind kind, string suffix)
             {
                 var symbolSpecification = new SymbolSpecification(
-                    id: null,
-                    symbolSpecName: suffix,
+                    Guid.NewGuid(),
+                    name: suffix,
                     ImmutableArray.Create(kind),
-                    ImmutableArray<Accessibility>.Empty,
-                    ImmutableArray<ModifierKind>.Empty);
+                    accessibilityList: default,
+                    modifiers: default);
 
                 var namingStyle = new NamingStyle(
                     Guid.NewGuid(),
@@ -1559,16 +2968,54 @@ class Configuration
 
                 return (symbolSpecification, namingStyle);
             }
+        }
 
-            SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+        private static NamingStylePreferences ParameterCamelCaseWithPascalCaseFallback()
+        {
+            var symbolSpecifications = ImmutableArray.Create(
+                new SymbolSpecification(
+                    id: Guid.NewGuid(),
+                    name: "parameters",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                    accessibilityList: default,
+                    modifiers: default),
+                new SymbolSpecification(
+                    id: Guid.NewGuid(),
+                    name: "fallback",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)),
+                    accessibilityList: default,
+                    modifiers: default));
+            var namingStyles = ImmutableArray.Create(
+                new NamingStyle(
+                    Guid.NewGuid(),
+                    name: "parameter",
+                    capitalizationScheme: Capitalization.CamelCase,
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: ""),
+                new NamingStyle(
+                    Guid.NewGuid(),
+                    name: "any_symbol",
+                    capitalizationScheme: Capitalization.PascalCase,
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: ""));
+            return new NamingStylePreferences(
+                symbolSpecifications,
+                namingStyles,
+                namingRules: ImmutableArray.Create(
+                    CreateRule(symbolSpecifications[0], namingStyles[0]),
+                    CreateRule(symbolSpecifications[1], namingStyles[1])));
+        }
+
+        private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
+        {
+            return new SerializableNamingRule()
             {
-                return new SerializableNamingRule()
-                {
-                    SymbolSpecificationID = specification.ID,
-                    NamingStyleID = style.ID,
-                    EnforcementLevel = ReportDiagnostic.Error
-                };
-            }
+                SymbolSpecificationID = specification.ID,
+                NamingStyleID = style.ID,
+                EnforcementLevel = ReportDiagnostic.Error
+            };
         }
     }
 }

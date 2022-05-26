@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Threading
@@ -18,10 +20,10 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
     <[UseExportProvider]>
     Public Class GenerateTypeViewModelTests
-        Private Shared s_assembly1_Name As String = "Assembly1"
-        Private Shared s_test1_Name As String = "Test1"
-        Private Shared s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
-        Private Shared s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
+        Private Shared ReadOnly s_assembly1_Name As String = "Assembly1"
+        Private Shared ReadOnly s_test1_Name As String = "Test1"
+        Private Shared ReadOnly s_submit_failed_unexpectedly As String = "Submit failed unexpectedly."
+        Private Shared ReadOnly s_submit_passed_unexpectedly As String = "Submit passed unexpectedly. Submit should fail here"
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestGenerateTypeExistingFileCSharp() As Task
@@ -195,7 +197,7 @@ namespace A
 
             ' Only 2 Projects can be selected because CS2 and CS3 will introduce cyclic dependency
             Assert.Equal(2, viewModel.ProjectList.Count)
-            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count)
+            Assert.Equal(2, viewModel.DocumentList.Count())
 
             viewModel.DocumentSelectIndex = 1
 
@@ -205,7 +207,7 @@ namespace A
 
             ' Check to see if the values are reset when there is a change in the project selection
             viewModel.SelectedProject = projectToSelect
-            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count())
+            Assert.Equal(2, viewModel.DocumentList.Count())
             Assert.Equal(0, viewModel.DocumentSelectIndex)
             Assert.Equal(1, viewModel.ProjectSelectIndex)
 
@@ -245,9 +247,8 @@ namespace A
             Dim projectToSelect = viewModel.ProjectList.Where(Function(p) p.Name = "CS2").Single().Project
             viewModel.SelectedProject = projectToSelect
 
-
             ' Check if the option for Existing File is disabled
-            Assert.Equal(0, viewModel.GetDocumentList(CancellationToken.None).Count())
+            Assert.Equal(0, viewModel.DocumentList.Count())
             Assert.Equal(False, viewModel.IsExistingFileEnabled)
 
             ' Select the project CS1 which has documents
@@ -255,7 +256,7 @@ namespace A
             viewModel.SelectedProject = projectToSelect
 
             ' Check if the option for Existing File is enabled
-            Assert.Equal(2, viewModel.GetDocumentList(CancellationToken.None).Count())
+            Assert.Equal(2, viewModel.DocumentList.Count())
             Assert.Equal(True, viewModel.IsExistingFileEnabled)
         End Function
 
@@ -394,7 +395,6 @@ public class CCC
 
             Assert.Equal("GooattributeAttribute", viewModel.TypeName)
         End Function
-
 
         <WorkItem(861462, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/861462")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -585,7 +585,7 @@ class Program
             Dim viewModel = Await GetViewModelAsync(workspaceXml, LanguageNames.CSharp)
 
             Dim expectedDocuments = {"Test1.cs", "Test2.cs", "AssemblyInfo.cs", "Test3.cs"}
-            Assert.Equal(expectedDocuments, viewModel.GetDocumentList(CancellationToken.None).Select(Function(d) d.Document.Name).ToArray())
+            Assert.Equal(expectedDocuments, viewModel.DocumentList.Select(Function(d) d.Document.Name).ToArray())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
@@ -806,12 +806,12 @@ namespace A
             File.Delete(pathString)
         End Function
 
-        Private Function PopulateProjectFolders(list As List(Of String), ParamArray values As String()) As List(Of String)
+        Private Shared Function PopulateProjectFolders(list As List(Of String), ParamArray values As String()) As List(Of String)
             list.AddRange(values)
             Return list
         End Function
 
-        Private Function GetOneProjectWorkspace(
+        Private Shared Function GetOneProjectWorkspace(
             documentContent As XElement,
             languageName As String,
             projectName As String,
@@ -835,7 +835,7 @@ namespace A
             End If
         End Function
 
-        Private Async Function GetViewModelAsync(
+        Private Shared Async Function GetViewModelAsync(
             content As XElement,
             languageName As String,
             Optional isNewFile As Boolean = False,
@@ -885,7 +885,7 @@ namespace A
     Friend Class TestProjectManagementService
         Implements IProjectManagementService
 
-        Private _projectFolders As List(Of String)
+        Private ReadOnly _projectFolders As List(Of String)
 
         Public Sub New(projectFolders As List(Of String))
             Me._projectFolders = projectFolders

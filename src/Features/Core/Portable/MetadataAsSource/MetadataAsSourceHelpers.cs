@@ -1,11 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
@@ -14,15 +17,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
     /// </summary>
     internal class MetadataAsSourceHelpers
     {
-        private static readonly HashSet<SymbolKind> s_validSymbolKinds = new HashSet<SymbolKind>(new[]
-            {
-                SymbolKind.Event,
-                SymbolKind.Field,
-                SymbolKind.Method,
-                SymbolKind.NamedType,
-                SymbolKind.Property,
-                SymbolKind.Parameter,
-            });
 
 #if false
         public static void ValidateSymbolArgument(ISymbol symbol, string parameterName)
@@ -51,17 +45,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             // This method is only used to generate a comment at the top of Metadata-as-Source documents and
             // previous submissions are never viewed as metadata (i.e. we always have compilations) so there's no
             // need to consume compilation.ScriptCompilationInfo.PreviousScriptCompilation.
-
-            // TODO (https://github.com/dotnet/roslyn/issues/6859): compilation.GetMetadataReference(assemblySymbol)?
-            var assemblyReference = compilation.References.Where(r =>
-            {
-                var referencedSymbol = compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol;
-                return
-                    referencedSymbol != null &&
-                    referencedSymbol.MetadataName == assemblySymbol.MetadataName;
-            })
-            .FirstOrDefault();
-
+            var assemblyReference = compilation.GetMetadataReference(assemblySymbol);
             return assemblyReference?.Display ?? FeaturesResources.location_unknown;
         }
 
@@ -80,22 +64,60 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
         public static async Task<Location> GetLocationInGeneratedSourceAsync(SymbolKey symbolId, Document generatedDocument, CancellationToken cancellationToken)
         {
-            var location = symbolId.Resolve(
-                await generatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false),
-                ignoreAssemblyKey: true, cancellationToken: cancellationToken)
-                .GetAllSymbols()
-                .Select(s => s.Locations.Where(loc => loc.IsInSource).FirstOrDefault())
-                .WhereNotNull()
-                .FirstOrDefault();
+            var resolution = symbolId.Resolve(
+                await generatedDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false),
+                ignoreAssemblyKey: true, cancellationToken: cancellationToken);
 
+            var location = GetFirstSourceLocation(resolution);
             if (location == null)
             {
-                // If we cannot find the symbol, then put the caret at the beginning of the file.
-                var tree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                // If we cannot find the location of the  symbol.  Just put the caret at the 
+                // beginning of the file.
+                var tree = await generatedDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 location = Location.Create(tree, new TextSpan(0, 0));
             }
 
             return location;
+        }
+
+        private static Location? GetFirstSourceLocation(SymbolKeyResolution resolution)
+        {
+            foreach (var symbol in resolution)
+            {
+                foreach (var location in symbol.Locations)
+                {
+                    if (location.IsInSource)
+                    {
+                        return location;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static bool TryGetImplementationAssemblyPath(string referenceDllPath, [NotNullWhen(true)] out string? implementationDllPath)
+        {
+            implementationDllPath = null;
+
+            // For some nuget packages if the reference path has a "ref" folder in it, then the implementation assembly
+            // will be in the corresponding "lib" folder.
+            // TODO: Support more cases, like SDK references: https://github.com/dotnet/sdk/issues/12360
+            var start = referenceDllPath.IndexOf(@"\ref\");
+            if (start == -1)
+                return false;
+
+            var pathToTry = referenceDllPath.Substring(0, start) +
+                            @"\lib\" +
+                            referenceDllPath.Substring(start + 5);
+
+            if (IOUtilities.PerformIO(() => File.Exists(pathToTry)))
+            {
+                implementationDllPath = pathToTry;
+                return true;
+            }
+
+            return false;
         }
     }
 }

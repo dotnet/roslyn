@@ -1,11 +1,14 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -17,45 +20,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     Friend Class VisualBasicAddImportFeatureService
         Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
-        Protected Overrides Function CanAddImport(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            If node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
-                Return False
-            End If
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
-            Return node.CanAddImportsStatements(cancellationToken)
+        Protected Overrides Function CanAddImport(node As SyntaxNode, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Boolean
+            cancellationToken.ThrowIfCancellationRequested()
+            Return node.CanAddImportsStatements(allowInHiddenRegions, cancellationToken)
         End Function
 
         Protected Overrides Function CanAddImportForMethod(
                 diagnosticId As String,
-                syntaxFacts As ISyntaxFactsService,
+                syntaxFacts As ISyntaxFacts,
                 node As SyntaxNode,
                 ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
-                Case VisualBasicAddImportCodeFixProvider.BC30456,
-                     VisualBasicAddImportCodeFixProvider.BC30390,
-                     VisualBasicAddImportCodeFixProvider.BC42309,
-                     VisualBasicAddImportCodeFixProvider.BC30451
+                Case AddImportDiagnosticIds.BC30456,
+                     AddImportDiagnosticIds.BC30390,
+                     AddImportDiagnosticIds.BC42309,
+                     AddImportDiagnosticIds.BC30451
                     Exit Select
-                Case VisualBasicAddImportCodeFixProvider.BC30512
+                Case AddImportDiagnosticIds.BC30512
                     ' look up its corresponding method name
                     Dim parent = node.GetAncestor(Of InvocationExpressionSyntax)()
                     If parent Is Nothing Then
                         Return False
                     End If
+
                     Dim method = TryCast(parent.Expression, MemberAccessExpressionSyntax)
                     If method IsNot Nothing Then
                         node = method.Name
                     Else
                         node = parent.Expression
                     End If
+
                     Exit Select
-                Case VisualBasicAddImportCodeFixProvider.BC36719
+                Case AddImportDiagnosticIds.BC36719
                     If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                         Return True
                     End If
 
                     Return False
-                Case VisualBasicAddImportCodeFixProvider.BC32016
+                Case AddImportDiagnosticIds.BC32016
                     Dim memberAccessName = TryCast(node, MemberAccessExpressionSyntax)?.Name
                     Dim conditionalAccessName = TryCast(TryCast(TryCast(node, ConditionalAccessExpressionSyntax)?.WhenNotNull, InvocationExpressionSyntax)?.Expression, MemberAccessExpressionSyntax)?.Name
 
@@ -88,9 +95,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function CanAddImportForNamespace(diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
-                Case VisualBasicAddImportCodeFixProvider.BC30002,
+                Case AddImportDiagnosticIds.BC30002,
                      IDEDiagnosticIds.UnboundIdentifierId,
-                     VisualBasicAddImportCodeFixProvider.BC30451
+                     AddImportDiagnosticIds.BC30451
                     Exit Select
                 Case Else
                     Return False
@@ -104,34 +111,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return False
         End Function
 
-        Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
-            If diagnosticId <> VisualBasicAddImportCodeFixProvider.BC36593 Then
-                Return False
-            End If
-
-            Dim queryClause = node.GetAncestor(Of QueryExpressionSyntax)()
-            Return queryClause IsNot Nothing
+        Protected Overrides Function CanAddImportForGetAwaiter(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return diagnosticId = AddImportDiagnosticIds.BC36930 AndAlso
+                AncestorOrSelfIsAwaitExpression(syntaxFactsService, node)
         End Function
 
-        Private Function IsOutermostQueryExpression(node As SyntaxNode) As Boolean
-            ' TODO(cyrusn): Figure out how to implement this.
-            Return True
+        Protected Overrides Function CanAddImportForGetEnumerator(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function CanAddImportForGetAsyncEnumerator(diagnosticId As String, syntaxFactsService As ISyntaxFacts, node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
+            Return diagnosticId = AddImportDiagnosticIds.BC36593 AndAlso
+                node.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
         End Function
 
         Protected Overrides Function CanAddImportForType(
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
-                Case VisualBasicAddImportCodeFixProvider.BC30002,
+                Case AddImportDiagnosticIds.BC30002,
                      IDEDiagnosticIds.UnboundIdentifierId,
-                     VisualBasicAddImportCodeFixProvider.BC30451,
-                     VisualBasicAddImportCodeFixProvider.BC32042,
-                     VisualBasicAddImportCodeFixProvider.BC32045,
-                     VisualBasicAddImportCodeFixProvider.BC30389,
-                     VisualBasicAddImportCodeFixProvider.BC31504,
-                     VisualBasicAddImportCodeFixProvider.BC36610,
-                     VisualBasicAddImportCodeFixProvider.BC30182
+                     AddImportDiagnosticIds.BC30451,
+                     AddImportDiagnosticIds.BC32042,
+                     AddImportDiagnosticIds.BC32045,
+                     AddImportDiagnosticIds.BC30389,
+                     AddImportDiagnosticIds.BC31504,
+                     AddImportDiagnosticIds.BC36610,
+                     AddImportDiagnosticIds.BC30182
                     Exit Select
-                Case VisualBasicAddImportCodeFixProvider.BC42309
+                Case AddImportDiagnosticIds.BC42309
                     Select Case node.Kind
                         Case SyntaxKind.XmlCrefAttribute
                             node = CType(node, XmlCrefAttributeSyntax).Reference.DescendantNodes().OfType(Of IdentifierNameSyntax).FirstOrDefault()
@@ -162,8 +173,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 If simpleName IsNot Nothing Then
                     Return simpleName
                 End If
+
                 qn = TryCast(left, QualifiedNameSyntax)
             End While
+
             Return Nothing
         End Function
 
@@ -172,25 +185,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function GetDescription(
-                document As Document,
-                symbol As INamespaceOrTypeSymbol,
-                semanticModel As SemanticModel,
-                root As SyntaxNode,
-                cancellationToken As CancellationToken) As (description As String, hasExistingImport As Boolean)
+            document As Document,
+            options As AddImportPlacementOptions,
+            symbol As INamespaceOrTypeSymbol,
+            semanticModel As SemanticModel,
+            root As SyntaxNode,
+            cancellationToken As CancellationToken) As (description As String, hasExistingImport As Boolean)
 
             Dim importsStatement = GetImportsStatement(symbol)
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-
+            Dim generator = SyntaxGenerator.GetGenerator(document)
             Return ($"Imports {symbol.ToDisplayString()}",
-                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
+                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement, generator))
         End Function
 
-        Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
+        Private Shared Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
             Dim nameSyntax = DirectCast(symbol.GenerateTypeSyntax(addGlobal:=False), NameSyntax)
             Return GetImportsStatement(nameSyntax)
         End Function
 
-        Private Function GetImportsStatement(nameSyntax As NameSyntax) As ImportsStatementSyntax
+        Private Shared Function GetImportsStatement(nameSyntax As NameSyntax) As ImportsStatementSyntax
             nameSyntax = nameSyntax.WithAdditionalAnnotations(Simplifier.Annotation)
 
             Dim memberImportsClause = SyntaxFactory.SimpleImportsClause(nameSyntax)
@@ -256,7 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return type
         End Function
 
-        Private Function IsValid(info As SymbolInfo) As Boolean
+        Private Shared Function IsValid(info As SymbolInfo) As Boolean
             Dim symbol = info.Symbol.GetOriginalUnreducedDefinition()
             Return symbol IsNot Nothing AndAlso symbol.Locations.Length > 0
         End Function
@@ -265,25 +279,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 contextNode As SyntaxNode,
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
-                placeSystemNamespaceFirst As Boolean,
+                options As AddImportPlacementOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim importsStatement = GetImportsStatement(symbol)
 
-            Return Await AddImportAsync(
-                contextNode, document, placeSystemNamespaceFirst,
-                importsStatement, cancellationToken).ConfigureAwait(False)
+            Return Await AddImportAsync(contextNode, document, importsStatement, options, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Overloads Shared Async Function AddImportAsync(
-                contextNode As SyntaxNode, document As Document, placeSystemNamespaceFirst As Boolean,
-                importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+                contextNode As SyntaxNode,
+                document As Document,
+                importsStatement As ImportsStatementSyntax,
+                options As AddImportPlacementOptions,
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
+            Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, options, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
@@ -293,15 +309,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function AddImportAsync(
                 contextNode As SyntaxNode,
                 nameSpaceParts As IReadOnlyList(Of String),
-                Document As Document,
-                placeSystemNamespaceFirst As Boolean,
+                document As Document,
+                options As AddImportPlacementOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
             Dim importsStatement = GetImportsStatement(nameSyntax)
 
-            Return AddImportAsync(
-                contextNode, Document, placeSystemNamespaceFirst,
-                importsStatement, cancellationToken)
+            Return AddImportAsync(contextNode, document, importsStatement, options, cancellationToken)
         End Function
 
         Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax
@@ -314,9 +328,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function IsViableExtensionMethod(method As IMethodSymbol,
                                                              expression As SyntaxNode,
                                                              semanticModel As SemanticModel,
-                                                             syntaxFacts As ISyntaxFactsService,
+                                                             syntaxFacts As ISyntaxFacts,
                                                              cancellationToken As CancellationToken) As Boolean
-            Dim leftExpressionType As ITypeSymbol = Nothing
+            Dim leftExpressionType As ITypeSymbol
             If syntaxFacts.IsInvocationExpression(expression) Then
                 leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
             Else

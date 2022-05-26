@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,27 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A binder for a method body, which places the method's parameters in scope
     /// and notes if the method is an iterator method.
+    /// Note: instances of this type can be re-used across different attempts at compiling the same method (caching by binder factory).
     /// </summary>
     internal sealed class InMethodBinder : LocalScopeBinder
     {
         private MultiDictionary<string, ParameterSymbol> _lazyParameterMap;
         private readonly MethodSymbol _methodSymbol;
         private SmallDictionary<string, Symbol> _lazyDefinitionMap;
-        private IteratorInfo _iteratorInfo;
-
-        private class IteratorInfo
-        {
-            public static readonly IteratorInfo Empty = new IteratorInfo(null, default(ImmutableArray<Diagnostic>));
-
-            public readonly TypeSymbol ElementType;
-            public readonly ImmutableArray<Diagnostic> ElementTypeDiagnostics;
-
-            public IteratorInfo(TypeSymbol elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
-            {
-                this.ElementType = elementType;
-                this.ElementTypeDiagnostics = elementTypeDiagnostics;
-            }
-        }
+        private TypeWithAnnotations.Boxed _iteratorElementType;
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
             : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
@@ -66,6 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override uint LocalScopeDepth => Binder.TopLevelScope;
 
+        protected override bool InExecutableBinder => true;
+
         internal override Symbol ContainingMemberOrLambda
         {
             get
@@ -82,19 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void MakeIterator()
-        {
-            if (_iteratorInfo == null)
-            {
-                _iteratorInfo = IteratorInfo.Empty;
-            }
-        }
+        internal override bool IsNestedFunctionBinder => _methodSymbol.MethodKind == MethodKind.LocalFunction;
 
         internal override bool IsDirectlyInIterator
         {
             get
             {
-                return _iteratorInfo != null;
+                return _methodSymbol.IsIterator;
             }
         }
 
@@ -122,7 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
+        {
+        }
+
+        internal override TypeWithAnnotations GetIteratorElementType()
         {
             RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType;
@@ -135,65 +126,74 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics) ?? CreateErrorType();
+                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
+                return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
-            if (_iteratorInfo == IteratorInfo.Empty)
+            if (_iteratorElementType is null)
             {
-                TypeSymbol elementType = null;
-                DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
-
-                elementType = GetIteratorElementTypeFromReturnType(refKind, returnType, node, elementTypeDiagnostics);
-
-                if ((object)elementType == null)
+                TypeWithAnnotations elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocation: null, diagnostics: null);
+                if (elementType.IsDefault)
                 {
-                    if (refKind != RefKind.None)
-                    {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturnRef, _methodSymbol.Locations[0], _methodSymbol);
-                    }
-                    else
-                    {
-                        Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, _methodSymbol.Locations[0], _methodSymbol, returnType);
-                    }
-                    elementType = CreateErrorType();
+                    elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
 
-                var info = new IteratorInfo(elementType, elementTypeDiagnostics.ToReadOnlyAndFree());
-
-                Interlocked.CompareExchange(ref _iteratorInfo, info, IteratorInfo.Empty);
+                Interlocked.CompareExchange(ref _iteratorElementType, new TypeWithAnnotations.Boxed(elementType), null);
             }
 
-            if (node == null)
-            {
-                // node==null indicates this we are being called from the top-level of processing of a method. We report
-                // the diagnostic, if any, at that time to ensure it is reported exactly once.
-                diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
-            }
-
-            return _iteratorInfo.ElementType;
+            return _iteratorElementType.Value;
         }
 
-        private TypeSymbol GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
+        internal static TypeWithAnnotations GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
+            RefKind refKind, TypeSymbol returnType, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
             {
-                switch (returnType.OriginalDefinition.SpecialType)
+                TypeSymbol originalDefinition = returnType.OriginalDefinition;
+                switch (originalDefinition.SpecialType)
                 {
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
-                        return GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode);
+                        var objectType = compilation.GetSpecialType(SpecialType.System_Object);
+                        if (diagnostics != null)
+                        {
+                            ReportUseSite(objectType, diagnostics, errorLocation);
+                        }
+                        return TypeWithAnnotations.Create(objectType);
 
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
-                        return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
+                        return ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                }
+
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything))
+                {
+                    return ((NamedTypeSymbol)returnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
                 }
             }
 
-            return null;
+            return default;
+        }
+
+        internal static bool IsAsyncStreamInterface(CSharpCompilation compilation, RefKind refKind, TypeSymbol returnType)
+        {
+            if (refKind == RefKind.None && returnType.Kind == SymbolKind.NamedType)
+            {
+                TypeSymbol originalDefinition = returnType.OriginalDefinition;
+
+                if (TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T), TypeCompareKind.ConsiderEverything) ||
+                    TypeSymbol.Equals(originalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T), TypeCompareKind.ConsiderEverything))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal override void LookupSymbolsInSingleBinder(
-            LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            LookupResult result, string name, int arity, ConsList<TypeSymbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(result.IsClear);
 
@@ -217,11 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var parameterSymbol in parameterMap[name])
             {
-                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteInfo));
             }
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderMembers())
             {
@@ -235,11 +235,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, BindingDiagnosticBag diagnostics)
         {
-            var oldLocation = parameter.Locations[0];
+#if DEBUG
+            var locations = parameter.Locations;
+            Debug.Assert(!locations.IsEmpty || parameter.IsImplicitlyDeclared);
+            var oldLocation = locations.FirstOrNone();
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
+#endif 
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                
@@ -252,58 +256,68 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (parameterKind == SymbolKind.Parameter)
             {
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method &&
-                     ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
+                switch (newSymbolKind)
                 {
-                    // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                    diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
-                    return true;
-                }
+                    case SymbolKind.Parameter:
+                    case SymbolKind.Local:
+                        // A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                        diagnostics.Add(ErrorCode.ERR_LocalIllegallyOverrides, newLocation, name);
+                        return true;
 
-                if (newSymbolKind == SymbolKind.RangeVariable)
-                {
-                    // The range variable '{0}' conflicts with a previous declaration of '{0}'
-                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
-                    return true;
+                    case SymbolKind.Method:
+                        if (((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction)
+                        {
+                            goto case SymbolKind.Parameter;
+                        }
+                        break;
+
+                    case SymbolKind.TypeParameter:
+                        // Type parameter declaration name conflicts are not reported, for backwards compatibility.
+                        return false;
+
+                    case SymbolKind.RangeVariable:
+                        // The range variable '{0}' conflicts with a previous declaration of '{0}'
+                        diagnostics.Add(ErrorCode.ERR_QueryRangeVariableOverrides, newLocation, name);
+                        return true;
                 }
             }
 
             if (parameterKind == SymbolKind.TypeParameter)
             {
-                if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local ||
-                    (newSymbolKind == SymbolKind.Method && 
-                     ((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction))
+                switch (newSymbolKind)
                 {
-                    // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
-                    diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
-                    return true;
-                }
+                    case SymbolKind.Parameter:
+                    case SymbolKind.Local:
+                        // CS0412: '{0}': a parameter, local variable, or local function cannot have the same name as a method type parameter
+                        diagnostics.Add(ErrorCode.ERR_LocalSameNameAsTypeParam, newLocation, name);
+                        return true;
 
-                if (newSymbolKind == SymbolKind.TypeParameter)
-                {
-                    // Type parameter declaration name conflicts are detected elsewhere
-                    return false;
-                }
+                    case SymbolKind.Method:
+                        if (((MethodSymbol)newSymbol).MethodKind == MethodKind.LocalFunction)
+                        {
+                            goto case SymbolKind.Parameter;
+                        }
+                        break;
 
-                if (newSymbolKind == SymbolKind.RangeVariable)
-                {
-                    // The range variable '{0}' cannot have the same name as a method type parameter
-                    diagnostics.Add(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, newLocation, name);
-                    return true;
+                    case SymbolKind.TypeParameter:
+                        // Type parameter declaration name conflicts are detected elsewhere
+                        return false;
+
+                    case SymbolKind.RangeVariable:
+                        // The range variable '{0}' cannot have the same name as a method type parameter
+                        diagnostics.Add(ErrorCode.ERR_QueryRangeVariableSameAsTypeParam, newLocation, name);
+                        return true;
                 }
             }
 
             Debug.Assert(false, "what else could be defined in a method?");
+            diagnostics.Add(ErrorCode.ERR_InternalError, newLocation);
             return true;
         }
 
 
-        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
+        internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, BindingDiagnosticBag diagnostics)
         {
-            Symbol existingDeclaration;
-
-
             var parameters = _methodSymbol.Parameters;
             var typeParameters = _methodSymbol.TypeParameters;
 
@@ -323,6 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _lazyDefinitionMap = map;
             }
 
+            Symbol existingDeclaration;
             if (map.TryGetValue(name, out existingDeclaration))
             {
                 return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);

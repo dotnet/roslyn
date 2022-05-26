@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -15,25 +17,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         internal struct Context
         {
-            public readonly IOperation ImplicitInstance;
-            public readonly INamedTypeSymbol AnonymousType;
-            public readonly ImmutableArray<KeyValuePair<IPropertySymbol, int>> AnonymousTypePropertyCaptureIds;
+            public readonly IOperation? ImplicitInstance;
+            public readonly INamedTypeSymbol? AnonymousType;
+            public readonly ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> AnonymousTypePropertyValues;
 
-            internal Context(IOperation implicitInstance, INamedTypeSymbol anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, int>> anonymousTypePropertyCaptureIds)
+            internal Context(IOperation? implicitInstance, INamedTypeSymbol? anonymousType, ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>> anonymousTypePropertyValues)
             {
-                Debug.Assert(!anonymousTypePropertyCaptureIds.IsDefault);
+                Debug.Assert(!anonymousTypePropertyValues.IsDefault);
                 Debug.Assert(implicitInstance == null || anonymousType == null);
                 ImplicitInstance = implicitInstance;
                 AnonymousType = anonymousType;
-                AnonymousTypePropertyCaptureIds = anonymousTypePropertyCaptureIds;
+                AnonymousTypePropertyValues = anonymousTypePropertyValues;
             }
         }
 
         private Context GetCurrentContext()
         {
             return new Context(_currentImplicitInstance.ImplicitInstance, _currentImplicitInstance.AnonymousType,
-                               _currentImplicitInstance.AnonymousTypePropertyCaptureIds?.ToImmutableArray() ?? 
-                                   ImmutableArray<KeyValuePair<IPropertySymbol, int>>.Empty);
+                               _currentImplicitInstance.AnonymousTypePropertyValues?.ToImmutableArray() ??
+                                   ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>>.Empty);
         }
 
         private void SetCurrentContext(in Context context)

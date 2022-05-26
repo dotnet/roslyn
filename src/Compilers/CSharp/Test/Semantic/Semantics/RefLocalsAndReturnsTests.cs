@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using Xunit;
@@ -6,6 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -309,6 +315,44 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "_ro").WithLocation(15, 47));
         }
 
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReturnLocalFunction()
+        {
+            var source = @"
+#pragma warning disable CS8321
+class C {
+    static void M(){
+        ref int M1(in int i) => ref i;
+        ref int M2(in int i) { return ref i; }
+        ref readonly int M3(in int i) => ref i;
+        ref readonly int M4(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,37): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //         ref int M1(in int i) => ref i;
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(5, 37),
+                // (6,43): error CS8333: Cannot return variable 'in int' by writable reference because it is a readonly variable
+                //         ref int M2(in int i) { return ref i; }
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "i").WithArguments("variable", "in int").WithLocation(6, 43)
+            );
+        }
+
+        [Fact, WorkItem(42259, "https://github.com/dotnet/roslyn/issues/42259")]
+        public void RefReadonlyReturnLocalFunction()
+        {
+            var source = @"
+#pragma warning disable CS8321
+class C {
+    ref int M(){
+        throw new System.Exception();
+        ref readonly int M1(in int i) => ref i;
+        ref readonly int M2(in int i) { return ref i; }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [Fact]
         public void ReadonlyFieldRefReassign()
         {
@@ -527,21 +571,24 @@ class C
     void M(ref Span<int> s)
     {
         Span<int> s2 = new Span<int>(new int[10]);
-        s = ref s2; // OK
+        s = ref s2; // Illegal, narrower escape scope
 
         s2 = stackalloc int[10]; // Illegal, narrower lifetime
 
         Span<int> s3 = stackalloc int[10];
-        s = ref s3; // Illegal, narrower lifetime
+        s = ref s3; // Illegal, narrower escape scope
     }
 }");
             comp.VerifyDiagnostics(
+                // (8,9): error CS8374: Cannot ref-assign 's2' to 's' because 's2' has a narrower escape scope than 's'.
+                //         s = ref s2; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s2").WithArguments("s", "s2").WithLocation(8, 9),
                 // (10,14): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //         s2 = stackalloc int[10]; // Illegal, narrower lifetime
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[10]").WithArguments("System.Span<int>").WithLocation(10, 14),
-                // (13,17): error CS8352: Cannot use local 's3' in this context because it may expose referenced variables outside of their declaration scope
-                //         s = ref s3; // Illegal, narrower lifetime
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s3").WithArguments("s3").WithLocation(13, 17));
+                // (13,9): error CS8374: Cannot ref-assign 's3' to 's' because 's3' has a narrower escape scope than 's'.
+                //         s = ref s3; // Illegal, narrower escape scope
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "s = ref s3").WithArguments("s", "s3").WithLocation(13, 9));
         }
 
         [Fact]
@@ -578,7 +625,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,17): error CS1510: A ref or out value must be an assignable variable
                 //         s = ref s2;
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s2").WithArguments("C.s2").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "s2").WithLocation(8, 17));
         }
 
         [Fact]
@@ -692,7 +739,7 @@ class C
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "c").WithArguments("c").WithLocation(12, 22),
                 // (13,13): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
                 //             c = ref x;
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c").WithArguments("c").WithLocation(13, 13));
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "c").WithLocation(13, 13));
         }
 
         [Fact]
@@ -879,7 +926,7 @@ class C
             comp.VerifyDiagnostics(
                 // (8,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         x = ref y;
-                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x").WithArguments("x").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "x").WithLocation(8, 9));
         }
 
         [Fact]
@@ -943,6 +990,19 @@ class C
                 // (8,9): error CS8355: The left-hand side of a ref assignment must be a ref local or parameter.
                 //         P = ref x;
                 Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(44153, "https://github.com/dotnet/roslyn/issues/44153")]
+        public void RefErrorProperty()
+        {
+            CreateCompilation(@"
+public class C {
+    public ref ERROR Prop => throw null!;
+}
+").VerifyEmitDiagnostics(
+                // (3,16): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                //     public ref ERROR Prop => throw null!;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(3, 16));
         }
 
         [Fact]
@@ -1116,7 +1176,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,26): error CS8177: Async methods cannot have by-reference locals
                 //         ref readonly int x = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x = ref (new int[1])[0]").WithLocation(7, 26));
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(7, 26));
         }
 
         [Fact]
@@ -1137,6 +1197,140 @@ class C
                 // (7,26): error CS8176: Iterators cannot have by-reference locals
                 //         ref readonly int x = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(7, 26));
+        }
+
+        [Fact]
+        public void RefReadonlyInSwitchCaseInIterator_01()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        switch (this)
+        {
+            default:
+                ref readonly int x = ref (new int[1])[0]; // 1
+                yield return 1;
+                yield return x;
+
+                local();
+                void local()
+                {
+                    ref readonly int z = ref (new int[1])[0];
+                }
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,34): error CS8176: Iterators cannot have by-reference locals
+                //                 ref readonly int x = ref (new int[1])[0]; // 1
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34));
+        }
+
+        [Fact]
+        public void RefReadonlyInSwitchCaseInIterator_02()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        switch (this)
+        {
+            default:
+                ref readonly int x; // 1, 2
+                yield return 1;
+                yield return x; // 3
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,34): error CS8176: Iterators cannot have by-reference locals
+                //                 ref readonly int x; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34),
+                // (10,34): error CS8174: A declaration of a by-reference variable must have an initializer
+                //                 ref readonly int x; // 1, 2
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "x").WithLocation(10, 34),
+                // (12,30): error CS0165: Use of unassigned local variable 'x'
+                //                 yield return x; // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 30));
+        }
+
+        [Fact]
+        public void RefReadonlyInSwitchCaseInIterator_03()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        switch (this)
+        {
+            default:
+                foreach (ref readonly int x in (new int[1]))
+                yield return 1;
+                break;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (10,43): error CS8176: Iterators cannot have by-reference locals
+                //                 foreach (ref readonly int x in (new int[1]))
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 43));
+        }
+
+        [Fact]
+        public void RefReadonlyInEmbeddedStatementInIterator()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    IEnumerable<int> M()
+    {
+        if (true)
+            ref int x = ref (new int[1])[0]; // 1, 2
+        
+        yield return 1;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
+                // (8,21): error CS8176: Iterators cannot have by-reference locals
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void RefReadonlyInEmbeddedStatementInAsync()
+        {
+            var comp = CreateCompilation(@"
+using System.Threading.Tasks;
+class C
+{
+    async Task M()
+    {
+        if (true)
+            ref int x = ref (new int[1])[0]; // 1, 2
+        
+        await Task.Yield();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
+                // (8,21): error CS8177: Async methods cannot have by-reference locals
+                //             ref int x = ref (new int[1])[0]; // 1, 2
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(8, 21));
         }
 
         [Fact]
@@ -1416,7 +1610,7 @@ class Test
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "VoidMethod()").WithLocation(23, 20),
     // (30,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         return ref P1;
-    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(30, 20)
+    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithLocation(30, 20)
             );
         }
 
@@ -1457,7 +1651,7 @@ class Test
     Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "VoidMethod()").WithLocation(12, 27),
     // (13,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
     //         D1 d5 = () => ref P1;
-    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithArguments("Test.P1").WithLocation(13, 27));
+    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P1").WithLocation(13, 27));
         }
 
         [Fact]
@@ -1620,7 +1814,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "s.x").WithArguments("s").WithLocation(19, 34)
             );
         }
-        
+
         [Fact]
         public void RefMethodGroup()
         {
@@ -1677,7 +1871,7 @@ public class Test
     Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "MR").WithArguments("MR", "method group").WithLocation(23, 24)
             );
         }
-        
+
         [Fact]
         public void RefReadonlyField()
         {
@@ -1881,13 +2075,13 @@ public class Test
             comp.VerifyDiagnostics(
                 // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(10, 24),
                 // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithLocation(15, 24),
                 // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this.x;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithLocation(20, 24),
                 // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
                 //             return ref Goo(ref M1);
                 Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
@@ -1908,7 +2102,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_EscapeCall2, "Goo(ref M2)").WithArguments("Test.Goo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
                 // (58,24): error CS8354: Cannot return 'this' by reference.
                 //             return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(58, 24)
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithLocation(58, 24)
                 );
         }
 
@@ -2218,21 +2412,36 @@ class C
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+                // (7,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a[ref i];    // error 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[ref i]").WithArguments("object", "int").WithLocation(7, 13),
                 // (7,19): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         j = a[ref i];    // error 1
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(7, 19),
+                // (8,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a[out i];    // error 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[out i]").WithArguments("object", "int").WithLocation(8, 13),
                 // (8,19): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         j = a[out i];    // error 2
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "out").WithLocation(8, 19),
                 // (9,22): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         j = this[ref i]; // error 3
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(9, 22),
+                // (10,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a2[i, out i]; // error 4
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a2[i, out i]").WithArguments("object", "int").WithLocation(10, 13),
                 // (10,23): error CS1615: Argument 2 may not be passed with the 'out' keyword
                 //         j = a2[i, out i]; // error 4
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("2", "out").WithLocation(10, 23),
+                // (11,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a2[i, ref i]; // error 5
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a2[i, ref i]").WithArguments("object", "int").WithLocation(11, 13),
                 // (11,23): error CS1615: Argument 2 may not be passed with the 'ref' keyword
                 //         j = a2[i, ref i]; // error 5
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("2", "ref").WithLocation(11, 23),
+                // (12,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         j = a2[ref i, out i]; // error 6
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a2[ref i, out i]").WithArguments("object", "int").WithLocation(12, 13),
                 // (12,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
                 //         j = a2[ref i, out i]; // error 6
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "i").WithArguments("1", "ref").WithLocation(12, 20)
@@ -2324,58 +2533,46 @@ public delegate ref TR RefFunc<T1, T2, TR>(T1 t1, T2 t2);
                 .Verify(
                 // (9,39): error CS1525: Invalid expression term 'ref'
                 //         { var za = from x in a select ref x; } // error 1
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(9, 39),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref x").WithArguments("ref").WithLocation(9, 39),
                 // (10,42): error CS1525: Invalid expression term 'ref'
                 //         { var zc = from x in a from y in ref a select x; } // error2
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(10, 42),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(10, 42),
                 // (11,46): error CS1525: Invalid expression term 'ref'
                 //         { var zd = from x in a from int y in ref a select x; } // error 3
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(11, 46),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(11, 46),
                 // (12,42): error CS1525: Invalid expression term 'ref'
                 //         { var ze = from x in a from y in ref a where true select x; } // error 4
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(12, 42),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(12, 42),
                 // (13,46): error CS1525: Invalid expression term 'ref'
                 //         { var zf = from x in a from int y in ref a where true select x; } // error 5
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 46),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(13, 46),
                 // (14,40): error CS1525: Invalid expression term 'ref'
                 //         { var zg = from x in a let y = ref a select x; } // error 6
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(14, 40),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(14, 40),
                 // (15,38): error CS1525: Invalid expression term 'ref'
                 //         { var zh = from x in a where ref b select x; } // error 7
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(15, 38),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref b").WithArguments("ref").WithLocation(15, 38),
                 // (16,42): error CS1525: Invalid expression term 'ref'
                 //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
-                // (16,42): error CS1525: Invalid expression term 'ref'
-                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
-                // (16,42): error CS1525: Invalid expression term 'ref'
-                //         { var zi = from x in a join y in ref a on x equals y select x; } // error 8 (not lambda case)
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(16, 42),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref a").WithArguments("ref").WithLocation(16, 42),
                 // (17,47): error CS1525: Invalid expression term 'ref'
                 //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
-                // (17,47): error CS1525: Invalid expression term 'ref'
-                //         { var zj = from x in a join y in a on ref i equals y select x; } // error 9
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(17, 47),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(17, 47),
                 // (18,56): error CS1525: Invalid expression term 'ref'
                 //         { var zk = from x in a join y in a on x equals ref i select x; } // error 10
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(18, 56),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(18, 56),
                 // (19,40): error CS1525: Invalid expression term 'ref'
                 //         { var zl = from x in a orderby ref i select x; } // error 11
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(19, 40),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(19, 40),
                 // (20,43): error CS1525: Invalid expression term 'ref'
                 //         { var zm = from x in a orderby x, ref i select x; } // error 12
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(20, 43),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(20, 43),
                 // (21,38): error CS1525: Invalid expression term 'ref'
                 //         { var zn = from x in a group ref i by x; } // error 13
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
-                // (21,38): error CS1525: Invalid expression term 'ref'
-                //         { var zn = from x in a group ref i by x; } // error 13
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(21, 38),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(21, 38),
                 // (22,43): error CS1525: Invalid expression term 'ref'
                 //         { var zo = from x in a group x by ref i; } // error 14
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(22, 43)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(22, 43)
                 );
         }
 
@@ -2403,6 +2600,41 @@ class TestClass
                 // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
                 //         ref int localFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
+                // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
+                //     ref int TestFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
+        }
+
+        [Fact]
+        public void CannotUseYieldReturnInAReturnByRefFunction_InIfBlock()
+        {
+            var code = @"
+class TestClass
+{
+    int x = 0;
+    ref int TestFunction()
+    {
+        if (true)
+        {
+            yield return x;
+        }
+
+        ref int localFunction()
+        {
+            if (true)
+            {
+                yield return x;
+            }
+        }
+
+        yield return localFunction();
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (12,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
+                //         ref int localFunction()
+                Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(12, 17),
                 // (5,13): error CS8154: The body of 'TestClass.TestFunction()' cannot be an iterator block because 'TestClass.TestFunction()' returns by reference
                 //     ref int TestFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "TestFunction").WithArguments("TestClass.TestFunction()").WithLocation(5, 13));
@@ -2455,7 +2687,7 @@ class TestClass
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
-        public void CannotCallExpressionThatReturnsByRefInExpressionTree()
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_01()
         {
             var code = @"
 using System;
@@ -2495,7 +2727,7 @@ namespace TestRefReturns
     }
 }";
 
-            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
                 // (32,71): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //             Expression<Func<int>> lambda1 = () => TakeRefFunction(ref RefReturnFunction());
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "RefReturnFunction()").WithLocation(32, 71),
@@ -2630,10 +2862,10 @@ class TestClass
             CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
                 // (8,17): error CS8177: Async methods cannot have by-reference locals
                 //         ref int y = ref x;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y = ref x").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(8, 17),
                 // (11,21): error CS8177: Async methods cannot have by-reference locals
                 //             ref int z = ref x;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z = ref x").WithLocation(11, 21));
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z").WithLocation(11, 21));
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
@@ -2668,9 +2900,9 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                // (26,51): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                // (26,19): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
                 //         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.Save(int)").WithLocation(26, 51)
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(await Task.FromResult(0))").WithArguments("TestClass.Save(int)").WithLocation(26, 19)
             );
         }
 
@@ -2692,7 +2924,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         ref int rl = ref P;
-                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("Program.P").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(8, 26));
         }
 
         [Fact]
@@ -2713,7 +2945,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,26): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         ref int rl = ref this[0];
-                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithArguments("Program.this[int]").WithLocation(8, 26));
+                Diagnostic(ErrorCode.ERR_RefProperty, "this[0]").WithLocation(8, 26));
         }
 
         [Fact]
@@ -2948,9 +3180,9 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,17): error CS8932: Async methods cannot have by-reference locals
+                // (8,17): error CS8177: Async methods cannot have by-reference locals
                 //         ref int i = ref field;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i = ref field").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(8, 17),
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async void Goo()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(6, 23));
@@ -3076,7 +3308,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
                 //         return ref P;
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P").WithArguments("Program.P").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "P").WithLocation(8, 20));
         }
 
         [Fact]
@@ -3097,7 +3329,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,20): error CS8900: The argument to a by reference return or assignment must be an assignable variable or a property or call that returns by reference
                 //         return ref this[0];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "this[0]").WithArguments("Program.this[int]").WithLocation(8, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "this[0]").WithLocation(8, 20));
         }
 
         [Fact]
@@ -3143,7 +3375,7 @@ struct Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (10,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref d;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "d").WithArguments("this").WithLocation(10, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "d").WithLocation(10, 20)
             );
         }
 
@@ -3192,7 +3424,7 @@ struct Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (13,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref i;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "i").WithArguments("this").WithLocation(13, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "i").WithLocation(13, 20)
             );
         }
 
@@ -3306,7 +3538,7 @@ struct Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(6, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithLocation(6, 20));
         }
 
         [Fact]
@@ -3325,7 +3557,7 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,20): error CS8354: Cannot return 'this' by reference.
                 //         return ref this;
-                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithArguments("this").WithLocation(6, 20)
+                Diagnostic(ErrorCode.ERR_RefReturnThis, "this").WithLocation(6, 20)
             );
         }
 
@@ -3402,14 +3634,12 @@ class Program
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,9): error CS8150: By-value returns may only be used in methods that return by value
                 //         return;
-                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9),
-                // (6,9): error CS0126: An object of a type convertible to 'int' is required
-                //         return;
-                Diagnostic(ErrorCode.ERR_RetObjectRequired, "return").WithArguments("int").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(6, 9)
             );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39971
+        [WorkItem(39971, "https://github.com/dotnet/roslyn/issues/39971")]
         public void BadIteratorReturnInRefReturningMethod()
         {
             var text = @"
@@ -3510,7 +3740,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyEmitDiagnostics(
                 // (16,32): error CS8091: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
                 //         Expression<D> e = c => c.P;
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(16, 32),
@@ -3564,12 +3794,13 @@ class C
 ";
 
             CreateCompilationWithMscorlib45(text).VerifyEmitDiagnostics(
-                // (32,33): error CS8933: 'await' cannot be used in an expression containing a call to 'S.Instance.get' because it returns by reference
+                // (32,17): error CS8178: 'await' cannot be used in an expression containing a call to 'S.Instance.get' because it returns by reference
                 //         var a = S.Instance.Echo(await Do(i - 1));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("S.Instance.get").WithLocation(32, 33),
-                // (33,49): error CS8933: 'await' cannot be used in an expression containing a call to 'C.Assign(ref int, int)' because it returns by reference
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "S.Instance").WithArguments("S.Instance.get").WithLocation(32, 17),
+                // (33,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.Assign(ref int, int)' because it returns by reference
                 //         var b = Assign(ref Assign(ref temp, 0), await Do(i - 1));
-                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Do(i - 1)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 49));
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Assign(ref temp, 0)").WithArguments("C.Assign(ref int, int)").WithLocation(33, 28)
+                );
         }
 
         [Fact]
@@ -3614,12 +3845,12 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
-                    // (28,19): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
-                    //         Save(1) = await Task.FromResult(0);
-                    Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(0)").WithArguments("TestClass.Save(int)").WithLocation(28, 19),
-                    // (36,22): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.this[int, int].get' because it returns by reference
-                    //         inst[1, 2] = await Task.FromResult(1);
-                    Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "await Task.FromResult(1)").WithArguments("TestClass.this[int, int].get").WithLocation(36, 22)
+                // (28,9): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.Save(int)' because it returns by reference
+                //         Save(1) = await Task.FromResult(0);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(1)").WithArguments("TestClass.Save(int)").WithLocation(28, 9),
+                // (36,9): error CS8178: 'await' cannot be used in an expression containing a call to 'TestClass.this[int, int].get' because it returns by reference
+                //         inst[1, 2] = await Task.FromResult(1);
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "inst[1, 2]").WithArguments("TestClass.this[int, int].get").WithLocation(36, 9)
             );
         }
 
@@ -3783,7 +4014,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 15),
                 // (10,15): error CS1003: Syntax error, ',' expected
                 //         M(out out int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(10, 15));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",").WithLocation(10, 15));
         }
 
         [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
@@ -3806,13 +4037,30 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(10, 15),
                 // (10,15): error CS1003: Syntax error, ',' expected
                 //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",").WithLocation(10, 15),
                 // (10,18): error CS1525: Invalid expression term 'int'
                 //         M(out in int x);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
                 // (10,22): error CS1003: Syntax error, ',' expected
                 //         M(out in int x);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(10, 22));
+        }
+
+        [Fact]
+        [WorkItem(28117, "https://github.com/dotnet/roslyn/issues/28117")]
+        public void AssigningRefToParameter()
+        {
+            CreateCompilation(@"
+public class C
+{
+    void M(int a, ref int b)
+    {
+        a = ref b;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         a = ref b;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "a").WithLocation(6, 9));
         }
 
         [Fact]
@@ -3833,28 +4081,388 @@ public class C
         }
 
         [Fact]
-        [WorkItem(26978, "https://github.com/dotnet/roslyn/issues/26978")]
-        public void BindingRefDynamicObjAssignment()
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_ArrayElement()
         {
-            CompileAndVerify(@"
+            var compilation = CreateCompilation(@"
+public class C
+{
+    public void M(int[] array, ref int value)
+    {
+        array[0] = ref value;
+    }
+}").VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         array[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "array[0]").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SpecialType.System_Int32, ((IArrayTypeSymbol)model.GetTypeInfo(left).Type).ElementType.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerIndirectionOperator()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        *ptr = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         *ptr = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "*ptr").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((PrefixUnaryExpressionSyntax)assignment.Left).Operand;
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_PointerElementAccess()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int* ptr, ref int value)
+    {
+        ptr[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         ptr[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "ptr[0]").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SpecialType.System_Int32, ((IPointerTypeSymbol)model.GetTypeInfo(left).Type).PointedAtType.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_RefvalueExpression()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int x)
+    {
+        __refvalue(__makeref(x), int) = ref x;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         __refvalue(__makeref(x), int) = ref x;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "__refvalue(__makeref(x), int)").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((MakeRefExpressionSyntax)((RefValueExpressionSyntax)assignment.Left).Expression).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(left).Type.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicIndexerAccess()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d[0] = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d[0] = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d[0]").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((ElementAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SymbolKind.DynamicType, model.GetTypeInfo(left).Type.Kind);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28087, "https://github.com/dotnet/roslyn/issues/28087")]
+        public void AssigningRef_DynamicMemberAccess()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(dynamic d, ref int value)
+    {
+        d.member = ref value;
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,9): error CS8373: The left-hand side of a ref assignment must be a ref local or parameter.
+                //         d.member = ref value;
+                Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "d.member").WithLocation(6, 9));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = ((MemberAccessExpressionSyntax)assignment.Left).Expression;
+            Assert.Equal(SymbolKind.DynamicType, model.GetTypeInfo(left).Type.Kind);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(28238, "https://github.com/dotnet/roslyn/issues/28238")]
+        public void AssigningRef_TypeExpression()
+        {
+            var compilation = CreateCompilation(@"
+public unsafe class C
+{
+    public void M(int value)
+    {
+        var temp = new
+        {
+            object = ref value
+        };
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (8,13): error CS1525: Invalid expression term 'object'
+                //             object = ref value
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "object").WithArguments("object").WithLocation(8, 13),
+                // (8,13): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //             object = ref value
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "object = ref value").WithLocation(8, 13));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var assignment = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+
+            var left = (PredefinedTypeSyntax)assignment.Left;
+            Assert.Equal(SpecialType.System_Object, model.GetTypeInfo(left).Type.SpecialType);
+
+            var right = ((RefExpressionSyntax)assignment.Right).Expression;
+            Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(right).Type.SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+class C
+{
+    public ref long M(S receiver)
+    {
+        long x = 0;
+        ref long y = ref receiver.M(ref x);
+        return ref y;
+    }
+
+    public ref long M2(S receiver)
+    {
+        long x = 0;
+        {
+            ref long y = ref receiver.M(ref x);
+            return ref y;
+        }
+    }
+}
+ref struct S
+{
+    public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (8,20): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(8, 20),
+                // (16,24): error CS8157: Cannot return 'y' by reference because it was initialized to a value that cannot be returned by reference
+                //             return ref y;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y").WithArguments("y").WithLocation(16, 24));
+        }
+
+        [Fact]
+        [WorkItem(27772, "https://github.com/dotnet/roslyn/issues/27772")]
+        public void RefReturnInvocationOfRefLikeTypeRefResult_Repro()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
-    public int P;
+  static void Main(string[] args)
+  {
+    ref long x = ref M(default); // get a reference to the stack which will be used for the next method
+    M2(ref x); // break things
+    Console.ReadKey();
+  }
 
+  public static ref long M(S receiver)
+  {
+    Span<long> ls = stackalloc long[0]; // change the length of this stackalloc to move the resulting pointer and break different things
+    long x = 0;
+    ref var y = ref x;
+    {
+      ref var z = ref receiver.M(ref y);
+      return ref z;
+    }
+  }
+
+  static void M2(ref long q)
+  {
+    Span<long> span = stackalloc long[50];
+    var element = span[0]; // it was ok
+    q = -1; // break things
+    element = span[0]; // and not it's broken:
+                       // System.AccessViolationException: 'Attempted to read or write protected memory. This is often an indication that other memory is corrupt.'
+  }
+}
+
+ref struct S
+{
+  public ref long M(ref long x) => ref x;
+}").VerifyDiagnostics(
+                // (19,18): error CS8157: Cannot return 'z' by reference because it was initialized to a value that cannot be returned by reference
+                //       return ref z;
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "z").WithArguments("z").WithLocation(19, 18));
+        }
+
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_02()
+        {
+            var code = @"
+class C
+{
     static void Main()
     {
-        dynamic x = new C();
-        x.P = 5;
-        Console.WriteLine(x.P);
-        
-        dynamic y = new C();
-        y.P = ref x.P;
-        Console.WriteLine(y.P);
+        Test2(c => c.P = true);
     }
-}", references: new[] { CSharpRef }, expectedOutput: @"
-5
-5");
+    
+    ref bool P => throw null;
+
+    static void Test2(System.Linq.Expressions.Expression<System.Action<C>> y){}
+}
+";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
+                // (6,20): error CS0832: An expression tree may not contain an assignment operator
+                //         Test2(c => c.P = true);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "c.P = true").WithLocation(6, 20),
+                // (6,20): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //         Test2(c => c.P = true);
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "c.P").WithLocation(6, 20)
+                );
+        }
+
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_03()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace RefPropCrash
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            TestExpression(() => new Model { Value = 1 });
+        }
+
+        static void TestExpression(Expression<Func<Model>> expression)
+        {
+        }
+    }
+
+    class Model
+    {
+        int value;
+        public ref int Value => ref value;
+    }
+}";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
+                // (11,46): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { Value = 1 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "Value").WithLocation(11, 46)
+                );
+        }
+
+        [Fact, WorkItem(49617, "https://github.com/dotnet/roslyn/issues/49617")]
+        public void CannotCallExpressionThatReturnsByRefInExpressionTree_04()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace RefPropCrash
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            TestExpression(() => new Model { 1, 2, 3 });
+        }
+
+        static void TestExpression(Expression<Func<Model>> expression)
+        {
+        }
+    }
+
+    class Model : System.Collections.IEnumerable
+    {
+        public System.Collections.IEnumerator GetEnumerator() => throw null;
+        public ref bool Add(int x) => throw null;
+    }
+}";
+
+            CreateCompilationWithMscorlib40AndSystemCore(code).VerifyEmitDiagnostics(
+                // (11,46): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { 1, 2, 3 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "1").WithLocation(11, 46),
+                // (11,49): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { 1, 2, 3 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "2").WithLocation(11, 49),
+                // (11,52): error CS8153: An expression tree lambda may not contain a call to a method, property, or indexer that returns by reference
+                //             TestExpression(() => new Model { 1, 2, 3 });
+                Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "3").WithLocation(11, 52)
+                );
         }
     }
 }

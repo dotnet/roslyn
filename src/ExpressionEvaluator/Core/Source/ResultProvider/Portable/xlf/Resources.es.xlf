@@ -19,13 +19,18 @@
       </trans-unit>
       <trans-unit id="ErrorName">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Fehler</target>
         <note>Error result name</note>
       </trans-unit>
       <trans-unit id="ExceptionThrown">
         <source>'{0}' threw an exception of type '{1}'</source>
         <target state="translated">'{0}' inició una excepción de tipo '{1}'</target>
         <note>Threw an exception while evaluating a value.</note>
+      </trans-unit>
+      <trans-unit id="HostValueNotFound">
+        <source>Cannot provide the value: host value not found</source>
+        <target state="translated">No se puede proporcionar el valor: no se encontró el valor de host.</target>
+        <note />
       </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>

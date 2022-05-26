@@ -1,8 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
+Imports Microsoft.CodeAnalysis.PreferFrameworkType
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
@@ -10,14 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
     Friend Class VisualBasicPreferFrameworkTypeDiagnosticAnalyzer
         Inherits PreferFrameworkTypeDiagnosticAnalyzerBase(Of SyntaxKind, ExpressionSyntax, PredefinedTypeSyntax)
 
-        Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind)
-            Get
-                Return ImmutableArray.Create(SyntaxKind.PredefinedType)
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxKindsOfInterest As ImmutableArray(Of SyntaxKind) =
+            ImmutableArray.Create(SyntaxKind.PredefinedType)
 
         Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As ExpressionSyntax) As Boolean
-            Return node.IsInMemberAccessContext() OrElse node.InsideCrefReference()
+            Return node.IsDirectChildOfMemberAccessExpression() OrElse node.InsideCrefReference()
         End Function
 
         Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean
@@ -34,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         ''' Returns true, if the VB language keyword for predefined type matches its
         ''' actual framework type name.
         ''' </summary>
-        Private Function KeywordMatchesTypeName(kind As SyntaxKind) As Boolean
+        Private Shared Function KeywordMatchesTypeName(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.BooleanKeyword,
@@ -52,5 +51,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             Return False
         End Function
     End Class
-
 End Namespace

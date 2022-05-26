@@ -137,6 +137,9 @@
     <value>'{0}' threw an exception of type '{1}'</value>
     <comment>Threw an exception while evaluating a value.</comment>
   </data>
+  <data name="HostValueNotFound" xml:space="preserve">
+    <value>Cannot provide the value: host value not found</value>
+  </data>
   <data name="InvalidPointerDereference" xml:space="preserve">
     <value>Cannot dereference '{0}'. The pointer is not valid.</value>
     <comment>Invalid pointer dereference</comment>

@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Threading;
@@ -23,13 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor
         internal abstract TDirectiveTriviaSyntax GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
         internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
 
-        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, CancellationToken cancellationToken)
+        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position, findInsideTrivia: true);
 
-            var directive = token.Parent as TDirectiveTriviaSyntax;
-            if (directive == null)
+            if (token.Parent is not TDirectiveTriviaSyntax directive)
             {
                 return null;
             }
@@ -57,17 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return new BraceMatchingResult(
-                leftSpan: GetSpanForTagging(directive),
-                rightSpan: GetSpanForTagging(matchingDirective));
+                LeftSpan: GetSpanForTagging(directive),
+                RightSpan: GetSpanForTagging(matchingDirective));
         }
 
-
-        private bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
+        private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
         {
-            return directive is TIfDirectiveTriviaSyntax ||
-                   directive is TElseIfDirectiveTriviaSyntax ||
-                   directive is TElseDirectiveTriviaSyntax ||
-                   directive is TEndIfDirectiveTriviaSyntax;
+            return directive is TIfDirectiveTriviaSyntax or
+                   TElseIfDirectiveTriviaSyntax or
+                   TElseDirectiveTriviaSyntax or
+                   TEndIfDirectiveTriviaSyntax;
         }
     }
 }

@@ -1,9 +1,13 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
+Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
@@ -13,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CSharpFileCodeModelTests
         Inherits AbstractFileCodeModelTests
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestEnumerationWithCountAndItem()
             Dim code =
 <Code>
@@ -53,7 +57,7 @@ delegate void D();
             End Using
         End Sub
 
-        <ConditionalFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAssemblyLevelAttribute()
             Dim code =
 <Code>
@@ -102,7 +106,7 @@ class GooAttribute : System.Attribute
         End Sub
 
         <WorkItem(150349, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/150349")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub NoChildrenForInvalidMembers()
             Dim code =
 <Code>
@@ -118,7 +122,7 @@ class C { }
 
 #Region "AddAttribute tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute1() As Task
             Dim code =
 <Code>
@@ -139,7 +143,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute2() As Task
             Dim code =
 <Code>
@@ -159,7 +163,7 @@ class C
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = "C"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute3() As Task
             Dim code =
 <Code>
@@ -176,7 +180,7 @@ $$[assembly: System.Reflection.AssemblyCompany("Microsoft")]
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute4() As Task
             Dim code =
 <Code>
@@ -196,7 +200,7 @@ class C { }
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute5() As Task
             Dim code =
 <Code>
@@ -218,7 +222,7 @@ class C { }
             Await TestAddAttribute(code, expected, New AttributeData With {.Name = "System.CLSCompliant", .Value = "true", .Position = -1})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddAttribute6() As Task
             Dim code =
 <Code>
@@ -240,7 +244,7 @@ class C { }
 
 #Region "AddClass tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass1() As Task
             Dim code =
 <Code>
@@ -263,7 +267,7 @@ class C
             Await TestAddClass(code, expected, New ClassData With {.Name = "B"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass2() As Task
             Dim code =
 <Code>
@@ -282,7 +286,7 @@ class C { }
             Await TestAddClass(code, expected, New ClassData With {.Name = "B"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass3() As Task
             Dim code =
 <Code>
@@ -305,7 +309,7 @@ class B
             Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass4() As Task
             Dim code =
 <Code>
@@ -324,7 +328,7 @@ class B
             Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass5() As Task
             Dim code =
 <Code>
@@ -347,7 +351,7 @@ class B : C
             Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = {"C"}})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass6() As Task
             Dim code =
 <Code>
@@ -370,7 +374,7 @@ class B : C
             Await TestAddClass(code, expected, New ClassData With {.Name = "B", .Position = "C", .Bases = "C"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass7() As Task
             Dim code =
 <Code>
@@ -393,7 +397,7 @@ class C : I
             Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = {"I"}})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass8() As Task
             Dim code =
 <Code>
@@ -416,7 +420,7 @@ class C : I
             Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "I"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass9() As Task
             Dim code =
 <Code>
@@ -437,7 +441,7 @@ class C : B, I
             Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "I", .Bases = "B", .ImplementedInterfaces = "I"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddClass10() As Task
             Dim code =
 <Code>
@@ -460,7 +464,7 @@ class C : B, IGoo, IBar
             Await TestAddClass(code, expected, New ClassData With {.Name = "C", .Position = "IBar", .Bases = "B", .ImplementedInterfaces = {"IGoo", "IBar"}})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestAddClass_Stress()
             Dim code =
 <Code>
@@ -484,7 +488,7 @@ interface IBar { }
 
 #Region "AddDelegate tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddDelegate1() As Task
             Dim code =
 <Code>
@@ -505,7 +509,7 @@ class C
             Await TestAddDelegate(code, expected, New DelegateData With {.Name = "D", .Type = "void"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddDelegate2() As Task
             Dim code =
 <Code>
@@ -530,7 +534,7 @@ delegate int D();
 
 #Region "AddEnum tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddEnum1() As Task
             Dim code =
 <Code>
@@ -553,7 +557,7 @@ class C
             Await TestAddEnum(code, expected, New EnumData With {.Name = "E"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddEnum2() As Task
             Dim code =
 <Code>
@@ -580,7 +584,7 @@ enum E
 
 #Region "AddImport tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImport1() As Task
             Dim code =
 <Code>
@@ -601,7 +605,7 @@ class C
             Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImport2() As Task
             Dim code =
 <Code>
@@ -622,7 +626,7 @@ class C
             Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System", .Alias = "S"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImport3() As Task
             Dim code =
 <Code>
@@ -646,7 +650,7 @@ class C
             Await TestAddImport(code, expected, New ImportData With {.[Namespace] = "System"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddImport4() As Task
             Dim code =
 <Code>
@@ -674,7 +678,7 @@ class C
 
 #Region "AddInterface tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddInterface1() As Task
             Dim code =
 <Code>
@@ -697,7 +701,7 @@ class C
             Await TestAddInterface(code, expected, New InterfaceData With {.Name = "I"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddInterface2() As Task
             Dim code =
 <Code>
@@ -724,7 +728,7 @@ interface I
 
 #Region "AddNamespace tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace1() As Task
             Dim code =
 <Code>
@@ -747,7 +751,7 @@ class C
             Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace2() As Task
             Dim code =
 <Code>
@@ -770,7 +774,7 @@ class C
             Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace3() As Task
             Dim code =
 <Code>
@@ -793,7 +797,7 @@ namespace N
             Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = "C"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace4() As Task
             Dim code =
 <Code>$$</Code>
@@ -808,7 +812,7 @@ namespace N
             Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace5() As Task
             Dim code =
 <Code>
@@ -827,7 +831,7 @@ namespace N
             Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace6() As Task
             Dim code =
 <Code>
@@ -846,7 +850,7 @@ namespace N
             Await TestAddNamespace(code, expected, New NamespaceData With {.Name = "N", .Position = 0})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddNamespace7() As Task
             Dim code =
 <Code>
@@ -869,7 +873,7 @@ namespace N
 
 #Region "AddStruct tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddStruct1() As Task
             Dim code =
 <Code>
@@ -892,7 +896,7 @@ class C
             Await TestAddStruct(code, expected, New StructData With {.Name = "S"})
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestAddStruct2() As Task
             Dim code =
 <Code>
@@ -919,7 +923,7 @@ struct S
 
 #Region "Remove tests"
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemove1() As Task
             Dim code =
 <Code>
@@ -935,7 +939,7 @@ class $$C
             Await TestRemoveChild(code, expected, "C")
         End Function
 
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestRemove2() As Task
             Dim code =
 <Code>
@@ -957,7 +961,7 @@ class $$C
 #End Region
 
         <WorkItem(921220, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921220")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestClosedDocument()
             Dim code =
 <Code>
@@ -983,7 +987,7 @@ class $$C
         End Sub
 
         <WorkItem(1980, "https://github.com/dotnet/roslyn/issues/1980")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestCreateUnknownElementForConversionOperator() As Task
             Dim oldCode =
 <Code>
@@ -1010,12 +1014,12 @@ class D
 </Workspace>
 
             Using originalWorkspaceAndFileCodeModel = CreateCodeModelTestState(GetWorkspaceDefinition(oldCode))
-                Using changedworkspace = TestWorkspace.Create(changedDefinition, exportProvider:=VisualStudioTestExportProvider.Factory.CreateExportProvider())
+                Using changedWorkspace = TestWorkspace.Create(changedDefinition, composition:=CodeModelTestHelpers.Composition)
 
                     Dim originalDocument = originalWorkspaceAndFileCodeModel.Workspace.CurrentSolution.GetDocument(originalWorkspaceAndFileCodeModel.Workspace.Documents(0).Id)
                     Dim originalTree = Await originalDocument.GetSyntaxTreeAsync()
 
-                    Dim changeDocument = changedworkspace.CurrentSolution.GetDocument(changedworkspace.Documents(0).Id)
+                    Dim changeDocument = changedWorkspace.CurrentSolution.GetDocument(changedWorkspace.Documents(0).Id)
                     Dim changeTree = Await changeDocument.GetSyntaxTreeAsync()
 
                     Dim codeModelEvent = originalWorkspaceAndFileCodeModel.CodeModelService.CollectCodeModelEvents(originalTree, changeTree)
@@ -1034,7 +1038,7 @@ class D
         End Function
 
         <WorkItem(925569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925569")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestChangeClassNameAndGetNameOfChildFunction()
             Dim code =
 <Code>
@@ -1061,7 +1065,7 @@ class C
         End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_PropertyAccessor()
             Dim code =
 <code>
@@ -1114,7 +1118,7 @@ class C
         End Sub
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
-        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Sub TestCodeElements_EventAccessor()
             Dim code =
 <code>
@@ -1165,6 +1169,142 @@ class C
                     Assert.Equal("C.E", member2.NodeKey.Name)
                     Assert.Equal(1, member2.NodeKey.Ordinal)
                 End Sub)
+        End Sub
+
+        <WorkItem(671189, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/671189")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function AddShouldNotFailAfterCodeIsDeleted() As Task
+            ' This test attempts to add and remove a method several times via code model,
+            ' verifying a scenario where the WinForms or XAML designer adds an event handler
+            ' and the user later deletes and regenerates the event handler.
+
+            Dim codeBeforeOperationXml =
+<code>
+class C
+{
+}
+</code>
+
+            Dim codeAfterOperationXml =
+<code>
+class C
+{
+    void M(int x, int y)
+    {
+
+    }
+}
+</code>
+
+            Dim codeBeforeOperation = codeBeforeOperationXml.Value.NormalizeLineEndings().Trim()
+            Dim codeAfterOperation = codeAfterOperationXml.Value.NormalizeLineEndings().Trim()
+
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(codeBeforeOperationXml))
+                Dim workspace = state.VisualStudioWorkspace
+                Dim fileCodeModel = state.FileCodeModel
+                Assert.NotNull(fileCodeModel)
+
+                For i = 1 To 10
+                    Dim docId = workspace.CurrentSolution.Projects(0).DocumentIds(0)
+                    Dim textBeforeOperation = Await workspace.CurrentSolution.GetDocument(docId).GetTextAsync()
+                    Assert.Equal(codeBeforeOperation, textBeforeOperation.ToString())
+
+                    Dim classC = TryCast(fileCodeModel.CodeElements.Item(1), EnvDTE.CodeClass)
+                    Assert.NotNull(classC)
+                    Assert.Equal("C", classC.Name)
+
+                    fileCodeModel.BeginBatch()
+                    Dim newFunction = classC.AddFunction("M", EnvDTE.vsCMFunction.vsCMFunctionFunction, Type:=EnvDTE.vsCMTypeRef.vsCMTypeRefVoid, , EnvDTE.vsCMAccess.vsCMAccessDefault)
+                    Dim param1 = newFunction.AddParameter("x", EnvDTE.vsCMTypeRef.vsCMTypeRefInt, Position:=-1)
+                    Dim param2 = newFunction.AddParameter("y", EnvDTE.vsCMTypeRef.vsCMTypeRefInt, Position:=-1)
+                    fileCodeModel.EndBatch()
+
+                    Dim solution = workspace.CurrentSolution
+                    Dim textAfterOperation = Await solution.GetDocument(docId).GetTextAsync()
+                    Assert.Equal(codeAfterOperation, textAfterOperation.ToString())
+
+                    Dim newText = textAfterOperation.Replace(
+                        span:=TextSpan.FromBounds(0, textAfterOperation.Length),
+                        newText:=codeBeforeOperation)
+
+                    Dim newSolution = solution.WithDocumentText(docId, newText)
+                    Assert.True(workspace.TryApplyChanges(newSolution))
+                Next
+            End Using
+        End Function
+
+        <WorkItem(31735, "https://github.com/dotnet/roslyn/issues/31735")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RenameShouldWorkAndElementsShouldBeUsableAfter()
+            Dim code =
+<code>
+class C
+{
+}
+</code>
+
+            TestOperation(code,
+                Sub(fileCodeModel)
+                    Dim codeElement = DirectCast(fileCodeModel.CodeElements(0), EnvDTE80.CodeElement2)
+                    Assert.Equal("C", codeElement.Name)
+
+                    codeElement.RenameSymbol("D")
+
+                    ' This not only asserts that the rename happened successfully, but that the element was correctly updated
+                    ' so the underlying node key is still valid.
+                    Assert.Equal("D", codeElement.Name)
+                End Sub)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub CanAccessPartialPartsInSourceGeneratedFiles()
+            Dim code =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <Document>partial class C { }</Document>
+        <DocumentFromSourceGenerator>partial class C { void M() { } }</DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+
+            Using state = CreateCodeModelTestState(code)
+                Dim workspace = state.VisualStudioWorkspace
+                Dim fileCodeModel = state.FileCodeModel
+
+                Dim codeClass = DirectCast(Assert.Single(fileCodeModel.CodeElements()), EnvDTE80.CodeClass2)
+                Dim parts = codeClass.Parts.Cast(Of EnvDTE.CodeClass).ToList()
+                Assert.Equal(2, parts.Count)
+
+                ' Grab the part that isn't the one we started with
+                Dim generatedPart = Assert.Single(parts, Function(p) p IsNot codeClass)
+
+                ' Confirm we can inspect members
+                Dim member = DirectCast(Assert.Single(generatedPart.Members), EnvDTE.CodeFunction)
+                Assert.Equal("M", member.Name)
+
+                ' We are unable to change things in generated files
+                Assert.Throws(Of COMException)(Sub() member.AddParameter("Test", "System.Object"))
+            End Using
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub RequestingCodeModelForAdditionalFileThrowsCorrectExceptionType()
+            Dim code =
+<Workspace>
+    <Project Language=<%= LanguageName %> CommonReferences="true">
+        <AdditionalDocument FilePath="Z:\Additional.txt"></AdditionalDocument>
+    </Project>
+</Workspace>
+
+            Using state = CreateCodeModelTestState(code)
+                Dim workspace = state.VisualStudioWorkspace
+                Dim projectCodeModelFactory = state.Workspace.GetService(Of ProjectCodeModelFactory)()
+                Dim projectCodeModel = projectCodeModelFactory.GetProjectCodeModel(workspace.CurrentSolution.ProjectIds.Single())
+
+                Assert.Throws(Of NotImplementedException)(
+                    Sub()
+                        projectCodeModel.GetOrCreateFileCodeModel("Z:\Additional.txt", parent:=Nothing)
+                    End Sub)
+            End Using
         End Sub
 
         Protected Overrides ReadOnly Property LanguageName As String

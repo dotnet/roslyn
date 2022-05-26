@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -21,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     /// Base type for all SuggestedActions that have 'flavors'.  'Flavors' are child actions that
     /// are presented as simple links, not as menu-items, in the light-bulb.  Examples of 'flavors'
     /// include 'preview changes' (for refactorings and fixes) and 'fix all in document, project, solution'
-    /// (for fixes).
+    /// (for refactorings and fixes).
     /// 
     /// Because all derivations support 'preview changes', we bake that logic into this base type.
     /// </summary>
@@ -31,11 +36,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private ImmutableArray<SuggestedActionSet> _nestedFlavors;
 
         public SuggestedActionWithNestedFlavors(
+            IThreadingContext threadingContext,
             SuggestedActionsSourceProvider sourceProvider,
             Workspace workspace, ITextBuffer subjectBuffer,
-            object provider, CodeAction codeAction, 
-            SuggestedActionSet additionalFlavors = null) 
-            : base(sourceProvider, workspace, subjectBuffer, 
+            object provider, CodeAction codeAction,
+            SuggestedActionSet additionalFlavors)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer,
                    provider, codeAction)
         {
             _additionalFlavors = additionalFlavors;
@@ -46,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         /// </summary>
         public sealed override bool HasActionSets => true;
 
-        public async sealed override Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
+        public sealed override async Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -59,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // We use ConfigureAwait(true) to stay on the UI thread.
                 _nestedFlavors = await extensionManager.PerformFunctionAsync(
-                    Provider, () => CreateAllFlavors(cancellationToken),
+                    Provider, () => CreateAllFlavorsAsync(cancellationToken),
                     defaultValue: ImmutableArray<SuggestedActionSet>.Empty).ConfigureAwait(true);
             }
 
@@ -67,12 +73,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return _nestedFlavors;
         }
 
-        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavors(CancellationToken cancellationToken)
+        private async Task<ImmutableArray<SuggestedActionSet>> CreateAllFlavorsAsync(CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<SuggestedActionSet>.GetInstance();
 
             // We use ConfigureAwait(true) to stay on the UI thread.
-            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavor(cancellationToken).ConfigureAwait(true);
+            var previewChangesSuggestedActionSet = await GetPreviewChangesFlavorAsync(cancellationToken).ConfigureAwait(true);
             if (previewChangesSuggestedActionSet != null)
             {
                 builder.Add(previewChangesSuggestedActionSet);
@@ -86,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return builder.ToImmutableAndFree();
         }
 
-        private async Task<SuggestedActionSet> GetPreviewChangesFlavor(CancellationToken cancellationToken)
+        private async Task<SuggestedActionSet> GetPreviewChangesFlavorAsync(CancellationToken cancellationToken)
         {
             // We use ConfigureAwait(true) to stay on the UI thread.
             var previewChangesAction = await PreviewChangesSuggestedAction.CreateAsync(
@@ -148,9 +154,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // GetPreviewPane() needs to run on the UI thread.
             AssertIsForeground();
-            Workspace.GetLanguageAndProjectType(preferredProjectId, out var language, out var projectType);
 
-            return previewPaneService.GetPreviewPane(GetDiagnostic(), language, projectType, previewContents);
+            return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
         }
 
         protected virtual DiagnosticData GetDiagnostic() => null;

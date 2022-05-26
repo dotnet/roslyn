@@ -1,16 +1,21 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -44,24 +49,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        internal static readonly ParallelOptions DefaultParallelOptions = new ParallelOptions();
-
         private readonly CSharpCompilationOptions _options;
-        private readonly Lazy<Imports> _globalImports;
+        private readonly Lazy<UsingsFromOptionsAndDiagnostics> _usingsFromOptions;
+        private readonly Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>> _globalImports;
         private readonly Lazy<Imports> _previousSubmissionImports;
         private readonly Lazy<AliasSymbol> _globalNamespaceAlias;  // alias symbol used to resolve "global::".
-        private readonly Lazy<ImplicitNamedTypeSymbol> _scriptClass;
+        private readonly Lazy<ImplicitNamedTypeSymbol?> _scriptClass;
 
-        // All imports (using directives and extern aliases) in syntax trees in this compilation.
-        // NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
-        // and re-created.
-        private ConcurrentSet<ImportInfo> _lazyImportInfos;
+        // The type of host object model if available.
+        private TypeSymbol? _lazyHostObjectTypeSymbol;
+
+        /// <summary>
+        /// All imports (using directives and extern aliases) in syntax trees in this compilation.
+        /// NOTE: We need to de-dup since the Imports objects that populate the list may be GC'd
+        /// and re-created.
+        /// Values are the sets of dependencies for corresponding directives.
+        /// </summary>
+        private ConcurrentDictionary<ImportInfo, ImmutableArray<AssemblySymbol>>? _lazyImportInfos;
 
         // Cache the CLS diagnostics for the whole compilation so they aren't computed repeatedly.
         // NOTE: Presently, we do not cache the per-tree diagnostics.
         private ImmutableArray<Diagnostic> _lazyClsComplianceDiagnostics;
+        private ImmutableArray<AssemblySymbol> _lazyClsComplianceDependencies;
 
-        private Conversions _conversions;
+        private Conversions? _conversions;
+        /// <summary>
+        /// A conversions object that ignores nullability.
+        /// </summary>
         internal Conversions Conversions
         {
             get
@@ -80,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly AnonymousTypeManager _anonymousTypeManager;
 
-        private NamespaceSymbol _lazyGlobalNamespace;
+        private NamespaceSymbol? _lazyGlobalNamespace;
 
         internal readonly BuiltInOperators builtInOperators;
 
@@ -90,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// while ReferenceManager "calculates" the value and assigns it, several threads must not perform duplicate
         /// "calculation" simultaneously.
         /// </summary>
-        private SourceAssemblySymbol _lazyAssemblySymbol;
+        private SourceAssemblySymbol? _lazyAssemblySymbol;
 
         /// <summary>
         /// Holds onto data related to reference binding.
@@ -106,12 +120,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Contains the main method of this assembly, if there is one.
         /// </summary>
-        private EntryPoint _lazyEntryPoint;
+        private EntryPoint? _lazyEntryPoint;
+
+        /// <summary>
+        /// Emit nullable attributes for only those members that are visible outside the assembly
+        /// (public, protected, and if any [InternalsVisibleTo] attributes, internal members).
+        /// If false, attributes are emitted for all members regardless of visibility.
+        /// </summary>
+        private ThreeState _lazyEmitNullablePublicOnly;
 
         /// <summary>
         /// The set of trees for which a <see cref="CompilationUnitCompletedEvent"/> has been added to the queue.
         /// </summary>
-        private HashSet<SyntaxTree> _lazyCompilationUnitCompletedTrees;
+        private HashSet<SyntaxTree>? _lazyCompilationUnitCompletedTrees;
+
+        /// <summary>
+        /// The set of trees for which enough analysis was performed in order to record usage of using directives.
+        /// Once all trees are processed the value is set to null.
+        /// </summary>
+        private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
+
+        /// <summary>
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
+        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
+        /// </summary>
+        internal object? TestOnlyCompilationData;
+
+        internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
         public override string Language
         {
@@ -164,12 +200,92 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool FeatureStrictEnabled => Feature("strict") != null;
 
         /// <summary>
-        /// True when "peverify-compat" is set
+        /// True when the "peverify-compat" feature flag is set or the language version is below C# 7.2.
         /// With this flag we will avoid certain patterns known not be compatible with PEVerify.
         /// The code may be less efficient and may deviate from spec in corner cases.
         /// The flag is only to be used if PEVerify pass is extremely important.
         /// </summary>
-        internal bool FeaturePEVerifyCompatEnabled => Feature("peverify-compat") != null;
+        internal bool IsPeVerifyCompatEnabled => LanguageVersion < LanguageVersion.CSharp7_2 || Feature("peverify-compat") != null;
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
+        /// </summary>
+        /// <remarks>
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(SyntaxNode syntax)
+        {
+            return IsNullableAnalysisEnabledIn((CSharpSyntaxTree)syntax.SyntaxTree, syntax.Span);
+        }
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled in the text span.
+        /// </summary>
+        /// <remarks>
+        /// This overload is used for member symbols during binding, or for cases other
+        /// than symbols such as attribute arguments and parameter defaults.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(CSharpSyntaxTree tree, TextSpan span)
+        {
+            return GetNullableAnalysisValue() ??
+                tree.IsNullableAnalysisEnabled(span) ??
+                (Options.NullableContextOptions & NullableContextOptions.Warnings) != 0;
+        }
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled for the method. For constructors, the
+        /// region considered may include other constructors and field and property initializers.
+        /// </summary>
+        /// <remarks>
+        /// This overload is intended for callers that rely on symbols rather than syntax. The overload
+        /// uses the cached value calculated during binding (from potentially several spans)
+        /// from <see cref="IsNullableAnalysisEnabledIn(CSharpSyntaxTree, TextSpan)"/>.
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledIn(MethodSymbol method)
+        {
+            return GetNullableAnalysisValue() ??
+                method.IsNullableAnalysisEnabled();
+        }
+
+        /// <summary>
+        /// Returns true if nullable analysis is enabled for all methods regardless
+        /// of the actual nullable context.
+        /// If this property returns true but IsNullableAnalysisEnabled returns false,
+        /// any nullable analysis should be enabled but results should be ignored.
+        /// </summary>
+        /// <remarks>
+        /// For DEBUG builds, we treat nullable analysis as enabled for all methods
+        /// unless explicitly disabled, so that analysis is run, even though results may
+        /// be ignored, to increase the chance of catching nullable regressions
+        /// (e.g. https://github.com/dotnet/roslyn/issues/40136).
+        /// </remarks>
+        internal bool IsNullableAnalysisEnabledAlways
+        {
+            get
+            {
+                var value = GetNullableAnalysisValue();
+#if DEBUG
+                return value != false;
+#else
+                return value == true;
+#endif
+            }
+        }
+
+        /// <summary>
+        /// Returns Feature("run-nullable-analysis") as a bool? value:
+        /// true for "always"; false for "never"; and null otherwise.
+        /// </summary>
+        private bool? GetNullableAnalysisValue()
+        {
+            return Feature("run-nullable-analysis") switch
+            {
+                "always" => true,
+                "never" => false,
+                _ => null,
+            };
+        }
 
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
@@ -179,18 +295,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             get;
         }
 
-        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol container, string name, int arity)
+        protected override INamedTypeSymbol CommonCreateErrorTypeSymbol(INamespaceOrTypeSymbol? container, string name, int arity)
         {
             return new ExtendedErrorTypeSymbol(
-                       container.EnsureCSharpSymbolOrNull<INamespaceOrTypeSymbol, NamespaceOrTypeSymbol>(nameof(container)),
-                       name, arity, errorInfo: null);
+                       container.EnsureCSharpSymbolOrNull(nameof(container)),
+                       name, arity, errorInfo: null).GetPublicSymbol();
         }
 
         protected override INamespaceSymbol CommonCreateErrorNamespaceSymbol(INamespaceSymbol container, string name)
         {
             return new MissingNamespaceSymbol(
-                       container.EnsureCSharpSymbolOrNull<INamespaceSymbol, NamespaceSymbol>(nameof(container)),
-                       name);
+                       container.EnsureCSharpSymbolOrNull(nameof(container)),
+                       name).GetPublicSymbol();
         }
 
         #region Constructors and Factories
@@ -208,10 +324,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="options">The compiler options to use.</param>
         /// <returns>A new compilation.</returns>
         public static CSharpCompilation Create(
-            string assemblyName,
-            IEnumerable<SyntaxTree> syntaxTrees = null,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null)
+            string? assemblyName,
+            IEnumerable<SyntaxTree>? syntaxTrees = null,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null)
         {
             return Create(
                 assemblyName,
@@ -229,12 +345,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static CSharpCompilation CreateScriptCompilation(
             string assemblyName,
-            SyntaxTree syntaxTree = null,
-            IEnumerable<MetadataReference> references = null,
-            CSharpCompilationOptions options = null,
-            CSharpCompilation previousScriptCompilation = null,
-            Type returnType = null,
-            Type globalsType = null)
+            SyntaxTree? syntaxTree = null,
+            IEnumerable<MetadataReference>? references = null,
+            CSharpCompilationOptions? options = null,
+            CSharpCompilation? previousScriptCompilation = null,
+            Type? returnType = null,
+            Type? globalsType = null)
         {
             CheckSubmissionOptions(options);
             ValidateScriptCompilationParameters(previousScriptCompilation, returnType, ref globalsType);
@@ -251,19 +367,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static CSharpCompilation Create(
-            string assemblyName,
+            string? assemblyName,
             CSharpCompilationOptions options,
-            IEnumerable<SyntaxTree> syntaxTrees,
-            IEnumerable<MetadataReference> references,
-            CSharpCompilation previousSubmission,
-            Type returnType,
-            Type hostObjectType,
+            IEnumerable<SyntaxTree>? syntaxTrees,
+            IEnumerable<MetadataReference>? references,
+            CSharpCompilation? previousSubmission,
+            Type? returnType,
+            Type? hostObjectType,
             bool isSubmission)
         {
-            Debug.Assert(options != null);
+            RoslynDebug.Assert(options != null);
             Debug.Assert(!isSubmission || options.ReferencesSupersedeLowerVersions);
 
             var validatedReferences = ValidateReferences<CSharpCompilationReference>(references);
+
+            // We can't reuse the whole Reference Manager entirely (reuseReferenceManager = false)
+            // because the set of references of this submission differs from the previous one.
+            // The submission inherits references of the previous submission, adds the previous submission reference
+            // and may add more references passed explicitly or via #r.
+            //
+            // TODO: Consider reusing some results of the assembly binding to improve perf
+            // since most of the binding work is similar.
+            // https://github.com/dotnet/roslyn/issues/43397
 
             var compilation = new CSharpCompilation(
                 assemblyName,
@@ -281,37 +406,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                     options.SourceReferenceResolver,
                     CSharp.MessageProvider.Instance,
                     isSubmission,
-                    state: null));
+                    state: null),
+                semanticModelProvider: null);
 
             if (syntaxTrees != null)
             {
                 compilation = compilation.AddSyntaxTrees(syntaxTrees);
             }
 
-            Debug.Assert((object)compilation._lazyAssemblySymbol == null);
+            Debug.Assert(compilation._lazyAssemblySymbol is null);
             return compilation;
         }
 
         private CSharpCompilation(
-            string assemblyName,
+            string? assemblyName,
             CSharpCompilationOptions options,
             ImmutableArray<MetadataReference> references,
-            CSharpCompilation previousSubmission,
-            Type submissionReturnType,
-            Type hostObjectType,
+            CSharpCompilation? previousSubmission,
+            Type? submissionReturnType,
+            Type? hostObjectType,
             bool isSubmission,
-            ReferenceManager referenceManager,
+            ReferenceManager? referenceManager,
             bool reuseReferenceManager,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
-            AsyncQueue<CompilationEvent> eventQueue = null)
-            : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
+            SemanticModelProvider? semanticModelProvider,
+            AsyncQueue<CompilationEvent>? eventQueue = null)
+            : this(assemblyName, options, references, previousSubmission, submissionReturnType, hostObjectType, isSubmission, referenceManager, reuseReferenceManager, syntaxAndDeclarations, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), semanticModelProvider, eventQueue)
+        {
+        }
+
+        private CSharpCompilation(
+            string? assemblyName,
+            CSharpCompilationOptions options,
+            ImmutableArray<MetadataReference> references,
+            CSharpCompilation? previousSubmission,
+            Type? submissionReturnType,
+            Type? hostObjectType,
+            bool isSubmission,
+            ReferenceManager? referenceManager,
+            bool reuseReferenceManager,
+            SyntaxAndDeclarationManager syntaxAndDeclarations,
+            IReadOnlyDictionary<string, string> features,
+            SemanticModelProvider? semanticModelProvider,
+            AsyncQueue<CompilationEvent>? eventQueue = null)
+            : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
             WellKnownMemberSignatureComparer = new WellKnownMembersSignatureComparer(this);
             _options = options;
 
             this.builtInOperators = new BuiltInOperators(this);
-            _scriptClass = new Lazy<ImplicitNamedTypeSymbol>(BindScriptClass);
-            _globalImports = new Lazy<Imports>(BindGlobalImports);
+            _scriptClass = new Lazy<ImplicitNamedTypeSymbol?>(BindScriptClass);
+            _globalImports = new Lazy<ImmutableArray<NamespaceOrTypeAndUsingDirective>>(BindGlobalImports);
+            _usingsFromOptions = new Lazy<UsingsFromOptionsAndDiagnostics>(BindUsingsFromOptions);
             _previousSubmissionImports = new Lazy<Imports>(ExpandPreviousSubmissionImports);
             _globalNamespaceAlias = new Lazy<AliasSymbol>(CreateGlobalNamespaceAlias);
             _anonymousTypeManager = new AnonymousTypeManager(this);
@@ -329,6 +475,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reuseReferenceManager)
             {
+                if (referenceManager is null)
+                {
+                    throw new ArgumentNullException(nameof(referenceManager));
+                }
+
                 referenceManager.AssertCanReuseForCompilation(this);
                 _referenceManager = referenceManager;
             }
@@ -342,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _syntaxAndDeclarations = syntaxAndDeclarations;
 
-            Debug.Assert((object)_lazyAssemblySymbol == null);
+            Debug.Assert(_lazyAssemblySymbol is null);
             if (EventQueue != null) EventQueue.TryEnqueue(new CompilationStartedEvent(this));
         }
 
@@ -351,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(debugEntryPoint != null);
 
             // Debug entry point has to be a method definition from this compilation.
-            var methodSymbol = debugEntryPoint as MethodSymbol;
+            var methodSymbol = (debugEntryPoint as Symbols.PublicModel.MethodSymbol)?.UnderlyingMethodSymbol;
             if (methodSymbol?.DeclaringCompilation != this || !methodSymbol.IsDefinition)
             {
                 diagnostics.Add(ErrorCode.ERR_DebugEntryPointNotSourceMethodDefinition, Location.None);
@@ -392,7 +543,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         private CSharpCompilation Update(
@@ -410,13 +562,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager,
                 reuseReferenceManager,
-                syntaxAndDeclarations);
+                syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
         /// Creates a new compilation with the specified name.
         /// </summary>
-        public new CSharpCompilation WithAssemblyName(string assemblyName)
+        public new CSharpCompilation WithAssemblyName(string? assemblyName)
         {
             // Can't reuse references since the source assembly name changed and the referenced symbols might
             // have internals-visible-to relationship with this compilation or they might had a circular reference
@@ -432,7 +585,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: assemblyName == this.AssemblyName,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -446,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// E.g. if the current compilation references a metadata file that has changed since the creation of the compilation
         /// the new compilation is going to use the updated version, while the current compilation will be using the previous (it doesn't change).
         /// </remarks>
-        public new CSharpCompilation WithReferences(IEnumerable<MetadataReference> references)
+        public new CSharpCompilation WithReferences(IEnumerable<MetadataReference>? references)
         {
             // References might have changed, don't reuse reference manager.
             // Don't even reuse observed metadata - let the manager query for the metadata again.
@@ -461,7 +615,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager: null,
                 reuseReferenceManager: false,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
         }
 
         /// <summary>
@@ -500,20 +655,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         options.SourceReferenceResolver,
                         _syntaxAndDeclarations.MessageProvider,
                         _syntaxAndDeclarations.IsSubmission,
-                        state: null));
+                        state: null),
+                this.SemanticModelProvider);
         }
 
         /// <summary>
         /// Returns a new compilation with the given compilation set as the previous submission.
         /// </summary>
-        public CSharpCompilation WithScriptCompilationInfo(CSharpScriptCompilationInfo info)
+        public CSharpCompilation WithScriptCompilationInfo(CSharpScriptCompilationInfo? info)
         {
             if (info == ScriptCompilationInfo)
             {
                 return this;
             }
 
-            // Reference binding doesn't depend on previous submission so we can reuse it.
+            // Metadata references are inherited from the previous submission,
+            // so we can only reuse the manager if we can guarantee that these references are the same.
+            // Check if the previous script compilation doesn't change.
+
+            // TODO: Consider comparing the metadata references if they have been bound already.
+            // https://github.com/dotnet/roslyn/issues/43397
+            bool reuseReferenceManager = ReferenceEquals(ScriptCompilationInfo?.PreviousScriptCompilation, info?.PreviousScriptCompilation);
 
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -522,16 +684,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 info?.PreviousScriptCompilation,
                 info?.ReturnTypeOpt,
                 info?.GlobalsType,
-                info != null,
+                isSubmission: info != null,
+                _referenceManager,
+                reuseReferenceManager,
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider);
+        }
+
+        /// <summary>
+        /// Returns a new compilation with the given semantic model provider.
+        /// </summary>
+        internal override Compilation WithSemanticModelProvider(SemanticModelProvider? semanticModelProvider)
+        {
+            if (this.SemanticModelProvider == semanticModelProvider)
+            {
+                return this;
+            }
+
+            return new CSharpCompilation(
+                this.AssemblyName,
+                _options,
+                this.ExternalReferences,
+                this.PreviousSubmission,
+                this.SubmissionReturnType,
+                this.HostObjectType,
+                this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations);
+                _syntaxAndDeclarations,
+                semanticModelProvider);
         }
 
         /// <summary>
         /// Returns a new compilation with a given event queue.
         /// </summary>
-        internal override Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue)
+        internal override Compilation WithEventQueue(AsyncQueue<CompilationEvent>? eventQueue)
         {
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -543,18 +730,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
-                syntaxAndDeclarations: _syntaxAndDeclarations,
-                eventQueue: eventQueue);
+                _syntaxAndDeclarations,
+                this.SemanticModelProvider,
+                eventQueue);
         }
 
         #endregion
 
         #region Submission
 
-        public new CSharpScriptCompilationInfo ScriptCompilationInfo { get; }
-        internal override ScriptCompilationInfo CommonScriptCompilationInfo => ScriptCompilationInfo;
+        public new CSharpScriptCompilationInfo? ScriptCompilationInfo { get; }
+        internal override ScriptCompilationInfo? CommonScriptCompilationInfo => ScriptCompilationInfo;
 
-        internal CSharpCompilation PreviousSubmission => ScriptCompilationInfo?.PreviousScriptCompilation;
+        internal CSharpCompilation? PreviousSubmission => ScriptCompilationInfo?.PreviousScriptCompilation;
 
         internal override bool HasSubmissionResult()
         {
@@ -580,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Is there a trailing expression?
-            var lastGlobalStatement = (GlobalStatementSyntax)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
+            var lastGlobalStatement = (GlobalStatementSyntax?)root.Members.LastOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement));
             if (lastGlobalStatement != null)
             {
                 var statement = lastGlobalStatement.Statement;
@@ -615,7 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns true if this compilation contains the specified tree.  False otherwise.
         /// </summary>
-        public new bool ContainsSyntaxTree(SyntaxTree syntaxTree)
+        public new bool ContainsSyntaxTree(SyntaxTree? syntaxTree)
         {
             return syntaxTree != null && _syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree);
         }
@@ -769,11 +957,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Creates a new compilation without the old tree but with the new tree.
         /// </summary>
-        public new CSharpCompilation ReplaceSyntaxTree(SyntaxTree oldTree, SyntaxTree newTree)
+        public new CSharpCompilation ReplaceSyntaxTree(SyntaxTree oldTree, SyntaxTree? newTree)
         {
             // this is just to force a cast exception
             oldTree = (CSharpSyntaxTree)oldTree;
-            newTree = (CSharpSyntaxTree)newTree;
+            newTree = (CSharpSyntaxTree?)newTree;
 
             if (oldTree == null)
             {
@@ -816,6 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // TODO(tomat): Consider comparing #r's of the old and the new tree. If they are exactly the same we could still reuse.
             // This could be a perf win when editing a script file in the IDE. The services create a new compilation every keystroke
             // that replaces the tree with a new one.
+            // https://github.com/dotnet/roslyn/issues/43397
             var reuseReferenceManager = !oldTree.HasReferenceOrLoadDirectives() && !newTree.HasReferenceOrLoadDirectives();
             syntaxAndDeclarations = syntaxAndDeclarations.ReplaceSyntaxTree(oldTree, newTree);
 
@@ -839,10 +1028,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal new ReferenceManager GetBoundReferenceManager()
         {
-            if ((object)_lazyAssemblySymbol == null)
+            if (_lazyAssemblySymbol is null)
             {
                 _referenceManager.CreateSourceAssemblyForCompilation(this);
-                Debug.Assert((object)_lazyAssemblySymbol != null);
+                Debug.Assert(_lazyAssemblySymbol is object);
             }
 
             // referenceManager can only be accessed after we initialized the lazyAssemblySymbol.
@@ -883,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Uses object identity when comparing two references.
         /// </remarks>
-        internal new Symbol GetAssemblyOrModuleSymbol(MetadataReference reference)
+        internal new Symbol? GetAssemblyOrModuleSymbol(MetadataReference reference)
         {
             if (reference == null)
             {
@@ -923,9 +1112,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="directive">#r directive.</param>
         /// <returns>Metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
-        public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
+        public MetadataReference? GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
-            MetadataReference reference;
+            RoslynDebug.Assert(directive.SyntaxTree.FilePath is object);
+
+            MetadataReference? reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 
@@ -977,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (CSharpCompilation)base.ReplaceReference(oldReference, newReference);
         }
 
-        public override CompilationReference ToMetadataReference(ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
+        public override CompilationReference ToMetadataReference(ImmutableArray<string> aliases = default, bool embedInteropTypes = false)
         {
             return new CSharpCompilationReference(this, aliases, embedInteropTypes);
         }
@@ -1016,7 +1207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var referenceManager = GetBoundReferenceManager();
 
-            for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
+            int length = referenceManager.ReferencedAssemblies.Length;
+
+            assemblies.EnsureCapacity(assemblies.Count + length);
+
+            for (int i = 0; i < length; i++)
             {
                 if (referenceManager.DeclarationsAccessibleWithoutAlias(i))
                 {
@@ -1028,9 +1223,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the <see cref="MetadataReference"/> that corresponds to the assembly symbol.
         /// </summary>
-        public new MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
+        public new MetadataReference? GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
             return base.GetMetadataReference(assemblySymbol);
+        }
+
+        private protected override MetadataReference? CommonGetMetadataReference(IAssemblySymbol assemblySymbol)
+        {
+            if (assemblySymbol is Symbols.PublicModel.AssemblySymbol { UnderlyingAssemblySymbol: var underlyingSymbol })
+            {
+                return GetMetadataReference(underlyingSymbol);
+            }
+
+            return null;
+        }
+
+        internal MetadataReference? GetMetadataReference(AssemblySymbol? assemblySymbol)
+        {
+            return GetBoundReferenceManager().GetMetadataReference(assemblySymbol);
         }
 
         #endregion
@@ -1045,6 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 GetBoundReferenceManager();
+                RoslynDebug.Assert(_lazyAssemblySymbol is object);
                 return _lazyAssemblySymbol;
             }
         }
@@ -1081,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)_lazyGlobalNamespace == null)
+                if (_lazyGlobalNamespace is null)
                 {
                     // Get the root namespace from each module, and merge them all together
                     // Get all modules in this compilation, ones referenced directly by the compilation
@@ -1110,13 +1321,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// with contributions for the namespaceSymbol).  Can return null if no corresponding
         /// namespace can be bound in this compilation with the same name.
         /// </summary>
-        internal new NamespaceSymbol GetCompilationNamespace(INamespaceSymbol namespaceSymbol)
+        internal new NamespaceSymbol? GetCompilationNamespace(INamespaceSymbol namespaceSymbol)
         {
-            if (namespaceSymbol is NamespaceSymbol &&
+            if (namespaceSymbol is Symbols.PublicModel.NamespaceSymbol n &&
                 namespaceSymbol.NamespaceKind == NamespaceKind.Compilation &&
                 namespaceSymbol.ContainingCompilation == this)
             {
-                return (NamespaceSymbol)namespaceSymbol;
+                return n.UnderlyingNamespaceSymbol;
             }
 
             var containingNamespace = namespaceSymbol.ContainingNamespace;
@@ -1126,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var current = GetCompilationNamespace(containingNamespace);
-            if ((object)current != null)
+            if (current is object)
             {
                 return current.GetNestedNamespace(namespaceSymbol.Name);
             }
@@ -1134,7 +1345,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private ConcurrentDictionary<string, NamespaceSymbol> _externAliasTargets;
+        internal NamespaceSymbol? GetCompilationNamespace(NamespaceSymbol namespaceSymbol)
+        {
+            if (namespaceSymbol.NamespaceKind == NamespaceKind.Compilation &&
+                namespaceSymbol.ContainingCompilation == this)
+            {
+                return namespaceSymbol;
+            }
+
+            var containingNamespace = namespaceSymbol.ContainingNamespace;
+            if (containingNamespace == null)
+            {
+                return this.GlobalNamespace;
+            }
+
+            var current = GetCompilationNamespace(containingNamespace);
+            if (current is object)
+            {
+                return current.GetNestedNamespace(namespaceSymbol.Name);
+            }
+
+            return null;
+        }
+
+        private ConcurrentDictionary<string, NamespaceSymbol>? _externAliasTargets;
 
         internal bool GetExternAliasTarget(string aliasName, out NamespaceSymbol @namespace)
         {
@@ -1142,12 +1376,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Interlocked.CompareExchange(ref _externAliasTargets, new ConcurrentDictionary<string, NamespaceSymbol>(), null);
             }
-            else if (_externAliasTargets.TryGetValue(aliasName, out @namespace))
+            else if (_externAliasTargets.TryGetValue(aliasName, out var cached))
             {
+                @namespace = cached;
                 return !(@namespace is MissingNamespaceSymbol);
             }
 
-            ArrayBuilder<NamespaceSymbol> builder = null;
+            ArrayBuilder<NamespaceSymbol>? builder = null;
             var referenceManager = GetBoundReferenceManager();
             for (int i = 0; i < referenceManager.ReferencedAssemblies.Length; i++)
             {
@@ -1163,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We want to cache failures as well as successes so that subsequent incorrect extern aliases with the
             // same alias will have the same target.
             @namespace = foundNamespace
-                ? MergedNamespaceSymbol.Create(new NamespaceExtent(this), namespacesToMerge: builder.ToImmutableAndFree(), containingNamespace: null, nameOpt: null)
+                ? MergedNamespaceSymbol.Create(new NamespaceExtent(this), namespacesToMerge: builder!.ToImmutableAndFree(), containingNamespace: null, nameOpt: null)
                 : new MissingNamespaceSymbol(new MissingModuleSymbol(new MissingAssemblySymbol(new AssemblyIdentity(System.Guid.NewGuid().ToString())), ordinal: -1));
 
             // Use GetOrAdd in case another thread beat us to the punch (i.e. should return the same object for the same alias, every time).
@@ -1178,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A symbol representing the implicit Script class. This is null if the class is not
         /// defined in the compilation.
         /// </summary>
-        internal new NamedTypeSymbol ScriptClass
+        internal new NamedTypeSymbol? ScriptClass
         {
             get { return _scriptClass.Value; }
         }
@@ -1188,9 +1423,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// full name of the container class stored in <see cref="CompilationOptions.ScriptClassName"/> to find the symbol.
         /// </summary>
         /// <returns>The Script class symbol or null if it is not defined.</returns>
-        private ImplicitNamedTypeSymbol BindScriptClass()
+        private ImplicitNamedTypeSymbol? BindScriptClass()
         {
-            return (ImplicitNamedTypeSymbol)CommonBindScriptClass();
+            return (ImplicitNamedTypeSymbol?)CommonBindScriptClass().GetSymbol();
         }
 
         internal bool IsSubmissionSyntaxTree(SyntaxTree tree)
@@ -1203,9 +1438,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
-        internal Imports GlobalImports => _globalImports.Value;
+        internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports => _globalImports.Value;
 
-        private Imports BindGlobalImports() => Imports.FromGlobalUsings(this);
+        private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
+        {
+            var usingsFromoptions = UsingsFromOptions;
+            var previousSubmission = PreviousSubmission;
+            var previousSubmissionImports = previousSubmission is object ? Imports.ExpandPreviousSubmissionImports(previousSubmission.GlobalImports, this) : ImmutableArray<NamespaceOrTypeAndUsingDirective>.Empty;
+
+            if (usingsFromoptions.UsingNamespacesOrTypes.IsEmpty)
+            {
+                return previousSubmissionImports;
+            }
+            else if (previousSubmissionImports.IsEmpty)
+            {
+                return usingsFromoptions.UsingNamespacesOrTypes;
+            }
+
+            var boundUsings = ArrayBuilder<NamespaceOrTypeAndUsingDirective>.GetInstance();
+            var uniqueUsings = PooledHashSet<NamespaceOrTypeSymbol>.GetInstance();
+
+            boundUsings.AddRange(usingsFromoptions.UsingNamespacesOrTypes);
+            uniqueUsings.AddAll(usingsFromoptions.UsingNamespacesOrTypes.Select(static unt => unt.NamespaceOrType));
+
+            foreach (var previousUsing in previousSubmissionImports)
+            {
+                if (uniqueUsings.Add(previousUsing.NamespaceOrType))
+                {
+                    boundUsings.Add(previousUsing);
+                }
+            }
+
+            uniqueUsings.Free();
+
+            return boundUsings.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Global imports not including those from previous submissions.
+        /// </summary>
+        private UsingsFromOptionsAndDiagnostics UsingsFromOptions => _usingsFromOptions.Value;
+
+        private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
         /// <summary>
         /// Imports declared by this submission (null if this isn't one).
@@ -1222,8 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Imports.Empty;
             }
 
-            var binder = GetBinderFactory(tree).GetImportsBinder((CSharpSyntaxNode)tree.GetRoot());
-            return binder.GetImports(basesBeingResolved: null);
+            return ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).GetImports((CSharpSyntaxNode)tree.GetRoot(), basesBeingResolved: null);
         }
 
         /// <summary>
@@ -1263,7 +1536,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentOutOfRangeException(nameof(specialType), $"Unexpected SpecialType: '{(int)specialType}'.");
             }
 
-            var result = Assembly.GetSpecialType(specialType);
+            NamedTypeSymbol result;
+            if (IsTypeMissing(specialType))
+            {
+                MetadataTypeName emittedName = MetadataTypeName.FromFullName(specialType.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
+                result = new MissingMetadataTypeSymbol.TopLevel(Assembly.CorLibrary.Modules[0], ref emittedName, specialType);
+            }
+            else
+            {
+                result = Assembly.GetSpecialType(specialType);
+            }
+
             Debug.Assert(result.SpecialType == specialType);
             return result;
         }
@@ -1276,15 +1559,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Assembly.GetSpecialTypeMember(specialMember);
         }
 
-        internal override ISymbol CommonGetSpecialTypeMember(SpecialMember specialMember)
+        internal override ISymbolInternal CommonGetSpecialTypeMember(SpecialMember specialMember)
         {
             return GetSpecialTypeMember(specialMember);
         }
 
-        internal TypeSymbol GetTypeByReflectionType(Type type, DiagnosticBag diagnostics)
+        internal TypeSymbol GetTypeByReflectionType(Type type, BindingDiagnosticBag diagnostics)
         {
             var result = Assembly.GetTypeByReflectionType(type, includeReferences: true);
-            if ((object)result == null)
+            if (result is null)
             {
                 var errorType = new ExtendedErrorTypeSymbol(this, type.Name, 0, CreateReflectionTypeNotFoundError(type));
                 diagnostics.Add(errorType.ErrorInfo, NoLocation.Singleton);
@@ -1299,32 +1582,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The type or namespace name '{0}' could not be found in the global namespace (are you missing an assembly reference?)
             return new CSDiagnosticInfo(
                 ErrorCode.ERR_GlobalSingleTypeNameNotFound,
-                new object[] { type.AssemblyQualifiedName },
+                new object[] { type.AssemblyQualifiedName ?? "" },
                 ImmutableArray<Symbol>.Empty,
                 ImmutableArray<Location>.Empty
             );
         }
 
-        // The type of host object model if available.
-        private TypeSymbol _lazyHostObjectTypeSymbol;
+        protected override ITypeSymbol? CommonScriptGlobalsType
+            => GetHostObjectTypeSymbol()?.GetPublicSymbol();
 
-        internal TypeSymbol GetHostObjectTypeSymbol()
+        internal TypeSymbol? GetHostObjectTypeSymbol()
         {
-            if (HostObjectType != null && (object)_lazyHostObjectTypeSymbol == null)
+            if (HostObjectType != null && _lazyHostObjectTypeSymbol is null)
             {
-                TypeSymbol symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
+                TypeSymbol? symbol = Assembly.GetTypeByReflectionType(HostObjectType, includeReferences: true);
 
-                if ((object)symbol == null)
+                if (symbol is null)
                 {
                     MetadataTypeName mdName = MetadataTypeName.FromNamespaceAndTypeName(HostObjectType.Namespace ?? String.Empty,
                                                                                         HostObjectType.Name,
                                                                                         useCLSCompliantNameArityEncoding: true);
 
-                    symbol = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(
+                    symbol = new MissingMetadataTypeSymbol.TopLevel(
                         new MissingAssemblySymbol(AssemblyIdentity.FromAssemblyDefinition(HostObjectType.GetTypeInfo().Assembly)).Modules[0],
                         ref mdName,
-                        CreateReflectionTypeNotFoundError(HostObjectType),
-                        SpecialType.None);
+                        SpecialType.None,
+                        CreateReflectionTypeNotFoundError(HostObjectType));
                 }
 
                 Interlocked.CompareExchange(ref _lazyHostObjectTypeSymbol, symbol, null);
@@ -1333,9 +1616,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _lazyHostObjectTypeSymbol;
         }
 
-        internal SynthesizedInteractiveInitializerMethod GetSubmissionInitializer()
+        internal SynthesizedInteractiveInitializerMethod? GetSubmissionInitializer()
         {
-            return (IsSubmission && (object)ScriptClass != null) ?
+            return (IsSubmission && ScriptClass is object) ?
                 ScriptClass.GetScriptInitializer() :
                 null;
         }
@@ -1344,7 +1627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the type within the compilation's assembly and all referenced assemblies (other than
         /// those that can only be referenced via an extern alias) using its canonical CLR metadata name.
         /// </summary>
-        internal new NamedTypeSymbol GetTypeByMetadataName(string fullyQualifiedMetadataName)
+        internal new NamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
             return this.Assembly.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: true, isWellKnownType: false, conflicts: out var _);
         }
@@ -1380,52 +1663,83 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal new MethodSymbol GetEntryPoint(CancellationToken cancellationToken)
+        internal new MethodSymbol? GetEntryPoint(CancellationToken cancellationToken)
         {
             EntryPoint entryPoint = GetEntryPointAndDiagnostics(cancellationToken);
-            return entryPoint?.MethodSymbol;
+            return entryPoint.MethodSymbol;
         }
 
         internal EntryPoint GetEntryPointAndDiagnostics(CancellationToken cancellationToken)
         {
-            if (!this.Options.OutputKind.IsApplication() && ((object)this.ScriptClass == null))
-            {
-                return null;
-            }
-
-            if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
-            {
-                Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
-                return new EntryPoint(null, ImmutableArray<Diagnostic>.Empty);
-            }
-
             if (_lazyEntryPoint == null)
             {
-                ImmutableArray<Diagnostic> diagnostics;
-                var entryPoint = FindEntryPoint(cancellationToken, out diagnostics);
-                Interlocked.CompareExchange(ref _lazyEntryPoint, new EntryPoint(entryPoint, diagnostics), null);
+                EntryPoint? entryPoint;
+                var simpleProgramEntryPointSymbol = SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this);
+
+                if (!this.Options.OutputKind.IsApplication() && (this.ScriptClass is null))
+                {
+                    if (simpleProgramEntryPointSymbol is object)
+                    {
+                        var diagnostics = BindingDiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramNotAnExecutable, simpleProgramEntryPointSymbol.ReturnTypeSyntax.Location);
+                        entryPoint = new EntryPoint(null, diagnostics.ToReadOnlyAndFree());
+                    }
+                    else
+                    {
+                        entryPoint = EntryPoint.None;
+                    }
+                }
+                else
+                {
+                    entryPoint = null;
+
+                    if (this.Options.MainTypeName != null && !this.Options.MainTypeName.IsValidClrTypeName())
+                    {
+                        Debug.Assert(!this.Options.Errors.IsDefaultOrEmpty);
+                        entryPoint = EntryPoint.None;
+                    }
+
+                    if (entryPoint is null)
+                    {
+                        ImmutableBindingDiagnostic<AssemblySymbol> diagnostics;
+                        var entryPointMethod = FindEntryPoint(simpleProgramEntryPointSymbol, cancellationToken, out diagnostics);
+                        entryPoint = new EntryPoint(entryPointMethod, diagnostics);
+                    }
+
+                    if (this.Options.MainTypeName != null && simpleProgramEntryPointSymbol is object)
+                    {
+                        var diagnostics = DiagnosticBag.GetInstance();
+                        diagnostics.Add(ErrorCode.ERR_SimpleProgramDisallowsMainType, NoLocation.Singleton);
+                        entryPoint = new EntryPoint(entryPoint.MethodSymbol,
+                                                    new ImmutableBindingDiagnostic<AssemblySymbol>(
+                                                        entryPoint.Diagnostics.Diagnostics.Concat(diagnostics.ToReadOnlyAndFree()), entryPoint.Diagnostics.Dependencies));
+                    }
+                }
+
+                Interlocked.CompareExchange(ref _lazyEntryPoint, entryPoint, null);
             }
 
             return _lazyEntryPoint;
         }
 
-        private MethodSymbol FindEntryPoint(CancellationToken cancellationToken, out ImmutableArray<Diagnostic> sealedDiagnostics)
+        private MethodSymbol? FindEntryPoint(MethodSymbol? simpleProgramEntryPointSymbol, CancellationToken cancellationToken, out ImmutableBindingDiagnostic<AssemblySymbol> sealedDiagnostics)
         {
-            var diagnostics = DiagnosticBag.GetInstance();
+            var diagnostics = BindingDiagnosticBag.GetInstance();
+            RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             var entryPointCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
 
             try
             {
-                NamedTypeSymbol mainType;
+                NamedTypeSymbol? mainType;
 
-                string mainTypeName = this.Options.MainTypeName;
+                string? mainTypeName = this.Options.MainTypeName;
                 NamespaceSymbol globalNamespace = this.SourceModule.GlobalNamespace;
+                var scriptClass = this.ScriptClass;
 
                 if (mainTypeName != null)
                 {
                     // Global code is the entry point, ignore all other Mains.
-                    var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if (scriptClass is object)
                     {
                         // CONSIDER: we could use the symbol instead of just the name.
                         diagnostics.Add(ErrorCode.WRN_MainIgnored, NoLocation.Singleton, mainTypeName);
@@ -1433,14 +1747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var mainTypeOrNamespace = globalNamespace.GetNamespaceOrTypeByQualifiedName(mainTypeName.Split('.')).OfMinimalArity();
-                    if ((object)mainTypeOrNamespace == null)
+                    if (mainTypeOrNamespace is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotFound, NoLocation.Singleton, mainTypeName);
                         return null;
                     }
 
                     mainType = mainTypeOrNamespace as NamedTypeSymbol;
-                    if ((object)mainType == null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct))
+                    if (mainType is null || mainType.IsGenericType || (mainType.TypeKind != TypeKind.Class && mainType.TypeKind != TypeKind.Struct && !mainType.IsInterface))
                     {
                         diagnostics.Add(ErrorCode.ERR_MainClassNotClass, mainTypeOrNamespace.Locations.First(), mainTypeOrNamespace);
                         return null;
@@ -1454,29 +1768,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     AddEntryPointCandidates(
                         entryPointCandidates,
-                        this.GetSymbolsWithName(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
+                        this.GetSymbolsWithNameCore(WellKnownMemberNames.EntryPointMethodName, SymbolFilter.Member, cancellationToken));
 
                     // Global code is the entry point, ignore all other Mains.
-                    var scriptClass = this.ScriptClass;
-                    if (scriptClass != null)
+                    if (scriptClass is object || simpleProgramEntryPointSymbol is object)
                     {
                         foreach (var main in entryPointCandidates)
                         {
-                            diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            if (main is not SynthesizedSimpleProgramEntryPointSymbol)
+                            {
+                                diagnostics.Add(ErrorCode.WRN_MainIgnored, main.Locations.First(), main);
+                            }
                         }
-                        return scriptClass.GetScriptEntryPoint();
+
+                        if (scriptClass is object)
+                        {
+                            return scriptClass.GetScriptEntryPoint();
+                        }
+
+                        RoslynDebug.Assert(simpleProgramEntryPointSymbol is object);
+                        entryPointCandidates.Clear();
+                        entryPointCandidates.Add(simpleProgramEntryPointSymbol);
                     }
                 }
 
                 // Validity and diagnostics are also tracked because they must be conditionally handled
                 // if there are not any "traditional" entrypoints found.
-                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, DiagnosticBag SpecificDiagnostics)>.GetInstance();
+                var taskEntryPoints = ArrayBuilder<(bool IsValid, MethodSymbol Candidate, BindingDiagnosticBag SpecificDiagnostics)>.GetInstance();
 
                 // These diagnostics (warning only) are added to the compilation only if
                 // there were not any main methods found.
-                DiagnosticBag noMainFoundDiagnostics = DiagnosticBag.GetInstance();
+                var noMainFoundDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
+                RoslynDebug.Assert(noMainFoundDiagnostics.DiagnosticBag is object);
 
-                bool CheckValid(MethodSymbol candidate, bool isCandidate, DiagnosticBag specificDiagnostics)
+                bool checkValid(MethodSymbol candidate, bool isCandidate, BindingDiagnosticBag specificDiagnostics)
                 {
                     if (!isCandidate)
                     {
@@ -1498,7 +1823,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var candidate in entryPointCandidates)
                 {
-                    var perCandidateBag = DiagnosticBag.GetInstance();
+                    var perCandidateBag = BindingDiagnosticBag.GetInstance(diagnostics);
                     var (IsCandidate, IsTaskLike) = HasEntryPointSignature(candidate, perCandidateBag);
 
                     if (IsTaskLike)
@@ -1507,11 +1832,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (CheckValid(candidate, IsCandidate, perCandidateBag))
+                        if (checkValid(candidate, IsCandidate, perCandidateBag))
                         {
                             if (candidate.IsAsync)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First(), candidate);
+                                diagnostics.Add(ErrorCode.ERR_NonTaskMainCantBeAsync, candidate.Locations.First());
                             }
                             else
                             {
@@ -1527,12 +1852,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var (IsValid, Candidate, SpecificDiagnostics) in taskEntryPoints)
                     {
-                        if (CheckValid(Candidate, IsValid, SpecificDiagnostics) &&
+                        if (checkValid(Candidate, IsValid, SpecificDiagnostics) &&
                             CheckFeatureAvailability(Candidate.ExtractReturnTypeSyntax(), MessageID.IDS_FeatureAsyncMain, diagnostics))
                         {
                             diagnostics.AddRange(SpecificDiagnostics);
                             viableEntryPoints.Add(Candidate);
                         }
+                    }
+                }
+                else if (LanguageVersion >= MessageID.IDS_FeatureAsyncMain.RequiredVersion() && taskEntryPoints.Count > 0)
+                {
+                    var taskCandidates = taskEntryPoints.SelectAsArray(s => (Symbol)s.Candidate);
+                    var taskLocations = taskCandidates.SelectAsArray(s => s.Locations[0]);
+
+                    foreach (var candidate in taskCandidates)
+                    {
+                        // Method '{0}' will not be used as an entry point because a synchronous entry point '{1}' was found.
+                        var info = new CSDiagnosticInfo(
+                             ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                             args: new object[] { candidate, viableEntryPoints[0] },
+                             symbols: taskCandidates,
+                             additionalLocations: taskLocations);
+                        diagnostics.Add(new CSDiagnostic(info, candidate.Locations[0]));
                     }
                 }
 
@@ -1545,7 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.AddRange(noMainFoundDiagnostics);
                 }
-                else if ((object)mainType == null)
+                else if (mainType is null)
                 {
                     // Filters out diagnostics so that only InvalidMainSig and MainCant'BeGeneric are left.
                     // The reason that Error diagnostics can end up in `noMainFoundDiagnostics` is when
@@ -1554,19 +1895,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We can't add those Errors to the general diagnostics bag because it would break previously-working programs.
                     // The fact that these warnings are not added when csc is invoked with /main is possibly a bug, and is tracked at
                     // https://github.com/dotnet/roslyn/issues/18964
-                    foreach (var diagnostic in noMainFoundDiagnostics.AsEnumerable())
+                    foreach (var diagnostic in noMainFoundDiagnostics.DiagnosticBag.AsEnumerable())
                     {
                         if (diagnostic.Code == (int)ErrorCode.WRN_InvalidMainSig || diagnostic.Code == (int)ErrorCode.WRN_MainCantBeGeneric)
                         {
                             diagnostics.Add(diagnostic);
                         }
                     }
+
+                    diagnostics.AddDependencies(noMainFoundDiagnostics);
                 }
 
-                MethodSymbol entryPoint = null;
+                MethodSymbol? entryPoint = null;
                 if (viableEntryPoints.Count == 0)
                 {
-                    if ((object)mainType == null)
+                    if (mainType is null)
                     {
                         diagnostics.Add(ErrorCode.ERR_NoEntryPoint, NoLocation.Singleton);
                     }
@@ -1575,20 +1918,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_NoMainInClass, mainType.Locations.First(), mainType);
                     }
                 }
-                else if (viableEntryPoints.Count > 1)
-                {
-                    viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
-                    var info = new CSDiagnosticInfo(
-                         ErrorCode.ERR_MultipleEntryPoints,
-                         args: Array.Empty<object>(),
-                         symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
-                         additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
-
-                    diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
-                }
                 else
                 {
-                    entryPoint = viableEntryPoints[0];
+                    foreach (var viableEntryPoint in viableEntryPoints)
+                    {
+                        if (viableEntryPoint.GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is { } data)
+                        {
+                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.Uninitialized));
+                            Debug.Assert(!ReferenceEquals(data, UnmanagedCallersOnlyAttributeData.AttributePresentDataNotBound));
+                            diagnostics.Add(ErrorCode.ERR_EntryPointCannotBeUnmanagedCallersOnly, viableEntryPoint.Locations.First());
+                        }
+                    }
+
+                    if (viableEntryPoints.Count > 1)
+                    {
+                        viableEntryPoints.Sort(LexicalOrderSymbolComparer.Instance);
+                        var info = new CSDiagnosticInfo(
+                             ErrorCode.ERR_MultipleEntryPoints,
+                             args: Array.Empty<object>(),
+                             symbols: viableEntryPoints.OfType<Symbol>().AsImmutable(),
+                             additionalLocations: viableEntryPoints.Select(m => m.Locations.First()).OfType<Location>().AsImmutable());
+
+                        diagnostics.Add(new CSDiagnostic(info, viableEntryPoints.First().Locations.First()));
+                    }
+                    else
+                    {
+                        entryPoint = viableEntryPoints[0];
+                    }
                 }
 
                 taskEntryPoints.Free();
@@ -1604,7 +1960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static void AddEntryPointCandidates(
-            ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<ISymbol> members)
+            ArrayBuilder<MethodSymbol> entryPointCandidates, IEnumerable<Symbol> members)
         {
             foreach (var member in members)
             {
@@ -1616,10 +1972,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
+        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             // Common case optimization
-            if (method.ReturnType.SpecialType == SpecialType.System_Void || method.ReturnType.SpecialType == SpecialType.System_Int32)
+            if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
             {
                 return false;
             }
@@ -1629,21 +1985,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // Early bail so we only even check things that are System.Threading.Tasks.Task(<T>)
-            if (!(namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) ||
-                  namedType.ConstructedFrom == GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            // Early bail so we only ever check things that are System.Threading.Tasks.Task(<T>)
+            if (!(TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task), TypeCompareKind.ConsiderEverything2) ||
+                  TypeSymbol.Equals(namedType.ConstructedFrom, GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T), TypeCompareKind.ConsiderEverything2)))
             {
                 return false;
             }
 
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
-            BoundExpression result;
-            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
+            BoundExpression? result;
+            var success = binder.GetAwaitableExpressionInfo(dumbInstance, out result, syntax, diagnostics);
 
+            RoslynDebug.Assert(!namedType.IsDynamic());
             return success &&
-                (result.Type.SpecialType == SpecialType.System_Void || result.Type.SpecialType == SpecialType.System_Int32);
+                (result!.Type!.IsVoidType() || result.Type!.SpecialType == SpecialType.System_Int32);
         }
 
         /// <summary>
@@ -1653,7 +2010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        private (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, DiagnosticBag bag)
+        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, BindingDiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -1662,7 +2019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol returnType = method.ReturnType;
             bool returnsTaskOrTaskOfInt = false;
-            if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
+            if (returnType.SpecialType != SpecialType.System_Int32 && !returnType.IsVoidType())
             {
                 // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
                 returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag);
@@ -1692,13 +2049,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var firstType = method.Parameters[0].Type;
+            var firstType = method.Parameters[0].TypeWithAnnotations;
             if (firstType.TypeKind != TypeKind.Array)
             {
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var array = (ArrayTypeSymbol)firstType;
+            var array = (ArrayTypeSymbol)firstType.Type;
             return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
@@ -1707,10 +2064,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal class EntryPoint
         {
-            public readonly MethodSymbol MethodSymbol;
-            public readonly ImmutableArray<Diagnostic> Diagnostics;
+            public readonly MethodSymbol? MethodSymbol;
+            public readonly ImmutableBindingDiagnostic<AssemblySymbol> Diagnostics;
 
-            public EntryPoint(MethodSymbol methodSymbol, ImmutableArray<Diagnostic> diagnostics)
+            public static readonly EntryPoint None = new EntryPoint(null, ImmutableBindingDiagnostic<AssemblySymbol>.Empty);
+
+            public EntryPoint(MethodSymbol? methodSymbol, ImmutableBindingDiagnostic<AssemblySymbol> diagnostics)
             {
                 this.MethodSymbol = methodSymbol;
                 this.Diagnostics = diagnostics;
@@ -1728,8 +2087,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // compilation, while the other method needs a bindings object to determine what bound node
         // an expression syntax binds to.  Perhaps when we document these methods we should explain
         // where a user can find the other.
+        /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/>.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="Conversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public Conversion ClassifyConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
+
             // Note that it is possible for there to be both an implicit user-defined conversion
             // and an explicit built-in conversion from source to destination. In that scenario
             // this method returns the implicit conversion.
@@ -1744,11 +2112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var cssource = source.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(source));
-            var csdest = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
+            TypeSymbol? cssource = source.EnsureCSharpSymbolOrNull(nameof(source));
+            TypeSymbol? csdest = destination.EnsureCSharpSymbolOrNull(nameof(destination));
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            return Conversions.ClassifyConversionFromType(cssource, csdest, isChecked: false, ref discardedUseSiteInfo);
         }
 
         /// <summary>
@@ -1761,26 +2130,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
         {
+            // https://github.com/dotnet/roslyn/issues/60397 : Add an API with ability to specify isChecked?
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
-        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue)
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol? destination, out ConstantValue? constantValue)
         {
-            constantValue = default;
+            constantValue = null;
 
             if (destination is null)
             {
                 return Conversion.NoConversion;
             }
 
-            ITypeSymbol sourceType = source.Type;
+            ITypeSymbol? sourceType = source.Type;
 
+            ConstantValue? sourceConstantValue = source.GetConstantValue();
             if (sourceType is null)
             {
-                if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
+                if (sourceConstantValue is { IsNull: true } && destination.IsReferenceType)
                 {
-                    constantValue = source.ConstantValue;
-                    return Conversion.DefaultOrNullLiteral;
+                    constantValue = sourceConstantValue;
+                    return Conversion.NullLiteral;
                 }
 
                 return Conversion.NoConversion;
@@ -1788,9 +2159,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion result = ClassifyConversion(sourceType, destination);
 
-            if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
+            if (result.IsReference && sourceConstantValue is { IsNull: true })
             {
-                constantValue = source.ConstantValue;
+                constantValue = sourceConstantValue;
             }
 
             return result;
@@ -1800,27 +2171,64 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
-        internal ArrayTypeSymbol CreateArrayTypeSymbol(TypeSymbol elementType, int rank = 1)
+        internal ArrayTypeSymbol CreateArrayTypeSymbol(TypeSymbol elementType, int rank = 1, NullableAnnotation elementNullableAnnotation = NullableAnnotation.Oblivious)
         {
             if ((object)elementType == null)
             {
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, elementType, ImmutableArray<CustomModifier>.Empty, rank);
+            if (rank < 1)
+            {
+                throw new ArgumentException(nameof(rank));
+            }
+
+            return ArrayTypeSymbol.CreateCSharpArray(this.Assembly, TypeWithAnnotations.Create(elementType, elementNullableAnnotation), rank);
         }
 
         /// <summary>
         /// Returns a new PointerTypeSymbol representing a pointer type tied to a type in this Compilation.
         /// </summary>
-        internal PointerTypeSymbol CreatePointerTypeSymbol(TypeSymbol elementType)
+        internal PointerTypeSymbol CreatePointerTypeSymbol(TypeSymbol elementType, NullableAnnotation elementNullableAnnotation = NullableAnnotation.Oblivious)
         {
             if ((object)elementType == null)
             {
                 throw new ArgumentNullException(nameof(elementType));
             }
 
-            return new PointerTypeSymbol(elementType);
+            return new PointerTypeSymbol(TypeWithAnnotations.Create(elementType, elementNullableAnnotation));
+        }
+
+        private protected override bool IsSymbolAccessibleWithinCore(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol? throughType)
+        {
+            Symbol? symbol0 = symbol.EnsureCSharpSymbolOrNull(nameof(symbol));
+            Symbol? within0 = within.EnsureCSharpSymbolOrNull(nameof(within));
+            TypeSymbol? throughType0 = throughType.EnsureCSharpSymbolOrNull(nameof(throughType));
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return
+                within0.Kind == SymbolKind.Assembly ?
+                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref discardedUseSiteInfo) :
+                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref discardedUseSiteInfo, throughType0);
+        }
+
+        [Obsolete("Compilation.IsSymbolAccessibleWithin is not designed for use within the compilers", true)]
+        internal new bool IsSymbolAccessibleWithin(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol? throughType = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        private ConcurrentSet<MethodSymbol>? _moduleInitializerMethods;
+
+        internal void AddModuleInitializerMethod(MethodSymbol method)
+        {
+            Debug.Assert(!_declarationDiagnosticsFrozen);
+            LazyInitializer.EnsureInitialized(ref _moduleInitializerMethods).Add(method);
         }
 
         #endregion
@@ -1842,8 +2250,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
-            return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
+            SemanticModel? model = null;
+            if (SemanticModelProvider != null)
+            {
+                model = SemanticModelProvider.GetSemanticModel(syntaxTree, this, ignoreAccessibility);
+                Debug.Assert(model != null);
+            }
+
+            return model ?? CreateSemanticModel(syntaxTree, ignoreAccessibility);
         }
+
+        internal override SemanticModel CreateSemanticModel(SyntaxTree syntaxTree, bool ignoreAccessibility)
+            => new SyntaxTreeSemanticModel(this, syntaxTree, ignoreAccessibility);
 
         // When building symbols from the declaration table (lazily), or inside a type, or when
         // compiling a method body, we may not have a BinderContext in hand for the enclosing
@@ -1852,43 +2270,57 @@ namespace Microsoft.CodeAnalysis.CSharp
         // BinderContexts have no semantic meaning, we can reuse them or rebuild them, whichever is
         // most convenient.  We store them using weak references so that GC pressure will cause them
         // to be recycled.
-        private WeakReference<BinderFactory>[] _binderFactories;
+        private WeakReference<BinderFactory>[]? _binderFactories;
+        private WeakReference<BinderFactory>[]? _ignoreAccessibilityBinderFactories;
 
-        internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree)
+        internal BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility = false)
         {
+            if (ignoreAccessibility && SynthesizedSimpleProgramEntryPointSymbol.GetSimpleProgramEntryPoint(this) is object)
+            {
+                return GetBinderFactory(syntaxTree, ignoreAccessibility: true, ref _ignoreAccessibilityBinderFactories);
+            }
+
+            return GetBinderFactory(syntaxTree, ignoreAccessibility: false, ref _binderFactories);
+        }
+
+        private BinderFactory GetBinderFactory(SyntaxTree syntaxTree, bool ignoreAccessibility, ref WeakReference<BinderFactory>[]? cachedBinderFactories)
+        {
+            Debug.Assert(System.Runtime.CompilerServices.Unsafe.AreSame(ref cachedBinderFactories, ref ignoreAccessibility ? ref _ignoreAccessibilityBinderFactories : ref _binderFactories));
+
             var treeNum = GetSyntaxTreeOrdinal(syntaxTree);
-            var binderFactories = _binderFactories;
+            WeakReference<BinderFactory>[]? binderFactories = cachedBinderFactories;
             if (binderFactories == null)
             {
                 binderFactories = new WeakReference<BinderFactory>[this.SyntaxTrees.Length];
-                binderFactories = Interlocked.CompareExchange(ref _binderFactories, binderFactories, null) ?? binderFactories;
+                binderFactories = Interlocked.CompareExchange(ref cachedBinderFactories, binderFactories, null) ?? binderFactories;
             }
 
-            BinderFactory previousFactory;
+            BinderFactory? previousFactory;
             var previousWeakReference = binderFactories[treeNum];
             if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
             {
                 return previousFactory;
             }
 
-            return AddNewFactory(syntaxTree, ref binderFactories[treeNum]);
+            return AddNewFactory(syntaxTree, ignoreAccessibility, ref binderFactories[treeNum]);
         }
 
-        private BinderFactory AddNewFactory(SyntaxTree syntaxTree, ref WeakReference<BinderFactory> slot)
+        private BinderFactory AddNewFactory(SyntaxTree syntaxTree, bool ignoreAccessibility, [NotNull] ref WeakReference<BinderFactory>? slot)
         {
-            var newFactory = new BinderFactory(this, syntaxTree);
+            var newFactory = new BinderFactory(this, syntaxTree, ignoreAccessibility);
             var newWeakReference = new WeakReference<BinderFactory>(newFactory);
 
             while (true)
             {
-                BinderFactory previousFactory;
-                WeakReference<BinderFactory> previousWeakReference = slot;
+                BinderFactory? previousFactory;
+                WeakReference<BinderFactory>? previousWeakReference = slot;
                 if (previousWeakReference != null && previousWeakReference.TryGetTarget(out previousFactory))
                 {
+                    Debug.Assert(slot is object);
                     return previousFactory;
                 }
 
-                if (Interlocked.CompareExchange(ref slot, newWeakReference, previousWeakReference) == previousWeakReference)
+                if (Interlocked.CompareExchange(ref slot!, newWeakReference, previousWeakReference) == previousWeakReference)
                 {
                     return newFactory;
                 }
@@ -1900,17 +2332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinderFactory(syntax.SyntaxTree).GetBinder(syntax);
         }
 
-        /// <summary>
-        /// Returns imported symbols for the given declaration.
-        /// </summary>
-        internal Imports GetImports(SingleNamespaceDeclaration declaration)
-        {
-            return GetBinderFactory(declaration.SyntaxReference.SyntaxTree).GetImportsBinder((CSharpSyntaxNode)declaration.SyntaxReference.GetSyntax()).GetImports(basesBeingResolved: null);
-        }
-
         private AliasSymbol CreateGlobalNamespaceAlias()
         {
-            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace, new InContainerBinder(this.GlobalNamespace, new BuckStopsHereBinder(this)));
+            return AliasSymbol.CreateGlobalNamespaceAlias(this.GlobalNamespace);
         }
 
         private void CompleteTree(SyntaxTree tree)
@@ -1921,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_lazyCompilationUnitCompletedTrees.Add(tree))
                 {
                     // signal the end of the compilation unit
-                    EventQueue.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
+                    EventQueue?.TryEnqueue(new CompilationUnitCompletedEvent(this, tree));
 
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
@@ -1932,16 +2356,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        internal override void ReportUnusedImports(DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            if (_lazyImportInfos != null && filterTree?.Options.DocumentationMode != DocumentationMode.None)
+            ReportUnusedImports(filterTree: null, new BindingDiagnosticBag(diagnostics), cancellationToken);
+        }
+
+        private void ReportUnusedImports(SyntaxTree? filterTree, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken)
+        {
+            if (_lazyImportInfos != null && (filterTree is null || ReportUnusedImportsInTree(filterTree)))
             {
-                foreach (ImportInfo info in _lazyImportInfos)
+                PooledHashSet<NamespaceSymbol>? externAliasesToCheck = null;
+
+                if (diagnostics.DependenciesBag is object)
+                {
+                    externAliasesToCheck = PooledHashSet<NamespaceSymbol>.GetInstance();
+                }
+
+                foreach (var pair in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    ImportInfo info = pair.Key;
                     SyntaxTree infoTree = info.Tree;
-                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
+                    if ((filterTree == null || filterTree == infoTree) && ReportUnusedImportsInTree(infoTree))
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
@@ -1951,14 +2388,73 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : ErrorCode.HDN_UnusedUsingDirective;
                             diagnostics.Add(code, infoTree.GetLocation(infoSpan));
                         }
+                        else if (diagnostics.DependenciesBag is object)
+                        {
+                            RoslynDebug.Assert(externAliasesToCheck is object);
+                            ImmutableArray<AssemblySymbol> dependencies = pair.Value;
+
+                            if (!dependencies.IsDefaultOrEmpty)
+                            {
+                                diagnostics.AddDependencies(dependencies);
+                            }
+                            else if (info.Kind == SyntaxKind.ExternAliasDirective)
+                            {
+                                // Record targets of used extern aliases
+                                var node = info.Tree.GetRoot(cancellationToken).FindToken(info.Span.Start, findInsideTrivia: false).
+                                               Parent!.FirstAncestorOrSelf<ExternAliasDirectiveSyntax>();
+
+                                if (node is object && GetExternAliasTarget(node.Identifier.ValueText, out NamespaceSymbol target))
+                                {
+                                    externAliasesToCheck.Add(target);
+                                }
+                            }
+                        }
                     }
+                }
+
+                if (externAliasesToCheck is object)
+                {
+                    RoslynDebug.Assert(diagnostics.DependenciesBag is object);
+
+                    // We could do this check after we have built the transitive closure
+                    // in GetCompleteSetOfUsedAssemblies.completeTheSetOfUsedAssemblies. However,
+                    // the level of accuracy is probably not worth the complexity this would add.
+                    var bindingDiagnostics = new BindingDiagnosticBag(diagnosticBag: null, PooledHashSet<AssemblySymbol>.GetInstance());
+                    RoslynDebug.Assert(bindingDiagnostics.DependenciesBag is object);
+
+                    foreach (var aliasedNamespace in externAliasesToCheck)
+                    {
+                        bindingDiagnostics.Clear();
+                        bindingDiagnostics.AddAssembliesUsedByNamespaceReference(aliasedNamespace);
+
+                        // See if any of the references with the alias are registered as used. We can get in a situation when none of them are.
+                        // For example, when the alias was used in a doc comment, but nothing was found within it. We would get only a warning
+                        // in this case and no assembly marked as used.
+                        if (_lazyUsedAssemblyReferences?.IsEmpty == false || diagnostics.DependenciesBag.Count != 0)
+                        {
+                            foreach (var assembly in bindingDiagnostics.DependenciesBag)
+                            {
+                                if (_lazyUsedAssemblyReferences?.Contains(assembly) == true ||
+                                    diagnostics.DependenciesBag.Contains(assembly))
+                                {
+                                    bindingDiagnostics.DependenciesBag.Clear();
+                                    break;
+                                }
+                            }
+                        }
+
+                        diagnostics.AddDependencies(bindingDiagnostics);
+                    }
+
+                    bindingDiagnostics.Free();
+                    externAliasesToCheck.Free();
                 }
             }
 
             CompleteTrees(filterTree);
         }
 
-        internal override void CompleteTrees(SyntaxTree filterTree)
+        internal override void CompleteTrees(SyntaxTree? filterTree)
         {
             // By definition, a tree is complete when all of its compiler diagnostics have been reported.
             // Since unused imports are the last thing we compute and report, a tree is complete when
@@ -1977,6 +2473,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+
+            if (filterTree is null)
+            {
+                _usageOfUsingsRecordedInTrees = null;
+            }
         }
 
         internal void RecordImport(UsingDirectiveSyntax syntax)
@@ -1991,8 +2492,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordImportInternal(CSharpSyntaxNode syntax)
         {
-            LazyInitializer.EnsureInitialized(ref _lazyImportInfos).
-                Add(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span));
+            // Note: the suppression will be unnecessary once LazyInitializer is properly annotated
+            LazyInitializer.EnsureInitialized(ref _lazyImportInfos)!.
+                TryAdd(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), default);
+        }
+
+        internal void RecordImportDependencies(UsingDirectiveSyntax syntax, ImmutableArray<AssemblySymbol> dependencies)
+        {
+            RoslynDebug.Assert(_lazyImportInfos is object);
+            _lazyImportInfos.TryUpdate(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span), dependencies, default);
         }
 
         private struct ImportInfo : IEquatable<ImportInfo>
@@ -2008,7 +2516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Span = span;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 return (obj is ImportInfo) && Equals((ImportInfo)obj);
             }
@@ -2058,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private DiagnosticBag _lazyDeclarationDiagnostics;
+        private DiagnosticBag? _lazyDeclarationDiagnostics;
         private bool _declarationDiagnosticsFrozen;
 
         /// <summary>
@@ -2094,7 +2602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the diagnostics produced during the parsing stage of a compilation. There are no diagnostics for declarations or accessor or
         /// method bodies, for example.
         /// </summary>
-        public override ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
+        public override ImmutableArray<Diagnostic> GetParseDiagnostics(CancellationToken cancellationToken = default)
         {
             return GetDiagnostics(CompilationStage.Parse, false, cancellationToken);
         }
@@ -2103,7 +2611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the diagnostics produced during symbol declaration headers.  There are no diagnostics for accessor or
         /// method bodies, for example.
         /// </summary>
-        public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
+        public override ImmutableArray<Diagnostic> GetDeclarationDiagnostics(CancellationToken cancellationToken = default)
         {
             return GetDiagnostics(CompilationStage.Declare, false, cancellationToken);
         }
@@ -2111,7 +2619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the diagnostics produced during the analysis of method bodies and field initializers.
         /// </summary>
-        public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
+        public override ImmutableArray<Diagnostic> GetMethodBodyDiagnostics(CancellationToken cancellationToken = default)
         {
             return GetDiagnostics(CompilationStage.Compile, false, cancellationToken);
         }
@@ -2120,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the all the diagnostics for the compilation, including syntax, declaration, and binding. Does not
         /// include any diagnostics that might be produced during emit.
         /// </summary>
-        public override ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
+        public override ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default)
         {
             return GetDiagnostics(DefaultDiagnosticsStage, true, cancellationToken);
         }
@@ -2134,31 +2642,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void GetDiagnostics(CompilationStage stage, bool includeEarlierStages, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
         {
-            var builder = DiagnosticBag.GetInstance();
+            DiagnosticBag? builder = DiagnosticBag.GetInstance();
+
+            GetDiagnosticsWithoutFiltering(stage, includeEarlierStages, new BindingDiagnosticBag(builder), cancellationToken);
+
+            // Before returning diagnostics, we filter warnings
+            // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
+            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder, cancellationToken);
+        }
+
+        private void GetDiagnosticsWithoutFiltering(CompilationStage stage, bool includeEarlierStages, BindingDiagnosticBag builder, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(builder.DiagnosticBag is object);
 
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
                 var syntaxTrees = this.SyntaxTrees;
                 if (this.Options.ConcurrentBuild)
                 {
-                    var parallelOptions = cancellationToken.CanBeCanceled
-                                        ? new ParallelOptions() { CancellationToken = cancellationToken }
-                                        : DefaultParallelOptions;
-
-                    Parallel.For(0, syntaxTrees.Length, parallelOptions,
+                    RoslynParallel.For(
+                        0,
+                        syntaxTrees.Length,
                         UICultureUtilities.WithCurrentUICulture<int>(i =>
                         {
                             var syntaxTree = syntaxTrees[i];
-                            AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                            AppendLoadDirectiveDiagnostics(builder.DiagnosticBag, _syntaxAndDeclarations, syntaxTree);
                             builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
-                        }));
+                        }),
+                        cancellationToken);
                 }
                 else
                 {
                     foreach (var syntaxTree in syntaxTrees)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree);
+                        AppendLoadDirectiveDiagnostics(builder.DiagnosticBag, _syntaxAndDeclarations, syntaxTree);
 
                         cancellationToken.ThrowIfCancellationRequested();
                         builder.AddRange(syntaxTree.GetDiagnostics(cancellationToken));
@@ -2182,8 +2700,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Declare || stage > CompilationStage.Declare && includeEarlierStages)
             {
-                CheckAssemblyName(builder);
+                CheckAssemblyName(builder.DiagnosticBag);
                 builder.AddRange(Options.Errors);
+
+                if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
+                    _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                                                 nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
+                                                 new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -2192,7 +2718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+                builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken), allowMismatchInDependencyAccumulation: true);
 
                 if (EventQueue != null && SyntaxTrees.Length == 0)
                 {
@@ -2204,17 +2730,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (stage == CompilationStage.Compile || stage > CompilationStage.Compile && includeEarlierStages)
             {
-                var methodBodyDiagnostics = DiagnosticBag.GetInstance();
-                GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, cancellationToken);
-                builder.AddRangeAndFree(methodBodyDiagnostics);
+                var methodBodyDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(),
+                                                                     builder.DependenciesBag is object ? new ConcurrentSet<AssemblySymbol>() : null);
+                RoslynDebug.Assert(methodBodyDiagnostics.DiagnosticBag is object);
+                GetDiagnosticsForAllMethodBodies(methodBodyDiagnostics, doLowering: false, cancellationToken);
+                builder.AddRange(methodBodyDiagnostics);
+                methodBodyDiagnostics.DiagnosticBag.Free();
             }
-
-            // Before returning diagnostics, we filter warnings
-            // to honor the compiler options (e.g., /nowarn, /warnaserror and /warn) and the pragmas.
-            FilterAndAppendAndFreeDiagnostics(diagnostics, ref builder);
         }
 
-        private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>> locationFilterOpt = null)
+        private static void AppendLoadDirectiveDiagnostics(DiagnosticBag builder, SyntaxAndDeclarationManager syntaxAndDeclarations, SyntaxTree syntaxTree, Func<IEnumerable<Diagnostic>, IEnumerable<Diagnostic>>? locationFilterOpt = null)
         {
             ImmutableArray<LoadDirective> loadDirectives;
             if (syntaxAndDeclarations.GetLazyState().LoadDirectiveMap.TryGetValue(syntaxTree, out loadDirectives))
@@ -2234,20 +2759,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // Do the steps in compilation to get the method body diagnostics, but don't actually generate
         // IL or emit an assembly.
-        private void GetDiagnosticsForAllMethodBodies(DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private void GetDiagnosticsForAllMethodBodies(BindingDiagnosticBag diagnostics, bool doLowering, CancellationToken cancellationToken)
         {
+            RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
             MethodCompiler.CompileMethodBodies(
                 compilation: this,
-                moduleBeingBuiltOpt: null,
+                moduleBeingBuiltOpt: doLowering ? (PEModuleBuilder?)CreateModuleBuilder(
+                                                                       emitOptions: EmitOptions.Default,
+                                                                       debugEntryPoint: null,
+                                                                       manifestResources: null,
+                                                                       sourceLinkStream: null,
+                                                                       embeddedTexts: null,
+                                                                       testData: null,
+                                                                       diagnostics: diagnostics.DiagnosticBag,
+                                                                       cancellationToken: cancellationToken)
+                                                : null,
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
+                emitMethodBodies: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: cancellationToken);
 
             DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken);
-            this.ReportUnusedImports(null, diagnostics, cancellationToken);
+            this.ReportUnusedImports(filterTree: null, diagnostics, cancellationToken);
         }
 
         private static bool IsDefinedOrImplementedInSourceTree(Symbol symbol, SyntaxTree tree, TextSpan? span)
@@ -2268,35 +2804,142 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
-            DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-
-            MethodCompiler.CompileMethodBodies(
-                compilation: this,
-                moduleBeingBuiltOpt: null,
-                emittingPdb: false,
-                emitTestCoverageData: false,
-                hasDeclarationErrors: false,
-                diagnostics: diagnostics,
-                filterOpt: s => IsDefinedOrImplementedInSourceTree(s, tree, span),
-                cancellationToken: cancellationToken);
-
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, diagnostics, cancellationToken, tree, span);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
             // Report unused directives only if computing diagnostics for the entire tree.
             // Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
-            if (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan)
+            bool reportUnusedUsings = (!span.HasValue || span.Value == tree.GetRoot(cancellationToken).FullSpan) && ReportUnusedImportsInTree(tree);
+            bool recordUsageOfUsingsInAllTrees = false;
+
+            if (reportUnusedUsings && UsageOfUsingsRecordedInTrees is not null)
             {
-                ReportUnusedImports(tree, diagnostics, cancellationToken);
+                foreach (var singleDeclaration in ((SourceNamespaceSymbol)SourceModule.GlobalNamespace).MergedDeclaration.Declarations)
+                {
+                    if (singleDeclaration.SyntaxReference.SyntaxTree == tree)
+                    {
+                        if (singleDeclaration.HasGlobalUsings)
+                        {
+                            // Global Using directives can be used in any tree. Make sure we collect usage information from all of them.
+                            recordUsageOfUsingsInAllTrees = true;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            if (recordUsageOfUsingsInAllTrees && UsageOfUsingsRecordedInTrees?.IsEmpty == true)
+            {
+                Debug.Assert(reportUnusedUsings);
+
+                // Simply compile the world
+                compileMethodBodiesAndDocComments(filterTree: null, filterSpan: null, bindingDiagnostics, cancellationToken);
+                _usageOfUsingsRecordedInTrees = null;
+            }
+            else
+            {
+                // Always compile the target tree
+                compileMethodBodiesAndDocComments(filterTree: tree, filterSpan: span, bindingDiagnostics, cancellationToken);
+
+                if (reportUnusedUsings)
+                {
+                    registeredUsageOfUsingsInTree(tree);
+                }
+
+                // Compile other trees if we need to, but discard diagnostics from them.
+                if (recordUsageOfUsingsInAllTrees)
+                {
+                    Debug.Assert(reportUnusedUsings);
+
+                    var discarded = new BindingDiagnosticBag(DiagnosticBag.GetInstance());
+                    Debug.Assert(discarded.DiagnosticBag is object);
+
+                    foreach (var otherTree in SyntaxTrees)
+                    {
+                        var trackingSet = UsageOfUsingsRecordedInTrees;
+
+                        if (trackingSet is null)
+                        {
+                            break;
+                        }
+
+                        if (!trackingSet.Contains(otherTree))
+                        {
+                            compileMethodBodiesAndDocComments(filterTree: otherTree, filterSpan: null, discarded, cancellationToken);
+                            registeredUsageOfUsingsInTree(otherTree);
+                            discarded.DiagnosticBag.Clear();
+                        }
+                    }
+
+                    discarded.DiagnosticBag.Free();
+                }
+            }
+
+            if (reportUnusedUsings)
+            {
+                ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
             return diagnostics.ToReadOnlyAndFree();
+
+            void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
+            {
+                MethodCompiler.CompileMethodBodies(
+                                compilation: this,
+                                moduleBeingBuiltOpt: null,
+                                emittingPdb: false,
+                                emitTestCoverageData: false,
+                                hasDeclarationErrors: false,
+                                emitMethodBodies: false,
+                                diagnostics: bindingDiagnostics,
+                                filterOpt: filterTree is object ? (Predicate<Symbol>?)(s => IsDefinedOrImplementedInSourceTree(s, filterTree, filterSpan)) : (Predicate<Symbol>?)null,
+                                cancellationToken: cancellationToken);
+
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(this, null, null, bindingDiagnostics, cancellationToken, filterTree, filterSpan);
+            }
+
+            void registeredUsageOfUsingsInTree(SyntaxTree tree)
+            {
+                var current = UsageOfUsingsRecordedInTrees;
+
+                while (true)
+                {
+                    if (current is null)
+                    {
+                        break;
+                    }
+
+                    var updated = current.Add(tree);
+
+                    if ((object)updated == current)
+                    {
+                        break;
+                    }
+
+                    if (updated.Count == SyntaxTrees.Length)
+                    {
+                        _usageOfUsingsRecordedInTrees = null;
+                        break;
+                    }
+
+                    var recent = Interlocked.CompareExchange(ref _usageOfUsingsRecordedInTrees, updated, current);
+
+                    if (recent == (object)current)
+                    {
+                        break;
+                    }
+
+                    current = recent;
+                }
+            }
         }
 
-        private ImmutableArray<Diagnostic> GetSourceDeclarationDiagnostics(SyntaxTree syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>> locationFilterOpt = null, CancellationToken cancellationToken = default(CancellationToken))
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetSourceDeclarationDiagnostics(SyntaxTree? syntaxTree = null, TextSpan? filterSpanWithinTree = null, Func<IEnumerable<Diagnostic>, SyntaxTree, TextSpan?, IEnumerable<Diagnostic>>? locationFilterOpt = null, CancellationToken cancellationToken = default)
         {
-            GlobalImports.Complete(cancellationToken);
+            UsingsFromOptions.Complete(this, cancellationToken);
 
-            SourceLocation location = null;
+            SourceLocation? location = null;
             if (syntaxTree != null)
             {
                 var root = syntaxTree.GetRoot(cancellationToken);
@@ -2310,7 +2953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (syntaxTree is null)
             {
                 // Don't freeze the compilation if we're getting
-                // diagnositcs for a single tree
+                // diagnostics for a single tree
                 _declarationDiagnosticsFrozen = true;
 
                 // Also freeze generated attribute flags.
@@ -2323,34 +2966,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (locationFilterOpt != null)
             {
-                Debug.Assert(syntaxTree != null);
+                RoslynDebug.Assert(syntaxTree != null);
                 result = locationFilterOpt(result, syntaxTree, filterSpanWithinTree);
             }
 
             // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-            ImmutableArray<Diagnostic> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+            ImmutableBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
 
-            return result.AsImmutable().Concat(clsDiagnostics);
+            return new ImmutableBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
         }
 
-        private ImmutableArray<Diagnostic> GetClsComplianceDiagnostics(SyntaxTree syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
+        private ImmutableBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
         {
             if (syntaxTree != null)
             {
-                var builder = DiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken, syntaxTree, filterSpanWithinTree);
                 return builder.ToReadOnlyAndFree();
             }
 
-            if (_lazyClsComplianceDiagnostics.IsDefault)
+            if (_lazyClsComplianceDiagnostics.IsDefault || _lazyClsComplianceDependencies.IsDefault)
             {
-                var builder = DiagnosticBag.GetInstance();
+                var builder = BindingDiagnosticBag.GetInstance();
                 ClsComplianceChecker.CheckCompliance(this, builder, cancellationToken);
-                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, builder.ToReadOnlyAndFree());
+                var result = builder.ToReadOnlyAndFree();
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDependencies, result.Dependencies);
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyClsComplianceDiagnostics, result.Diagnostics);
             }
 
+            Debug.Assert(!_lazyClsComplianceDependencies.IsDefault);
             Debug.Assert(!_lazyClsComplianceDiagnostics.IsDefault);
-            return _lazyClsComplianceDiagnostics;
+            return new ImmutableBindingDiagnostic<AssemblySymbol>(_lazyClsComplianceDiagnostics, _lazyClsComplianceDependencies);
         }
 
         private static IEnumerable<Diagnostic> FilterDiagnosticsByLocation(IEnumerable<Diagnostic> diagnostics, SyntaxTree tree, TextSpan? filterSpanWithinTree)
@@ -2369,17 +3015,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree syntaxTree,
             TextSpan? filterSpanWithinTree,
             bool includeEarlierStages,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var builder = DiagnosticBag.GetInstance();
+            DiagnosticBag? builder = DiagnosticBag.GetInstance();
             if (stage == CompilationStage.Parse || (stage > CompilationStage.Parse && includeEarlierStages))
             {
                 AppendLoadDirectiveDiagnostics(builder, _syntaxAndDeclarations, syntaxTree,
                     diagnostics => FilterDiagnosticsByLocation(diagnostics, syntaxTree, filterSpanWithinTree));
 
-                var syntaxDiagnostics = syntaxTree.GetDiagnostics();
+                var syntaxDiagnostics = syntaxTree.GetDiagnostics(cancellationToken);
                 syntaxDiagnostics = FilterDiagnosticsByLocation(syntaxDiagnostics, syntaxTree, filterSpanWithinTree);
                 builder.AddRange(syntaxDiagnostics);
             }
@@ -2390,7 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var declarationDiagnostics = GetSourceDeclarationDiagnostics(syntaxTree, filterSpanWithinTree, FilterDiagnosticsByLocation, cancellationToken);
                 // re-enabling/fixing the below assert is tracked by https://github.com/dotnet/roslyn/issues/21020
                 // Debug.Assert(declarationDiagnostics.All(d => d.HasIntersectingLocation(syntaxTree, filterSpanWithinTree)));
-                builder.AddRange(declarationDiagnostics);
+                builder.AddRange(declarationDiagnostics.Diagnostics);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -2415,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Before returning diagnostics, we filter warnings
             // to honor the compiler options (/nowarn, /warnaserror and /warn) and the pragmas.
             var result = DiagnosticBag.GetInstance();
-            FilterAndAppendAndFreeDiagnostics(result, ref builder);
+            FilterAndAppendAndFreeDiagnostics(result, ref builder, cancellationToken);
             return result.ToReadOnlyAndFree<Diagnostic>();
         }
 
@@ -2459,19 +3105,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return SourceAssembly.StrongNameKeys; }
         }
 
-        internal override CommonPEModuleBuilder CreateModuleBuilder(
+        internal override CommonPEModuleBuilder? CreateModuleBuilder(
             EmitOptions emitOptions,
-            IMethodSymbol debugEntryPoint,
-            Stream sourceLinkStream,
-            IEnumerable<EmbeddedText> embeddedTexts,
-            IEnumerable<ResourceDescription> manifestResources,
-            CompilationTestData testData,
+            IMethodSymbol? debugEntryPoint,
+            Stream? sourceLinkStream,
+            IEnumerable<EmbeddedText>? embeddedTexts,
+            IEnumerable<ResourceDescription>? manifestResources,
+            CompilationTestData? testData,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            Debug.Assert(!IsSubmission || HasCodeToEmit());
+            Debug.Assert(!IsSubmission || HasCodeToEmit() ||
+                         (emitOptions == EmitOptions.Default && debugEntryPoint is null && sourceLinkStream is null && embeddedTexts is null && manifestResources is null && testData is null));
 
-            string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
+            string? runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions, diagnostics);
             if (runtimeMDVersion == null)
             {
                 return null;
@@ -2506,7 +3153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (debugEntryPoint != null)
             {
-                moduleBeingBuilt.SetDebugEntryPoint((MethodSymbol)debugEntryPoint, diagnostics);
+                moduleBeingBuilt.SetDebugEntryPoint(debugEntryPoint.GetSymbol(), diagnostics);
             }
 
             moduleBeingBuilt.SourceLinkStreamOpt = sourceLinkStream;
@@ -2532,18 +3179,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool emitMetadataOnly,
             bool emitTestCoverageData,
             DiagnosticBag diagnostics,
-            Predicate<ISymbol> filterOpt,
+            Predicate<ISymbolInternal>? filterOpt,
             CancellationToken cancellationToken)
         {
             // The diagnostics should include syntax and declaration errors. We insert these before calling Emitter.Emit, so that the emitter
             // does not attempt to emit if there are declaration errors (but we do insert all errors from method body binding...)
-            PooledHashSet<int> excludeDiagnostics = null;
+            PooledHashSet<int>? excludeDiagnostics = null;
             if (emitMetadataOnly)
             {
                 excludeDiagnostics = PooledHashSet<int>.GetInstance();
                 excludeDiagnostics.Add((int)ErrorCode.ERR_ConcreteMissingBody);
             }
-            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics);
+            bool hasDeclarationErrors = !FilterAndAppendDiagnostics(diagnostics, GetDiagnostics(CompilationStage.Declare, true, cancellationToken), excludeDiagnostics, cancellationToken);
             excludeDiagnostics?.Free();
 
             // TODO (tomat): NoPIA:
@@ -2561,7 +3208,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (moduleBeingBuilt.SourceModule.HasBadAttributes)
                 {
                     // If there were errors but no declaration diagnostics, explicitly add a "Failed to emit module" error.
-                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuilt).Name);
+                    diagnostics.Add(ErrorCode.ERR_ModuleEmitFailure, NoLocation.Singleton, ((Cci.INamedEntity)moduleBeingBuilt).Name,
+                        new LocalizableResourceString(nameof(CodeAnalysisResources.ModuleHasInvalidAttributes), CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources)));
+
                     return false;
                 }
 
@@ -2579,7 +3228,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // behavior as when calling GetDiagnostics()
 
                 // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-                DiagnosticBag methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
+                DiagnosticBag? methodBodyDiagnosticBag = DiagnosticBag.GetInstance();
+
+                Debug.Assert(moduleBeingBuilt is object);
 
                 MethodCompiler.CompileMethodBodies(
                     this,
@@ -2587,13 +3238,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emittingPdb,
                     emitTestCoverageData,
                     hasDeclarationErrors,
-                    diagnostics: methodBodyDiagnosticBag,
+                    emitMethodBodies: true,
+                    diagnostics: new BindingDiagnosticBag(methodBodyDiagnosticBag),
                     filterOpt: filterOpt,
                     cancellationToken: cancellationToken);
 
-                bool hasMethodBodyErrorOrWarningAsError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag);
+                if (!hasDeclarationErrors && !CommonCompiler.HasUnsuppressableErrors(methodBodyDiagnosticBag))
+                {
+                    GenerateModuleInitializer(moduleBeingBuilt, methodBodyDiagnosticBag);
+                }
 
-                if (hasDeclarationErrors || hasMethodBodyErrorOrWarningAsError)
+                bool hasMethodBodyError = !FilterAndAppendAndFreeDiagnostics(diagnostics, ref methodBodyDiagnosticBag, cancellationToken);
+
+                if (hasDeclarationErrors || hasMethodBodyError)
                 {
                     return false;
                 }
@@ -2602,18 +3259,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal override bool GenerateResourcesAndDocumentationComments(
+        private void GenerateModuleInitializer(PEModuleBuilder moduleBeingBuilt, DiagnosticBag methodBodyDiagnosticBag)
+        {
+            Debug.Assert(_declarationDiagnosticsFrozen);
+
+            if (_moduleInitializerMethods is object)
+            {
+                var ilBuilder = new ILBuilder(moduleBeingBuilt, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+                foreach (MethodSymbol method in _moduleInitializerMethods.OrderBy<MethodSymbol>(LexicalOrderSymbolComparer.Instance))
+                {
+                    ilBuilder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0);
+
+                    ilBuilder.EmitToken(
+                        moduleBeingBuilt.Translate(method, methodBodyDiagnosticBag, needDeclaration: true),
+                        CSharpSyntaxTree.Dummy.GetRoot(),
+                        methodBodyDiagnosticBag);
+                }
+
+                ilBuilder.EmitRet(isVoid: true);
+                ilBuilder.Realize();
+                moduleBeingBuilt.RootModuleType.SetStaticConstructorBody(ilBuilder.RealizedIL);
+            }
+        }
+
+        internal override bool GenerateResources(
             CommonPEModuleBuilder moduleBuilder,
-            Stream xmlDocStream,
-            Stream win32Resources,
-            string outputNameOverride,
+            Stream? win32Resources,
+            bool useRawWin32Resources,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
-            // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            var resourceDiagnostics = DiagnosticBag.GetInstance();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            SetupWin32Resources(moduleBuilder, win32Resources, resourceDiagnostics);
+            // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            DiagnosticBag? resourceDiagnostics = DiagnosticBag.GetInstance();
+
+            SetupWin32Resources(moduleBuilder, win32Resources, useRawWin32Resources, resourceDiagnostics);
 
             ReportManifestResourceDuplicates(
                 moduleBuilder.ManifestResources,
@@ -2621,20 +3303,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics))
-            {
-                return false;
-            }
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken);
+        }
 
+        internal override bool GenerateDocumentationComments(
+            Stream? xmlDocStream,
+            string? outputNameOverride,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
-            var xmlDiagnostics = DiagnosticBag.GetInstance();
+            DiagnosticBag? xmlDiagnostics = DiagnosticBag.GetInstance();
 
-            string assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, xmlDiagnostics, cancellationToken);
+            string? assemblyName = FileNameUtilities.ChangeExtension(outputNameOverride, extension: null);
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(this, assemblyName, xmlDocStream, new BindingDiagnosticBag(xmlDiagnostics), cancellationToken);
 
-            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics);
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref xmlDiagnostics, cancellationToken);
         }
 
         private IEnumerable<string> AddedModulesResourceNames(DiagnosticBag diagnostics)
@@ -2670,8 +3356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
-            ICollection<MethodDefinitionHandle> updatedMethods,
-            CompilationTestData testData,
+            CompilationTestData? testData,
             CancellationToken cancellationToken)
         {
             return EmitHelpers.EmitDifference(
@@ -2682,22 +3367,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 metadataStream,
                 ilStream,
                 pdbStream,
-                updatedMethods,
                 testData,
                 cancellationToken);
         }
 
-        internal string GetRuntimeMetadataVersion(EmitOptions emitOptions, DiagnosticBag diagnostics)
+        internal string? GetRuntimeMetadataVersion(EmitOptions emitOptions, DiagnosticBag diagnostics)
         {
-            string runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
+            string? runtimeMDVersion = GetRuntimeMetadataVersion(emitOptions);
             if (runtimeMDVersion != null)
             {
                 return runtimeMDVersion;
             }
 
-            DiagnosticBag runtimeMDVersionDiagnostics = DiagnosticBag.GetInstance();
+            DiagnosticBag? runtimeMDVersionDiagnostics = DiagnosticBag.GetInstance();
             runtimeMDVersionDiagnostics.Add(ErrorCode.WRN_NoRuntimeMetadataVersion, NoLocation.Singleton);
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics))
+            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref runtimeMDVersionDiagnostics, CancellationToken.None))
             {
                 return null;
             }
@@ -2705,11 +3389,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return string.Empty; //prevent emitter from crashing.
         }
 
-        private string GetRuntimeMetadataVersion(EmitOptions emitOptions)
+        private string? GetRuntimeMetadataVersion(EmitOptions emitOptions)
         {
             var corAssembly = Assembly.CorLibrary as Symbols.Metadata.PE.PEAssemblySymbol;
 
-            if ((object)corAssembly != null)
+            if (corAssembly is object)
             {
                 return corAssembly.Assembly.ManifestModule.MetadataVersion;
             }
@@ -2767,7 +3451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var newDocument = new Cci.DebugSourceDocument(
                         normalizedPath,
                         Cci.DebugSourceDocument.CorSymLanguageTypeCSharp,
-                        MakeChecksumBytes(checksumDirective.Bytes.ValueText),
+                        MakeChecksumBytes(checksumText),
                         Guid.Parse(checksumDirective.Guid.ValueText));
 
                     documentsBuilder.AddDebugDocument(newDocument);
@@ -2839,19 +3523,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return WithReferences(newReferences);
         }
 
-        protected override Compilation CommonWithAssemblyName(string assemblyName)
+        protected override Compilation CommonWithAssemblyName(string? assemblyName)
         {
             return WithAssemblyName(assemblyName);
         }
 
         protected override IAssemblySymbol CommonAssembly
         {
-            get { return this.Assembly; }
+            get { return this.Assembly.GetPublicSymbol(); }
         }
 
         protected override INamespaceSymbol CommonGlobalNamespace
         {
-            get { return this.GlobalNamespace; }
+            get { return this.GlobalNamespace.GetPublicSymbol(); }
         }
 
         protected override CompilationOptions CommonOptions
@@ -2864,7 +3548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetSemanticModel((SyntaxTree)syntaxTree, ignoreAccessibility);
         }
 
-        protected override IEnumerable<SyntaxTree> CommonSyntaxTrees
+        protected override ImmutableArray<SyntaxTree> CommonSyntaxTrees
         {
             get
             {
@@ -2887,9 +3571,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.RemoveAllSyntaxTrees();
         }
 
-        protected override Compilation CommonReplaceSyntaxTree(SyntaxTree oldTree, SyntaxTree newTree)
+        protected override Compilation CommonReplaceSyntaxTree(SyntaxTree oldTree, SyntaxTree? newTree)
         {
-            return this.ReplaceSyntaxTree((SyntaxTree)oldTree, (SyntaxTree)newTree);
+            return this.ReplaceSyntaxTree(oldTree, newTree);
         }
 
         protected override Compilation CommonWithOptions(CompilationOptions options)
@@ -2897,19 +3581,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.WithOptions((CSharpCompilationOptions)options);
         }
 
-        protected override Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo info)
+        protected override Compilation CommonWithScriptCompilationInfo(ScriptCompilationInfo? info)
         {
-            return this.WithScriptCompilationInfo((CSharpScriptCompilationInfo)info);
+            return this.WithScriptCompilationInfo((CSharpScriptCompilationInfo?)info);
         }
 
-        protected override bool CommonContainsSyntaxTree(SyntaxTree syntaxTree)
+        protected override bool CommonContainsSyntaxTree(SyntaxTree? syntaxTree)
         {
             return this.ContainsSyntaxTree(syntaxTree);
         }
 
-        protected override ISymbol CommonGetAssemblyOrModuleSymbol(MetadataReference reference)
+        protected override ISymbol? CommonGetAssemblyOrModuleSymbol(MetadataReference reference)
         {
-            return this.GetAssemblyOrModuleSymbol(reference);
+            return this.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
         }
 
         protected override Compilation CommonClone()
@@ -2919,89 +3603,201 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override IModuleSymbol CommonSourceModule
         {
-            get { return this.SourceModule; }
+            get { return this.SourceModule.GetPublicSymbol(); }
         }
 
-        protected override INamedTypeSymbol CommonGetSpecialType(SpecialType specialType)
+        private protected override INamedTypeSymbolInternal CommonGetSpecialType(SpecialType specialType)
         {
             return this.GetSpecialType(specialType);
         }
 
-        protected override INamespaceSymbol CommonGetCompilationNamespace(INamespaceSymbol namespaceSymbol)
+        protected override INamespaceSymbol? CommonGetCompilationNamespace(INamespaceSymbol namespaceSymbol)
         {
-            return this.GetCompilationNamespace(namespaceSymbol);
+            return this.GetCompilationNamespace(namespaceSymbol).GetPublicSymbol();
         }
 
-        protected override INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName)
+        protected override INamedTypeSymbol? CommonGetTypeByMetadataName(string metadataName)
         {
-            return this.GetTypeByMetadataName(metadataName);
+            return this.GetTypeByMetadataName(metadataName).GetPublicSymbol();
         }
 
-        protected override INamedTypeSymbol CommonScriptClass
+        protected override INamedTypeSymbol? CommonScriptClass
         {
-            get { return this.ScriptClass; }
+            get { return this.ScriptClass.GetPublicSymbol(); }
         }
 
-        protected override IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
+        protected override IArrayTypeSymbol CommonCreateArrayTypeSymbol(ITypeSymbol elementType, int rank, CodeAnalysis.NullableAnnotation elementNullableAnnotation)
         {
-            return CreateArrayTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(elementType)), rank);
+            return CreateArrayTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), rank, elementNullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
         }
 
         protected override IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType)
         {
-            return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(elementType)));
+            return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull(nameof(elementType)), elementType.NullableAnnotation.ToInternalAnnotation()).GetPublicSymbol();
+        }
+
+        protected override IFunctionPointerTypeSymbol CommonCreateFunctionPointerTypeSymbol(
+            ITypeSymbol returnType,
+            RefKind returnRefKind,
+            ImmutableArray<ITypeSymbol> parameterTypes,
+            ImmutableArray<RefKind> parameterRefKinds,
+            SignatureCallingConvention callingConvention,
+            ImmutableArray<INamedTypeSymbol> callingConventionTypes)
+        {
+            if (returnType is null)
+            {
+                throw new ArgumentNullException(nameof(returnType));
+            }
+
+            if (parameterTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterTypes));
+            }
+
+            for (int i = 0; i < parameterTypes.Length; i++)
+            {
+                if (parameterTypes[i] is null)
+                {
+                    throw new ArgumentNullException($"{nameof(parameterTypes)}[{i}]");
+                }
+            }
+
+            if (parameterRefKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterRefKinds));
+            }
+
+            if (parameterRefKinds.Length != parameterTypes.Length)
+            {
+                // Given {0} parameter types and {1} parameter ref kinds. These must be the same.
+                throw new ArgumentException(string.Format(CSharpResources.NotSameNumberParameterTypesAndRefKinds, parameterTypes.Length, parameterRefKinds.Length));
+            }
+
+            if (returnRefKind == RefKind.Out)
+            {
+                //'RefKind.Out' is not a valid ref kind for a return type.
+                throw new ArgumentException(CSharpResources.OutIsNotValidForReturn);
+            }
+
+            if (callingConvention != SignatureCallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty)
+            {
+                throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypesRequireUnmanaged, nameof(callingConventionTypes), nameof(callingConvention)));
+            }
+
+            if (!callingConvention.IsValid())
+            {
+                throw new ArgumentOutOfRangeException(nameof(callingConvention));
+            }
+
+            var returnTypeWithAnnotations = TypeWithAnnotations.Create(returnType.EnsureCSharpSymbolOrNull(nameof(returnType)), returnType.NullableAnnotation.ToInternalAnnotation());
+            var parameterTypesWithAnnotations = parameterTypes.SelectAsArray(
+                type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
+            var internalCallingConvention = callingConvention.FromSignatureConvention();
+            var conventionModifiers = internalCallingConvention == CallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty
+                ? callingConventionTypes.SelectAsArray((type, i, @this) => getCustomModifierForType(type, @this, i), this)
+                : ImmutableArray<CustomModifier>.Empty;
+
+            return FunctionPointerTypeSymbol.CreateFromParts(
+                internalCallingConvention,
+                conventionModifiers,
+                returnTypeWithAnnotations,
+                returnRefKind: returnRefKind,
+                parameterTypes: parameterTypesWithAnnotations,
+                parameterRefKinds: parameterRefKinds,
+                compilation: this).GetPublicSymbol();
+
+            static CustomModifier getCustomModifierForType(INamedTypeSymbol type, CSharpCompilation @this, int index)
+            {
+                if (type is null)
+                {
+                    throw new ArgumentNullException($"{nameof(callingConventionTypes)}[{index}]");
+                }
+
+                var internalType = type.EnsureCSharpSymbolOrNull($"{nameof(callingConventionTypes)}[{index}]");
+                if (!FunctionPointerTypeSymbol.IsCallingConventionModifier(internalType) || @this.Assembly.CorLibrary != internalType.ContainingAssembly)
+                {
+                    throw new ArgumentException(string.Format(CSharpResources.CallingConventionTypeIsInvalid, type.ToDisplayString()));
+                }
+
+                return CSharpCustomModifier.CreateOptional(internalType);
+            }
+        }
+
+        protected override INamedTypeSymbol CommonCreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return CreateNativeIntegerTypeSymbol(signed).GetPublicSymbol();
+        }
+
+        internal new NamedTypeSymbol CreateNativeIntegerTypeSymbol(bool signed)
+        {
+            return GetSpecialType(signed ? SpecialType.System_IntPtr : SpecialType.System_UIntPtr).AsNativeInteger();
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             ImmutableArray<ITypeSymbol> elementTypes,
-            ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<string?> elementNames,
+            ImmutableArray<Location?> elementLocations,
+            ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
-            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
+            var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
             for (int i = 0; i < elementTypes.Length; i++)
             {
-                typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
+                ITypeSymbol typeSymbol = elementTypes[i];
+                var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
+                var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
+                typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
             }
 
-            return TupleTypeSymbol.Create(
+            return NamedTypeSymbol.CreateTuple(
                 locationOpt: null, // no location for the type declaration
-                elementTypes: typesBuilder.ToImmutableAndFree(),
+                elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
                 elementLocations: elementLocations,
                 elementNames: elementNames,
                 compilation: this,
                 shouldCheckConstraints: false,
-                errorPositions: default(ImmutableArray<bool>));
+                includeNullability: false,
+                errorPositions: default).GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
             INamedTypeSymbol underlyingType,
-            ImmutableArray<string> elementNames,
-            ImmutableArray<Location> elementLocations)
+            ImmutableArray<string?> elementNames,
+            ImmutableArray<Location?> elementLocations,
+            ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
-            var csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull<INamedTypeSymbol, NamedTypeSymbol>(nameof(underlyingType));
+            NamedTypeSymbol csharpUnderlyingTuple = underlyingType.EnsureCSharpSymbolOrNull(nameof(underlyingType));
 
-            int cardinality;
-            if (!csharpUnderlyingTuple.IsTupleCompatible(out cardinality))
+            if (!csharpUnderlyingTuple.IsTupleTypeOfCardinality(out int cardinality))
             {
                 throw new ArgumentException(CodeAnalysisResources.TupleUnderlyingTypeMustBeTupleCompatible, nameof(underlyingType));
             }
 
             elementNames = CheckTupleElementNames(cardinality, elementNames);
             CheckTupleElementLocations(cardinality, elementLocations);
+            CheckTupleElementNullableAnnotations(cardinality, elementNullableAnnotations);
 
-            return TupleTypeSymbol.Create(
-                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations);
+            var tupleType = NamedTypeSymbol.CreateTuple(
+                csharpUnderlyingTuple, elementNames, elementLocations: elementLocations!);
+            if (!elementNullableAnnotations.IsDefault)
+            {
+                tupleType = tupleType.WithElementTypes(
+                    tupleType.TupleElementTypesWithAnnotations.ZipAsArray(
+                        elementNullableAnnotations,
+                        (t, a) => TypeWithAnnotations.Create(t.Type, a.ToInternalAnnotation())));
+            }
+            return tupleType.GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateAnonymousTypeSymbol(
             ImmutableArray<ITypeSymbol> memberTypes,
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
-            ImmutableArray<bool> memberIsReadOnly)
+            ImmutableArray<bool> memberIsReadOnly,
+            ImmutableArray<CodeAnalysis.NullableAnnotation> memberNullableAnnotations)
         {
             for (int i = 0, n = memberTypes.Length; i < n; i++)
             {
-                memberTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(memberTypes)}[{i}]");
+                memberTypes[i].EnsureCSharpSymbolOrNull($"{nameof(memberTypes)}[{i}]");
             }
 
             if (!memberIsReadOnly.IsDefault && memberIsReadOnly.Any(v => !v))
@@ -3013,30 +3809,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0, n = memberTypes.Length; i < n; i++)
             {
-                var type = memberTypes[i];
+                var type = memberTypes[i].GetSymbol();
                 var name = memberNames[i];
                 var location = memberLocations.IsDefault ? Location.None : memberLocations[i];
-                fields.Add(new AnonymousTypeField(name, location, (TypeSymbol)type));
+                var nullableAnnotation = memberNullableAnnotations.IsDefault ? NullableAnnotation.Oblivious : memberNullableAnnotations[i].ToInternalAnnotation();
+                fields.Add(new AnonymousTypeField(name, location, TypeWithAnnotations.Create(type, nullableAnnotation), RefKind.None));
             }
 
             var descriptor = new AnonymousTypeDescriptor(fields.ToImmutableAndFree(), Location.None);
 
-            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor);
+            return this.AnonymousTypeManager.ConstructAnonymousTypeSymbol(descriptor).GetPublicSymbol();
         }
 
         protected override ITypeSymbol CommonDynamicType
         {
-            get { return DynamicType; }
+            get { return DynamicType.GetPublicSymbol(); }
         }
 
         protected override INamedTypeSymbol CommonObjectType
         {
-            get { return this.ObjectType; }
+            get { return this.ObjectType.GetPublicSymbol(); }
         }
 
-        protected override IMethodSymbol CommonGetEntryPoint(CancellationToken cancellationToken)
+        protected override IMethodSymbol? CommonGetEntryPoint(CancellationToken cancellationToken)
         {
-            return this.GetEntryPoint(cancellationToken);
+            return this.GetEntryPoint(cancellationToken).GetPublicSymbol();
         }
 
         internal override int CompareSourceLocations(Location loc1, Location loc2)
@@ -3044,7 +3841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(loc1.IsInSource);
             Debug.Assert(loc2.IsInSource);
 
-            var comparison = CompareSyntaxTreeOrdering(loc1.SourceTree, loc2.SourceTree);
+            var comparison = CompareSyntaxTreeOrdering(loc1.SourceTree!, loc2.SourceTree!);
             if (comparison != 0)
             {
                 return comparison;
@@ -3064,10 +3861,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return loc1.Span.Start - loc2.Span.Start;
         }
 
+        internal override int CompareSourceLocations(SyntaxNode loc1, SyntaxNode loc2)
+        {
+            var comparison = CompareSyntaxTreeOrdering(loc1.SyntaxTree, loc2.SyntaxTree);
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+
+            return loc1.Span.Start - loc2.Span.Start;
+        }
+
         /// <summary>
         /// Return true if there is a source declaration symbol name that meets given predicate.
         /// </summary>
-        public override bool ContainsSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool ContainsSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default)
         {
             if (predicate == null)
             {
@@ -3085,7 +3893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return source declaration symbols whose name meets given predicate.
         /// </summary>
-        public override IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default)
         {
             if (predicate == null)
             {
@@ -3097,7 +3905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return new PredicateSymbolSearcher(this, filter, predicate, cancellationToken).GetSymbolsWithName();
+            return new PredicateSymbolSearcher(this, filter, predicate, cancellationToken).GetSymbolsWithName().GetPublicSymbols()!;
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -3106,7 +3914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This will be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
         /// when predicate is just a simple string check.
         /// </summary>
-        public override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default)
         {
             if (name == null)
             {
@@ -3127,7 +3935,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
         /// name="name"/> is case sensitive.
         /// </summary>
-        public override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default)
+        {
+            return GetSymbolsWithNameCore(name, filter, cancellationToken).GetPublicSymbols()!;
+        }
+
+        internal IEnumerable<Symbol> GetSymbolsWithNameCore(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default)
         {
             if (name == null)
             {
@@ -3150,15 +3963,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// dynamic types.
         /// </summary>
         /// <returns></returns>
-        internal bool HasDynamicEmitAttributes()
+        internal bool HasDynamicEmitAttributes(BindingDiagnosticBag diagnostics, Location location)
         {
-            return
-                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null &&
-                (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
+            return Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor, diagnostics, location) is object &&
+                   Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, diagnostics, location) is object;
         }
 
-        internal bool HasTupleNamesAttributes =>
-            (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames) != null;
+        internal bool HasTupleNamesAttributes(BindingDiagnosticBag diagnostics, Location location) =>
+            Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, diagnostics, location) is object;
 
         /// <summary>
         /// Returns whether the compilation has the Boolean type and if it's good.
@@ -3169,20 +3981,131 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool CanEmitSpecialType(SpecialType type)
         {
             var typeSymbol = GetSpecialType(type);
-            var diagnostic = typeSymbol.GetUseSiteDiagnostic();
+            var diagnostic = typeSymbol.GetUseSiteInfo().DiagnosticInfo;
             return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
-        internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
+        internal bool EmitNullablePublicOnly
+        {
+            get
+            {
+                if (!_lazyEmitNullablePublicOnly.HasValue())
+                {
+                    bool value = SyntaxTrees.FirstOrDefault()?.Options?.Features?.ContainsKey("nullablePublicOnly") == true;
+                    _lazyEmitNullablePublicOnly = value.ToThreeState();
+                }
+                return _lazyEmitNullablePublicOnly.Value();
+            }
+        }
+
+        internal bool ShouldEmitNativeIntegerAttributes()
+        {
+            return !Assembly.RuntimeSupportsNumericIntPtr;
+        }
+
+        internal bool ShouldEmitNullableAttributes(Symbol symbol)
+        {
+            RoslynDebug.Assert(symbol is object);
+            Debug.Assert(symbol.IsDefinition);
+
+            if (symbol.ContainingModule != SourceModule)
+            {
+                return false;
+            }
+
+            if (!EmitNullablePublicOnly)
+            {
+                return true;
+            }
+
+            // For symbols that do not have explicit accessibility in metadata,
+            // use the accessibility of the container.
+            symbol = getExplicitAccessibilitySymbol(symbol);
+
+            if (!AccessCheck.IsEffectivelyPublicOrInternal(symbol, out bool isInternal))
+            {
+                return false;
+            }
+
+            return !isInternal || SourceAssembly.InternalsAreVisible;
+
+            static Symbol getExplicitAccessibilitySymbol(Symbol symbol)
+            {
+                while (true)
+                {
+                    switch (symbol.Kind)
+                    {
+                        case SymbolKind.Parameter:
+                        case SymbolKind.TypeParameter:
+                        case SymbolKind.Property:
+                        case SymbolKind.Event:
+                            symbol = symbol.ContainingSymbol;
+                            break;
+                        default:
+                            return symbol;
+                    }
+                }
+            }
+        }
+
+        internal override AnalyzerDriver CreateAnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager, SeverityFilter severityFilter)
         {
             Func<SyntaxNode, SyntaxKind> getKind = node => node.Kind();
             Func<SyntaxTrivia, bool> isComment = trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
-            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, isComment);
+            return new AnalyzerDriver<SyntaxKind>(analyzers, getKind, analyzerManager, severityFilter, isComment);
         }
 
         internal void SymbolDeclaredEvent(Symbol symbol)
         {
-            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol));
+            EventQueue?.TryEnqueue(new SymbolDeclaredCompilationEvent(this, symbol.GetPublicSymbol()));
+        }
+
+        internal override void SerializePdbEmbeddedCompilationOptions(BlobBuilder builder)
+        {
+            // LanguageVersion should already be mapped to a specific version
+            Debug.Assert(LanguageVersion == LanguageVersion.MapSpecifiedToEffectiveVersion());
+            writeValue(CompilationOptionNames.LanguageVersion, LanguageVersion.ToDisplayString());
+
+            if (Options.CheckOverflow)
+            {
+                writeValue(CompilationOptionNames.Checked, Options.CheckOverflow.ToString());
+            }
+
+            if (Options.NullableContextOptions != NullableContextOptions.Disable)
+            {
+                writeValue(CompilationOptionNames.Nullable, Options.NullableContextOptions.ToString());
+            }
+
+            if (Options.AllowUnsafe)
+            {
+                writeValue(CompilationOptionNames.Unsafe, Options.AllowUnsafe.ToString());
+            }
+
+            var preprocessorSymbols = GetPreprocessorSymbols();
+            if (preprocessorSymbols.Any())
+            {
+                writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
+            }
+
+            void writeValue(string key, string value)
+            {
+                builder.WriteUTF8(key);
+                builder.WriteByte(0);
+                builder.WriteUTF8(value);
+                builder.WriteByte(0);
+            }
+        }
+
+        private ImmutableArray<string> GetPreprocessorSymbols()
+        {
+            CSharpSyntaxTree? firstTree = (CSharpSyntaxTree?)SyntaxTrees.FirstOrDefault();
+
+            if (firstTree is null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            return firstTree.Options.PreprocessorSymbolNames.ToImmutableArray();
         }
 
         /// <summary>
@@ -3192,7 +4115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// In NetFx 4.0, block array initializers do not work on all combinations of {32/64 X Debug/Retail} when array elements are enums.
         /// This is fixed in 4.5 thus enabling block array initialization for a very common case.
-        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .Net 4.5
+        /// We look for the presence of <see cref="System.Runtime.GCLatencyMode.SustainedLowLatency"/> which was introduced in .NET Framework 4.5
         /// </remarks>
         internal bool EnableEnumArrayBlockInitialization
         {
@@ -3229,9 +4152,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected abstract bool Matches(string name);
             protected abstract bool ShouldCheckTypeForMembers(MergedTypeDeclaration current);
 
-            public IEnumerable<ISymbol> GetSymbolsWithName()
+            public IEnumerable<Symbol> GetSymbolsWithName()
             {
-                var result = new HashSet<ISymbol>();
+                var result = new HashSet<Symbol>();
                 var spine = ArrayBuilder<MergedNamespaceOrTypeDeclaration>.GetInstance();
 
                 AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, result);
@@ -3243,7 +4166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void AppendSymbolsWithName(
                 ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedNamespaceOrTypeDeclaration current,
-                HashSet<ISymbol> set)
+                HashSet<Symbol> set)
             {
                 if (current.Kind == DeclarationKind.Namespace)
                 {
@@ -3297,7 +4220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             private void AppendMemberSymbolsWithName(
-                ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedTypeDeclaration current, HashSet<ISymbol> set)
+                ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine, MergedTypeDeclaration current, HashSet<Symbol> set)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 spine.Add(current);
@@ -3319,7 +4242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 spine.RemoveAt(spine.Count - 1);
             }
 
-            protected NamespaceOrTypeSymbol GetSpineSymbol(ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine)
+            protected NamespaceOrTypeSymbol? GetSpineSymbol(ArrayBuilder<MergedNamespaceOrTypeDeclaration> spine)
             {
                 if (spine.Count == 0)
                 {
@@ -3332,7 +4255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return symbol;
                 }
 
-                NamespaceOrTypeSymbol current = _compilation.GlobalNamespace;
+                NamespaceOrTypeSymbol? current = _compilation.GlobalNamespace;
                 for (var i = 1; i < spine.Count; i++)
                 {
                     current = GetSymbol(current, spine[i]);
@@ -3341,12 +4264,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return current;
             }
 
-            private NamespaceOrTypeSymbol GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
-                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol symbol)
+            private NamespaceOrTypeSymbol? GetCachedSymbol(MergedNamespaceOrTypeDeclaration declaration)
+                => _cache.TryGetValue(declaration, out NamespaceOrTypeSymbol? symbol)
                         ? symbol
                         : null;
 
-            private NamespaceOrTypeSymbol GetSymbol(NamespaceOrTypeSymbol container, MergedNamespaceOrTypeDeclaration declaration)
+            private NamespaceOrTypeSymbol? GetSymbol(NamespaceOrTypeSymbol? container, MergedNamespaceOrTypeDeclaration declaration)
             {
                 if (container == null)
                 {
@@ -3384,7 +4307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var sourceType = symbol as SourceMemberContainerTypeSymbol;
-                    if (sourceType != null)
+                    if (sourceType is object)
                     {
                         _cache[sourceType.MergedDeclaration] = sourceType;
                     }
@@ -3397,7 +4320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly Func<string, bool> _predicate;
 
             public PredicateSymbolSearcher(
-                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken) 
+                CSharpCompilation compilation, SymbolFilter filter, Func<string, bool> predicate, CancellationToken cancellationToken)
                 : base(compilation, filter, cancellationToken)
             {
                 _predicate = predicate;
@@ -3430,7 +4353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (SingleTypeDeclaration typeDecl in current.Declarations)
                 {
-                    if (typeDecl.MemberNames.Contains(_name))
+                    if (typeDecl.MemberNames.ContainsKey(_name))
                     {
                         return true;
                     }

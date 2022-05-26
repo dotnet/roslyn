@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -15,11 +17,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     Partial Friend Class VisualBasicSyntaxClassificationService
         Inherits AbstractSyntaxClassificationService
 
-        Private Shared ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier) =
-            ImmutableArray.Create(Of ISyntaxClassifier)(
-                New NameSyntaxClassifier(),
-                New ImportAliasClauseSyntaxClassifier(),
-                New IdentifierNameSyntaxClassifier())
+        Private ReadOnly s_defaultSyntaxClassifiers As ImmutableArray(Of ISyntaxClassifier) = ImmutableArray.Create(Of ISyntaxClassifier)(
+            New NameSyntaxClassifier(),
+            New ImportAliasClauseSyntaxClassifier(),
+            New IdentifierNameSyntaxClassifier(),
+            New OperatorOverloadSyntaxClassifier())
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As ImmutableArray(Of ISyntaxClassifier)
             Return s_defaultSyntaxClassifiers
@@ -29,13 +36,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
-        Public Overrides Sub AddSyntacticClassifications(syntaxTree As SyntaxTree, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim root = syntaxTree.GetRoot(cancellationToken)
+        Public Overrides Sub AddSyntacticClassifications(root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken)
         End Sub
 
         Public Overrides Function FixClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
             Return ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan)
+        End Function
+
+        Public Overrides Function GetSyntacticClassificationForIdentifier(identifier As SyntaxToken) As String
+            Return ClassificationHelpers.GetSyntacticClassificationForIdentifier(identifier)
         End Function
     End Class
 End Namespace

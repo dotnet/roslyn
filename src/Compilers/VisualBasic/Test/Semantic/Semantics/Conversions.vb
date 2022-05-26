@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Xml.Linq
@@ -12,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConversionsTests.Parameters
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -38,7 +41,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -220,7 +223,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -1079,7 +1082,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={TestReferences.NetFx.v4_0_21006.mscorlib},
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib},
                                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
@@ -1448,7 +1451,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim asmVBConversions = c1.GetReferencedAssemblySymbol(vbConversionsRef)
             Dim asmModifiers = c1.GetReferencedAssemblySymbol(modifiersRef)
@@ -2037,7 +2040,7 @@ End Class
         <Fact()>
         Public Sub BuiltIn()
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={TestReferences.NetFx.v4_0_21006.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib})
 
             Dim nullable = c1.GetSpecialType(System_Nullable_T)
 
@@ -3293,7 +3296,7 @@ End Class
                 Dim compilationDef =
     <compilation name="VBExplicitConversions1">
         <file name="lib.vb">
-            <%= My.Resources.Resource.PrintResultTestSource %>
+            <%= SemanticResourceUtil.PrintResultTestSource %>
         </file>
         <file name="a.vb">
 Option Strict Off
@@ -3465,7 +3468,7 @@ UShort: 12
         Public Sub DirectCast1()
             Dim compilationDef =
 <compilation name="DirectCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 
@@ -3704,7 +3707,7 @@ Decimal: 24
         Public Sub TryCast1()
             Dim compilationDef =
 <compilation name="TryCast1">
-    <file name="helper.vb"><%= My.Resources.Resource.PrintResultTestSource %></file>
+    <file name="helper.vb"><%= SemanticResourceUtil.PrintResultTestSource %></file>
     <file name="a.vb">
 Option Strict Off
 

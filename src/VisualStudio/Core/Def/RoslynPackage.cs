@@ -1,152 +1,296 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Design;
-using System.Reflection;
+using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeSignature;
+using Microsoft.CodeAnalysis.ColorSchemes;
+using Microsoft.CodeAnalysis.Completion.Log;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Versions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Suppression;
+using Microsoft.VisualStudio.LanguageServices.Implementation.SyncNamespaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Telemetry;
-using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
+using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TaskStatusCenter;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
     [Guid(Guids.RoslynPackageIdString)]
-    [PackageRegistration(UseManagedResourcesOnly = true)]
-    [ProvideMenuResource("Menus.ctmenu", version: 16)]
-    internal class RoslynPackage : AbstractPackage
+
+    // The option page configuration is duplicated in PackageRegistration.pkgdef
+    [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
+    [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
+    internal sealed class RoslynPackage : AbstractPackage
     {
-        private VisualStudioWorkspace _workspace;
-        private WorkspaceFailureOutputPane _outputPane;
-        private IComponentModel _componentModel;
-        private RuleSetEventHandler _ruleSetEventHandler;
-        private IDisposable _solutionEventMonitor;
+        // The randomly-generated key name is used for serializing the Background Analysis Scope preference to the .SUO
+        // file. It doesn't have any semantic meaning, but is intended to not conflict with any other extension that
+        // might be saving an "AnalysisScope" named stream to the same file.
+        // note: must be <= 31 characters long
+        private const string BackgroundAnalysisScopeOptionKey = "AnalysisScope-DCE33A29A768";
+        private const byte BackgroundAnalysisScopeOptionVersion = 1;
 
-        protected override void Initialize()
+        private static RoslynPackage? _lazyInstance;
+
+        private VisualStudioWorkspace? _workspace;
+        private RuleSetEventHandler? _ruleSetEventHandler;
+        private ColorSchemeApplier? _colorSchemeApplier;
+        private IDisposable? _solutionEventMonitor;
+
+        private BackgroundAnalysisScope? _analysisScope;
+
+        public RoslynPackage()
         {
-            base.Initialize();
-
-            FatalError.Handler = FailFast.OnFatalException;
-            FatalError.NonFatalHandler = WatsonReporter.Report;
-
-            // We also must set the FailFast handler for the compiler layer as well
-            var compilerAssembly = typeof(Compilation).Assembly;
-            var compilerFatalError = compilerAssembly.GetType("Microsoft.CodeAnalysis.FatalError", throwOnError: true);
-            var property = compilerFatalError.GetProperty(nameof(FatalError.Handler), BindingFlags.Static | BindingFlags.Public);
-            var compilerFailFast = compilerAssembly.GetType(typeof(FailFast).FullName, throwOnError: true);
-            var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
-            property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
-
-            var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
-            _workspace = componentModel.GetService<VisualStudioWorkspace>();
-            _workspace.Services.GetService<IExperimentationService>();
-
-            // Ensure the options persisters are loaded since we have to fetch options from the shell
-            componentModel.GetExtensions<IOptionPersister>();
-
-            RoslynTelemetrySetup.Initialize(this);
-
-            // set workspace output pane
-            _outputPane = new WorkspaceFailureOutputPane(this, _workspace);
-
-            InitializeColors();
-
-            // load some services that have to be loaded in UI thread
-            LoadComponentsInUIContextOnceSolutionFullyLoaded();
-
-            _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+            // We need to register an option in order for OnLoadOptions/OnSaveOptions to be called
+            AddOptionKey(BackgroundAnalysisScopeOptionKey);
         }
 
-        private void InitializeColors()
-        {
-            // Use VS color keys in order to support theming.
-            CodeAnalysisColors.SystemCaptionTextColorKey = EnvironmentColors.SystemWindowTextColorKey;
-            CodeAnalysisColors.SystemCaptionTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.CheckBoxTextBrushKey = EnvironmentColors.SystemWindowTextBrushKey;
-            CodeAnalysisColors.BackgroundBrushKey = VsBrushes.CommandBarGradientBeginKey;
-            CodeAnalysisColors.ButtonStyleKey = VsResourceKeys.ButtonStyleKey;
-            CodeAnalysisColors.AccentBarColorKey = EnvironmentColors.FileTabInactiveDocumentBorderEdgeBrushKey;
-        }
-
-        protected override void LoadComponentsInUIContext()
-        {
-            // we need to load it as early as possible since we can have errors from
-            // package from each language very early
-            this.ComponentModel.GetService<DiagnosticProgressReporter>();
-            this.ComponentModel.GetService<VisualStudioDiagnosticListTable>();
-            this.ComponentModel.GetService<VisualStudioTodoListTable>();
-            this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
-
-            this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
-            this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
-
-            // The misc files workspace needs to be loaded on the UI thread.  This way it will have
-            // the appropriate task scheduler to report events on.
-            this.ComponentModel.GetService<MiscellaneousFilesWorkspace>();
-
-            LoadAnalyzerNodeComponents();
-
-            Task.Run(() => LoadComponentsBackgroundAsync());
-        }
-
-        private async Task LoadComponentsBackgroundAsync()
-        {
-            // Perf: Initialize the command handlers.
-            var commandHandlerServiceFactory = this.ComponentModel.GetService<ICommandHandlerServiceFactory>();
-            commandHandlerServiceFactory.Initialize(ContentTypeNames.RoslynContentType);
-            LoadInteractiveMenus();
-
-            this.ComponentModel.GetService<MiscellaneousTodoListTable>();
-            this.ComponentModel.GetService<MiscellaneousDiagnosticListTable>();
-
-            // Initialize any experiments async
-            var experiments = this.ComponentModel.DefaultExportProvider.GetExportedValues<IExperiment>();
-            foreach (var experiment in experiments)
-            {
-                await experiment.InitializeAsync().ConfigureAwait(false);
-            }
-        }
-
-        private void LoadInteractiveMenus()
-        {
-            var menuCommandService = (OleMenuCommandService)GetService(typeof(IMenuCommandService));
-            var monitorSelectionService = (IVsMonitorSelection)this.GetService(typeof(SVsShellMonitorSelection));
-
-            new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommand();
-
-            new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel)
-                .InitializeResetInteractiveFromProjectCommand();
-        }
-
-        internal IComponentModel ComponentModel
+        public BackgroundAnalysisScope? AnalysisScope
         {
             get
             {
-                if (_componentModel == null)
-                {
-                    _componentModel = (IComponentModel)GetService(typeof(SComponentModel));
-                }
-
-                return _componentModel;
+                return _analysisScope;
             }
+
+            set
+            {
+                if (_analysisScope == value)
+                    return;
+
+                _analysisScope = value;
+                AnalysisScopeChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public event EventHandler? AnalysisScopeChanged;
+
+        internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+        {
+            if (_lazyInstance is null)
+            {
+                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                var shell = (IVsShell7?)await serviceProvider.GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+                Assumes.Present(shell);
+                await shell.LoadPackageAsync(typeof(RoslynPackage).GUID);
+
+                if (ErrorHandler.Succeeded(((IVsShell)shell).IsPackageLoaded(typeof(RoslynPackage).GUID, out var package)))
+                {
+                    _lazyInstance = (RoslynPackage)package;
+                }
+            }
+
+            return _lazyInstance;
+        }
+
+        protected override void OnLoadOptions(string key, Stream stream)
+        {
+            if (key == BackgroundAnalysisScopeOptionKey)
+            {
+                if (stream.ReadByte() == BackgroundAnalysisScopeOptionVersion)
+                {
+                    var hasValue = stream.ReadByte() == 1;
+                    AnalysisScope = hasValue ? (BackgroundAnalysisScope)stream.ReadByte() : null;
+                }
+                else
+                {
+                    AnalysisScope = null;
+                }
+            }
+
+            base.OnLoadOptions(key, stream);
+        }
+
+        protected override void OnSaveOptions(string key, Stream stream)
+        {
+            if (key == BackgroundAnalysisScopeOptionKey)
+            {
+                stream.WriteByte(BackgroundAnalysisScopeOptionVersion);
+                stream.WriteByte(AnalysisScope.HasValue ? (byte)1 : (byte)0);
+                stream.WriteByte((byte)AnalysisScope.GetValueOrDefault());
+            }
+
+            base.OnSaveOptions(key, stream);
+        }
+
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        {
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Ensure the options persisters are loaded since we have to fetch options from the shell
+            LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
+
+            _workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
+
+            await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
+
+            // load some services that have to be loaded in UI thread
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+            _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+
+            TrackBulkFileOperations();
+
+            var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
+            RegisterEditorFactory(settingsEditorFactory);
+
+            // Misc workspace has to be up and running by the time our package is usable so that it can track running
+            // doc events and appropriately map files to/from it and other relevant workspaces (like the
+            // metadata-as-source workspace).
+            await this.ComponentModel.GetService<MiscellaneousFilesWorkspace>().InitializeAsync(this).ConfigureAwait(false);
+        }
+
+        private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
+        {
+            var listenerProvider = componentModel.GetService<IAsynchronousOperationListenerProvider>();
+            using var token = listenerProvider.GetListener(FeatureAttribute.Workspace).BeginAsyncOperation(nameof(LoadOptionPersistersAsync));
+
+            // Switch to a background thread to ensure assembly loads don't show up as UI delays attributed to
+            // InitializeAsync.
+            await TaskScheduler.Default;
+
+            var persisterProviders = componentModel.GetExtensions<IOptionPersisterProvider>().ToImmutableArray();
+
+            foreach (var provider in persisterProviders)
+            {
+                _ = await provider.GetOrCreatePersisterAsync(cancellationToken).ConfigureAwait(true);
+            }
+        }
+
+        private async Task InitializeColorsAsync(CancellationToken cancellationToken)
+        {
+            await TaskScheduler.Default;
+            _colorSchemeApplier = ComponentModel.GetService<ColorSchemeApplier>();
+            await _colorSchemeApplier.InitializeAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
+        {
+            await TaskScheduler.Default;
+
+            await GetServiceAsync(typeof(SVsTaskStatusCenterService)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsErrorList)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(false);
+            await GetServiceAsync(typeof(SVsTextManager)).ConfigureAwait(false);
+
+            // we need to load it as early as possible since we can have errors from
+            // package from each language very early
+            await this.ComponentModel.GetService<TaskCenterSolutionAnalysisProgressReporter>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+
+            await this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+
+            // Load and initialize the add solution item service so ConfigurationUpdater can use it to create editorconfig files.
+            await this.ComponentModel.GetService<VisualStudioAddSolutionItemService>().InitializeAsync(this).ConfigureAwait(false);
+
+            await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<RemoveUnusedReferencesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+            await this.ComponentModel.GetService<SyncNamespacesCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
+
+            await LoadAnalyzerNodeComponentsAsync(cancellationToken).ConfigureAwait(false);
+
+            LoadComponentsBackgroundAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
+        }
+
+        // Overrides for VSSDK003 fix 
+        // See https://github.com/Microsoft/VSSDK-Analyzers/blob/main/doc/VSSDK003.md
+        public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+        {
+            if (toolWindowType == typeof(ValueTracking.ValueTrackingToolWindow).GUID)
+            {
+                return this;
+            }
+
+            if (toolWindowType == typeof(StackTraceExplorerToolWindow).GUID)
+            {
+                return this;
+            }
+
+            return base.GetAsyncToolWindowFactory(toolWindowType);
+        }
+
+        protected override string GetToolWindowTitle(Type toolWindowType, int id)
+                => base.GetToolWindowTitle(toolWindowType, id);
+
+        protected override Task<object?> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+            => Task.FromResult((object?)null);
+
+        private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
+        {
+            await TaskScheduler.Default;
+
+            await LoadInteractiveMenusAsync(cancellationToken).ConfigureAwait(true);
+            await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(true);
+
+            // Initialize keybinding reset detector
+            await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync().ConfigureAwait(true);
+        }
+
+        private async Task LoadInteractiveMenusAsync(CancellationToken cancellationToken)
+        {
+            // Obtain services and QueryInterface from the main thread
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+            var monitorSelectionService = (IVsMonitorSelection)await GetServiceAsync(typeof(SVsShellMonitorSelection)).ConfigureAwait(true);
+
+            // Switch to the background object for constructing commands
+            await TaskScheduler.Default;
+
+            var threadingContext = ComponentModel.GetService<IThreadingContext>();
+
+            await new CSharpResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
+                .InitializeResetInteractiveFromProjectCommandAsync()
+                .ConfigureAwait(true);
+
+            await new VisualBasicResetInteractiveMenuCommand(menuCommandService, monitorSelectionService, ComponentModel, threadingContext)
+                .InitializeResetInteractiveFromProjectCommandAsync()
+                .ConfigureAwait(true);
+        }
+
+        private async Task LoadStackTraceExplorerMenusAsync(CancellationToken cancellationToken)
+        {
+            // Obtain services and QueryInterface from the main thread
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+            StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
         }
 
         protected override void Dispose(bool disposing)
@@ -167,38 +311,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             base.Dispose(disposing);
         }
 
-        private void ReportSessionWideTelemetry()
+        private static void ReportSessionWideTelemetry()
         {
-            PersistedVersionStampLogger.LogSummary();
-            LinkedFileDiffMergingLogger.ReportTelemetry();
+            SolutionLogger.ReportTelemetry();
+            AsyncCompletionLogger.ReportTelemetry();
+            CompletionProvidersLogger.ReportTelemetry();
+            ChangeSignatureLogger.ReportTelemetry();
+            InheritanceMarginLogger.ReportTelemetry();
         }
 
         private void DisposeVisualStudioServices()
         {
             if (_workspace != null)
             {
-                var documentTrackingService = _workspace.Services.GetService<IDocumentTrackingService>() as VisualStudioDocumentTrackingService;
-                documentTrackingService.Dispose();
-
-                _workspace.Services.GetService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
+                _workspace.Services.GetRequiredService<VisualStudioMetadataReferenceManager>().DisconnectFromVisualStudioNativeServices();
             }
         }
 
-        private void LoadAnalyzerNodeComponents()
+        private async Task LoadAnalyzerNodeComponentsAsync(CancellationToken cancellationToken)
         {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Initialize(this);
+            await this.ComponentModel.GetService<IAnalyzerNodeSetup>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
             _ruleSetEventHandler = this.ComponentModel.GetService<RuleSetEventHandler>();
             if (_ruleSetEventHandler != null)
-            {
-                _ruleSetEventHandler.Register();
-            }
+                await _ruleSetEventHandler.RegisterAsync(this, cancellationToken).ConfigureAwait(false);
         }
 
         private void UnregisterAnalyzerTracker()
-        {
-            this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
-        }
+            => this.ComponentModel.GetService<IAnalyzerNodeSetup>().Unregister();
 
         private void UnregisterRuleSetEventHandler()
         {
@@ -206,6 +346,67 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 _ruleSetEventHandler.Unregister();
                 _ruleSetEventHandler = null;
+            }
+        }
+
+        private void TrackBulkFileOperations()
+        {
+            RoslynDebug.AssertNotNull(_workspace);
+
+            // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
+            // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
+            // explicitly asked for.
+            //
+            // this should give all resources to BulkFileOperation. we do same for things like build, 
+            // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
+            var globalNotificationService = _workspace.Services.GetRequiredService<IGlobalOperationNotificationService>();
+
+            // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
+            // so we only need simple tracking.
+            var gate = new object();
+            IDisposable? localRegistration = null;
+
+            BulkFileOperation.Begin += (s, a) => StartBulkFileOperationNotification();
+            BulkFileOperation.End += (s, a) => StopBulkFileOperationNotification();
+
+            return;
+
+            void StartBulkFileOperationNotification()
+            {
+                RoslynDebug.Assert(gate != null);
+                RoslynDebug.Assert(globalNotificationService != null);
+
+                lock (gate)
+                {
+                    // this shouldn't happen, but we are using external component
+                    // so guarding us from them
+                    if (localRegistration != null)
+                    {
+                        FatalError.ReportAndCatch(new InvalidOperationException("BulkFileOperation already exist"), ErrorSeverity.General);
+                        return;
+                    }
+
+                    localRegistration = globalNotificationService.Start("BulkFileOperation");
+                }
+            }
+
+            void StopBulkFileOperationNotification()
+            {
+                RoslynDebug.Assert(gate != null);
+
+                lock (gate)
+                {
+                    // this can happen if BulkFileOperation was already in the middle
+                    // of running. to make things simpler, decide to not use IsInProgress
+                    // which we need to worry about race case.
+                    if (localRegistration == null)
+                    {
+                        return;
+                    }
+
+                    localRegistration.Dispose();
+                    localRegistration = null;
+                }
             }
         }
     }

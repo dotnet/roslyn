@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../InteractiveEditorFeaturesResources.resx">
+    <body>
+      <trans-unit id="Building_Project">
+        <source>Building Project</source>
+        <target state="translated">プロジェクトのビルド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copying_selection_to_Interactive_Window">
+        <source>Copying selection to Interactive Window.</source>
+        <target state="translated">インタラクティブ ウィンドウに選択内容をコピーしています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Executing_selection_in_Interactive_Window">
+        <source>Executing selection in Interactive Window.</source>
+        <target state="translated">インタラクティブ ウィンドウで選択を実行します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Interactive_host_process_platform">
+        <source>Interactive host process platform</source>
+        <target state="translated">対話型ホスト プロセス プラットフォーム</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Print_a_list_of_referenced_assemblies">
+        <source>Print a list of referenced assemblies.</source>
+        <target state="translated">参照アセンブリの一覧を印刷します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
+        <source>The references command is not supported in this Interactive Window implementation.</source>
+        <target state="translated">このインタラクティブ ウィンドウの実装で、参照コマンドはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">
+        <source>Reset the execution environment to the initial state, keep history.</source>
+        <target state="translated">実行環境を初期状態にリセットし、履歴を保持します。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
+        <source>Reset to a clean environment (only mscorlib referenced), do not run initialization script.</source>
+        <target state="translated">クリーンな環境 (mscorlib のみを参照) にリセットし、初期化スクリプトは実行しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resetting_execution_engine">
+        <source>Resetting execution engine.</source>
+        <target state="translated">実行エンジンをリセットしています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Resetting_Interactive">
+        <source>Resetting Interactive</source>
+        <target state="translated">対話をリセットしています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_CurrentWindow_property_may_only_be_assigned_once">
+        <source>The CurrentWindow property may only be assigned once.</source>
+        <target state="translated">CurrentWindow プロパティは 1 回のみ割り当てることができます。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

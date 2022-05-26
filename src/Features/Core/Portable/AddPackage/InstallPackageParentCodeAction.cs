@@ -1,10 +1,14 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
-using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.AddPackage
@@ -16,10 +20,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
     /// </summary>
     internal class InstallPackageParentCodeAction : CodeAction.CodeActionWithNestedActions
     {
-        private readonly IPackageInstallerService _installerService;
-        private readonly string _source;
-        private readonly string _packageName;
-
         public override ImmutableArray<string> Tags => WellKnownTagArrays.NuGet;
 
         /// <summary>
@@ -38,9 +38,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
                    CreateNestedActions(installerService, source, packageName, includePrerelease, document),
                    isInlinable: false)
         {
-            _installerService = installerService;
-            _source = source;
-            _packageName = packageName;
         }
 
         private static ImmutableArray<CodeAction> CreateNestedActions(
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
             // First add the actions to install a specific version.
             codeActions.AddRange(installedVersions.Select(v => CreateCodeAction(
-                installerService, source, packageName, document, 
+                installerService, source, packageName, document,
                 versionOpt: v, includePrerelease: includePrerelease, isLocal: true)));
 
             // Now add the action to install the specific version.
@@ -79,7 +76,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             bool isLocal)
         {
             return new InstallPackageDirectlyCodeAction(
-                installerService, document, source, packageName, 
+                installerService, document, source, packageName,
                 versionOpt, includePrerelease, isLocal);
         }
     }

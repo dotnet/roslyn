@@ -1,10 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -36,10 +42,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override bool ShouldAddWithExistingImport(Document document) => true;
 
             protected override (string description, bool hasExistingImport) GetDescription(
-                Document document, SyntaxNode node,
+                Document document, CodeCleanupOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = base.GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return (null, false);
@@ -50,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             protected override AddImportFixData GetFixData(
-                Document document, ImmutableArray<TextChange> textChanges, string description, 
+                Document document, ImmutableArray<TextChange> textChanges, string description,
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
                 return AddImportFixData.CreateForMetadataSymbol(
@@ -62,7 +68,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected override CodeActionPriority GetPriority(Document document)
                 => CodeActionPriority.Low;
 
-            protected override ImmutableArray<string> GetTags(Document document) 
+            protected override ImmutableArray<string> GetTags(Document document)
                 => WellKnownTagArrays.AddReference;
 
             public override bool Equals(object obj)

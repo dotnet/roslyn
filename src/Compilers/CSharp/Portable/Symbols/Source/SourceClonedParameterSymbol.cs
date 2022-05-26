@@ -1,8 +1,12 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -11,26 +15,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// For example, parameters on a property symbol are cloned to generate parameters on accessors.
     /// Similarly parameters on delegate invoke method are cloned to delegate begin/end invoke methods.
     /// </summary>
-    internal sealed class SourceClonedParameterSymbol : SourceParameterSymbolBase
+    internal abstract class SourceClonedParameterSymbol : SourceParameterSymbolBase
     {
         // if true suppresses params-array and default value:
         private readonly bool _suppressOptional;
 
-        private readonly SourceParameterSymbol _originalParam;
+        protected readonly SourceParameterSymbol _originalParam;
 
         internal SourceClonedParameterSymbol(SourceParameterSymbol originalParam, Symbol newOwner, int newOrdinal, bool suppressOptional)
             : base(newOwner, newOrdinal)
         {
             Debug.Assert((object)originalParam != null);
-
             _suppressOptional = suppressOptional;
             _originalParam = originalParam;
         }
 
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
+        public override bool IsImplicitlyDeclared => true;
+
+        public override bool IsDiscard => _originalParam.IsDiscard;
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
@@ -70,20 +72,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.DefaultValueFromAttributes; }
         }
 
-        internal override ParameterSymbol WithCustomModifiersAndParams(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
-        {
-            return new SourceClonedParameterSymbol(
-                _originalParam.WithCustomModifiersAndParamsCore(newType, newCustomModifiers, newRefCustomModifiers, newIsParams),
-                this.ContainingSymbol,
-                this.Ordinal,
-                _suppressOptional);
-        }
-
         #region Forwarded
 
-        public override TypeSymbol Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _originalParam.Type; }
+            get { return _originalParam.TypeWithAnnotations; }
         }
 
         public override RefKind RefKind
@@ -116,11 +109,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.Name; }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get { return _originalParam.CustomModifiers; }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _originalParam.RefCustomModifiers; }
@@ -141,20 +129,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsIUnknownConstant; }
         }
 
-        internal override bool IsCallerFilePath
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get { return _originalParam.IsCallerFilePath; }
+            get { return FlowAnalysisAnnotations.None; }
         }
 
-        internal override bool IsCallerLineNumber
+        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
         {
-            get { return _originalParam.IsCallerLineNumber; }
+            get { return ImmutableHashSet<string>.Empty; }
         }
 
-        internal override bool IsCallerMemberName
-        {
-            get { return _originalParam.IsCallerMemberName; }
-        }
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
 
         #endregion
     }

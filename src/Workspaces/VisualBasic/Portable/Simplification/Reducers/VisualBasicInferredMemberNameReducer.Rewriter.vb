@@ -1,8 +1,11 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
@@ -15,12 +18,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 MyBase.New(pool)
             End Sub
 
-            Private ReadOnly s_simplifyTupleName As Func(Of SimpleArgumentSyntax, SemanticModel, OptionSet, CancellationToken, SimpleArgumentSyntax) = AddressOf SimplifyTupleName
+            Private ReadOnly s_simplifyTupleName As Func(Of SimpleArgumentSyntax, SemanticModel, SimplifierOptions, CancellationToken, SimpleArgumentSyntax) = AddressOf SimplifyTupleName
+            Private ReadOnly s_simplifyNamedFieldInitializer As Func(Of NamedFieldInitializerSyntax, SemanticModel, SimplifierOptions, CancellationToken, SyntaxNode) = AddressOf SimplifyNamedFieldInitializer
+
+            Private Function SimplifyNamedFieldInitializer(node As NamedFieldInitializerSyntax, arg2 As SemanticModel, options As SimplifierOptions, arg4 As CancellationToken) As SyntaxNode
+                If CanSimplifyNamedFieldInitializer(node) Then
+                    Return SyntaxFactory.InferredFieldInitializer(node.Expression).WithTriviaFrom(node)
+                End If
+
+                Return node
+            End Function
 
             Private Function SimplifyTupleName(
                 node As SimpleArgumentSyntax,
                 semanticModel As SemanticModel,
-                optionSet As OptionSet,
+                options As SimplifierOptions,
                 cancellationToken As CancellationToken
                 ) As SimpleArgumentSyntax
 

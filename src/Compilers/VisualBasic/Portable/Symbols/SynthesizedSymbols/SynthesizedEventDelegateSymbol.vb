@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -43,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim eventName = Me.EventSyntax.Identifier.ValueText
             Me._eventName = eventName
-            Me._name = _eventName & EVENT_DELEGATE_SUFFIX
+            Me._name = _eventName & StringConstants.EventDelegateSuffix
         End Sub
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
@@ -54,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
             Dim binder As binder = BinderBuilder.CreateBinderForType(sourceModule, _syntaxRef.SyntaxTree, Me.ContainingType)
 
-            Dim diagBag = DiagnosticBag.GetInstance()
+            Dim diagBag = BindingDiagnosticBag.GetInstance()
 
             Dim syntax = Me.EventSyntax
             Dim paramListOpt = syntax.ParameterList
@@ -77,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 members = ImmutableArray.Create(Of Symbol)(ctor, beginInvoke, endInvoke, invoke)
             End If
 
-            sourceModule.AtomicStoreArrayAndDiagnostics(_lazyMembers, members, diagBag, CompilationStage.Declare)
+            sourceModule.AtomicStoreArrayAndDiagnostics(_lazyMembers, members, diagBag)
             diagBag.Free()
 
             Return _lazyMembers
@@ -226,19 +228,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Function MakeAcyclicBaseType(diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeAcyclicBaseType(diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return MakeDeclaredBase(Nothing, diagnostics)
         End Function
 
-        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeAcyclicInterfaces(diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
-        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As NamedTypeSymbol
+        Friend Overrides Function MakeDeclaredBase(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
             Return _containingType.ContainingAssembly.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_MulticastDelegate)
         End Function
 
-        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As ConsList(Of Symbol), diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
+        Friend Overrides Function MakeDeclaredInterfaces(basesBeingResolved As BasesBeingResolved, diagnostics As BindingDiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
@@ -380,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             cancellationToken.ThrowIfCancellationRequested()
 
-            Dim diagnostics As DiagnosticBag = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance()
 
             ' Force parameters and return value of Invoke method to be bound and errors reported.
             ' Parameters on other delegate methods are derived from Invoke so we don't need to call those.
@@ -415,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                 Locations(0)))
             End If
 
-            DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics, CompilationStage.Declare)
+            DirectCast(ContainingModule, SourceModuleSymbol).AtomicStoreIntegerAndDiagnostics(_reportedAllDeclarationErrors, 1, 0, diagnostics)
 
             diagnostics.Free()
         End Sub

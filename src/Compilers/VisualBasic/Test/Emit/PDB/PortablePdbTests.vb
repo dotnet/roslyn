@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.IO
 Imports System.Reflection.Metadata
@@ -8,7 +10,6 @@ Imports System.Text
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Roslyn.Reflection.PortableExecutable
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -82,7 +83,7 @@ End Class
             Using peReader = New PEReader(peBlob)
                 Dim entries = peReader.ReadDebugDirectory()
 
-                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
+                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
 
                 Dim codeView = entries(0)
                 Dim checksum = entries(1)
@@ -135,7 +136,7 @@ End Class
             Using peReader = New PEReader(peBlob)
                 Dim entries = peReader.ReadDebugDirectory()
 
-                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryExtensions.PdbChecksumEntryType, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
+                AssertEx.Equal({DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.Reproducible, DebugDirectoryEntryType.EmbeddedPortablePdb}, entries.Select(Function(e) e.Type))
 
                 Dim codeView = entries(0)
                 Dim checksum = entries(1)

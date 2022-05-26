@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.MSBuild.UnitTests.SolutionGeneration;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -18,6 +23,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
     public class MSBuildWorkspaceTestBase : WorkspaceTestBase
     {
         protected const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
+
+        protected static void AssertFailures(MSBuildWorkspace workspace, params string[] expectedFailures)
+        {
+            AssertEx.Equal(expectedFailures, workspace.Diagnostics.Where(d => d.Kind == WorkspaceDiagnosticKind.Failure).Select(d => d.Message));
+        }
 
         protected async Task AssertCSCompilationOptionsAsync<T>(T expected, Func<CS.CSharpCompilationOptions, T> actual)
         {
@@ -124,7 +134,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 {
                     var c1 = await p1.GetCompilationAsync();
                     var result = c1.Emit(p1.OutputFilePath);
-                    Assert.Equal(true, result.Success);
+                    Assert.True(result.Success);
                 }
             }
         }
@@ -142,8 +152,26 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         }
 
         protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
+            => CreateMSBuildWorkspace(throwOnWorkspaceFailed: true, skipUnrecognizedProjects: false, additionalProperties: additionalProperties);
+
+        protected static MSBuildWorkspace CreateMSBuildWorkspace(
+            bool throwOnWorkspaceFailed = true,
+            bool skipUnrecognizedProjects = false,
+            (string key, string value)[] additionalProperties = null)
         {
-            return MSBuildWorkspace.Create(CreateProperties(additionalProperties));
+            additionalProperties ??= Array.Empty<(string key, string value)>();
+            var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
+            if (throwOnWorkspaceFailed)
+            {
+                workspace.WorkspaceFailed += (s, e) => throw new Exception($"Workspace failure {e.Diagnostic.Kind}:{e.Diagnostic.Message}");
+            }
+
+            if (skipUnrecognizedProjects)
+            {
+                workspace.SkipUnrecognizedProjects = true;
+            }
+
+            return workspace;
         }
 
         protected static MSBuildWorkspace CreateMSBuildWorkspace(HostServices hostServices, params (string key, string value)[] additionalProperties)

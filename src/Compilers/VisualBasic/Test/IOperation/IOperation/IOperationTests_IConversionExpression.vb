@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -358,7 +360,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b + c')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Operand: 
-            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'b + c')
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'b + c')
               Left: 
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'b')
                   Children(0)
@@ -1316,7 +1318,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1.M2')
                     Children(1):
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1')
+                        IOperation:  (OperationKind.None, Type: Program.C1, IsInvalid) (Syntax: 'c1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1539,7 +1541,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Operand: 
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer(1) {}')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     Right: 
@@ -1581,7 +1583,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Operand: 
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer(1)() {}')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     Right: 
@@ -2129,7 +2131,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
           Operand: 
             IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Char()) (Syntax: 'New Char(1) {}')
               Dimension Sizes(1):
-                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+                  IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
                     Left: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                     Right: 
@@ -2585,6 +2587,9 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
+BC30059: Constant expression is required.
+        Const s As SByte = i'BIND:"Const s As SByte = i"
+                           ~
 BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByte'.
         Const s As SByte = i'BIND:"Const s As SByte = i"
                            ~
@@ -2594,7 +2599,7 @@ BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'SByt
                                                         Function(operation As IOperation) As IConversionOperation
                                                             Dim initializer As IVariableInitializerOperation = DirectCast(operation, IVariableDeclarationGroupOperation).Declarations.Single().Initializer
                                                             Dim initializerValue As IOperation = initializer.Value
-                                                            Return DirectCast(initializerValue, IInvalidOperation).Children.Cast(Of IConversionOperation).Single()
+                                                            Return DirectCast(initializerValue, IInvalidOperation).ChildOperations.Cast(Of IConversionOperation).Single()
                                                         End Function)
 
             ' TODO: We're not comparing types because the semantic model doesn't return the correct ConvertedType for this expression. See
@@ -2636,7 +2641,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'num < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'num < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'num < 5')
                       Left: 
                         IParameterReferenceOperation: num (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'num')
                       Right: 
@@ -3027,7 +3032,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -3071,7 +3076,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -3115,7 +3120,7 @@ IConversionOperation (TryCast: True, Unchecked) (OperationKind.Conversion, Type:
                 Locals: Local_1: <anonymous local> As System.Boolean
                 IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                   ReturnedValue: 
-                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                    IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                       Left: 
                         IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                       Right: 
@@ -3160,7 +3165,7 @@ IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (S
                   Locals: Local_1: <anonymous local> As System.Boolean
                   IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i < 5')
                     ReturnedValue: 
-                      IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
+                      IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i < 5')
                         Left: 
                           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                         Right: 
@@ -3280,49 +3285,57 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (1)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
-          Value: 
-            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+        Entering: {R1}
 
-    Jump if False (Regular) to Block[B3]
-        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+              Value: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
-          Value: 
-            IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'l')
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'm')
-          Value: 
-            IParameterReferenceOperation: m (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'm')
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'l')
+              Value: 
+                IParameterReferenceOperation: l (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'l')
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = CType(I ... ), Integer)')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = CType(I ... ), Integer)')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
-              Right: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: 'CType(If(b, ... ), Integer)')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (NarrowingNumeric)
-                  Operand: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int64, IsImplicit) (Syntax: 'If(b,l,m)')
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'm')
+              Value: 
+                IParameterReferenceOperation: m (OperationKind.ParameterReference, Type: System.Int64) (Syntax: 'm')
 
-    Next (Regular) Block[B5]
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i = CType(I ... ), Integer)')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = CType(I ... ), Integer)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                  Right: 
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: 'CType(If(b, ... ), Integer)')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (NarrowingNumeric)
+                      Operand: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int64, IsImplicit) (Syntax: 'If(b,l,m)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

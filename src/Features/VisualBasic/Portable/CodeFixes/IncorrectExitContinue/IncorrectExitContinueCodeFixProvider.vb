@@ -1,7 +1,10 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -35,11 +38,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
 
         Friend Const BC30689 As String = "BC30689" ' Statement cannot appear outside of a method body.
 
+        <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
+        Public Sub New()
+        End Sub
+
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
                 Return ImmutableArray.Create(BC30781, BC30782, BC30783, BC30784, BC30240, BC30065, BC30066, BC30067, BC30089, BC30096, BC30097, BC30099, BC30393, BC30689)
             End Get
         End Property
+
+        Public Overrides Function GetFixAllProvider() As FixAllProvider
+            ' Fix All is not supported for this code fix
+            ' https://github.com/dotnet/roslyn/issues/34466
+            Return Nothing
+        End Function
 
         Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document
@@ -90,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                     codeActions = New List(Of CodeAction)
                 End If
 
-                Dim blockKinds = GetEnclosingContinuableBlockKinds(enclosingblocks, enclosingDeclaration)
+                Dim blockKinds = GetEnclosingContinuableBlockKinds(enclosingblocks)
 
                 Dim tokenAfterContinueToken = continueStatement.ContinueKeyword.GetNextToken(includeSkipped:=True)
                 Dim text = document.Text
@@ -141,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             End If
         End Sub
 
-        Private Function GetEnclosingBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode), enclosingDeclaration As ISymbol) As IEnumerable(Of SyntaxKind)
+        Private Shared Function GetEnclosingBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode), enclosingDeclaration As ISymbol) As IEnumerable(Of SyntaxKind)
             Dim kinds = New List(Of SyntaxKind)(enclosingblocks.Select(Function(b) b.Kind()).Where(Function(kind) BlockKindToKeywordKind(kind) <> Nothing OrElse kind = SyntaxKind.FinallyBlock))
 
             ' If we're inside a method declaration, we can only exit if it's a Function/Sub (lambda) or a property set or get.
@@ -162,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             Return kinds.TakeWhile(Function(k) k <> SyntaxKind.FinallyBlock).GroupBy(Function(k) BlockKindToKeywordKind(k)).Select(Function(g) g.First())
         End Function
 
-        Private Function GetEnclosingContinuableBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode), enclosingDeclaration As ISymbol) As IEnumerable(Of SyntaxKind)
+        Private Shared Function GetEnclosingContinuableBlockKinds(enclosingblocks As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxKind)
             Return enclosingblocks.TakeWhile(Function(eb) eb.Kind() <> SyntaxKind.FinallyBlock) _
                                   .Where(Function(eb) eb.IsKind(SyntaxKind.WhileBlock,
                                                                 SyntaxKind.SimpleDoLoopBlock,
@@ -288,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             End Select
         End Function
 
-        Private Sub CreateAddKeywordActions(node As SyntaxNode,
+        Private Shared Sub CreateAddKeywordActions(node As SyntaxNode,
                                             document As Document,
                                             enclosingBlock As SyntaxNode,
                                             blockKinds As IEnumerable(Of SyntaxKind),
@@ -297,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             codeActions.AddRange(blockKinds.Select(Function(bk) New AddKeywordCodeAction(node, bk, enclosingBlock, document, updateNode)))
         End Sub
 
-        Private Sub CreateReplaceKeywordActions(blockKinds As IEnumerable(Of SyntaxKind),
+        Private Shared Sub CreateReplaceKeywordActions(blockKinds As IEnumerable(Of SyntaxKind),
                                                 invalidToken As SyntaxToken,
                                                 node As SyntaxNode,
                                                 enclosingBlock As SyntaxNode,
@@ -308,11 +322,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
                                                                                     node, enclosingBlock, document, updateNode)))
         End Sub
 
-        Private Sub CreateReplaceTokenKeywordActions(blockKinds As IEnumerable(Of SyntaxKind), invalidToken As SyntaxToken, document As Document, codeActions As List(Of CodeAction))
+        Private Shared Sub CreateReplaceTokenKeywordActions(blockKinds As IEnumerable(Of SyntaxKind), invalidToken As SyntaxToken, document As Document, codeActions As List(Of CodeAction))
             codeActions.AddRange(blockKinds.Select(Function(bk) New ReplaceTokenKeywordCodeAction(bk, invalidToken, document)))
         End Sub
 
-        Private Function CreateDeleteString(node As SyntaxNode) As String
+        Private Shared Function CreateDeleteString(node As SyntaxNode) As String
             Return String.Format(VBFeaturesResources.Delete_the_0_statement1, node.ToString().Trim())
         End Function
     End Class

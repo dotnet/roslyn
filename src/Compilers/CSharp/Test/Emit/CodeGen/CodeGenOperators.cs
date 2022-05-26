@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -7,13 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Collections.Immutable;
+using System.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class CodeGenOperatorTests : CSharpTestBase
+    public class CodeGenOperators : CSharpTestBase
     {
-
         [Fact]
         public void TestIsNullPattern()
         {
@@ -81,13 +85,49 @@ class C
 }
 ";
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (7,28): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         Console.Write(o is null);
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(7, 28),
-                // (8,18): error CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
-                //         if (o is null)
-                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(8, 18));
+            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  ldnull
+  IL_0007:  ceq
+  IL_0009:  call       ""void System.Console.Write(bool)""
+  IL_000e:  ldarg.0
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_0020
+  IL_0016:  ldstr      ""Branch taken""
+  IL_001b:  call       ""void System.Console.Write(string)""
+  IL_0020:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.M<T>(T)", @"{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  box        ""T""
+  IL_0007:  ldnull
+  IL_0008:  ceq
+  IL_000a:  call       ""void System.Console.Write(bool)""
+  IL_000f:  nop
+  IL_0010:  ldarg.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldnull
+  IL_0017:  ceq
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_002a
+  IL_001d:  nop
+  IL_001e:  ldstr      ""Branch taken""
+  IL_0023:  call       ""void System.Console.Write(string)""
+  IL_0028:  nop
+  IL_0029:  nop
+  IL_002a:  ret
+}");
         }
 
         [Fact]
@@ -258,40 +298,35 @@ class C
             // Release
             var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       20 (0x14)
-    .maxstack  2
-    IL_0000:  ldnull
-    IL_0001:  ldnull
-    IL_0002:  ceq
-    IL_0004:  call       ""void System.Console.Write(bool)""
-    IL_0009:  ldstr      "" Branch taken""
-    IL_000e:  call       ""void System.Console.Write(string)""
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ldstr      "" Branch taken""
+  IL_000b:  call       ""void System.Console.Write(string)""
+  IL_0010:  ret
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
-            compilation.VerifyIL("C.Main", @"{
-    // Code size       33 (0x21)
-    .maxstack  2
-    .locals init (bool V_0)
-    IL_0000:  nop
-    IL_0001:  ldnull
-    IL_0002:  ldnull
-    IL_0003:  ceq
-    IL_0005:  call       ""void System.Console.Write(bool)""
-    IL_000a:  nop
-    IL_000b:  ldnull
-    IL_000c:  ldnull
-    IL_000d:  ceq
-    IL_000f:  stloc.0
-    IL_0010:  ldloc.0
-    IL_0011:  brfalse.s  IL_0020
-    IL_0013:  nop
-    IL_0014:  ldstr      "" Branch taken""
-    IL_0019:  call       ""void System.Console.Write(string)""
-    IL_001e:  nop
-    IL_001f:  nop
-    IL_0020:  ret
+            compilation.VerifyIL("C.Main", @"
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  nop
+  IL_000e:  ldstr      "" Branch taken""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  nop
+  IL_0019:  nop
+  IL_001a:  ret
 }");
         }
 
@@ -316,40 +351,35 @@ class C
             // Release
             var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       20 (0x14)
-    .maxstack  2
-    IL_0000:  ldnull
-    IL_0001:  ldnull
-    IL_0002:  ceq
-    IL_0004:  call       ""void System.Console.Write(bool)""
-    IL_0009:  ldstr      "" Branch taken""
-    IL_000e:  call       ""void System.Console.Write(string)""
-    IL_0013:  ret
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ldstr      "" Branch taken""
+  IL_000b:  call       ""void System.Console.Write(string)""
+  IL_0010:  ret
 }");
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-    // Code size       33 (0x21)
-    .maxstack  2
-    .locals init (bool V_0)
-    IL_0000:  nop
-    IL_0001:  ldnull
-    IL_0002:  ldnull
-    IL_0003:  ceq
-    IL_0005:  call       ""void System.Console.Write(bool)""
-    IL_000a:  nop
-    IL_000b:  ldnull
-    IL_000c:  ldnull
-    IL_000d:  ceq
-    IL_000f:  stloc.0
-    IL_0010:  ldloc.0
-    IL_0011:  brfalse.s  IL_0020
-    IL_0013:  nop
-    IL_0014:  ldstr      "" Branch taken""
-    IL_0019:  call       ""void System.Console.Write(string)""
-    IL_001e:  nop
-    IL_001f:  nop
-    IL_0020:  ret
+  // Code size       27 (0x1b)
+  .maxstack  1
+  .locals init (bool V_0)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  brfalse.s  IL_001a
+  IL_000d:  nop
+  IL_000e:  ldstr      "" Branch taken""
+  IL_0013:  call       ""void System.Console.Write(string)""
+  IL_0018:  nop
+  IL_0019:  nop
+  IL_001a:  ret
+
 }");
         }
 
@@ -419,8 +449,8 @@ class C
     static C GetC() { Console.Write(""GetC""); return c; }
     byte f;
 
-    public static void Main() 
-    { 
+    public static void Main()
+    {
         C.c = new C();
         D d123 = M123;
         D d456 = M456;
@@ -597,7 +627,7 @@ class IsTest
         System.Console.WriteLine(b);
     }
 }
-enum color
+enum @color
 { }
 ";
 
@@ -629,7 +659,7 @@ class IsTest
         System.Console.WriteLine(b);
     }
 }
-enum color
+enum @color
 { }
 ";
 
@@ -844,7 +874,7 @@ namespace TestAsOperator
         {
             string myStr = ""goo"";
             object o = myStr;
-            object b = o as string;            
+            object b = o as string;
 
             TestType tt = null;
             o = tt;
@@ -853,7 +883,7 @@ namespace TestAsOperator
             tt = new TestType();
             o = tt;
             b = o as AnotherType;
-        
+
             b = o as MyInter;
 
             MyInter mi = new TestType();
@@ -862,13 +892,13 @@ namespace TestAsOperator
 
             MyBase mb = new MyBase();
             o = mb;
-            b = o as MyDerived;      
+            b = o as MyDerived;
 
             MyDerived md = new MyDerived();
             o = md;
             b = o as MyBase;
 
-            b = null as MyBase;            
+            b = null as MyBase;
         }
     }
 }
@@ -1363,27 +1393,146 @@ public class C
 ");
         }
 
-        [WorkItem(541337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541337")]
         [Fact]
-        public void TestNullCoalesce_TypeParameter_Bug8008()
+        public void TestNullCoalesce_TypeParameter()
         {
             var source = @"
+using System;
 static class Program
 {
     static void Main()
     {
+        Goo(default, 1000);
+        Goo(1, 1000);
+        Goo(default, ""String parameter 1"");
+        Goo(""String parameter 2"", ""Should not print"");
+        Goo((int?)null, 4);
+        Goo((int?)5, 1000);
+        Goo2(6, 1000);
+        Goo2<int?, object>(null, 7);
+        Goo2<int?, object>(8, 1000);
+        Goo2<int?, int?>(9, 1000);
+        Goo2<int?, int?>(null, 10);
     }
- 
-    static void Goo<T>(T x)
+
+    static void Goo<T>(T x1, T x2)
     {
-        var y = default(T) ?? x;
+        Console.WriteLine(x1 ?? x2);
+    }
+
+    static void Goo2<T1, T2>(T1 t1, T2 t2, dynamic d = null) where T1 : T2
+    {
+        // Verifying no type errors
+        Console.WriteLine(t1 ?? t2);
+        dynamic d2 = t1 ?? d;
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,17): error CS0019: Operator '??' cannot be applied to operands of type 'T' and 'T'
-                //         var y = default(T) ?? x;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default(T) ?? x").WithArguments("??", "T", "T").WithLocation(10, 17)); ;
+            var comp = CompileAndVerify(source, expectedOutput: @"
+0
+1
+String parameter 1
+String parameter 2
+4
+5
+6
+7
+8
+9
+10
+");
+
+            comp.VerifyIL("Program.Goo<T>(T, T)", expectedIL: @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T""
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldarg.1
+  IL_000b:  br.s       IL_000e
+  IL_000d:  ldloc.0
+  IL_000e:  box        ""T""
+  IL_0013:  call       ""void System.Console.WriteLine(object)""
+  IL_0018:  ret
+}
+");
+
+            comp.VerifyIL("Program.Goo2<T1, T2>(T1, T2, dynamic)", expectedIL: @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  1
+  .locals init (T1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T1""
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldarg.1
+  IL_000b:  br.s       IL_0018
+  IL_000d:  ldloc.0
+  IL_000e:  box        ""T1""
+  IL_0013:  unbox.any  ""T2""
+  IL_0018:  box        ""T2""
+  IL_001d:  call       ""void System.Console.WriteLine(object)""
+  IL_0022:  ldarg.0
+  IL_0023:  stloc.0
+  IL_0024:  ldloc.0
+  IL_0025:  box        ""T1""
+  IL_002a:  pop
+  IL_002b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_TypeParameter_DefaultLHS()
+        {
+
+            var source = @"
+using System;
+static class Program
+{
+    static void Main()
+    {
+        Goo(10);
+        Goo(""String parameter"");
+        Goo((int?)3);
+    }
+
+    static void Goo<T>(T x)
+    {
+        Console.WriteLine(default(T) ?? x);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+0
+String parameter
+3
+");
+
+            comp.VerifyIL("Program.Goo<T>(T)", expectedIL: @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (T V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""T""
+  IL_0008:  ldloc.0
+  IL_0009:  box        ""T""
+  IL_000e:  brtrue.s   IL_0013
+  IL_0010:  ldarg.0
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldloc.0
+  IL_0014:  box        ""T""
+  IL_0019:  call       ""void System.Console.WriteLine(object)""
+  IL_001e:  ret
+}
+");
         }
 
         [Fact]
@@ -2130,7 +2279,7 @@ class P
         int errCount = 0;
         var src = new X();
         // QE is not 'executed'
-        var b = false && from x in src select x; // WRN CS0429
+        var b = false && from x in src select x;
         if (src.selectCount == 1)
             errCount++;
 
@@ -2138,19 +2287,17 @@ class P
         return (errCount > 0) ? 1 : 0;
     }
 }";
-            // the grammar does not allow a query on the right-hand-side of &&, but we allow it except in strict mode.
-            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
-                // (23,26): error CS1525: Invalid expression term 'from'
-                //         var b = false && from x in src select x; // WRN CS0429
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "from x in src").WithArguments("from").WithLocation(23, 26),
+            CompileAndVerify(source, expectedOutput: "0", options: TestOptions.ReleaseExe.WithWarningLevel(5)).VerifyDiagnostics(
+                // (3,1): hidden CS8019: Unnecessary using directive.
+                // using System.Linq;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1),
                 // (4,1): hidden CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(4, 1),
-                // (3,1): hidden CS8019: Unnecessary using directive.
-                // using System.Linq;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;").WithLocation(3, 1)
+                // (23,26): warning CS8848: Operator 'from' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var b = false && from x in src select x;
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "from x in src").WithArguments("from").WithLocation(23, 26)
                 );
-            CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(543109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543109")]
@@ -3428,7 +3575,7 @@ public class A
 
             // Can't actually see an unchecked cast here since only constant values are emitted.
             comp.VerifyIL("A.Main", @"
-{ 
+{
   // Code size       13 (0xd)
   .maxstack  2
   .locals init (A.E V_0) //e
@@ -5005,7 +5152,7 @@ class test<T> where T : c0
 ");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
@@ -5065,7 +5212,7 @@ class Test
             return builder.ToString();
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_02()
         {
@@ -5094,7 +5241,7 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5155,7 +5302,7 @@ class Test
             return builder.ToString();
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
@@ -5189,7 +5336,7 @@ class Test
                 );
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
@@ -5242,7 +5389,7 @@ class Test
 5180801");
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428", AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46361")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
@@ -5285,7 +5432,7 @@ struct S1
     public static implicit operator bool (S1 x)
     {
         return true;
-    } 
+    }
 }
 ";
 
@@ -5348,6 +5495,1169 @@ class Program
 ";
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableWithDefault_Optimization()
+        {
+            var source = @"
+class Program
+{
+    struct S
+    {
+        int _a;
+        System.Guid _b;
+
+        public S(int a, System.Guid b)
+        {
+            _a = a;
+            _b = b;
+        }
+
+        public override string ToString() => (_a, _b).ToString();
+    }
+
+    static int CoalesceInt32(int? x)
+    {
+        return x ?? 0;
+    }
+
+    static T CoalesceGeneric<T>(T? x) where T : struct
+    {
+        return x ?? default(T);
+    }
+
+    static (bool a, System.Guid b) CoalesceTuple((bool a, System.Guid b)? x)
+    {
+        return x ?? default((bool a, System.Guid b));
+    }
+
+    static S CoalesceUserStruct(S? x)
+    {
+        return x ?? default(S);
+    }
+
+    static S CoalesceStructWithImplicitConstructor(S? x)
+    {
+        return x ?? new S();
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(CoalesceInt32(42));
+        System.Console.WriteLine(CoalesceInt32(null));
+        System.Console.WriteLine(CoalesceGeneric<System.Guid>(new System.Guid(""44ed2f0b-c2fa-4791-81f6-97222fffa466"")));
+        System.Console.WriteLine(CoalesceGeneric<System.Guid>(null));
+        System.Console.WriteLine(CoalesceTuple((true, new System.Guid(""1c95cef0-1aae-4adb-a43c-54b2e7c083a0""))));
+        System.Console.WriteLine(CoalesceTuple(null));
+        System.Console.WriteLine(CoalesceUserStruct(new S(42, new System.Guid(""8683f371-81b4-45f6-aaed-1c665b371594""))));
+        System.Console.WriteLine(CoalesceUserStruct(null));
+        System.Console.WriteLine(CoalesceStructWithImplicitConstructor(new S()));
+        System.Console.WriteLine(CoalesceStructWithImplicitConstructor(null));
+    }
+}";
+            var expectedOutput =
+@"42
+0
+44ed2f0b-c2fa-4791-81f6-97222fffa466
+00000000-0000-0000-0000-000000000000
+(True, 1c95cef0-1aae-4adb-a43c-54b2e7c083a0)
+(False, 00000000-0000-0000-0000-000000000000)
+(42, 8683f371-81b4-45f6-aaed-1c665b371594)
+(0, 00000000-0000-0000-0000-000000000000)
+(0, 00000000-0000-0000-0000-000000000000)
+(0, 00000000-0000-0000-0000-000000000000)";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceInt32", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int int?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceGeneric<T>", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""T T?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceTuple", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid> System.ValueTuple<bool, System.Guid>?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceUserStruct", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""Program.S Program.S?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+            comp.VerifyIL("Program.CoalesceStructWithImplicitConstructor", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""Program.S Program.S?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableWithConvertedDefault_Optimization()
+        {
+            var source = @"
+class Program
+{
+    static (bool a, System.Guid b, string c) CoalesceDifferentTupleNames((bool a, System.Guid b, string c)? x)
+    {
+        return x ?? default((bool c, System.Guid d, string e));
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(CoalesceDifferentTupleNames((true, new System.Guid(""533d4d3b-5013-461e-ae9e-b98eb593d761""), ""value"")));
+        System.Console.WriteLine(CoalesceDifferentTupleNames(null));
+    }
+}";
+            var expectedOutput =
+ @"(True, 533d4d3b-5013-461e-ae9e-b98eb593d761, value)
+(False, 00000000-0000-0000-0000-000000000000, )";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceDifferentTupleNames", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""System.ValueTuple<bool, System.Guid, string> System.ValueTuple<bool, System.Guid, string>?.GetValueOrDefault()""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        {
+            var source = @"
+class Program
+{
+    static int CoalesceWithNonDefault1(int? x)
+    {
+        return x ?? 2;
+    }
+
+    static int CoalesceWithNonDefault2(int? x, int y)
+    {
+        return x ?? y;
+    }
+
+    static int? CoalesceWithNonDefault3(int? x, int? y)
+    {
+        return x ?? y;
+    }
+
+    static int? CoalesceWithNonDefault4(int? x)
+    {
+        return x ?? default(int?);
+    }
+
+    static void Main()
+    {
+        void WriteLine(object value) => System.Console.WriteLine(value?.ToString() ?? ""*null*"");
+
+        WriteLine(CoalesceWithNonDefault1(42));
+        WriteLine(CoalesceWithNonDefault1(null));
+        WriteLine(CoalesceWithNonDefault2(12, 34));
+        WriteLine(CoalesceWithNonDefault2(null, 34));
+        WriteLine(CoalesceWithNonDefault3(123, 456));
+        WriteLine(CoalesceWithNonDefault3(123, null));
+        WriteLine(CoalesceWithNonDefault3(null, 456));
+        WriteLine(CoalesceWithNonDefault3(null, null));
+        WriteLine(CoalesceWithNonDefault4(42));
+        WriteLine(CoalesceWithNonDefault4(null));
+    }
+}";
+            var expectedOutput =
+@"42
+2
+12
+34
+123
+123
+456
+*null*
+42
+*null*";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceWithNonDefault1", @"{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldc.i4.2
+  IL_000c:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int int?.GetValueOrDefault()""
+  IL_0014:  ret
+}");
+            comp.VerifyIL("Program.CoalesceWithNonDefault2", @"{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldarg.1
+  IL_000c:  ret
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int int?.GetValueOrDefault()""
+  IL_0014:  ret
+}");
+            comp.VerifyIL("Program.CoalesceWithNonDefault3", @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000d
+  IL_000b:  ldarg.1
+  IL_000c:  ret
+  IL_000d:  ldloc.0
+  IL_000e:  ret
+}");
+            comp.VerifyIL("Program.CoalesceWithNonDefault4", @"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (int? V_0,
+                int? V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_0015
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  initobj    ""int?""
+  IL_0013:  ldloc.1
+  IL_0014:  ret
+  IL_0015:  ldloc.0
+  IL_0016:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NonNullableWithDefault_NoOptimization()
+        {
+            var source = @"
+class Program
+{
+    static string CoalesceNonNullableWithDefault(string x)
+    {
+        return x ?? default(string);
+    }
+
+    static void Main()
+    {
+        void WriteLine(object value) => System.Console.WriteLine(value?.ToString() ?? ""*null*"");
+
+        WriteLine(CoalesceNonNullableWithDefault(""value""));
+        WriteLine(CoalesceNonNullableWithDefault(null));
+    }
+}";
+            var expectedOutput =
+@"value
+*null*";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput);
+            comp.VerifyIL("Program.CoalesceNonNullableWithDefault", @"{
+  // Code size        7 (0x7)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  pop
+  IL_0005:  ldnull
+  IL_0006:  ret
+}");
+        }
+
+        [Fact]
+        public void TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
+        {
+            var source = @"
+class Program
+{
+    static int Coalesce(int? x)
+    {
+        return x ?? 0;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+
+            comp.VerifyEmitDiagnostics(
+                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         return x ?? 0;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16),
+                // (6,16): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
+                //         return x ?? 0;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Nullable`1", "GetValueOrDefault").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void TestNullCoalesce_UnconstrainedTypeParameter_OldLanguageVersion()
+        {
+            var source = @"
+class C
+{
+    void M<T>(T t1, T t2)
+    {
+        t1 = t1 ?? t2;
+    }
+}";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                //         t1 = t1 ?? t2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator", "8.0").WithLocation(6, 14));
+        }
+
+        [Fact, WorkItem(41760, "https://github.com/dotnet/roslyn/issues/41760")]
+        public void NullableBoolOperatorSemantics_01()
+        {
+            // The C# specification has a section outlining the behavior of the bool operators `|` and `&`
+            // on operands of type `bool?`.  We check that these are the semantics obeyed by the compiler.
+            var sourceStart = @"
+using System;
+
+public class C
+{
+    bool T => true;
+    bool F => false;
+    static bool? True => true;
+    static bool? False => false;
+    static bool? Null => null;
+
+    static void Main()
+    {
+        C n = null;
+        C c = new C();
+        bool t = true;
+        bool f = false;
+        bool? nt = true;
+        bool? nf = false;
+        bool? nn = null;
+";
+            var sourceEnd =
+@"        Console.WriteLine(""Done."");
+    }
+
+    static bool? And(bool? x, bool? y)
+    {
+        if (x == false || y == false)
+            return false;
+        if (x == null || y == null)
+            return null;
+        return true;
+    }
+
+    static bool? Or(bool? x, bool? y)
+    {
+        if (x == true || y == true)
+            return true;
+        if (x == null || y == null)
+            return null;
+        return false;
+    }
+
+    static bool? Xor(bool? x, bool? y)
+    {
+        if (x == null || y == null)
+            return null;
+        return x.Value != y.Value;
+    }
+}
+
+static class Assert
+{
+    public static void Equal<T>(T expected, T actual, string message)
+    {
+        if (!object.Equals(expected, actual))
+            Console.WriteLine($""Wrong for {message,-15}  Expected: {expected?.ToString() ?? ""null"",-5}  Actual: {actual?.ToString() ?? ""null""}"");
+    }
+}
+";
+            var builder = new StringBuilder();
+            var forms = new string[]
+            {
+                "null",
+                "nn",
+                "true",
+                "t",
+                "nt",
+                "false",
+                "f",
+                "nf",
+                "c?.T",
+                "c?.F",
+                "n?.T",
+                "Null",
+                "True",
+                "False",
+            };
+            foreach (var left in forms)
+            {
+                foreach (var right in forms)
+                {
+                    if (left == "null" && right == "null")
+                        continue;
+                    builder.AppendLine(@$"        Assert.Equal<bool?>(Or({left}, {right}), {left} | {right}, ""{left} | {right}"");");
+                    builder.AppendLine(@$"        Assert.Equal<bool?>(And({left}, {right}), {left} & {right}, ""{left} & {right}"");");
+                    if (left != "null" && right != "null")
+                        builder.AppendLine(@$"        Assert.Equal<bool?>(Xor({left}, {right}), {left} ^ {right}, ""{left} ^ {right}"");");
+                }
+            }
+            var source = sourceStart + builder.ToString() + sourceEnd;
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                );
+            CompileAndVerify(comp, expectedOutput: @"Done.");
+        }
+
+        [Fact, WorkItem(41760, "https://github.com/dotnet/roslyn/issues/41760")]
+        public void NullableBoolOperatorSemantics_02()
+        {
+            var source = @"
+using System;
+
+public class C
+{
+    public bool BoolValue;
+
+    static void Main()
+    {
+        C obj = null;
+        Console.Write(obj?.BoolValue | true);
+        Console.Write(obj?.BoolValue & false);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                );
+            var cv = CompileAndVerify(comp, expectedOutput: @"TrueFalse");
+            cv.VerifyIL("C.Main", @"
+    {
+      // Code size       99 (0x63)
+      .maxstack  3
+      .locals init (bool? V_0,
+                    bool? V_1)
+      IL_0000:  ldnull
+      IL_0001:  dup
+      IL_0002:  dup
+      IL_0003:  brtrue.s   IL_0011
+      IL_0005:  pop
+      IL_0006:  ldloca.s   V_1
+      IL_0008:  initobj    ""bool?""
+      IL_000e:  ldloc.1
+      IL_000f:  br.s       IL_001b
+      IL_0011:  ldfld      ""bool C.BoolValue""
+      IL_0016:  newobj     ""bool?..ctor(bool)""
+      IL_001b:  stloc.0
+      IL_001c:  ldc.i4.1
+      IL_001d:  brtrue.s   IL_0022
+      IL_001f:  ldloc.0
+      IL_0020:  br.s       IL_0028
+      IL_0022:  ldc.i4.1
+      IL_0023:  newobj     ""bool?..ctor(bool)""
+      IL_0028:  box        ""bool?""
+      IL_002d:  call       ""void System.Console.Write(object)""
+      IL_0032:  dup
+      IL_0033:  brtrue.s   IL_0041
+      IL_0035:  pop
+      IL_0036:  ldloca.s   V_1
+      IL_0038:  initobj    ""bool?""
+      IL_003e:  ldloc.1
+      IL_003f:  br.s       IL_004b
+      IL_0041:  ldfld      ""bool C.BoolValue""
+      IL_0046:  newobj     ""bool?..ctor(bool)""
+      IL_004b:  stloc.0
+      IL_004c:  ldc.i4.0
+      IL_004d:  brtrue.s   IL_0057
+      IL_004f:  ldc.i4.0
+      IL_0050:  newobj     ""bool?..ctor(bool)""
+      IL_0055:  br.s       IL_0058
+      IL_0057:  ldloc.0
+      IL_0058:  box        ""bool?""
+      IL_005d:  call       ""void System.Console.Write(object)""
+      IL_0062:  ret
+    }
+");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_01()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        private readonly struct Wrapper<T>
+        {
+            public static bool operator ==(T t, Wrapper<T> wrapper)
+            {
+                Console.WriteLine(t.ToString());
+                return true;
+            }
+
+            public static bool operator !=(T t, Wrapper<T> wrapper) => false;
+        }
+
+        static void Main()
+        {
+            GenericMethod(""Run"");
+        }
+
+        private static void GenericMethod<T>(T t) where T : class
+        {
+            Func<Expression<Func<T, Wrapper<T>, bool>>> func = () => (x, y) => x == y;
+
+            func().Compile()(t, default);
+        }
+    }
+}";
+
+            var verifier = CompileAndVerify(code, expectedOutput: "Run");
+            verifier.VerifyDiagnostics(
+                // (9,33): warning CS0660: 'Program.Wrapper<T>' defines operator == or operator != but does not override Object.Equals(object o)
+                //         private readonly struct Wrapper<T>
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "Wrapper").WithArguments("BadImageFormatExceptionRepro.Program.Wrapper<T>").WithLocation(9, 33),
+                // (9,33): warning CS0661: 'Program.Wrapper<T>' defines operator == or operator != but does not override Object.GetHashCode()
+                //         private readonly struct Wrapper<T>
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "Wrapper").WithArguments("BadImageFormatExceptionRepro.Program.Wrapper<T>").WithLocation(9, 33)
+            );
+            verifier.VerifyIL("BadImageFormatExceptionRepro.Program.<>c__2<T>.<GenericMethod>b__2_0()", @"
+{
+  // Code size       90 (0x5a)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldtoken    ""T""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldtoken    ""BadImageFormatExceptionRepro.Program.Wrapper<T>""
+  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001f:  ldstr      ""y""
+  IL_0024:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0029:  stloc.1
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldtoken    ""bool BadImageFormatExceptionRepro.Program.Wrapper<T>.op_Equality(T, BadImageFormatExceptionRepro.Program.Wrapper<T>)""
+  IL_0032:  ldtoken    ""BadImageFormatExceptionRepro.Program.Wrapper<T>""
+  IL_0037:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+  IL_003c:  castclass  ""System.Reflection.MethodInfo""
+  IL_0041:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression.Equal(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, bool, System.Reflection.MethodInfo)""
+  IL_0046:  ldc.i4.2
+  IL_0047:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004c:  dup
+  IL_004d:  ldc.i4.0
+  IL_004e:  ldloc.0
+  IL_004f:  stelem.ref
+  IL_0050:  dup
+  IL_0051:  ldc.i4.1
+  IL_0052:  ldloc.1
+  IL_0053:  stelem.ref
+  IL_0054:  call       ""System.Linq.Expressions.Expression<System.Func<T, BadImageFormatExceptionRepro.Program.Wrapper<T>, bool>> System.Linq.Expressions.Expression.Lambda<System.Func<T, BadImageFormatExceptionRepro.Program.Wrapper<T>, bool>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0059:  ret
+}");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_02()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        private readonly struct Wrapper<T>
+        {
+            public static Wrapper<T> operator +(Wrapper<T> wrapper)
+            {
+                Console.WriteLine(""Run"");
+                return wrapper;
+            }
+        }
+
+        static void Main()
+        {
+            GenericMethod<string>();
+        }
+
+        private static void GenericMethod<T>() where T : class
+        {
+            Func<Expression<Func<Wrapper<T>, Wrapper<T>>>> func = () => (x) => +x;
+
+            func().Compile()(default);
+        }
+    }
+}";
+
+            var verifier = CompileAndVerify(code, expectedOutput: "Run");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("BadImageFormatExceptionRepro.Program.<>c__2<T>.<GenericMethod>b__2_0()", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""BadImageFormatExceptionRepro.Program.Wrapper<T>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldtoken    ""BadImageFormatExceptionRepro.Program.Wrapper<T> BadImageFormatExceptionRepro.Program.Wrapper<T>.op_UnaryPlus(BadImageFormatExceptionRepro.Program.Wrapper<T>)""
+  IL_001b:  ldtoken    ""BadImageFormatExceptionRepro.Program.Wrapper<T>""
+  IL_0020:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+  IL_0025:  castclass  ""System.Reflection.MethodInfo""
+  IL_002a:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.UnaryPlus(System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_002f:  ldc.i4.1
+  IL_0030:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0035:  dup
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldloc.0
+  IL_0038:  stelem.ref
+  IL_0039:  call       ""System.Linq.Expressions.Expression<System.Func<BadImageFormatExceptionRepro.Program.Wrapper<T>, BadImageFormatExceptionRepro.Program.Wrapper<T>>> System.Linq.Expressions.Expression.Lambda<System.Func<BadImageFormatExceptionRepro.Program.Wrapper<T>, BadImageFormatExceptionRepro.Program.Wrapper<T>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_003e:  ret
+}");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_03()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod<C>();
+        }
+
+        private static void GenericMethod<T>() where T : I<T>
+        {
+            Func<Expression<Func<T, T, bool>>> func = () => (x, y) => x == y;
+
+            func();
+            Console.WriteLine(""Run"");
+        }
+    }
+
+    interface I<T> where T : I<T>
+    {
+        public static abstract bool operator==(T t1, T t2);
+        public static abstract bool operator!=(T t1, T t2);
+    }
+
+    class C : I<C>
+    {
+        public static bool operator ==(C c1, C c2) => true;
+        public static bool operator !=(C c1, C c2) => false;
+    }
+}";
+
+            var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (16,71): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                //             Func<Expression<Func<T, T, bool>>> func = () => (x, y) => x == y;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x == y").WithLocation(16, 71),
+                // (29,11): warning CS0660: 'C' defines operator == or operator != but does not override Object.Equals(object o)
+                //     class C : I<C>
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutEquals, "C").WithArguments("BadImageFormatExceptionRepro.C").WithLocation(29, 11),
+                // (29,11): warning CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
+                //     class C : I<C>
+                Diagnostic(ErrorCode.WRN_EqualityOpWithoutGetHashCode, "C").WithArguments("BadImageFormatExceptionRepro.C").WithLocation(29, 11)
+            );
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_04()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod<C>();
+        }
+
+        private static void GenericMethod<T>() where T : I<T>
+        {
+            Func<Expression<Func<T, T>>> func = () => (x) => +x;
+
+            func();
+            Console.WriteLine(""Run"");
+        }
+    }
+
+    interface I<T> where T : I<T>
+    {
+        public static abstract T operator+(T t);
+    }
+
+    class C : I<C>
+    {
+        public static C operator +(C c) => c;
+    }
+}";
+
+            var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (16,62): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                //             Func<Expression<Func<T, T>>> func = () => (x) => +x;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "+x").WithLocation(16, 62)
+            );
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_05()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod(""Run"");
+        }
+
+        private static void GenericMethod<T>(T t)
+        {
+            Func<Expression<Func<T, C<T>>>> func = () => x => x;
+
+            func().Compile()(t);
+        }
+    }
+
+    class C<T>
+    {
+        public static implicit operator C<T>(T t)
+        {
+            Console.WriteLine(t);
+            return default;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(code, expectedOutput: "Run");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("BadImageFormatExceptionRepro.Program.<>c__1<T>.<GenericMethod>b__1_0()", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""T""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_001b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0020:  ldtoken    ""BadImageFormatExceptionRepro.C<T> BadImageFormatExceptionRepro.C<T>.op_Implicit(T)""
+  IL_0025:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_002a:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+  IL_002f:  castclass  ""System.Reflection.MethodInfo""
+  IL_0034:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0039:  ldc.i4.1
+  IL_003a:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003f:  dup
+  IL_0040:  ldc.i4.0
+  IL_0041:  ldloc.0
+  IL_0042:  stelem.ref
+  IL_0043:  call       ""System.Linq.Expressions.Expression<System.Func<T, BadImageFormatExceptionRepro.C<T>>> System.Linq.Expressions.Expression.Lambda<System.Func<T, BadImageFormatExceptionRepro.C<T>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0048:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_06()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod(""Run"");
+        }
+
+        private static void GenericMethod<T>(T t)
+        {
+            Func<Expression<Func<T, C<T>>>> func = () => x => (C<T>)x;
+
+            func().Compile()(t);
+        }
+    }
+
+    class C<T>
+    {
+        public static explicit operator C<T>(T t)
+        {
+            Console.WriteLine(t);
+            return default;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(code, expectedOutput: "Run");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("BadImageFormatExceptionRepro.Program.<>c__1<T>.<GenericMethod>b__1_0()", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""T""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldloc.0
+  IL_0016:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_001b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0020:  ldtoken    ""BadImageFormatExceptionRepro.C<T> BadImageFormatExceptionRepro.C<T>.op_Explicit(T)""
+  IL_0025:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_002a:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+  IL_002f:  castclass  ""System.Reflection.MethodInfo""
+  IL_0034:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type, System.Reflection.MethodInfo)""
+  IL_0039:  ldc.i4.1
+  IL_003a:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_003f:  dup
+  IL_0040:  ldc.i4.0
+  IL_0041:  ldloc.0
+  IL_0042:  stelem.ref
+  IL_0043:  call       ""System.Linq.Expressions.Expression<System.Func<T, BadImageFormatExceptionRepro.C<T>>> System.Linq.Expressions.Expression.Lambda<System.Func<T, BadImageFormatExceptionRepro.C<T>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0048:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_07()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod<string>();
+        }
+
+        private static void GenericMethod<T>()
+        {
+            Func<Expression<Func<C<T>, C<T>, C<T>>>> func = () => (x, y) => x && y;
+
+            func().Compile()(default, default);
+        }
+    }
+
+    class C<T>
+    {
+        public static bool operator false(C<T> c)
+        {
+            Console.Write(""1"");
+            return false;
+        }
+        public static bool operator true(C<T> c) => false;
+        public static C<T> operator &(C<T> c1, C<T> c2)
+        {
+            Console.Write(""2"");
+            return c1;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(code, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("BadImageFormatExceptionRepro.Program.<>c__1<T>.<GenericMethod>b__1_0()", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001f:  ldstr      ""y""
+  IL_0024:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0029:  stloc.1
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  ldtoken    ""BadImageFormatExceptionRepro.C<T> BadImageFormatExceptionRepro.C<T>.op_BitwiseAnd(BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>)""
+  IL_0031:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_0036:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+  IL_003b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0040:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression.AndAlso(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_0045:  ldc.i4.2
+  IL_0046:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004b:  dup
+  IL_004c:  ldc.i4.0
+  IL_004d:  ldloc.0
+  IL_004e:  stelem.ref
+  IL_004f:  dup
+  IL_0050:  ldc.i4.1
+  IL_0051:  ldloc.1
+  IL_0052:  stelem.ref
+  IL_0053:  call       ""System.Linq.Expressions.Expression<System.Func<BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>>> System.Linq.Expressions.Expression.Lambda<System.Func<BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0058:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_08()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod<string>();
+        }
+
+        private static void GenericMethod<T>()
+        {
+            Func<Expression<Func<C<T>, C<T>, C<T>>>> func = () => (x, y) => x || y;
+
+            func().Compile()(default, default);
+        }
+    }
+
+    class C<T>
+    {
+        public static bool operator true(C<T> c)
+        {
+            Console.Write(""1"");
+            return false;
+        }
+        public static bool operator false(C<T> c) => false;
+        public static C<T> operator |(C<T> c1, C<T> c2)
+        {
+            Console.Write(""2"");
+            return c1;
+        }
+    }
+}
+";
+
+            var verifier = CompileAndVerify(code, expectedOutput: "12");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("BadImageFormatExceptionRepro.Program.<>c__1<T>.<GenericMethod>b__1_0()", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  5
+  .locals init (System.Linq.Expressions.ParameterExpression V_0,
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""x""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_001a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001f:  ldstr      ""y""
+  IL_0024:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0029:  stloc.1
+  IL_002a:  ldloc.0
+  IL_002b:  ldloc.1
+  IL_002c:  ldtoken    ""BadImageFormatExceptionRepro.C<T> BadImageFormatExceptionRepro.C<T>.op_BitwiseOr(BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>)""
+  IL_0031:  ldtoken    ""BadImageFormatExceptionRepro.C<T>""
+  IL_0036:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+  IL_003b:  castclass  ""System.Reflection.MethodInfo""
+  IL_0040:  call       ""System.Linq.Expressions.BinaryExpression System.Linq.Expressions.Expression.OrElse(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression, System.Reflection.MethodInfo)""
+  IL_0045:  ldc.i4.2
+  IL_0046:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_004b:  dup
+  IL_004c:  ldc.i4.0
+  IL_004d:  ldloc.0
+  IL_004e:  stelem.ref
+  IL_004f:  dup
+  IL_0050:  ldc.i4.1
+  IL_0051:  ldloc.1
+  IL_0052:  stelem.ref
+  IL_0053:  call       ""System.Linq.Expressions.Expression<System.Func<BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>>> System.Linq.Expressions.Expression.Lambda<System.Func<BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>, BadImageFormatExceptionRepro.C<T>>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0058:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_09()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod<C>();
+        }
+
+        private static void GenericMethod<T>() where T : I<T>
+        {
+            Func<Expression<Func<T, T, T>>> func = () => (x, y) => x && y;
+
+            func().Compile()(default, default);
+        }
+    }
+
+    public interface I<T> where T : I<T>
+    {
+        public static abstract bool operator true(T t);
+        public static abstract bool operator false(T t);
+        public static abstract T operator &(T t1, T t2);
+    }
+
+    class C : I<C>
+    {
+        public static bool operator false(C c)
+        {
+            Console.Write(""1"");
+            return false;
+        }
+        public static bool operator true(C c) => false;
+        public static C operator &(C c1, C c2)
+        {
+            Console.Write(""2"");
+            return c1;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (16,68): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                //             Func<Expression<Func<T, T, T>>> func = () => (x, y) => x && y;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x && y").WithLocation(16, 68)
+            );
+        }
+
+        [Fact, WorkItem(56376, "https://github.com/dotnet/roslyn/issues/56376")]
+        public void UserDefinedOperatorInGenericExpressionTree_10()
+        {
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+namespace BadImageFormatExceptionRepro
+{
+    class Program
+    {
+        static void Main()
+        {
+            GenericMethod<C>();
+        }
+
+        private static void GenericMethod<T>() where T : I<T>
+        {
+            Func<Expression<Func<T, T, T>>> func = () => (x, y) => x || y;
+
+            func().Compile()(default, default);
+        }
+    }
+
+    public interface I<T> where T : I<T>
+    {
+        public static abstract bool operator true(T t);
+        public static abstract bool operator false(T t);
+        public static abstract T operator |(T t1, T t2);
+    }
+
+    class C : I<C>
+    {
+        public static bool operator true(C c)
+        {
+            Console.Write(""1"");
+            return false;
+        }
+        public static bool operator false(C c) => false;
+        public static C operator |(C c1, C c2)
+        {
+            Console.Write(""2"");
+            return c1;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(code, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net60);
+            comp.VerifyDiagnostics(
+                // (16,68): error CS8927: An expression tree may not contain an access of static virtual or abstract interface member
+                //             Func<Expression<Func<T, T, T>>> func = () => (x, y) => x || y;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAbstractStaticMemberAccess, "x || y").WithLocation(16, 68)
+            );
         }
     }
 }

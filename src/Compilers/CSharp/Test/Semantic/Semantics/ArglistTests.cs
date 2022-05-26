@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -130,18 +135,27 @@ public struct C
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
+// (8,44): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "__makeref(S)").WithArguments("TypedReference").WithLocation(8, 44),
 // (8,44): error CS7053: An expression tree may not contain '__makeref'
 //         Expression<Func<bool>> ex1 = ()=>M(__makeref(S)); // CS7053
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__makeref(S)").WithArguments("__makeref"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__makeref(S)").WithArguments("__makeref").WithLocation(8, 44),
 // (9,42): error CS7053: An expression tree may not contain '__reftype'
 //         Expression<Func<Type>> ex2 = ()=>__reftype(default(TypedReference));
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__reftype(default(TypedReference))").WithArguments("__reftype"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__reftype(default(TypedReference))").WithArguments("__reftype").WithLocation(9, 42),
+// (9,52): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<Type>> ex2 = ()=>__reftype(default(TypedReference));
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(TypedReference)").WithArguments("TypedReference").WithLocation(9, 52),
 // (10,41): error CS7053: An expression tree may not contain '__refvalue'
 //         Expression<Func<int>> ex3 = ()=>__refvalue(default(TypedReference), int);
-Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__refvalue(default(TypedReference), int)").WithArguments("__refvalue"),
+Diagnostic(ErrorCode.ERR_FeatureNotValidInExpressionTree, "__refvalue(default(TypedReference), int)").WithArguments("__refvalue").WithLocation(10, 41),
+// (10,52): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'TypedReference'.
+//         Expression<Func<int>> ex3 = ()=>__refvalue(default(TypedReference), int);
+Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default(TypedReference)").WithArguments("TypedReference").WithLocation(10, 52),
 // (11,44): error CS1952: An expression tree lambda may not contain a method with variable arguments
 //         Expression<Func<bool>> ex4 = ()=>N(__arglist());
-Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()")
+Diagnostic(ErrorCode.ERR_VarArgsInExpressionTree, "__arglist()").WithLocation(11, 44)
                 );
         }
 
@@ -176,7 +190,7 @@ public struct C
   IL_0013:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "System.Int32", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
@@ -217,7 +231,7 @@ public struct C
     Diagnostic(ErrorCode.ERR_RefLvalueExpected, "123").WithLocation(9, 40),
     // (10,40): error CS0206: A property or indexer may not be passed as an out or ref parameter
     //         TypedReference tr4 = __makeref(P); // CS0206
-    Diagnostic(ErrorCode.ERR_RefProperty, "P").WithArguments("C.P").WithLocation(10, 40),
+    Diagnostic(ErrorCode.ERR_RefProperty, "P").WithLocation(10, 40),
     // (11,40): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
     //         TypedReference tr5 = __makeref(R); // CS0199
     Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "R").WithLocation(11, 40)
@@ -344,7 +358,7 @@ public struct C
   IL_0008:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "System.String");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "System.String", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.M", expectedIL);
         }
 
@@ -369,7 +383,7 @@ Diagnostic(ErrorCode.ERR_ValueCantBeNull, "__reftype(null)").WithArguments("Syst
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest01()
         {
             var text = @"
@@ -399,7 +413,7 @@ public class C
             verifier.VerifyIL("C.M(__arglist)", expectedIL);
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest02()
         {
             var text = @"
@@ -470,7 +484,7 @@ public class C
             verifier.VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArglistTest03()
         {
             // The native parser produces "type expected" when __arglist is preceded by an illegal
@@ -578,7 +592,7 @@ public class MyAttribute : System.Attribute
             var text = @"
 using System;
 
-class error
+class @error
 {
     static void Main() {
 		Action a = delegate (__arglist) { };
@@ -659,7 +673,7 @@ public struct C
   IL_000c:  ret
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "1123");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "1123", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.Get", expectedGetIL);
             verifier.VerifyIL("C.Set", expectedSetIL);
             verifier.VerifyIL("C.Ref", expectedRefIL);
@@ -781,7 +795,7 @@ using System;
 42
 333
 0
-42");
+42", verify: Verification.FailsILVerify);
             verifier.VerifyIL("Program.Main", expectedGetIL);
         }
 
@@ -889,7 +903,7 @@ public struct C
     }
 }";
 
-            var verifier = CompileAndVerify(source: text, expectedOutput: "4242");
+            var verifier = CompileAndVerify(source: text, expectedOutput: "4242", verify: Verification.FailsILVerify);
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       72 (0x48)
@@ -1331,7 +1345,7 @@ class A
         }
 
         [WorkItem(545086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545086")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void BoxReceiverTest()
         {
             var text = @"
@@ -1565,7 +1579,7 @@ public class SpecialCases
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayNotHaveAnOutArgument()
         {
             CreateCompilation(@"
@@ -1601,7 +1615,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "a").WithLocation(7, 24));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayHaveARefArgument()
         {
             CompileAndVerify(@"
@@ -1621,11 +1635,11 @@ class Program
         Console.WriteLine(a);
     }
 }",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
         public void ArgListMayHaveAByValArgument()
         {
             CompileAndVerify(@"
@@ -1644,7 +1658,7 @@ class Program
         Test(__arglist(a));
     }
 }",
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug),
+                options: TestOptions.DebugExe,
                 expectedOutput: "5");
         }
     }

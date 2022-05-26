@@ -1,20 +1,21 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 Imports Microsoft.CodeAnalysis.PickMembers
-Imports Microsoft.CodeAnalysis.VisualBasic.GenerateEqualsAndGetHashCodeFromMembers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructorFromMembers
     Public Class GenerateEqualsAndGetHashCodeFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Private Const GenerateOperatorsId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
-        Private Const ImplementIEquatableId = AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
+        Private Const GenerateOperatorsId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.GenerateOperatorsId
+        Private Const ImplementIEquatableId = GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
+            Return New GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
                 DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
@@ -84,6 +85,143 @@ End Class",
     End Function
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructure() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    [|Private a As Integer|]
+End Structure",
+"Imports System
+
+Structure Z
+    Implements IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructureThatAlreadyImplementsInterface1() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    Implements IEquatable(Of Z)
+
+    [|Private a As Integer|]
+End Structure",
+"Structure Z
+    Implements IEquatable(Of Z), System.IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements System.IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructureThatAlreadyImplementsInterface2() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    Implements System.IEquatable(Of Z)
+
+    [|Private a As Integer|]
+End Structure",
+"Structure Z
+    Implements System.IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        If Not (TypeOf obj Is Z) Then
+            Return False
+        End If
+
+        Dim z = DirectCast(obj, Z)
+        Return a = z.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
+        End Function
+
+        <WorkItem(30396, "https://github.com/dotnet/roslyn/issues/30396")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestStructureThatAlreadyHasOperators() As Task
+            Await TestInRegularAndScriptAsync(
+"Structure Z
+    [|Private a As Integer|]
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure",
+"Imports System
+
+Structure Z
+    Implements IEquatable(Of Z)
+
+    Private a As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Return (TypeOf obj Is Z) AndAlso Equals(DirectCast(obj, Z))
+    End Function
+
+    Public Function Equals(other As Z) As Boolean Implements IEquatable(Of Z).Equals
+        Return a = other.a
+    End Function
+
+    Public Shared Operator =(left As Z, right As Z) As Boolean
+        Return left.Equals(right)
+    End Operator
+
+    Public Shared Operator <>(left As Z, right As Z) As Boolean
+        Return Not left = right
+    End Operator
+End Structure")
         End Function
 
         <WorkItem(545205, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545205")>
@@ -246,6 +384,54 @@ End Class",
 chosenSymbols:=Nothing)
         End Function
 
+        <WorkItem(41958, "https://github.com/dotnet/roslyn/issues/41958")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogInheritedMembers() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Base
+    Public Property C As Integer
+End Class
+
+Class Middle
+    Inherits Base
+
+    Public Property B As Integer
+End Class
+
+Class Derived
+    Inherits Middle
+
+    Public Property A As Integer
+    [||]
+End Class",
+"
+Class Base
+    Public Property C As Integer
+End Class
+
+Class Middle
+    Inherits Base
+
+    Public Property B As Integer
+End Class
+
+Class Derived
+    Inherits Middle
+
+    Public Property A As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim derived = TryCast(obj, Derived)
+        Return derived IsNot Nothing AndAlso
+               C = derived.C AndAlso
+               B = derived.B AndAlso
+               A = derived.A
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestGenerateOperators1() As Task
             Await TestWithPickMembersDialogAsync(
@@ -268,12 +454,12 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return EqualityComparer(Of Program).Default.Equals(program1, program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return EqualityComparer(Of Program).Default.Equals(left, right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Class",
 chosenSymbols:=Nothing,
@@ -290,7 +476,7 @@ Class Program
     Public s As String
     [||]
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -306,7 +492,7 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -339,12 +525,12 @@ Structure Program
         Return s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return program1.Equals(program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return left.Equals(right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Structure",
 chosenSymbols:=Nothing,
@@ -435,10 +621,7 @@ Class Z
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
-        Return CType(hashCode, Integer)
+        Return (a, b).GetHashCode()
     End Function
 End Class",
 index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, checkOverflow:=True))
@@ -468,12 +651,19 @@ index:=1, compilationOptions:=New VisualBasicCompilationOptions(OutputKind.Dynam
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
         Public Async Function TestMultipleValuesWithoutValueTuple() As Task
-            Await TestInRegularAndScriptAsync(
-"Class Z
+
+            Await TestInRegularAndScriptAsync("
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferencesWithoutValueTuple=""true"">
+        <Document>
+Class Z
     [|Private a As Integer
     Private b As Integer|]
-End Class",
-"Class Z
+End Class
+        </Document>
+    </Project>
+</Workspace>", "
+Class Z
     Private a As Integer
     Private b As Integer
 
@@ -485,13 +675,15 @@ End Class",
     End Function
 
     Public Overrides Function GetHashCode() As Integer
-        Dim hashCode As Long = 2118541809
-        hashCode = (hashCode * -1521134295 + a.GetHashCode()).GetHashCode()
-        hashCode = (hashCode * -1521134295 + b.GetHashCode()).GetHashCode()
+        Dim hashCode = 2118541809
+        hashCode = hashCode * -1521134295 + a.GetHashCode()
+        hashCode = hashCode * -1521134295 + b.GetHashCode()
         Return hashCode
     End Function
-End Class",
+End Class
+        ",
 index:=1)
+
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
@@ -563,6 +755,90 @@ Class Z
     End Function
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestPartialSelection() As Task
+            Await TestMissingAsync(
+"Class Z
+    Private [|a|] As Integer
+End Class")
+        End Function
+
+        <WorkItem(43290, "https://github.com/dotnet/roslyn/issues/43290")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestAbstractBase() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Namespace System
+    Public Class HashCode
+    End Class
+End Namespace
+
+MustInherit Class Base
+    Public MustOverride Overrides Function Equals(obj As Object) As Boolean
+    Public MustOverride Overrides Function GetHashCode() As Integer
+End Class
+
+Class Derived
+    Inherits Base
+
+    [|Public P As Integer|]
+End Class
+",
+"
+Imports System
+
+Namespace System
+    Public Class HashCode
+    End Class
+End Namespace
+
+MustInherit Class Base
+    Public MustOverride Overrides Function Equals(obj As Object) As Boolean
+    Public MustOverride Overrides Function GetHashCode() As Integer
+End Class
+
+Class Derived
+    Inherits Base
+
+    Public P As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim derived = TryCast(obj, Derived)
+        Return derived IsNot Nothing AndAlso
+               P = derived.P
+    End Function
+
+    Public Overrides Function GetHashCode() As Integer
+        Return HashCode.Combine(P)
+    End Function
+End Class
+",
+index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <WorkItem(45919, "https://github.com/dotnet/roslyn/issues/45919")>
+        Public Async Function TestWithDialogOnClassHeader() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class [||]Program
+    Public Property F() As Integer
+    
+End Class",
+"
+Class Program
+    Public Property F() As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               F = program.F
+    End Function
+End Class",
+chosenSymbols:=Nothing)
         End Function
     End Class
 End Namespace

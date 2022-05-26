@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
@@ -26,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(node.Kind = BoundKind.Literal, node, New BoundLiteral(node.Syntax, constantValue, node.Type, hasErrors:=constantValue.IsBad))
         End Function
 
-        Private Shared Function RewriteDecimalConstant(node As BoundExpression, nodeValue As ConstantValue, currentMethod As MethodSymbol, diagnostics As DiagnosticBag) As BoundExpression
+        Private Shared Function RewriteDecimalConstant(node As BoundExpression, nodeValue As ConstantValue, currentMethod As MethodSymbol, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim assembly As AssemblySymbol = currentMethod.ContainingAssembly
 
             Dim isNegative As Boolean
@@ -59,9 +61,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    If useField IsNot Nothing AndAlso useField.GetUseSiteErrorInfo() Is Nothing AndAlso useField.ContainingType.GetUseSiteErrorInfo() Is Nothing Then
-                        Dim fieldSymbol = DirectCast(useField, FieldSymbol)
-                        Return New BoundFieldAccess(node.Syntax, Nothing, fieldSymbol, isLValue:=False, type:=fieldSymbol.Type)
+                    If useField IsNot Nothing Then
+                        Dim useSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(useField)
+                        If useSiteInfo.DiagnosticInfo Is Nothing Then
+                            Dim fieldSymbol = DirectCast(useField, FieldSymbol)
+                            diagnostics.AddDependencies(useSiteInfo)
+                            Return New BoundFieldAccess(node.Syntax, Nothing, fieldSymbol, isLValue:=False, type:=fieldSymbol.Type)
+                        End If
                     End If
                 End If
 
@@ -77,16 +83,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim decCtorInt64 As MethodSymbol
                 decCtorInt64 = DirectCast(assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__CtorInt64), MethodSymbol)
 
-                If decCtorInt64 IsNot Nothing AndAlso decCtorInt64.GetUseSiteErrorInfo() Is Nothing AndAlso decCtorInt64.ContainingType.GetUseSiteErrorInfo() Is Nothing Then
+                If decCtorInt64 IsNot Nothing Then
+                    Dim useSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(decCtorInt64)
 
-                    ' generate New Decimal(value)
-                    Return New BoundObjectCreationExpression(
-                        node.Syntax,
-                        decCtorInt64,
-                        ImmutableArrayExtensions.AsImmutableOrNull(Of BoundExpression)(
-                            {New BoundLiteral(node.Syntax, ConstantValue.Create(value), decCtorInt64.Parameters(0).Type)}),
-                        Nothing,
-                        node.Type)
+                    If useSiteInfo.DiagnosticInfo Is Nothing Then
+                        diagnostics.AddDependencies(useSiteInfo)
+
+                        ' generate New Decimal(value)
+                        Return New BoundObjectCreationExpression(
+                            node.Syntax,
+                            decCtorInt64,
+                            ImmutableArrayExtensions.AsImmutableOrNull(Of BoundExpression)(
+                                {New BoundLiteral(node.Syntax, ConstantValue.Create(value), decCtorInt64.Parameters(0).Type)}),
+                            Nothing,
+                            node.Type)
+                    End If
                 End If
             End If
 
@@ -124,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node ' We get here only if we failed to rewrite the constant
         End Function
 
-        Private Shared Function RewriteDateConstant(node As BoundExpression, nodeValue As ConstantValue, currentMethod As MethodSymbol, diagnostics As DiagnosticBag) As BoundExpression
+        Private Shared Function RewriteDateConstant(node As BoundExpression, nodeValue As ConstantValue, currentMethod As MethodSymbol, diagnostics As BindingDiagnosticBag) As BoundExpression
             Dim assembly As AssemblySymbol = currentMethod.ContainingAssembly
 
             Dim dt As Date = nodeValue.DateTimeValue
@@ -137,8 +148,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim dtMinValue = DirectCast(assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__MinValue), FieldSymbol)
 
-                If dtMinValue IsNot Nothing AndAlso dtMinValue.GetUseSiteErrorInfo() Is Nothing AndAlso dtMinValue.ContainingType.GetUseSiteErrorInfo() Is Nothing Then
-                    Return New BoundFieldAccess(node.Syntax, Nothing, dtMinValue, isLValue:=False, type:=dtMinValue.Type)
+                If dtMinValue IsNot Nothing Then
+                    Dim useSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(dtMinValue)
+
+                    If useSiteInfo.DiagnosticInfo Is Nothing Then
+                        diagnostics.AddDependencies(useSiteInfo)
+                        Return New BoundFieldAccess(node.Syntax, Nothing, dtMinValue, isLValue:=False, type:=dtMinValue.Type)
+                    End If
                 End If
             End If
 

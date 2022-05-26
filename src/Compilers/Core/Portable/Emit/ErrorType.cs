@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -166,6 +170,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return null;
         }
 
+        Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
+
         string Cci.INamedEntity.Name
         {
             get
@@ -174,13 +180,25 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        public sealed override bool Equals(object obj)
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
+        public sealed override int GetHashCode()
+        {
+            // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+        }
+
         /// <summary>
         /// A fake containing assembly for an ErrorType object.
         /// </summary>
         private sealed class ErrorAssembly : Cci.IAssemblyReference
         {
             public static readonly ErrorAssembly Singleton = new ErrorAssembly();
-            
+
             /// <summary>
             /// For the name we will use a word "Error" followed by a guid, generated on the spot.
             /// </summary>
@@ -215,6 +233,8 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 return null;
             }
+
+            Symbols.ISymbolInternal Cci.IReference.GetInternalSymbol() => null;
 
             string Cci.INamedEntity.Name => s_identity.Name;
         }

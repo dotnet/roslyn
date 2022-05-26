@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,47 +8,54 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
         private class GenerateEqualsAndGetHashCodeWithDialogCodeAction : CodeActionWithOptions
         {
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
-            private readonly AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
+            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
+            private readonly SyntaxNode _typeDeclaration;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
             private readonly ImmutableArray<PickMembersOption> _pickMembersOptions;
-            private readonly TextSpan _textSpan;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
+                GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
-                TextSpan textSpan,
+                SyntaxNode typeDeclaration,
                 INamedTypeSymbol containingType,
                 ImmutableArray<ISymbol> viableMembers,
                 ImmutableArray<PickMembersOption> pickMembersOptions,
+                CleanCodeGenerationOptionsProvider fallbackOptions,
                 bool generateEquals = false,
                 bool generateGetHashCode = false)
             {
                 _service = service;
                 _document = document;
+                _typeDeclaration = typeDeclaration;
                 _containingType = containingType;
                 _viableMembers = viableMembers;
                 _pickMembersOptions = pickMembersOptions;
-                _textSpan = textSpan;
+                _fallbackOptions = fallbackOptions;
                 _generateEquals = generateEquals;
                 _generateGetHashCode = generateGetHashCode;
             }
 
+            public override string EquivalenceKey => Title;
+
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetService<IPickMembersService>();
+                var service = _service._pickMembersService_forTestingPurposes ?? _document.Project.Solution.Workspace.Services.GetRequiredService<IPickMembersService>();
                 return service.PickMembers(FeaturesResources.Pick_members_to_be_used_in_Equals_GetHashCode,
                     _viableMembers, _pickMembersOptions);
             }
@@ -56,36 +65,34 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 var result = (PickMembersResult)options;
                 if (result.IsCanceled)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
 
                 // If we presented the user any options, then persist whatever values
-                // the user chose.  That way we'll keep that as the default for the 
+                // the user chose to the global options.  That way we'll keep that as the default for the
                 // next time the user opens the dialog.
-                var workspace = _document.Project.Solution.Workspace;
                 var implementIEqutableOption = result.Options.FirstOrDefault(o => o.Id == ImplementIEquatableId);
-                if (implementIEqutableOption != null)
-                {
-                    workspace.Options = workspace.Options.WithChangedOption(
-                        GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable,
-                        _document.Project.Language,
-                        implementIEqutableOption.Value);
-                }
-
                 var generateOperatorsOption = result.Options.FirstOrDefault(o => o.Id == GenerateOperatorsId);
-                if (generateOperatorsOption != null)
+                if (generateOperatorsOption != null || implementIEqutableOption != null)
                 {
-                    workspace.Options = workspace.Options.WithChangedOption(
-                        GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators,
-                        _document.Project.Language,
-                        generateOperatorsOption.Value);
+                    var globalOptions = _document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+
+                    if (generateOperatorsOption != null)
+                    {
+                        globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, generateOperatorsOption.Value);
+                    }
+
+                    if (implementIEqutableOption != null)
+                    {
+                        globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersImplementIEquatable(_document.Project.Language, implementIEqutableOption.Value);
+                    }
                 }
 
-                var implementIEquatable = (implementIEqutableOption?.Value).GetValueOrDefault();
-                var generatorOperators = (generateOperatorsOption?.Value).GetValueOrDefault();
+                var implementIEquatable = implementIEqutableOption?.Value ?? false;
+                var generatorOperators = generateOperatorsOption?.Value ?? false;
 
                 var action = new GenerateEqualsAndGetHashCodeAction(
-                    _service, _document, _textSpan, _containingType, result.Members, 
+                    _document, _typeDeclaration, _containingType, result.Members, _fallbackOptions,
                     _generateEquals, _generateGetHashCode, implementIEquatable, generatorOperators);
                 return await action.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             }

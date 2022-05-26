@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.Globalization
@@ -18,7 +20,6 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.PdbUtilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class ExpressionCompilerTests
@@ -2033,7 +2034,7 @@ End Function, Func(Of E(Of T)))()")
             Assert.Equal(locals.Length, 2)
             ' All locals of type E(Of T) with type argument T from <>x(Of T).
             For Each local In locals
-                Dim localType = DirectCast(local.Type, NamedTypeSymbol)
+                Dim localType = DirectCast(local.Type.GetInternalSymbol(), NamedTypeSymbol)
                 Dim typeArg = localType.TypeArguments(0)
                 Assert.Equal(typeArg.ContainingSymbol, containingType.ContainingType)
             Next
@@ -2088,7 +2089,7 @@ End Class"
             Assert.Equal(returnType.ContainingSymbol, method)
 
             Dim locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder()
-            Assert.Equal(method, DirectCast(locals.Single().Type, TypeSymbol).ContainingSymbol)
+            Assert.Equal(method, DirectCast(locals.Single().Type.GetInternalSymbol(), TypeSymbol).ContainingSymbol)
 
             testData.GetMethodData("<>x.<>m0").VerifyIL("
 {
@@ -2144,13 +2145,13 @@ End Class"
 }
 "
                     AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
-                    Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method.GetCciAdapter(), Cci.IMethodDefinition)).CallingConvention)
 
                     context = CreateMethodContext(runtime, "A.B.M2")
                     testData = New CompilationTestData()
                     context.CompileExpression("If(GetType(T), GetType(U))", errorMessage, testData)
                     methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0")
-                    Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method.GetCciAdapter(), Cci.IMethodDefinition)).CallingConvention)
                 End Sub)
         End Sub
 
@@ -2285,7 +2286,7 @@ End Class"
   IL_0000:  ldc.i4.5
   IL_0001:  newarr     ""Integer""
   IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.1036C5F8EF306104BD582D73E555F4DAE8EECB24""
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384""
   IL_000c:  call       ""Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_0011:  ret
 }")
@@ -3721,7 +3722,7 @@ Class C
 End Class"
             Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
 
-            Using pinnedMetadata = New PinnedBlob(CommonResources.NoValidTables)
+            Using pinnedMetadata = New PinnedBlob(TestResources.ExpressionCompiler.NoValidTables)
                 Dim corruptMetadata = ModuleInstance.Create(pinnedMetadata.Pointer, pinnedMetadata.Size, moduleVersionId:=Nothing)
                 Dim runtime = CreateRuntimeInstance({corruptMetadata, comp.ToModuleInstance(), MscorlibRef.ToModuleInstance()})
 

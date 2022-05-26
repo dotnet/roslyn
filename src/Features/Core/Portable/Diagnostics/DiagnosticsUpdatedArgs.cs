@@ -1,43 +1,56 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Common;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal class DiagnosticsUpdatedArgs : UpdatedEventArgs
+    internal sealed class DiagnosticsUpdatedArgs : UpdatedEventArgs
     {
         public DiagnosticsUpdatedKind Kind { get; }
-        public Solution Solution { get; }
-        public ImmutableArray<DiagnosticData> Diagnostics { get; }
+        public Solution? Solution { get; }
+
+        private readonly ImmutableArray<DiagnosticData> _diagnostics;
 
         private DiagnosticsUpdatedArgs(
             object id,
             Workspace workspace,
-            Solution solution,
-            ProjectId projectId,
-            DocumentId documentId,
+            Solution? solution,
+            ProjectId? projectId,
+            DocumentId? documentId,
             ImmutableArray<DiagnosticData> diagnostics,
             DiagnosticsUpdatedKind kind)
-                : base(id, workspace, projectId, documentId)
+            : base(id, workspace, projectId, documentId)
         {
-            Solution = solution;
-            Diagnostics = diagnostics;
-            Kind = kind;
+            // TODO: This assert fails for EditAndContinueDiagnosticUpdateSource. See https://github.com/dotnet/roslyn/issues/36246.
+            // Debug.Assert(diagnostics.All(d => d.ProjectId == projectId && d.DocumentId == documentId));
 
-            if (kind == DiagnosticsUpdatedKind.DiagnosticsRemoved)
-            {
-                Debug.Assert(diagnostics.IsEmpty);
-            }
+            Debug.Assert(kind != DiagnosticsUpdatedKind.DiagnosticsRemoved || diagnostics.IsEmpty);
+
+            Solution = solution;
+            Kind = kind;
+            _diagnostics = diagnostics;
         }
+
+        /// <summary>
+        /// Gets all the diagnostics for this event, regardless if this is for pull or push diagnostics.  Most clients
+        /// should not use this.  The only clients that should are ones that are aggregating the values transparently
+        /// and then forwarding on later on to other clients that will make this decision.
+        /// </summary>
+        /// <returns></returns>
+        public ImmutableArray<DiagnosticData> GetAllDiagnosticsRegardlessOfPushPullSetting()
+            => _diagnostics;
 
         public static DiagnosticsUpdatedArgs DiagnosticsCreated(
             object id,
             Workspace workspace,
-            Solution solution,
-            ProjectId projectId,
-            DocumentId documentId,
+            Solution? solution,
+            ProjectId? projectId,
+            DocumentId? documentId,
             ImmutableArray<DiagnosticData> diagnostics)
         {
             return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, diagnostics, DiagnosticsUpdatedKind.DiagnosticsCreated);
@@ -46,30 +59,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static DiagnosticsUpdatedArgs DiagnosticsRemoved(
             object id,
             Workspace workspace,
-            Solution solution,
-            ProjectId projectId,
-            DocumentId documentId)
+            Solution? solution,
+            ProjectId? projectId,
+            DocumentId? documentId)
         {
             return new DiagnosticsUpdatedArgs(id, workspace, solution, projectId, documentId, ImmutableArray<DiagnosticData>.Empty, DiagnosticsUpdatedKind.DiagnosticsRemoved);
         }
-    }
-
-    internal enum DiagnosticsUpdatedKind
-    {
-        /// <summary>
-        /// Called when the diagnostic analyzer engine decides to remove existing diagnostics.
-        /// For example, this can happen when a document is removed from a solution.  In that
-        /// case the analyzer engine will delete all diagnostics associated with that document.
-        /// Any layers caching diagnostics should listen for these events to know when to 
-        /// delete their cached items entirely.
-        /// </summary>
-        DiagnosticsRemoved,
-
-        /// <summary>
-        /// Called when a new set of (possibly empty) diagnostics have been produced.  This
-        /// happens through normal editing and processing of files as diagnostic analyzers
-        /// produce new diagnostics for documents and projects.
-        /// </summary>
-        DiagnosticsCreated,
     }
 }

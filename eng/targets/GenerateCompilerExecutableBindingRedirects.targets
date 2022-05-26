@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!--
+    The inclusion of this file will cause the resulting .exe.config to contain redirects for all non-framework dependencies,
+    which is needed for plugins loaded into the compiler (e.g. analyzers) that might target lower versions of these dependencies. 
+  -->
+  <PropertyGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <Target Name="_SuggestBindingRedirectsForNonFrameworkDependencies"
+          BeforeTargets="GenerateBindingRedirects"
+          DependsOnTargets="ResolveAssemblyReferences"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <ItemGroup>
+      <!-- Note: ReferencePath.Version can be missing for design time builds prior to the first full build. -->
+      <SuggestedBindingRedirects Include="@(ReferencePath->'%(FusionName)')" MaxVersion="%(ReferencePath.Version)" KeepMetadata="-none-" Condition="'%(ReferencePath.FrameworkFile)' != 'true' and '%(ReferencePath.Version)' != ''" />
+    </ItemGroup>
+  </Target>
+</Project>

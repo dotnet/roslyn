@@ -1,6 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -399,7 +402,7 @@ class C
                      select/*3*/ d.Key.c;
         Console.WriteLine(ExpressionPrinter.Print(result.Expression));
     }
-}" }, 
+}" },
 
 // The exact result of this test isn't important, only that it was unchanged
 // by making AnonymousFunction conversions be side-affecting in the local rewriter
@@ -644,9 +647,9 @@ class Program : TestBase
                 new string[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
-        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
-        [Fact]
 
+        [WorkItem(544027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544027")]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonymousCreation()
         {
             var source =
@@ -666,9 +669,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544028, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544028")]
         [Fact]
-
         public void ArrayIndex()
         {
             var source =
@@ -692,9 +695,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544029, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544029")]
         [Fact]
-
         public void ArrayCreation()
         {
             var source =
@@ -717,9 +720,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544030, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544030")]
         [Fact]
-
         public void ArrayInitialization()
         {
             var source =
@@ -739,9 +742,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544112, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544112")]
         [Fact]
-
         public void CS0838ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer()
         {
             var source =
@@ -760,9 +763,9 @@ class Program
                     Diagnostic(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, "new[,] {{ i }}")
                 );
         }
+
         [WorkItem(544031, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544031")]
         [Fact]
-
         public void ArrayLength()
         {
             var source =
@@ -785,9 +788,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: @"k");
         }
+
         [WorkItem(544032, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544032")]
         [Fact]
-
         public void AsOperator()
         {
             var source =
@@ -807,9 +810,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544034, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544034")]
         [Fact]
-
         public void BaseReference()
         {
             var source =
@@ -915,9 +918,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544036")]
         [Fact]
-
         public void Subtract()
         {
             var source =
@@ -970,9 +973,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544037, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544037")]
         [Fact]
-
         public void Divide()
         {
             var source =
@@ -1022,9 +1025,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544038")]
         [Fact]
-
         public void Remainder()
         {
             var source =
@@ -1074,9 +1077,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544041, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544041")]
         [Fact]
-
         public void And()
         {
             var source =
@@ -1126,9 +1129,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544042, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544042")]
         [Fact]
-
         public void ExclusiveOr()
         {
             var source =
@@ -1178,9 +1181,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544043")]
         [Fact]
-
         public void BitwiseOr()
         {
             var source =
@@ -1230,9 +1233,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544039, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544039"), WorkItem(544040, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544040")]
         [Fact]
-
         public void MoreBinaryOperators()
         {
             var source =
@@ -1276,9 +1279,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544059")]
         [Fact]
-
         public void UnaryOperators()
         {
             var source =
@@ -1325,8 +1328,8 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
-        [Fact]
 
+        [Fact]
         public void GrabBag01()
         {
             var source =
@@ -1387,9 +1390,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "123k");
         }
+
         [WorkItem(546147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546147")]
         [Fact]
-
         public void DelegateInvoke()
         {
             var source =
@@ -1411,8 +1414,9 @@ class P
 @"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
 () => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
-        [Fact]
 
+        [Fact]
+        [WorkItem(10838, "https://github.com/mono/mono/issues/10838")]
         public void GrabBag02()
         {
             var source =
@@ -1510,8 +1514,8 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
-        [Fact]
 
+        [Fact]
         public void UnsafeExprTree()
         {
             var source =
@@ -1539,9 +1543,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsPointerOp, "sizeof(S)")
             );
         }
+
         [WorkItem(544044, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544044")]
         [Fact]
-
         public void CollectionInitialization()
         {
             var source =
@@ -1561,9 +1565,9 @@ class Program : TestBase
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544390, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544390")]
         [Fact]
-
         public void ObjectInitialization()
         {
             var source =
@@ -1629,8 +1633,8 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssign
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput);
         }
-        [Fact]
 
+        [Fact]
         public void Lambda()
         {
             var source =
@@ -1658,9 +1662,9 @@ partial class Program
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: "k");
         }
+
         [WorkItem(544218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544218")]
         [Fact]
-
         public void Linq()
         {
             var source =
@@ -1683,8 +1687,8 @@ class A
                 new[] { source },
                 expectedOutput: "s => s.SelectMany(x => s, (x, y) => new <>f__AnonymousType0`2(x = x, y = y)).OrderByDescending(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x).Select(<>h__TransparentIdentifier0 => <>h__TransparentIdentifier0.x)");
         }
-        [Fact]
 
+        [Fact]
         public void Enum()
         {
             var source =
@@ -1833,7 +1837,7 @@ class Test
         }
 
         [WorkItem(544226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544226")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void BinaryAddOperandTypesDelegate()
         {
             var text = @"
@@ -1969,6 +1973,46 @@ class Test
                 expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
+        [Fact]
+        public void DiscardParameters()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+
+class Test
+{
+    public static void Main()
+    {
+        Expression<Func<int, long, string>> e = (_, _) => null;
+        ExpressionVisitor ev = new ExpressionVisitor();
+        ev.Visit(e);
+
+        Console.Write(ev.toStr);
+    }
+}";
+            string expectedOutput = @"                            
+                        Lambda:
+                            Type->System.Func`3[System.Int32,System.Int64,System.String]
+                            Parameters->
+                                Parameter:
+                                    Type->System.Int32
+                                    Name->_
+                                Parameter:
+                                    Type->System.Int64
+                                    Name->_
+                            Body->
+                                Constant:
+                                    Type->System.String
+                                    Value->
+";
+
+            CompileAndVerifyUtil(
+                new[] { text, TreeWalkerLib },
+                parseOptions: TestOptions.Regular9,
+                expectedOutput: TrimExpectedOutput(expectedOutput));
+        }
+
         [WorkItem(544213, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544213")]
         [Fact]
         public void DelegateInvocation()
@@ -2046,7 +2090,7 @@ class Test
         }
 
         [WorkItem(544222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544222")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CoalesceWithImplicitUDC()
         {
             var text =
@@ -2235,7 +2279,7 @@ Lambda:
         }
 
         [WorkItem(544241, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544241")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ArrayIndexTypeLong()
         {
             var text =
@@ -2317,7 +2361,7 @@ class Program
 
 
         [WorkItem(544276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544276")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void UnsafeParamTypeInDelegate()
         {
             var text = @"
@@ -2555,7 +2599,7 @@ public class Test
             CompileAndVerifyUtil(text, expectedOutput: "45");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void AnonTypes2()
         {
             var text =
@@ -3073,9 +3117,10 @@ unsafe class Test
     }
 }";
 
+            // PEVerify: [ : Test::Main][mdToken=0x6000001][offset 0x00000009][found Native Int][expected unmanaged pointer] Unexpected type on the stack.
             var c = CompileAndVerifyUtil(text,
                 options: TestOptions.UnsafeReleaseDll,
-                verify: Verification.Fails);
+                verify: Verification.FailsPEVerify);
 
             c.VerifyDiagnostics();
         }
@@ -3186,7 +3231,7 @@ public class A
         }
 
         [WorkItem(544403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544403")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void ConditionalWithOperandTypesObjectArrAndStringArr()
         {
             var text =
@@ -3379,7 +3424,6 @@ Lambda:
                  expectedOutput: TrimExpectedOutput(expectedOutput));
         }
 
-
         [WorkItem(544442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544442")]
         [WorkItem(4593, "https://github.com/dotnet/roslyn/issues/4593")]
         [Fact]
@@ -3445,7 +3489,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { MscorlibRef, SystemCoreRef },
+                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
@@ -5072,7 +5116,7 @@ namespace ConsoleApplication1
     }
 
 }";
-            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Convert(Constant(null Type:System.Object) Lifted LiftedToNull Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
+            string expectedOutput = "Equal(Convert(MemberAccess(Parameter(x Type:ConsoleApplication1.MyType).YesNo Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Convert(Constant(null Type:System.Nullable`1[ConsoleApplication1.YesNo]) Lifted LiftedToNull Type:System.Nullable`1[System.Int32]) Lifted Type:System.Boolean)";
             CompileAndVerifyUtil(
                 new[] { source, ExpressionTestLibrary },
                 expectedOutput: expectedOutput,
@@ -5112,7 +5156,7 @@ Convert(Not(Convert(Parameter(x Type:Test+Color) Type:System.Int32) Type:System.
         }
 
         [WorkItem(531382, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531382")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestExecutionNeedsDesktopTypes)]
         public void IndexerIsIndexedProperty()
         {
             var source1 =
@@ -5151,7 +5195,7 @@ class Program
         }
 
         [WorkItem(579711, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/579711")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void CheckedEnumConversion()
         {
             var text =
@@ -5924,7 +5968,7 @@ public class Program
         }
 
         [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions001()
         {
             const string source = @"
@@ -5963,7 +6007,7 @@ class C //: TestBase
         }
 
         [WorkItem(3292, "https://github.com/dotnet/roslyn/issues/3292")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/30160")]
         public void EnumConversions002()
         {
             const string source = @"
@@ -6195,7 +6239,7 @@ class C : TestBase
 
         #region helpers
 
-        public string TrimExpectedOutput(string expectedOutput)
+        private static string TrimExpectedOutput(string expectedOutput)
         {
             char[] delimit = { '\n' };
             string trimmedOutput = null;

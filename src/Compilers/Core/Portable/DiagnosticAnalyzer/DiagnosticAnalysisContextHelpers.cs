@@ -1,10 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
+using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -29,7 +34,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifySyntaxKinds(syntaxKinds);
         }
 
-        internal static void VerifyArguments(Diagnostic diagnostic, Compilation compilationOpt, Func<Diagnostic, bool> isSupportedDiagnostic)
+        internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<OperationKind> operationKinds)
+        {
+            VerifyAction(action);
+            VerifyOperationKinds(operationKinds);
+        }
+
+        internal static void VerifyArguments(Diagnostic diagnostic, Compilation? compilation, Func<Diagnostic, bool> isSupportedDiagnostic)
         {
             if (diagnostic is DiagnosticWithInfo)
             {
@@ -42,9 +53,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(diagnostic));
             }
 
-            if (compilationOpt != null)
+            if (compilation != null)
             {
-                VerifyDiagnosticLocationsInCompilation(diagnostic, compilationOpt);
+                VerifyDiagnosticLocationsInCompilation(diagnostic, compilation);
             }
 
             if (!isSupportedDiagnostic(diagnostic))
@@ -69,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 foreach (var location in diagnostic.AdditionalLocations)
                 {
-                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, diagnostic.Location, compilation);
+                    VerifyDiagnosticLocationInCompilation(diagnostic.Id, location, compilation);
                 }
             }
         }
@@ -81,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
+            Debug.Assert(location.SourceTree != null);
             if (!compilation.ContainsSyntaxTree(location.SourceTree))
             {
                 // Disallow diagnostics with source locations outside this compilation.
@@ -99,12 +111,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
-            }
-
-            // Disallow async methods to be registered.
-            if (action.GetMethodInfo().IsDefined(typeof(AsyncStateMachineAttribute)))
-            {
-                throw new ArgumentException(CodeAnalysisResources.AsyncAnalyzerActionCannotBeRegistered, nameof(action));
             }
         }
 
@@ -135,6 +141,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        private static void VerifyOperationKinds(ImmutableArray<OperationKind> operationKinds)
+        {
+            if (operationKinds.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(operationKinds));
+            }
+
+            if (operationKinds.IsEmpty)
+            {
+                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(operationKinds));
+            }
+        }
+
         internal static void VerifyArguments<TKey, TValue>(TKey key, AnalysisValueProvider<TKey, TValue> valueProvider)
             where TKey : class
         {
@@ -147,6 +166,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new ArgumentNullException(nameof(valueProvider));
             }
+        }
+
+        internal static ControlFlowGraph GetControlFlowGraph(IOperation operation, Func<IOperation, ControlFlowGraph>? getControlFlowGraph, CancellationToken cancellationToken)
+        {
+            IOperation rootOperation = operation.GetRootOperation();
+            return getControlFlowGraph != null ?
+                getControlFlowGraph(rootOperation) :
+                ControlFlowGraph.CreateCore(rootOperation, nameof(rootOperation), cancellationToken);
         }
     }
 }

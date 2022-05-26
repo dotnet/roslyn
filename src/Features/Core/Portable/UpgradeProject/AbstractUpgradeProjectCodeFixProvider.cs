@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.UpgradeProject
@@ -16,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
     {
         public abstract string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics);
         public abstract Solution UpgradeProject(Project project, string version);
-        public abstract bool IsUpgrade(ParseOptions projectOptions, string newVersion);
+        public abstract bool IsUpgrade(Project project, string newVersion);
         public abstract string UpgradeThisProjectResource { get; }
         public abstract string UpgradeAllProjectsResource { get; }
 
@@ -30,28 +35,37 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         {
             var diagnostics = context.Diagnostics;
 
-            context.RegisterFixes(GetUpgradeProjectCodeActionsAsync(context), diagnostics);
+            context.RegisterFixes(GetUpgradeProjectCodeActions(context), diagnostics);
             return Task.CompletedTask;
         }
 
-        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActions(CodeFixContext context)
         {
             var project = context.Document.Project;
             var solution = project.Solution;
             var newVersion = SuggestedVersion(context.Diagnostics);
+
             var result = new List<CodeAction>();
             var language = project.Language;
 
+            var upgradeableProjects = solution.Projects.Where(p => CanUpgrade(p, language, newVersion)).AsImmutable();
+
+            if (upgradeableProjects.Length == 0)
+            {
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
             var fixOneProjectTitle = string.Format(UpgradeThisProjectResource, newVersion);
-            var fixOneProject = new ParseOptionsChangeAction(fixOneProjectTitle,
+            var fixOneProject = new ProjectOptionsChangeAction(fixOneProjectTitle,
                 _ => Task.FromResult(UpgradeProject(project, newVersion)));
 
             result.Add(fixOneProject);
-            if (solution.Projects.Count(p => CanUpgrade(p, language, newVersion)) > 1)
+
+            if (upgradeableProjects.Length > 1)
             {
                 var fixAllProjectsTitle = string.Format(UpgradeAllProjectsResource, newVersion);
 
-                var fixAllProjects = new ParseOptionsChangeAction(fixAllProjectsTitle,
+                var fixAllProjects = new ProjectOptionsChangeAction(fixAllProjectsTitle,
                     ct => Task.FromResult(UpgradeAllProjects(solution, language, newVersion, ct)));
 
                 result.Add(fixAllProjects);
@@ -78,19 +92,17 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
 
         private bool CanUpgrade(Project project, string language, string version)
-        {
-            return project.Language == language && IsUpgrade(project.ParseOptions, version);
-        }
+            => project.Language == language && IsUpgrade(project, version);
     }
 
-    internal class ParseOptionsChangeAction : SolutionChangeAction
+    internal class ProjectOptionsChangeAction : SolutionChangeAction
     {
-        public ParseOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
+        public ProjectOptionsChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
             : base(title, createChangedSolution, equivalenceKey: null)
         {
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-            => Task.FromResult(Enumerable.Empty<CodeActionOperation>());
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
 }

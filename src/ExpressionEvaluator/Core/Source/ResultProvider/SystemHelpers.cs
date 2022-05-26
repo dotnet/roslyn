@@ -1,4 +1,8 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
 
 // A few dependencies from System.dll -- we want to avoid referencing the entire System.dll.
 
@@ -7,7 +11,13 @@ namespace System.Diagnostics
     internal static class Debug
     {
         [Conditional("DEBUG")]
-        public static void Assert(bool condition, string message = null)
+        public static void Assert(bool condition)
+        {
+            Assert(condition, null);
+        }
+
+        [Conditional("DEBUG")]
+        public static void Assert(bool condition, string message)
         {
             if (!condition)
             {

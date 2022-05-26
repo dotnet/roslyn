@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -1634,7 +1636,7 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub ImplementsClause3()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -1667,7 +1669,7 @@ End Class
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(2, semanticSummary.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub I1.goo(x As System.Int32)", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub I1.goo(x As System.Int32, y As System.Int32)", sortedCandidates(1).ToTestDisplayString())
@@ -2614,7 +2616,7 @@ End Class
             Assert.False(iSymbol.IsShared)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub IncompleteWriteLine()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -2667,15 +2669,15 @@ End Module
             Assert.Equal(SymbolKind.Method, sortedCandidates(11).Kind)
 
             Assert.Equal(19, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.InvariantCulture).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.Console.WriteLine()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char())", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(buffer As System.Char(), index As System.Int32, count As System.Int32)", sortedMethodGroup(2).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object)", sortedMethodGroup(3).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)", sortedMethodGroup(4).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object)", sortedMethodGroup(5).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object, arg3 As System.Object)", sortedMethodGroup(6).ToTestDisplayString())
-            Assert.Equal("Sub System.Console.WriteLine(format As System.String, ParamArray arg As System.Object())", sortedMethodGroup(7).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, ParamArray arg As System.Object())", sortedMethodGroup(3).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object)", sortedMethodGroup(4).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object)", sortedMethodGroup(5).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object)", sortedMethodGroup(6).ToTestDisplayString())
+            Assert.Equal("Sub System.Console.WriteLine(format As System.String, arg0 As System.Object, arg1 As System.Object, arg2 As System.Object, arg3 As System.Object)", sortedMethodGroup(7).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(value As System.Boolean)", sortedMethodGroup(8).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(value As System.Char)", sortedMethodGroup(9).ToTestDisplayString())
             Assert.Equal("Sub System.Console.WriteLine(value As System.Decimal)", sortedMethodGroup(10).ToTestDisplayString())
@@ -2723,7 +2725,7 @@ End Module
             Assert.Null(semanticInfo.ConstantValue.Value)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub FailedConstructorCall()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -2757,7 +2759,7 @@ End Class
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub FailedConstructorCall2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -3784,7 +3786,7 @@ End Namespace
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AttributeSemanticInfo_OverloadResolutionFailure_01()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -3805,7 +3807,7 @@ Imports System
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(3, semanticSummary.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedCandidates(1).ToTestDisplayString())
@@ -3816,7 +3818,7 @@ Imports System
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(3, semanticSummary.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -3824,7 +3826,7 @@ Imports System
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AttributeSemanticInfo_OverloadResolutionFailure_02()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -3843,7 +3845,7 @@ Imports System
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticSummary.CandidateReason)
             Assert.Equal(3, semanticSummary.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticSummary.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, sortedCandidates(0).Kind)
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedCandidates(1).ToTestDisplayString())
@@ -3854,7 +3856,7 @@ Imports System
             Assert.Null(semanticSummary.Alias)
 
             Assert.Equal(3, semanticSummary.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticSummary.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -4600,7 +4602,7 @@ End Class
 
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <WorkItem(541567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541567")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub NoMatchingOverloads2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -4671,7 +4673,7 @@ End Class
         End Sub
 
         <WorkItem(541567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541567")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub NoMatchingOverloads4()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
@@ -4721,7 +4723,7 @@ End Class
             Assert.Null(semanticInfo.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason)
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length)
-            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedCandidates = semanticInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Property C1.P1(x As System.Int32) As System.String", sortedCandidates(0).ToTestDisplayString())
             Assert.Equal(SymbolKind.Property, sortedCandidates(0).Kind)
             Assert.Equal("Property C1.P1(x As System.Int32, y As System.Int32) As System.String", sortedCandidates(1).ToTestDisplayString())
@@ -5774,7 +5776,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, {ExtensionAssemblyRef})
+</compilation>, {TestMetadata.Net40.SystemCore})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7528,7 +7530,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
+</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7754,7 +7756,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {SystemCoreRef}, TestOptions.ReleaseExe)
+</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of GenericNameSyntax)(compilation, "a.vb")
 
@@ -7777,7 +7779,8 @@ Module Module1
 
 End Module
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
             compilation.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
@@ -7803,7 +7806,8 @@ Module Module1
 
 End Module
         </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+
             compilation.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
@@ -8219,7 +8223,7 @@ End Class
             Assert.Equal("Function System.Diagnostics.Stopwatch.StartNew() As System.Diagnostics.Stopwatch", sortedMethodGroup(0).ToTestDisplayString())
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub FailedOverloadResolutionOnCallShouldHaveMemberGroup()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9622,7 +9626,7 @@ BC30375: 'New' cannot be used on an interface.
         End Sub
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9661,7 +9665,7 @@ End Class
 
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_02_AttributeSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9685,7 +9689,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -9698,7 +9702,7 @@ End Class
 
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_02_IdentifierNameSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
@@ -9721,7 +9725,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -9734,7 +9738,7 @@ End Class
 
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_03_AttributeSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
             <compilation>
@@ -9757,7 +9761,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())
@@ -9769,7 +9773,7 @@ End Class
         End Sub
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_03_IdentifierNameSyntax()
             Dim compilation = CreateCompilationWithMscorlib40(
           <compilation>
@@ -9792,7 +9796,7 @@ End Class
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(3, semanticInfo.MemberGroup.Length)
-            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString(), StringComparer.Ordinal).ToArray()
             Assert.Equal("Sub System.ObsoleteAttribute..ctor()", sortedMethodGroup(0).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal("Sub System.ObsoleteAttribute..ctor(message As System.String, [error] As System.Boolean)", sortedMethodGroup(2).ToTestDisplayString())

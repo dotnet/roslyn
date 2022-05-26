@@ -1,4 +1,6 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Gets a workspace specific service provided by the host identified by the service type. 
         /// If the host does not provide the service, this method returns null.
         /// </summary>
-        public abstract TWorkspaceService GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
+        public abstract TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService;
 
         /// <summary>
         /// Gets a workspace specific service provided by the host identified by the service type. 
@@ -46,8 +48,10 @@ namespace Microsoft.CodeAnalysis.Host
         }
 
         /// <summary>
-        /// A service for storing information across that can be retrieved in a separate process.
+        /// Obsolete.  Roslyn no longer supports a mechanism to perform arbitrary persistence of data.  If such functionality
+        /// is needed, consumers are resonsible for providing it themselves with whatever semantics are needed.
         /// </summary>
+        [Obsolete("Roslyn no longer exports a mechanism to perform persistence.", error: true)]
         public virtual IPersistentStorageService PersistentStorage
         {
             get { return this.GetRequiredService<IPersistentStorageService>(); }
@@ -81,17 +85,14 @@ namespace Microsoft.CodeAnalysis.Host
         /// Returns true if the language is supported.
         /// </summary>
         public virtual bool IsSupported(string languageName)
-        {
-            return false;
-        }
+            => false;
 
         /// <summary>
         /// Gets the <see cref="HostLanguageServices"/> for the language name.
         /// </summary>
+        /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
         public virtual HostLanguageServices GetLanguageServices(string languageName)
-        {
-            throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));
-        }
+            => throw new NotSupportedException(string.Format(WorkspacesResources.The_language_0_is_not_supported, languageName));
 
         public delegate bool MetadataFilter(IReadOnlyDictionary<string, object> metadata);
 

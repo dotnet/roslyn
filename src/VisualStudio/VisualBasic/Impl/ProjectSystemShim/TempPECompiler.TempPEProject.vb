@@ -1,4 +1,6 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Licensed to the .NET Foundation under one or more agreements.
+' The .NET Foundation licenses this file to you under the MIT license.
+' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -15,7 +17,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Private Class TempPEProject
             Implements IVbCompilerProject
 
-            Private ReadOnly _tempPECompiler As TempPECompiler
             Private ReadOnly _compilerHost As IVbCompilerHost
             Private ReadOnly _references As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
             Private ReadOnly _files As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
@@ -23,10 +24,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Private _parseOptions As VisualBasicParseOptions
             Private _compilationOptions As VisualBasicCompilationOptions
             Private _outputPath As String
-            Private _runtimeLibraries As List(Of String)
+            Private _runtimeLibraries As ImmutableArray(Of String)
 
-            Public Sub New(tempPECompiler As TempPECompiler, compilerHost As IVbCompilerHost)
-                _tempPECompiler = tempPECompiler
+            Public Sub New(compilerHost As IVbCompilerHost)
                 _compilerHost = compilerHost
             End Sub
 
@@ -197,16 +197,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             End Sub
 
             Public Sub SetCompilerOptions(ByRef pCompilerOptions As VBCompilerOptions) Implements IVbCompilerProject.SetCompilerOptions
-                _runtimeLibraries = VisualBasicProjectOptionsHelper.GetRuntimeLibraries(_compilerHost, pCompilerOptions)
-                _outputPath = VisualBasicProjectOptionsHelper.GetOutputPath(pCompilerOptions)
-                _parseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(Nothing, pCompilerOptions)
-                _compilationOptions = VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptionsOpt:=Nothing,
-                                                                                            newParseOptions:=_parseOptions,
-                                                                                            compilerOptions:=pCompilerOptions,
-                                                                                            compilerHost:=_compilerHost,
-                                                                                            globalImports:=Array.Empty(Of GlobalImport)(),
-                                                                                            projectDirectoryOpt:=Nothing,
-                                                                                            ruleSetOpt:=Nothing)
+                _runtimeLibraries = VisualBasicProject.OptionsProcessor.GetRuntimeLibraries(_compilerHost, pCompilerOptions)
+                _outputPath = PathUtilities.CombinePathsUnchecked(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                _parseOptions = VisualBasicProject.OptionsProcessor.ApplyVisualBasicParseOptionsFromCompilerOptions(VisualBasicParseOptions.Default, pCompilerOptions)
+
+                ' Note that we pass a "default" compilation options with DLL set as output kind; the Apply method will figure out what the right one is and fix it up
+                _compilationOptions = VisualBasicProject.OptionsProcessor.ApplyCompilationOptionsFromVBCompilerOptions(
+                    New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, parseOptions:=_parseOptions), pCompilerOptions)
             End Sub
 
             Public Sub SetModuleAssemblyName(wszName As String) Implements IVbCompilerProject.SetModuleAssemblyName

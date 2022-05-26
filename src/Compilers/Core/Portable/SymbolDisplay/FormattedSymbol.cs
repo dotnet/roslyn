@@ -1,5 +1,10 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using System;
 using System.Diagnostics;
@@ -14,10 +19,10 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class FormattedSymbol : IFormattable
     {
-        private readonly ISymbol _symbol;
+        private readonly ISymbolInternal _symbol;
         private readonly SymbolDisplayFormat _symbolDisplayFormat;
 
-        internal FormattedSymbol(ISymbol symbol, SymbolDisplayFormat symbolDisplayFormat)
+        internal FormattedSymbol(ISymbolInternal symbol, SymbolDisplayFormat symbolDisplayFormat)
         {
             Debug.Assert(symbol != null && symbolDisplayFormat != null);
 
@@ -27,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string ToString()
         {
-            return _symbol.ToDisplayString(_symbolDisplayFormat);
+            return _symbol.GetISymbol().ToDisplayString(_symbolDisplayFormat);
         }
 
         public override bool Equals(object obj)
