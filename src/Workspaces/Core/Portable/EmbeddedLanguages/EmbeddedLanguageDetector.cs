@@ -226,16 +226,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                     }
                 }
 
-                if (syntaxFacts.IsEqualsValueClause(container.Parent) &&
-                    syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
+                if (syntaxFacts.IsEqualsValueClause(container.Parent))
                 {
-                    var variableDeclarator = container.Parent.Parent;
-                    var symbol =
-                        semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
-                        semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+                    if (syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
+                    {
+                        var variableDeclarator = container.Parent.Parent;
+                        var symbol =
+                            semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                            semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
 
-                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
-                        return true;
+                        if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                            return true;
+                    }
+                    else if (syntaxFacts.IsEqualsValueOfPropertyDeclaration(container.Parent))
+                    {
+                        var property = container.Parent.GetRequiredParent();
+                        var symbol = semanticModel.GetDeclaredSymbol(property, cancellationToken);
+
+                        if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                            return true;
+                    }
                 }
             }
 
