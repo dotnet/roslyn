@@ -269,16 +269,15 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
-        // expectedOutput: "1"
-        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "1");
+        var comp = (CSharpCompilation)verifier.Compilation;
         var cs = comp.GetMembers("C");
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
         verify();
 
-        // expectedOutput: "2"
-        comp = CreateCompilation(new[] { source1, source2 + main });
+        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "2");
+        comp = (CSharpCompilation)verifier.Compilation;
         cs = comp.GetMembers("C");
         tree = comp.SyntaxTrees[1];
         expectedSymbol = cs[1];
@@ -286,7 +285,7 @@ public class FileModifierTests : CSharpTestBase
 
         void verify()
         {
-            comp.VerifyDiagnostics();
+            verifier.VerifyDiagnostics();
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
@@ -405,7 +404,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, source2, main }); // expectedOutput: 2
+        var verifier = CompileAndVerify(new[] { source1, source2, main }, expectedOutput: "2");
+        var comp = (CSharpCompilation)verifier.Compilation;
         comp.VerifyDiagnostics();
 
         var cs = comp.GetMembers("C");
@@ -470,7 +470,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, main }); // expectedOutput: 2
+        var verifier = CompileAndVerify(new[] { source1, main }, expectedOutput: "2");
+        var comp = (CSharpCompilation)verifier.Compilation;
         comp.VerifyDiagnostics();
 
         var cs = comp.GetMembers("C");
@@ -531,7 +532,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, main }); // expectedOutput: 2
+        var verifier = CompileAndVerify(new[] { source1, main }, expectedOutput: "2");
+        var comp = (CSharpCompilation)verifier.Compilation;
         comp.VerifyDiagnostics();
 
         var cs = comp.GetMembers("C");
@@ -834,16 +836,15 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
-        // expectedOutput: "1"
-        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var verifier = CompileAndVerify(new[] { source1 + main, source2 }, expectedOutput: "1");
+        var comp = (CSharpCompilation)verifier.Compilation;
         var cs = comp.GetMembers("Program.C");
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
         verify();
 
-        // expectedOutput: "2"
-        comp = CreateCompilation(new[] { source1, source2 + main });
+        verifier = CompileAndVerify(new[] { source1, source2 + main }, expectedOutput: "2");
+        comp = (CSharpCompilation)verifier.Compilation;
         cs = comp.GetMembers("Program.C");
         tree = comp.SyntaxTrees[1];
         expectedSymbol = cs[1];
@@ -909,17 +910,16 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // PROTOTYPE(ft): execute and check expectedOutput once name mangling is done
-        // expectedOutput: "1"
-        var comp = CreateCompilation(new[] { source1 + main, source2 });
+        var comp = CreateCompilation(new[] { source1 + main, source2 }, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
         var outers = comp.GetMembers("Outer");
         var cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
         var tree = comp.SyntaxTrees[0];
         var expectedSymbol = cs[0];
         verify();
 
-        // expectedOutput: "2"
-        comp = CreateCompilation(new[] { source1, source2 + main });
+        comp = CreateCompilation(new[] { source1, source2 + main }, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
         outers = comp.GetMembers("Outer");
         cs = outers.Select(o => ((NamedTypeSymbol)o).GetMember("C")).ToArray();
         tree = comp.SyntaxTrees[1];
@@ -928,7 +928,6 @@ public class FileModifierTests : CSharpTestBase
 
         void verify()
         {
-            comp.VerifyDiagnostics();
             Assert.Equal(2, cs.Length);
             Assert.Equal(comp.SyntaxTrees[0], cs[0].DeclaringSyntaxReferences.Single().SyntaxTree);
             Assert.Equal(comp.SyntaxTrees[1], cs[1].DeclaringSyntaxReferences.Single().SyntaxTree);
@@ -1336,8 +1335,9 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, source2 }); // PROTOTYPE(ft): expectedOutput: 2
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
+        verifier.VerifyDiagnostics();
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[1];
         var model = comp.GetSemanticModel(tree);
@@ -1375,8 +1375,9 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source1, source2 }); // PROTOTYPE(ft): expectedOutput: 1
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[1];
         var model = comp.GetSemanticModel(tree);
@@ -1942,13 +1943,9 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
-        // verifier.VerifyDiagnostics();
-        // var comp = (CSharpCompilation)verifier.Compilation;
-
-        // PROTOTYPE(ft): replace the following with the above commented lines once name mangling is done
-        var comp = CreateCompilation(new[] { source1, source2 });
-        comp.VerifyDiagnostics();
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -1994,16 +1991,12 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        // var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
-        // verifier.VerifyDiagnostics();
-        // var comp = (CSharpCompilation)verifier.Compilation;
-
-        // PROTOTYPE(ft): replace the following with the above commented lines once name mangling is done
-        var comp = CreateCompilation(new[] { source1, source2 });
-        comp.VerifyDiagnostics(
+        var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
+        verifier.VerifyDiagnostics(
             // (2,1): hidden CS8019: Unnecessary using directive.
             // using static C;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C;").WithLocation(2, 1));
+        var comp = (CSharpCompilation)verifier.Compilation;
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);

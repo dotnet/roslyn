@@ -756,6 +756,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE(ft): enable nullable
+        string Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return AdaptedNamedTypeSymbol.AssociatedFileIdentifier;
+            }
+        }
+
         string Cci.INamedEntity.Name
         {
             get

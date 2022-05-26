@@ -925,9 +925,19 @@ namespace Microsoft.Cci
         {
             string unmangledName = (generation == 0) ? namedType.Name : namedType.Name + "#" + generation;
 
-            return namedType.MangleName
-                ? MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount)
-                : unmangledName;
+            if (!namedType.MangleName)
+            {
+                Debug.Assert(namedType.AssociatedFileIdentifier is null);
+                return unmangledName;
+            }
+
+            // PROTOTYPE(ft): can we consolidate this?
+            // PROTOTYPE(ft): do we need to care about forwarding scenarios?
+            var prefix = namedType.AssociatedFileIdentifier is string id
+                ? $"<>{id}_"
+                : "";
+            return prefix + MetadataHelpers.ComposeAritySuffixedMetadataName(unmangledName, namedType.GenericParameterCount);
+
         }
 
         internal MemberReferenceHandle GetMemberReferenceHandle(ITypeMemberReference memberRef)

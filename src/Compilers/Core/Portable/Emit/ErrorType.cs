@@ -55,6 +55,15 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        // PROTOTYPE(ft): enable nullable
+        string Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         bool Cci.ITypeReference.IsEnum
         {
             get

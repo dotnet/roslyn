@@ -40,6 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
+        // PROTOTYPE(ft): enable nullable
+        string Cci.INamedTypeReference.AssociatedFileIdentifier
+        {
+            get
+            {
+                return UnderlyingNamedType.AssociatedFileIdentifier;
+            }
+        }
+
         string Cci.INamedEntity.Name
         {
             get

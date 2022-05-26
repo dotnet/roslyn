@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -487,6 +488,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Intentionally no default implementation to force consideration of appropriate implementation for each new subclass
             get;
+        }
+
+        // PROTOTYPE(ft): should we have proper virtuals here? or maybe just have a proper IsFile API on NamedTypeSymbol?
+        // PROTOTYPE(fT): enable nullable
+        internal string AssociatedFileIdentifier
+        {
+            get
+            {
+                if (this is not SourceMemberContainerTypeSymbol { IsFile: true } fileType)
+                {
+                    return null;
+                }
+                var tree = fileType.Locations[0].SourceTree;
+                var ordinal = fileType.DeclaringCompilation.GetSyntaxTreeOrdinal(tree);
+                var fileName = Path.GetFileNameWithoutExtension(tree.FilePath);
+                return $"{ordinal}_{fileName}";
+            }
         }
 
         /// <summary>
