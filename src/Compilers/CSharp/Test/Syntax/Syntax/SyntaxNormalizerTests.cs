@@ -1307,7 +1307,6 @@ class Derived : Base
             TestNormalizeDeclaration(Text, Expected);
         }
 
-
         [Fact]
         [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
         public void TestNormalizeNestedUsingStatements1()
@@ -1321,6 +1320,29 @@ class Derived : Base
             TestNormalizeStatement("using(a){using(b)using(c)d;}", "using (a)\r\n{\r\n  using (b)\r\n  using (c)\r\n    d;\r\n}");
             TestNormalizeStatement("using(a)using(b){using(c)d;}", "using (a)\r\nusing (b)\r\n{\r\n  using (c)\r\n    d;\r\n}");
             TestNormalizeStatement("using(a){using(b){using(c)d;}}", "using (a)\r\n{\r\n  using (b)\r\n  {\r\n    using (c)\r\n      d;\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedFixedStatements1()
+        {
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)c;", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n  c;");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null){c;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n{\r\n  c;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)fixed(int* c = null)d;", "fixed (int* a = null)\r\nfixed (int* b = null)\r\nfixed (int* c = null)\r\n  d;");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null)fixed(int* c = null){d;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\nfixed (int* c = null)\r\n{\r\n  d;\r\n}");
+
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null)c;}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n    c;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null)fixed(int* c = null)d;}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n  fixed (int* c = null)\r\n    d;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null)fixed(int* b = null){fixed(int* c = null)d;}", "fixed (int* a = null)\r\nfixed (int* b = null)\r\n{\r\n  fixed (int* c = null)\r\n    d;\r\n}");
+            TestNormalizeStatement("fixed(int* a = null){fixed(int* b = null){fixed(int* c = null)d;}}", "fixed (int* a = null)\r\n{\r\n  fixed (int* b = null)\r\n  {\r\n    fixed (int* c = null)\r\n      d;\r\n  }\r\n}");
+        }
+
+        [Fact]
+        [WorkItem(61518, "https://github.com/dotnet/roslyn/issues/61518")]
+        public void TestNormalizeNestedFixedUsingStatements1()
+        {
+            TestNormalizeStatement("using(a)fixed(int* b = null)c;", "using (a)\r\n  fixed (int* b = null)\r\n    c;");
+            TestNormalizeStatement("fixed(int* b = null)using(a)c;", "fixed (int* b = null)\r\n  using (a)\r\n    c;");
         }
     }
 }
