@@ -40,7 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
         // Options.
 
-        [Obsolete("To avoid contributing to the large object heap, use SetOptions(ImmutableArray<string>). This API will be removed in the future.")]
         void SetOptions(string commandLineForOptions);
         void SetOptions(ImmutableArray<string> arguments);
 
