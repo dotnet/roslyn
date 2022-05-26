@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var indicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
             using var context = indicatorFactory.Create(
-                args.TextView, span, EditorFeaturesResources.Encapsulate_Field,
+                args.TextView, span, EditorFeaturesResources.Computing_Encapsulate_Field_information,
                 cancelOnEdit: true, cancelOnFocusLost: true);
 
             var cancellationToken = context.UserCancellationToken;

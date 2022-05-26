@@ -27,6 +27,11 @@
         <target state="translated">코드 정리가 구성되지 않았습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Computing_Encapsulate_Field_information">
+        <source>Computing 'Encapsulate Field' information</source>
+        <target state="new">Computing 'Encapsulate Field' information</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_it_now">
         <source>Configure it now</source>
         <target state="translated">지금 구성</target>
