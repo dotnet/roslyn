@@ -788,24 +788,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                 DismissUIAndRollbackEditsAndEndRenameSession(
                     RenameLogMessage.UserActionOutcome.Committed, previewChanges,
-                    () => ApplyRename(newSolution, operationContext));
+                    () =>
+                    {
+                        var error = TryApplyRename(newSolution);
+
+                        if (error is not null)
+                        {
+                            operationContext.TakeOwnership();
+                            var notificationService = _workspace.Services.GetService<INotificationService>();
+                            notificationService.SendNotification(
+                                error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+                        }
+                    });
             }
         }
 
-        private void ApplyRename(Solution newSolution, IUIThreadOperationContext operationContext)
+        /// <summary>
+        /// Returns non-null error message if renaming fails.
+        /// </summary>
+        private (NotificationSeverity severity, string message)? TryApplyRename(Solution newSolution)
         {
             var changes = _baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()).ToList();
 
             if (!_renameInfo.TryOnBeforeGlobalSymbolRenamed(_workspace, changedDocumentIDs, this.ReplacementText))
-            {
-                var notificationService = _workspace.Services.GetService<INotificationService>();
-                notificationService.SendNotification(
-                    EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid,
-                    EditorFeaturesResources.Rename_Symbol,
-                    NotificationSeverity.Error);
-                return;
-            }
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
             using var undoTransaction = _workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
             var finalSolution = newSolution.Workspace.CurrentSolution;
@@ -837,7 +844,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
             }
 
-            if (_workspace.TryApplyChanges(finalSolution))
+            if (!_workspace.TryApplyChanges(finalSolution))
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+
+            try
             {
                 // Since rename can apply file changes as well, and those file
                 // changes can generate new document ids, include added documents
@@ -846,20 +856,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var finalChanges = _workspace.CurrentSolution.GetChanges(_baseSolution);
 
                 var finalChangedIds = finalChanges
-                        .GetProjectChanges()
-                        .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
-                        .ToList();
+                    .GetProjectChanges()
+                    .SelectMany(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()))
+                    .ToList();
 
                 if (!_renameInfo.TryOnAfterGlobalSymbolRenamed(_workspace, finalChangedIds, this.ReplacementText))
-                {
-                    var notificationService = _workspace.Services.GetService<INotificationService>();
-                    operationContext.TakeOwnership();
-                    notificationService.SendNotification(
-                        EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated,
-                        EditorFeaturesResources.Rename_Symbol,
-                        NotificationSeverity.Information);
-                }
+                    return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
 
+                return null;
+            }
+            finally
+            {
+                // If we successfully updated the workspace then make sure the undo transaction is committed and is
+                // always able to undo anything any other external listener did.
                 undoTransaction.Commit();
             }
         }
