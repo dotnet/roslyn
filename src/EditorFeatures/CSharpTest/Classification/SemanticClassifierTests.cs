@@ -3640,6 +3640,27 @@ Regex.Comment("(?#comment)"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string field = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
         {
             await TestAsync(
@@ -3659,6 +3680,27 @@ class Program
 }" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property2(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    [|private string Prop { get; set; } = @""$\a(?#comment)"";|]
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
 Regex.Anchor("$"),
 Regex.OtherEscape("\\"),
 Regex.OtherEscape("a"),

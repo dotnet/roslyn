@@ -225,6 +225,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
                         return true;
                     }
                 }
+
+                if (syntaxFacts.IsEqualsValueClause(container.Parent))
+                {
+                    if (syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
+                    {
+                        var variableDeclarator = container.Parent.Parent;
+                        var symbol =
+                            semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                            semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+
+                        if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                            return true;
+                    }
+                    else if (syntaxFacts.IsEqualsValueOfPropertyDeclaration(container.Parent))
+                    {
+                        var property = container.Parent.GetRequiredParent();
+                        var symbol = semanticModel.GetDeclaredSymbol(property, cancellationToken);
+
+                        if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                            return true;
+                    }
+                }
             }
 
             return false;
@@ -268,8 +290,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages
             CancellationToken cancellationToken,
             [NotNullWhen(true)] out string? identifier)
         {
-            identifier = null;
             var symbol = semanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
+            return IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier);
+        }
+
+        private bool IsFieldOrPropertyWithMatchingStringSyntaxAttribute(
+            ISymbol? symbol, [NotNullWhen(true)] out string? identifier)
+        {
+            identifier = null;
             return symbol is IFieldSymbol or IPropertySymbol &&
                 HasMatchingStringSyntaxAttribute(symbol, out identifier);
         }
