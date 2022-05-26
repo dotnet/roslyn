@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     // we are not interested in 1 file re-analysis request which can happen from like venus typing
                     var solution = _registration.GetSolutionToAnalyze();
                     SolutionCrawlerLogger.LogReanalyze(
-                        CorrelationId, analyzer, scope.TryGetDocumentCount(solution), scope.TryGetLanguagesStringForTelemetry(solution), highPriority);
+                        CorrelationId, analyzer, scope.GetDocumentCountOrZeroIfWrongSolution(solution), scope.GetLanguagesStringForTelemetryOrEmptyStringIfWrongSolution(solution), highPriority);
                 }
             }
 
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 var solution = _registration.GetSolutionToAnalyze();
                 var invocationReasons = highPriority ? InvocationReasons.ReanalyzeHighPriority : InvocationReasons.Reanalyze;
 
-                foreach (var (project, documentId) in scope.TryGetDocumentIds(solution))
+                foreach (var (project, documentId) in scope.GetDocumentIdsOrEmptyIfWrongSolution(solution))
                     await EnqueueWorkItemAsync(analyzer, project, documentId, document: null, invocationReasons).ConfigureAwait(false);
             }
 
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool HasMultipleDocuments => _solutionId != null || _projectOrDocumentIds?.Count > 1;
 
-            public string TryGetLanguagesStringForTelemetry(Solution solution)
+            public string GetLanguagesStringForTelemetryOrEmptyStringIfWrongSolution(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return string.Join(",", pool.Object);
             }
 
-            public int TryGetDocumentCount(Solution solution)
+            public int GetDocumentCountOrZeroIfWrongSolution(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return count;
             }
 
-            public IEnumerable<(Project project, DocumentId documentId)> TryGetDocumentIds(Solution solution)
+            public IEnumerable<(Project project, DocumentId documentId)> GetDocumentIdsOrEmptyIfWrongSolution(Solution solution)
             {
                 if (_solutionId != null && solution.Id != _solutionId)
                 {
