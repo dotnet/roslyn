@@ -4620,20 +4620,20 @@ public class A
             AddParameterOptions(SymbolDisplayParameterOptions.IncludeScoped).
             AddLocalOptions(SymbolDisplayLocalOptions.IncludeRef | SymbolDisplayLocalOptions.IncludeScoped);
 
-        private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope scope)
+        private static void VerifyParameterSymbol(ParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            Assert.Equal(scope, parameter.Scope);
+            Assert.Equal(expectedScope, parameter.Scope);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
 
-            VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, scope);
+            VerifyParameterSymbol(parameter.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
 
-        private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope scope)
+        private static void VerifyParameterSymbol(IParameterSymbol parameter, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, parameter.RefKind);
-            Assert.Equal((scope & DeclarationScope.RefScoped) != 0, parameter.IsRefScoped);
-            Assert.Equal((scope & DeclarationScope.ValueScoped) != 0, parameter.IsValueScoped);
+            Assert.Equal((expectedScope & DeclarationScope.RefScoped) != 0, parameter.IsRefScoped);
+            Assert.Equal((expectedScope & DeclarationScope.ValueScoped) != 0, parameter.IsValueScoped);
             Assert.Equal(expectedDisplayString, parameter.ToDisplayString(displayFormatWithScoped));
         }
 
@@ -4807,20 +4807,20 @@ scoped = true;
             VerifyLocalSymbol(locals[0], "System.Boolean scoped", RefKind.None, DeclarationScope.None);
         }
 
-        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope scope)
+        private static void VerifyLocalSymbol(LocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            Assert.Equal(scope, local.Scope);
+            Assert.Equal(expectedScope, local.Scope);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
 
-            VerifyLocalSymbol(local.GetPublicSymbol(), expectedDisplayString, expectedRefKind, scope);
+            VerifyLocalSymbol(local.GetPublicSymbol(), expectedDisplayString, expectedRefKind, expectedScope);
         }
 
-        private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope scope)
+        private static void VerifyLocalSymbol(ILocalSymbol local, string expectedDisplayString, RefKind expectedRefKind, DeclarationScope expectedScope)
         {
             Assert.Equal(expectedRefKind, local.RefKind);
-            Assert.Equal((scope & DeclarationScope.RefScoped) != 0, local.IsRefScoped);
-            Assert.Equal((scope & DeclarationScope.ValueScoped) != 0, local.IsValueScoped);
+            Assert.Equal((expectedScope & DeclarationScope.RefScoped) != 0, local.IsRefScoped);
+            Assert.Equal((expectedScope & DeclarationScope.ValueScoped) != 0, local.IsValueScoped);
             Assert.Equal(expectedDisplayString, local.ToDisplayString(displayFormatWithScoped));
         }
 

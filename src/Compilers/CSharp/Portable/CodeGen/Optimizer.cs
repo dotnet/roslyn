@@ -2268,10 +2268,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable;
 
-        /// <summary>
-        /// Compiler should always be synthesizing locals with correct escape semantics.
-        /// Checking escape scopes is not valid here.
-        /// </summary>
-        internal override DeclarationScope Scope => throw ExceptionUtilities.Unreachable;
+        internal override DeclarationScope Scope => DeclarationScope.None;
     }
 }
