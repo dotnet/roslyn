@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 return false;
 
             // Fire and forget
-            _ = ExecuteAsync(args, document, spans.Single());
+            var token = _listener.BeginAsyncOperation("EncapsulateField");
+            _ = ExecuteAsync(args, document, spans.Single()).CompletesAsyncOperation(token);
             return true;
         }
 
@@ -72,8 +73,6 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             SnapshotSpan span)
         {
             _threadingContext.ThrowIfNotOnUIThread();
-
-            using var token = _listener.BeginAsyncOperation("EncapsulateField");
 
             var subjectBuffer = args.SubjectBuffer;
             var workspace = initialDocument.Project.Solution.Workspace;
