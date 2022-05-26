@@ -62,9 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
                 finally
                 {
-                    // Clear the state machine so that future updates to the same token work,
-                    // and any text changes caused by this update are not interpreted as 
-                    // potential renames
+                    // Clear the state machine so that future updates to the same token work, and any text changes
+                    // caused by this update are not interpreted as potential renames.  Intentionally pass
+                    // CancellationToken.None.  We must clear this state out.
+                    await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
                     _stateMachine.ClearTrackingSession();
                 }
             }
@@ -170,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 }
                 finally
                 {
+                    // Explicit CancellationToken.None here.  We must clean up our state no matter what.
+                    await _stateMachine.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
                     RenameTrackingDismisser.DismissRenameTracking(workspace, changedDocuments);
                 }
             }
