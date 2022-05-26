@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <param name="targetAccessor">An accessor that provides a reference of type <typeparamref name="T"/> to initialize if it hasn't already been initialized.</param>
         /// <param name="valueFactory">The function that is called to initialize the reference.</param>
         /// <returns>The initialized value of type <typeparamref name="T"/>.</returns>
-        /// <exception cref="NullReferenceException">
+        /// <exception cref="ArgumentNullException">
         /// <para>If <paramref name="targetAccessor"/> is <see langword="null"/>.</para>
         /// <para>-or-</para>
         /// <para>If the target value is not already initialized and <paramref name="valueFactory"/> is <see langword="null"/>.</para>
@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Utilities
         public static ValueTask<T> EnsureInitializedAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory)
             where T : class
         {
+            _ = targetAccessor ?? throw new ArgumentNullException(nameof(targetAccessor));
+
             // Fast path
             var value = Volatile.Read(ref targetAccessor());
             if (value is not null)
@@ -76,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <param name="valueFactory">The function that is called to initialize the reference.</param>
         /// <param name="releaseUnusedValue">The action invoked to release a reference which was computed but not used.</param>
         /// <returns>The initialized value of type <typeparamref name="T"/>.</returns>
-        /// <exception cref="NullReferenceException">
+        /// <exception cref="ArgumentNullException">
         /// <para>If <paramref name="targetAccessor"/> is <see langword="null"/>.</para>
         /// <para>-or-</para>
         /// <para>If the target value is not already initialized and <paramref name="valueFactory"/> is <see langword="null"/>.</para>
@@ -85,6 +87,8 @@ namespace Microsoft.CodeAnalysis.Utilities
         public static ValueTask<T> EnsureInitializedAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory, Action<T> releaseUnusedValue)
             where T : class
         {
+            _ = targetAccessor ?? throw new ArgumentNullException(nameof(targetAccessor));
+
             // Fast path
             var value = Volatile.Read(ref targetAccessor());
             if (value is not null)
@@ -116,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <param name="valueFactory">The function that is called to initialize the reference.</param>
         /// <param name="state">The state object to pass to the accessor and value factory.</param>
         /// <returns>The initialized value of type <typeparamref name="T"/>.</returns>
-        /// <exception cref="NullReferenceException">
+        /// <exception cref="ArgumentNullException">
         /// <para>If <paramref name="targetAccessor"/> is <see langword="null"/>.</para>
         /// <para>-or-</para>
         /// <para>If the target value is not already initialized and <paramref name="valueFactory"/> is <see langword="null"/>.</para>
@@ -125,6 +129,8 @@ namespace Microsoft.CodeAnalysis.Utilities
         public static ValueTask<T> EnsureInitializedAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, TState state)
             where T : class
         {
+            _ = targetAccessor ?? throw new ArgumentNullException(nameof(targetAccessor));
+
             // Fast path
             var value = Volatile.Read(ref targetAccessor(state));
             if (value is not null)
@@ -156,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// <param name="releaseUnusedValue">The action invoked to release a reference which was computed but not used.</param>
         /// <param name="state">The state object to pass to the accessor, value factory, and cleanup action.</param>
         /// <returns>The initialized value of type <typeparamref name="T"/>.</returns>
-        /// <exception cref="NullReferenceException">
+        /// <exception cref="ArgumentNullException">
         /// <para>If <paramref name="targetAccessor"/> is <see langword="null"/>.</para>
         /// <para>-or-</para>
         /// <para>If the target value is not already initialized and <paramref name="valueFactory"/> is <see langword="null"/>.</para>
@@ -165,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Utilities
         public static ValueTask<T> EnsureInitializedAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, Action<T, TState> releaseUnusedValue, TState state)
             where T : class
         {
+            _ = targetAccessor ?? throw new ArgumentNullException(nameof(targetAccessor));
+
             // Fast path
             var value = Volatile.Read(ref targetAccessor(state));
             if (value is not null)
@@ -186,6 +194,8 @@ namespace Microsoft.CodeAnalysis.Utilities
         private static async ValueTask<T> EnsureInitializedCoreAsync<T>(Accessor<T> targetAccessor, Func<ValueTask<T>> valueFactory, Action<T> releaseUnusedValue)
             where T : class
         {
+            _ = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
+
             var value = await valueFactory().ConfigureAwait(false);
             if (value is null)
             {
@@ -220,6 +230,8 @@ namespace Microsoft.CodeAnalysis.Utilities
         private static async ValueTask<T> EnsureInitializedCoreAsync<T, TState>(Accessor<T, TState> targetAccessor, Func<TState, ValueTask<T>> valueFactory, Action<T, TState> releaseUnusedValue, TState state)
             where T : class
         {
+            _ = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
+
             var value = await valueFactory(state).ConfigureAwait(false);
             if (value is null)
             {

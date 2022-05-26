@@ -259,8 +259,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         {
             Assert.Null(_value);
 
-            await Assert.ThrowsAsync<NullReferenceException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null, () => new ValueTask<object>(new object())));
-            await Assert.ThrowsAsync<NullReferenceException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null, _ => new ValueTask<object>(new object()), this));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null, () => new ValueTask<object>(new object())));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(null, _ => new ValueTask<object>(new object()), this));
 
             Assert.Null(_value);
         }
@@ -294,8 +294,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
         {
             Assert.Null(_value);
 
-            await Assert.ThrowsAsync<NullReferenceException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, null));
-            await Assert.ThrowsAsync<NullReferenceException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, null, this));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(() => ref _value, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await AsyncLazyInitializer.EnsureInitializedAsync(state => ref state._value, null, this));
 
             Assert.Null(_value);
         }
