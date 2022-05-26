@@ -62,10 +62,6 @@ class C
 {
     static void Main()
     {
-        System.Console.WriteLine();
-        Helpers.Print(Test1());
-        Helpers.Print(Test2());
-        Helpers.Print(Test3());
     }
 
     static byte[] Test1() => ""hello"";
@@ -73,181 +69,17 @@ class C
     static ReadOnlySpan<byte> Test3() => ""cat"";
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test1()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.CD6357EFDD966DE8C0CB2F876CC89EC74CE35F0968E11743987084BD42FB8944""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.77AF778B51ABD4A3C51C5DDD97204A9C3AE614EBCCB75A606C3B6865AED6744E""
-  IL_0005:  ldc.i4.3
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,30): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //     static byte[] Test1() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(13, 30),
-                // (14,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "byte[]").WithLocation(9, 30),
+                // (10,34): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<byte>'
                 //     static Span<byte> Test2() => "dog";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(14, 34),
-                // (15,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "System.Span<byte>").WithLocation(10, 34),
+                // (11,42): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<byte>'
                 //     static ReadOnlySpan<byte> Test3() => "cat";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""cat""").WithArguments("UTF-8 string literals").WithLocation(15, 42)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ImplicitConversions_02()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        System.Console.WriteLine();
-        Helpers.Print(Test1());
-        Helpers.Print(Test2());
-        Helpers.Print(Test3());
-    }
-
-    static byte[] Test1() => """"""
-  hello
-  """""";
-    static Span<byte> Test2() => """"""dog"""""";
-    static ReadOnlySpan<byte> Test3() => """"""
-cat
-"""""";
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test1()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.CD6357EFDD966DE8C0CB2F876CC89EC74CE35F0968E11743987084BD42FB8944""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.77AF778B51ABD4A3C51C5DDD97204A9C3AE614EBCCB75A606C3B6865AED6744E""
-  IL_0005:  ldc.i4.3
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (13,30): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static byte[] Test1() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
-  hello
-  """"""").WithArguments("raw string literals").WithLocation(13, 30),
-                // (13,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static byte[] Test1() => "hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
-  hello
-  """"""").WithArguments("UTF-8 string literals").WithLocation(13, 30),
-                // (16,34): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static Span<byte> Test2() => """dog""";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""").WithArguments("raw string literals").WithLocation(16, 34),
-                // (16,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static Span<byte> Test2() => "dog";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""dog""""""").WithArguments("UTF-8 string literals").WithLocation(16, 34),
-                // (17,42): error CS8652: The feature 'raw string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => """
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
-cat
-""""""").WithArguments("raw string literals").WithLocation(17, 42),
-
-                // (17,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => "cat";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""""
-cat
-""""""").WithArguments("UTF-8 string literals").WithLocation(17, 42)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""cat""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(11, 42)
                 );
         }
 
@@ -255,40 +87,24 @@ cat
         public void ImplicitConversions_TupleLiteral_01()
         {
             var source = @"
-using System;
+
 class C
 {
     static void Main()
     {
         (byte[] b, (byte[] d, string e) c) a = (""hello"", (""dog"", ""cat""));
-        System.Console.WriteLine();
-        Helpers.Print(a.b);
-        Helpers.Print(a.c.d);
     }
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,49): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,49): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //         (byte[] b, (byte[] d, string e) c) a = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 49),
-                // (7,59): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "byte[]").WithLocation(7, 49),
+                // (7,59): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //         (byte[] b, (byte[] d, string e) c) a = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(7, 59)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "byte[]").WithLocation(7, 59)
                 );
         }
 
@@ -296,40 +112,23 @@ class C
         public void ImplicitConversions_Deconstruction_01()
         {
             var source = @"
-using System;
 class C
 {
     static void Main()
     {
         (byte[] a, (byte[] b, string c)) = (""hello"", (""dog"", ""cat""));
-        System.Console.WriteLine();
-        Helpers.Print(a);
-        Helpers.Print(b);
     }
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,45): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,45): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //         (byte[] a, (byte[] b, string c)) = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 45),
-                // (7,55): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""hello""").WithArguments("string", "byte[]").WithLocation(6, 45),
+                // (6,55): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //         (byte[] a, (byte[] b, string c)) = ("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(7, 55)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""dog""").WithArguments("string", "byte[]").WithLocation(6, 55)
                 );
         }
 
@@ -345,41 +144,21 @@ class C
         var array = (byte[])""hello"";
         var span = (Span<byte>)""dog"";
         var readonlySpan = (ReadOnlySpan<byte>)""cat"";
-
-        System.Console.WriteLine();
-        Helpers.Print(array);
-        Helpers.Print(span);
-        Helpers.Print(readonlySpan);
     }
 }
 ";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS0030: Cannot convert type 'string' to 'byte[]'
                 //         var array = (byte[])"hello";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(byte[])""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 21),
-                // (8,20): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(byte[])""hello""").WithArguments("string", "byte[]").WithLocation(7, 21),
+                // (8,20): error CS0030: Cannot convert type 'string' to 'System.Span<byte>'
                 //         var span = (Span<byte>)"dog";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(Span<byte>)""dog""").WithArguments("UTF-8 string literals").WithLocation(8, 20),
-                // (9,28): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(Span<byte>)""dog""").WithArguments("string", "System.Span<byte>").WithLocation(8, 20),
+                // (9,28): error CS0030: Cannot convert type 'string' to 'System.ReadOnlySpan<byte>'
                 //         var readonlySpan = (ReadOnlySpan<byte>)"cat";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"(ReadOnlySpan<byte>)""cat""").WithArguments("UTF-8 string literals").WithLocation(9, 28)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(ReadOnlySpan<byte>)""cat""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(9, 28)
                 );
         }
 
@@ -387,62 +166,23 @@ class C
         public void ExplicitConversions_TupleLiteral_01()
         {
             var source = @"
-using System;
 class C
 {
     static void Main()
     {
         var a = ((byte[] b, (byte[] d, string e) c))(""hello"", (""dog"", ""cat""));
-        System.Console.WriteLine();
-        Helpers.Print(a.b);
-        Helpers.Print(a.c.d);
-    }
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (7,54): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""hello""").WithArguments("UTF-8 string literals").WithLocation(7, 54),
-                // (7,64): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""dog""").WithArguments("UTF-8 string literals").WithLocation(7, 64)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void InvalidContent_01()
-        {
-            var source = @"
-#pragma warning disable CS0219 // The variable is assigned but its value is never used
-class C
-{
-    static void Main()
-    {
-        byte[] array = ""hello \uD801\uD802"";
     }
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            comp.VerifyEmitDiagnostics(
-                // (7,24): error CS8983: The input string cannot be converted into the equivalent UTF8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
-                //         byte[] array = "hello \uD801\uD802";
-                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""hello \uD801\uD802""").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(7, 24)
+
+            comp.VerifyDiagnostics(
+                // (6,54): error CS0030: Cannot convert type 'string' to 'byte[]'
+                //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""hello""").WithArguments("string", "byte[]").WithLocation(6, 54),
+                // (6,64): error CS0030: Cannot convert type 'string' to 'byte[]'
+                //         var a = ((byte[] b, (byte[] d, string e) c))("hello", ("dog", "cat"));
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""dog""").WithArguments("string", "byte[]").WithLocation(6, 64)
                 );
         }
 
@@ -464,308 +204,6 @@ class C
                 // (6,13): error CS9100: The input string cannot be converted into the equivalent UTF8 byte representation. Unable to translate Unicode character \\uD801 at index 6 to specified code page.
                 //         _ = "hello \uD801\uD802"u8;
                 Diagnostic(ErrorCode.ERR_CannotBeConvertedToUTF8, @"""hello \uD801\uD802""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 6 to specified code page.").WithLocation(6, 13)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingHelpers_01()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        byte[] array = ""hello"";
-        ReadOnlySpan<byte> readonlySpan = ""cat"";
-
-        System.Console.WriteLine();
-        Helpers.Print(array);
-        Helpers.Print(readonlySpan);
-    }
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Array);
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingHelpers_02()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        byte[] array = ""hello"";
-        Span<byte> span = ""dog"";
-
-        System.Console.WriteLine();
-        Helpers.Print(array);
-        Helpers.Print(span);
-    }
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
-            CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-").VerifyDiagnostics();
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingHelpers_03()
-        {
-            var source = @"
-#pragma warning disable CS0219 // The variable is assigned but its value is never used
-using System;
-class C
-{
-    static void Main()
-    {
-        Span<byte> span = ""dog"";
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Array);
-            comp.VerifyEmitDiagnostics(
-                // (8,27): error CS0656: Missing compiler required member 'System.Span`1..ctor'
-                //         Span<byte> span = "dog";
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""dog""").WithArguments("System.Span`1", ".ctor").WithLocation(8, 27)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingHelpers_04()
-        {
-            var source = @"
-#pragma warning disable CS0219 // The variable is assigned but its value is never used
-using System;
-class C
-{
-    static void Main()
-    {
-        ReadOnlySpan<byte> readonlySpan = ""cat"";
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
-            comp.VerifyEmitDiagnostics(
-                // (8,43): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
-                //         ReadOnlySpan<byte> readonlySpan = "cat";
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""cat""").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(8, 43)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingHelpers_05()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        Helpers.Print(Test2());
-    }
-
-    static Span<byte> Test2() => ""dog"";
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Pointer);
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x64 0x6F 0x67 }", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.CD6357EFDD966DE8C0CB2F876CC89EC74CE35F0968E11743987084BD42FB8944""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingHelpers_06()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        Helpers.Print(Test3());
-    }
-
-    static ReadOnlySpan<byte> Test3() => ""cat"";
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x63 0x61 0x74 }", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.77AF778B51ABD4A3C51C5DDD97204A9C3AE614EBCCB75A606C3B6865AED6744E""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.ReadOnlySpan<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ImplicitConversionFromNull_01()
-        {
-            var source = @"
-using System;
-class C
-{
-    const string nullValue = null;
-
-    static void Main()
-    {
-        System.Console.WriteLine();
-        System.Console.WriteLine(Test1() is null ? -1 : 0);
-        System.Console.WriteLine(Test2().Length);
-        System.Console.WriteLine(Test3().Length);
-    }
-
-    static byte[] Test1() => nullValue;
-    static Span<byte> Test2() => nullValue;
-    static ReadOnlySpan<byte> Test3() => nullValue;
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
--1
-0
-0
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test1()", @"
-{
-  // Code size        2 (0x2)
-  .maxstack  1
-  IL_0000:  ldnull
-  IL_0001:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (System.Span<byte> V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""System.Span<byte>""
-  IL_0008:  ldloc.0
-  IL_0009:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  1
-  .locals init (System.ReadOnlySpan<byte> V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""System.ReadOnlySpan<byte>""
-  IL_0008:  ldloc.0
-  IL_0009:  ret
-}
-");
-
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
--1
-0
-0
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (15,30): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static byte[] Test1() => nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("UTF-8 string literals").WithLocation(15, 30),
-                // (16,34): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static Span<byte> Test2() => nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("UTF-8 string literals").WithLocation(16, 34),
-                // (17,42): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     static ReadOnlySpan<byte> Test3() => nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullValue").WithArguments("UTF-8 string literals").WithLocation(17, 42)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ExplicitConversionFromNull_01()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        const string nullValue = null;
-        var array = (byte[])nullValue;
-        var span = (Span<byte>)nullValue;
-        var readOnlySpan = (ReadOnlySpan<byte>)nullValue;
-
-        System.Console.WriteLine();
-        System.Console.WriteLine(array is null ? -1 : 0);
-        System.Console.WriteLine(span.Length);
-        System.Console.WriteLine(readOnlySpan.Length);
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            CompileAndVerify(comp, expectedOutput: @"
--1
-0
-0
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
-
-            CompileAndVerify(comp, expectedOutput: @"
--1
-0
-0
-").VerifyDiagnostics();
-
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (8,21): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var array = (byte[])nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(byte[])nullValue").WithArguments("UTF-8 string literals").WithLocation(8, 21),
-                // (9,20): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var span = (Span<byte>)nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(Span<byte>)nullValue").WithArguments("UTF-8 string literals").WithLocation(9, 20),
-                // (10,28): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         var readOnlySpan = (ReadOnlySpan<byte>)nullValue;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(ReadOnlySpan<byte>)nullValue").WithArguments("UTF-8 string literals").WithLocation(10, 28)
                 );
         }
 
@@ -1153,285 +591,6 @@ namespace System
                 //         ReadOnlySpan<byte> readonlySpan = "cat";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""cat""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(8, 43)
                 );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ConstantExpressions_01()
-        {
-            var source = @"
-using System;
-class C
-{
-    const string first = ""\uD83D"";  // high surrogate
-    const string second = ""\uDE00""; // low surrogate
-
-    static void Main()
-    {
-        System.Console.WriteLine();
-        Helpers.Print(Test1());
-        Helpers.Print(Test2());
-        Helpers.Print(Test3());
-    }
-
-    static byte[] Test1() => first + second;
-    static Span<byte> Test2() => first + second;
-    static ReadOnlySpan<byte> Test3() => first + second;
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{ 0xF0 0x9F 0x98 0x80 }
-{ 0xF0 0x9F 0x98 0x80 }
-{ 0xF0 0x9F 0x98 0x80 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test1()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_0005:  ldc.i4.4
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ConstantExpressions_02()
-        {
-            var source = @"
-using System;
-class C
-{
-    const string second = ""\uDE00""; // low surrogate
-
-    static void Main()
-    {
-        System.Console.WriteLine();
-        Helpers.Print(Test1());
-        Helpers.Print(Test2());
-        Helpers.Print(Test3());
-    }
-
-    static byte[] Test1() => $""\uD83D{second}"";
-    static Span<byte> Test2() => $""\uD83D{second}"";
-    static ReadOnlySpan<byte> Test3() => $""\uD83D{second}"";
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{ 0xF0 0x9F 0x98 0x80 }
-{ 0xF0 0x9F 0x98 0x80 }
-{ 0xF0 0x9F 0x98 0x80 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test1()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_0005:  ldc.i4.4
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ConstantExpressions_03()
-        {
-            var source = @"
-using System;
-class C
-{
-    const string second = ""\uDE00""; // low surrogate
-
-    static void Main()
-    {
-        System.Console.WriteLine();
-        Helpers.Print(Test1());
-        Helpers.Print(Test2());
-        Helpers.Print(Test3());
-    }
-
-    static byte[] Test1() => $""""""" + "\uD83D" + @"{second}"""""";
-    static Span<byte> Test2() => $""""""
-" + "\uD83D" + @"{second}
-"""""";
-    static ReadOnlySpan<byte> Test3() => $""""""
-  " + "\uD83D" + @"{second}
-  """""";
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{ 0xF0 0x9F 0x98 0x80 }
-{ 0xF0 0x9F 0x98 0x80 }
-{ 0xF0 0x9F 0x98 0x80 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.Test1()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test2()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.4
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("C.Test3()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""int <PrivateImplementationDetails>.F0443A342C5EF54783A111B51BA56C938E474C32324D90C3A60C9C8E3A37E2D9""
-  IL_0005:  ldc.i4.4
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void ConstantExpressions_04()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        System.Console.WriteLine();
-        Helpers.Print(hello());
-        Helpers.Print(dog());
-        Helpers.Print(cat());
-    }
-
-    static byte[] hello() => nameof(hello);
-    static Span<byte> dog() => nameof(dog);
-    static ReadOnlySpan<byte> cat() => nameof(cat);
-}
-";
-            var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-{ 0x68 0x65 0x6C 0x6C 0x6F }
-{ 0x64 0x6F 0x67 }
-{ 0x63 0x61 0x74 }
-", verify: Verification.Fails).VerifyDiagnostics();
-
-            verifier.VerifyIL("C.hello()", @"
-{
-  // Code size       18 (0x12)
-  .maxstack  3
-  IL_0000:  ldc.i4.5
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=5 <PrivateImplementationDetails>.2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  ret
-}
-");
-
-            verifier.VerifyIL("C.dog()", @"
-{
-  // Code size       23 (0x17)
-  .maxstack  3
-  IL_0000:  ldc.i4.3
-  IL_0001:  newarr     ""byte""
-  IL_0006:  dup
-  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.CD6357EFDD966DE8C0CB2F876CC89EC74CE35F0968E11743987084BD42FB8944""
-  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-  IL_0011:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_0016:  ret
-}
-");
-
-            verifier.VerifyIL("C.cat()", @"
-{
-  // Code size       12 (0xc)
-  .maxstack  2
-  IL_0000:  ldsflda    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=3 <PrivateImplementationDetails>.77AF778B51ABD4A3C51C5DDD97204A9C3AE614EBCCB75A606C3B6865AED6744E""
-  IL_0005:  ldc.i4.3
-  IL_0006:  newobj     ""System.ReadOnlySpan<byte>..ctor(void*, int)""
-  IL_000b:  ret
-}
-");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1975,44 +1134,6 @@ class C3
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void ExpressionTree_01()
-        {
-            var source = @"
-using System;
-using System.Linq.Expressions;
-class C
-{
-    static void Main()
-    {
-        Expression<Func<byte[]>> x = () => ""hello"";
-        Expression<FuncSpanOfByte> y = () => ""dog"";
-        Expression<FuncReadOnlySpanOfByte> z = () => ""cat"";
-
-        System.Console.WriteLine(x);
-        System.Console.WriteLine(y);
-        System.Console.WriteLine(z);
-    }
-
-    delegate Span<byte> FuncSpanOfByte();
-    delegate ReadOnlySpan<byte> FuncReadOnlySpanOfByte();
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-
-            comp.VerifyDiagnostics(
-                // (8,44): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
-                //         Expression<Func<byte[]>> x = () => "hello";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""hello""").WithLocation(8, 44),
-                // (9,46): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
-                //         Expression<FuncSpanOfByte> y = () => "dog";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""dog""").WithLocation(9, 46),
-                // (10,54): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
-                //         Expression<FuncReadOnlySpanOfByte> z = () => "cat";
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""cat""").WithLocation(10, 54)
-                );
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
         public void ExpressionTree_02()
         {
             var source = @"
@@ -2114,11 +1235,7 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            comp.VerifyDiagnostics(
-                // (7,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(ReadOnlySpan<char>)' and 'C.Test(byte[])'
-                //         System.Console.Write(Test("s"));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(System.ReadOnlySpan<char>)", "C.Test(byte[])").WithLocation(7, 30)
-                );
+            CompileAndVerify(comp, expectedOutput: @"ReadOnlySpanarray").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2140,11 +1257,7 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            comp.VerifyDiagnostics(
-                // (7,30): error CS0121: The call is ambiguous between the following methods or properties: 'C.Test(byte[])' and 'C.Test(ReadOnlySpan<char>)'
-                //         System.Console.Write(Test("s"));
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("C.Test(byte[])", "C.Test(System.ReadOnlySpan<char>)").WithLocation(7, 30)
-                );
+            CompileAndVerify(comp, expectedOutput: @"ReadOnlySpanarray").VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2201,14 +1314,10 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: @"ReadOnlySpan").VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (7,39): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.WriteLine(Test("s", (int)1));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("UTF-8 string literals").WithLocation(7, 39)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2248,87 +1357,6 @@ class C1
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void OverloadResolution_06()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        System.Console.WriteLine(Test(""s""));
-    }
-
-    static string Test(ReadOnlySpan<byte> a) => ""ReadOnlySpan"";
-    static string Test(byte[] a) => ""array"";
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void OverloadResolution_07()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        System.Console.WriteLine(Test(""s""));
-    }
-
-    static string Test(Span<byte> a) => ""Span"";
-    static string Test(byte[] a) => ""array"";
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void OverloadResolution_08()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        System.Console.WriteLine(Test(""s""));
-    }
-
-    static string Test(ReadOnlySpan<byte> a) => ""ReadOnlySpan"";
-    static string Test(Span<byte> a) => ""Span"";
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: @"Span").VerifyDiagnostics();
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void OverloadResolution_09()
-        {
-            var source = @"
-using System;
-class C
-{
-    static void Main()
-    {
-        System.Console.WriteLine(Test(""s""));
-    }
-
-    static string Test(ReadOnlySpan<byte> a) => ""ReadOnlySpan"";
-    static string Test(byte[] a) => ""array"";
-    static string Test(Span<byte> a) => ""Span"";
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
-        }
-
-        [ConditionalFact(typeof(CoreClrOnly))]
         public void OverloadResolution_10()
         {
             var source = @"
@@ -2351,58 +1379,11 @@ static class E
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            // The behavior has changed
-            CompileAndVerify(comp, expectedOutput: @"byte[]").
+            CompileAndVerify(comp, expectedOutput: @"string").
                 VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (9,31): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Console.WriteLine(p.M(""));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("UTF-8 string literals").WithLocation(9, 31)
-                );
-        }
-
-        [Fact]
-        public void NullableAnalysis_01()
-        {
-            var source = @"
-#nullable enable
-
-class C
-{
-    static void Main()
-    {
-        byte[]? x = ""hello"";
-        _ = x.Length;
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NullableAnalysis_02()
-        {
-            var source = @"
-#nullable enable
-
-class C
-{
-    static void Main()
-    {
-        byte[]? x = (string?)null;
-        _ = x.Length;
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (9,13): warning CS8602: Dereference of a possibly null reference.
-                //         _ = x.Length;
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
-                );
         }
 
         [Fact]
@@ -2416,44 +1397,6 @@ class C
     static void Main()
     {
         _ = ""hello""u8.Length;
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NullableAnalysis_04()
-        {
-            var source = @"
-#nullable enable
-
-class C
-{
-    static void Main()
-    {
-        System.Span<byte> x = (string?)null;
-        _ = x.Length;
-    }
-}
-";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void NullableAnalysis_05()
-        {
-            var source = @"
-#nullable enable
-
-class C
-{
-    static void Main()
-    {
-        System.ReadOnlySpan<byte> x = (string?)null;
-        _ = x.Length;
     }
 }
 ";
@@ -3402,14 +2345,10 @@ class C
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
-            CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: @"object").VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
-            comp.VerifyDiagnostics(
-                // (6,40): error CS8652: The feature 'UTF-8 string literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.WriteLine(Test(("s", 1)));
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("UTF-8 string literals").WithLocation(6, 40)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -3453,24 +2392,24 @@ class C
 {
     static void Main()
     {
-        const string stringNull = null;
+
 
         var x1 = ""123""U8;
         Span<byte> x2 = ""124""U8;
         ReadOnlySpan<byte> x3 = ""125""U8;
-        var y1 = ""abc"";
-        var y2 = stringNull;
 
-        byte[] z1 = ""345"";
-        Span<byte> z2 = ""678"";
-        ReadOnlySpan<byte> z3 = ""678"";
 
-        byte[] z4 = stringNull;
-        Span<byte> z5 = stringNull;
-        ReadOnlySpan<byte> z6 = stringNull;
 
-        byte[] a1 = null;
-        byte[] a2 = new byte[]{};
+
+
+
+
+
+
+
+
+
+
 
         var x4 = (byte[])""123""U8;
     }
@@ -3482,33 +2421,6 @@ class C
                 // (9,13): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         var x1 = "123"U8;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 13),
-                // (12,13): warning CS0219: The variable 'y1' is assigned but its value is never used
-                //         var y1 = "abc";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y1").WithArguments("y1").WithLocation(12, 13),
-                // (13,13): warning CS0219: The variable 'y2' is assigned but its value is never used
-                //         var y2 = stringNull;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y2").WithArguments("y2").WithLocation(13, 13),
-                // (15,16): warning CS0219: The variable 'z1' is assigned but its value is never used
-                //         byte[] z1 = "345";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z1").WithArguments("z1").WithLocation(15, 16),
-                // (16,20): warning CS0219: The variable 'z2' is assigned but its value is never used
-                //         Span<byte> z2 = "678";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z2").WithArguments("z2").WithLocation(16, 20),
-                // (17,28): warning CS0219: The variable 'z3' is assigned but its value is never used
-                //         ReadOnlySpan<byte> z3 = "678";
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z3").WithArguments("z3").WithLocation(17, 28),
-                // (19,16): warning CS0219: The variable 'z4' is assigned but its value is never used
-                //         byte[] z4 = stringNull;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z4").WithArguments("z4").WithLocation(19, 16),
-                // (20,20): warning CS0219: The variable 'z5' is assigned but its value is never used
-                //         Span<byte> z5 = stringNull;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z5").WithArguments("z5").WithLocation(20, 20),
-                // (21,28): warning CS0219: The variable 'z6' is assigned but its value is never used
-                //         ReadOnlySpan<byte> z6 = stringNull;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z6").WithArguments("z6").WithLocation(21, 28),
-                // (23,16): warning CS0219: The variable 'a1' is assigned but its value is never used
-                //         byte[] a1 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a1").WithArguments("a1").WithLocation(23, 16),
                 // (26,13): warning CS0219: The variable 'x4' is assigned but its value is never used
                 //         var x4 = (byte[])"123"U8;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(26, 13)
@@ -3522,34 +2434,20 @@ class C
 using System;
 class C
 {
-    const string stringNull = null;
 
-    static void M01(byte[] x = stringNull){}
-    static void M02(byte[] x = ""02""){}
-    static void M03(Span<byte> x = ""03""){}
-    static void M04(ReadOnlySpan<byte> x = ""04""){}
+
+
+
+
+
     static void M05(byte[] x = ""05""u8){}
     static void M06(Span<byte> x = ""06""u8){}
     static void M07(ReadOnlySpan<byte> x = ""07""U8){}
-    static void M08(Span<byte> x = stringNull){}
-    static void M09(ReadOnlySpan<byte> x = stringNull){}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M01(byte[] x = stringNull){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stringNull").WithArguments("x").WithLocation(7, 32),
-                // (8,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M02(byte[] x = "02"){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""02""").WithArguments("x").WithLocation(8, 32),
-                // (9,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M03(Span<byte> x = "03"){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""03""").WithArguments("x").WithLocation(9, 36),
-                // (10,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M04(ReadOnlySpan<byte> x = "04"){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""04""").WithArguments("x").WithLocation(10, 44),
                 // (11,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
                 //     static void M05(byte[] x = "05"u8){}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""05""u8").WithArguments("x").WithLocation(11, 32),
@@ -3558,13 +2456,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""06""u8").WithArguments("x").WithLocation(12, 36),
                 // (13,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
                 //     static void M07(ReadOnlySpan<byte> x = "07"U8){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""07""U8").WithArguments("x").WithLocation(13, 44),
-                // (14,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M08(Span<byte> x = stringNull){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stringNull").WithArguments("x").WithLocation(14, 36),
-                // (15,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M09(ReadOnlySpan<byte> x = stringNull){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "stringNull").WithArguments("x").WithLocation(15, 44)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"""07""U8").WithArguments("x").WithLocation(13, 44)
                 );
         }
 
@@ -3575,34 +2467,20 @@ class C
 using System;
 class C
 {
-    const string stringNull = null;
 
-    static void M01(byte[] x = (byte[])stringNull){}
-    static void M02(byte[] x = (byte[])""02""){}
-    static void M03(Span<byte> x = (Span<byte>)""03""){}
-    static void M04(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)""04""){}
+
+
+
+
+
     static void M05(byte[] x = (byte[])""05""u8){}
     static void M06(Span<byte> x = (Span<byte>)""06""u8){}
     static void M07(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)""07""U8){}
-    static void M08(Span<byte> x = (Span<byte>)stringNull){}
-    static void M09(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)stringNull){}
 }
 ";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M01(byte[] x = (byte[])stringNull){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(byte[])stringNull").WithArguments("x").WithLocation(7, 32),
-                // (8,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M02(byte[] x = (byte[])"02"){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(byte[])""02""").WithArguments("x").WithLocation(8, 32),
-                // (9,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M03(Span<byte> x = (Span<byte>)"03"){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(Span<byte>)""03""").WithArguments("x").WithLocation(9, 36),
-                // (10,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M04(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)"04"){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(ReadOnlySpan<byte>)""04""").WithArguments("x").WithLocation(10, 44),
                 // (11,32): error CS1736: Default parameter value for 'x' must be a compile-time constant
                 //     static void M05(byte[] x = (byte[])"05"u8){}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(byte[])""05""u8").WithArguments("x").WithLocation(11, 32),
@@ -3611,13 +2489,7 @@ class C
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(Span<byte>)""06""u8").WithArguments("x").WithLocation(12, 36),
                 // (13,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
                 //     static void M07(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)"07"U8){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(ReadOnlySpan<byte>)""07""U8").WithArguments("x").WithLocation(13, 44),
-                // (14,36): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M08(Span<byte> x = (Span<byte>)stringNull){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(Span<byte>)stringNull").WithArguments("x").WithLocation(14, 36),
-                // (15,44): error CS1736: Default parameter value for 'x' must be a compile-time constant
-                //     static void M09(ReadOnlySpan<byte> x = (ReadOnlySpan<byte>)stringNull){}
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(ReadOnlySpan<byte>)stringNull").WithArguments("x").WithLocation(15, 44)
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(ReadOnlySpan<byte>)""07""U8").WithArguments("x").WithLocation(13, 44)
                 );
         }
 
@@ -3661,22 +2533,22 @@ class C
 
 class C
 {
-    const string stringNull = null;
 
-    [UTF8(stringNull)]
-    static void M01(){}
 
-    [UTF8(""2"")]
-    static void M02(){}
+
+
+
+
+
 
     [UTF8(""3""U8)]
     static void M03(){}
 
-    [UTF8((byte[])stringNull)]
-    static void M04(){}
 
-    [UTF8((byte[])""2"")]
-    static void M05(){}
+
+
+
+
 
     [UTF8((byte[])""3""U8)]
     static void M06(){}
@@ -3690,21 +2562,9 @@ public class UTF8Attribute : System.Attribute
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [UTF8(stringNull)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "stringNull").WithLocation(7, 11),
-                // (10,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [UTF8("2")]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"""2""").WithLocation(10, 11),
                 // (13,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [UTF8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"""3""U8").WithLocation(13, 11),
-                // (16,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [UTF8((byte[])stringNull)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "(byte[])stringNull").WithLocation(16, 11),
-                // (19,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     [UTF8((byte[])"2")]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(byte[])""2""").WithLocation(19, 11),
                 // (22,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [UTF8((byte[])"3"U8)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"(byte[])""3""U8").WithLocation(22, 11)
@@ -3718,22 +2578,22 @@ public class UTF8Attribute : System.Attribute
 using System;
 class C
 {
-    const string stringNull = null;
 
-    [UTF8(stringNull)]
-    static void M01(){}
 
-    [UTF8(""2"")]
-    static void M02(){}
+
+
+
+
+
 
     [UTF8(""3""U8)]
     static void M03(){}
 
-    [UTF8((Span<byte>)stringNull)]
-    static void M04(){}
 
-    [UTF8((Span<byte>)""2"")]
-    static void M05(){}
+
+
+
+
 
     [UTF8((Span<byte>)""3""U8)]
     static void M06(){}
@@ -3747,21 +2607,9 @@ public class UTF8Attribute : System.Attribute
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
-                //     [UTF8(stringNull)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(7, 6),
-                // (10,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
-                //     [UTF8("2")]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(10, 6),
                 // (13,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
                 //     [UTF8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(13, 6),
-                // (16,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
-                //     [UTF8((Span<byte>)stringNull)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(16, 6),
-                // (19,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
-                //     [UTF8((Span<byte>)"2")]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(19, 6),
                 // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'Span<byte>', which is not a valid attribute parameter type
                 //     [UTF8((Span<byte>)"3"U8)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.Span<byte>").WithLocation(22, 6)
@@ -3775,22 +2623,22 @@ public class UTF8Attribute : System.Attribute
 using System;
 class C
 {
-    const string stringNull = null;
 
-    [UTF8(stringNull)]
-    static void M01(){}
 
-    [UTF8(""2"")]
-    static void M02(){}
+
+
+
+
+
 
     [UTF8(""3""U8)]
     static void M03(){}
 
-    [UTF8((ReadOnlySpan<byte>)stringNull)]
-    static void M04(){}
 
-    [UTF8((ReadOnlySpan<byte>)""2"")]
-    static void M05(){}
+
+
+
+
 
     [UTF8((ReadOnlySpan<byte>)""3""U8)]
     static void M06(){}
@@ -3804,21 +2652,9 @@ public class UTF8Attribute : System.Attribute
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8(stringNull)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(7, 6),
-                // (10,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8("2")]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(10, 6),
                 // (13,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
                 //     [UTF8("3"U8)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(13, 6),
-                // (16,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8((ReadOnlySpan<byte>)stringNull)]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(16, 6),
-                // (19,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
-                //     [UTF8((ReadOnlySpan<byte>)"2")]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(19, 6),
                 // (22,6): error CS0181: Attribute constructor parameter 'x' has type 'ReadOnlySpan<byte>', which is not a valid attribute parameter type
                 //     [UTF8((ReadOnlySpan<byte>)"3"U8)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "UTF8").WithArguments("x", "System.ReadOnlySpan<byte>").WithLocation(22, 6)
@@ -3926,9 +2762,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): error CS0150: A constant value is expected
+                // (7,18): error CS0029: Cannot implicitly convert type 'string' to 'byte[]'
                 //         _ = s is "1";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""1""").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "byte[]").WithLocation(7, 18),
                 // (8,18): error CS0150: A constant value is expected
                 //         _ = s is "2"u8;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
@@ -3952,9 +2788,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): error CS0150: A constant value is expected
+                // (7,18): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<byte>'
                 //         _ = s is "1";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""1""").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "System.Span<byte>").WithLocation(7, 18),
                 // (8,18): error CS0150: A constant value is expected
                 //         _ = s is "2"u8;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
@@ -3978,9 +2814,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
-                // (7,18): error CS0150: A constant value is expected
+                // (7,18): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<byte>'
                 //         _ = s is "1";
-                Diagnostic(ErrorCode.ERR_ConstantExpected, @"""1""").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""1""").WithArguments("string", "System.ReadOnlySpan<byte>").WithLocation(7, 18),
                 // (8,18): error CS0150: A constant value is expected
                 //         _ = s is "2"u8;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, @"""2""u8").WithLocation(8, 18)
@@ -4012,7 +2848,7 @@ class C
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Byte[]", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetConversion(node).IsUTF8StringLiteral);
+            Assert.False(model.GetConversion(node).Exists);
         }
 
         [Fact]
@@ -4068,7 +2904,7 @@ class C
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Span<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetConversion(node).IsUTF8StringLiteral);
+            Assert.False(model.GetConversion(node).Exists);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -4124,7 +2960,7 @@ class C
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
             Assert.Equal("System.ReadOnlySpan<System.Byte>", typeInfo.ConvertedType.ToTestDisplayString());
 
-            Assert.True(model.GetConversion(node).IsUTF8StringLiteral);
+            Assert.False(model.GetConversion(node).Exists);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

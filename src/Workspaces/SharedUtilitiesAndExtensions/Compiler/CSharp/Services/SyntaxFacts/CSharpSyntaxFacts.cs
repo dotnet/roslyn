@@ -1377,6 +1377,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node)
             => ((EqualsValueClauseSyntax?)node)?.Value;
 
+        public bool IsEqualsValueOfPropertyDeclaration(SyntaxNode? node)
+            => node?.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Initializer == node;
+
         public bool IsConversionExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is CastExpressionSyntax;
 
