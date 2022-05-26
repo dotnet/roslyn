@@ -4,9 +4,10 @@
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // PROTOTYPE: Internally, scope is represented with this enum, but the public API
-    // uses a IsRefScoped and IsValueScoped bools (see ILocalSymbol, IParameterSymbol,
+    // PROTOTYPE: Internally, scope is represented with this enum, but the public API uses a
+    // pair of IsRefScoped and IsValueScoped bools (see ILocalSymbol, IParameterSymbol,
     // and LifetimeAnnotationAttribute). We should have a common representation.
+    // And we should use common terms for the attribute and enum names.
     internal enum DeclarationScope : byte
     {
         Unscoped = 0,

@@ -696,7 +696,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var modifier in node.Modifiers)
             {
-                // PROTOTYPE: Report redundant 'scoped' modifiers.
+                // Check for support for 'scoped'. Duplicate modifiers are reported
+                // as errors in parsing rather than here.
                 if (modifier.Kind() == SyntaxKind.ScopedKeyword)
                 {
                     ModifierUtils.CheckScopeModifierAvailability(node, modifier, diagnostics);

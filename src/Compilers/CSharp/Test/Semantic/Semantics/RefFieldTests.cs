@@ -4469,7 +4469,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // The duplicated scoped modifier results in parse errors rather than a binding error.
+            // Duplicate scoped modifiers result are parse errors rather than binding errors.
             comp.VerifyDiagnostics(
                 // (6,18): error CS1525: Invalid expression term 'ref'
                 //         var f = (ref scoped scoped int i) => { };
@@ -4569,26 +4569,31 @@ class Program
         [InlineData(LanguageVersionFacts.CSharpNext)]
         public void PropertyValueScope(LanguageVersion langVersion)
         {
-            // PROTOTYPE: Test ref returning properties as well.
             var source =
 @"ref struct R1 { }
 ref struct R2
 {
     scoped R1 P1 { get; }
-    scoped R1 P2 { get; set; }
+    scoped R1 P2 { get; init; }
     scoped R1 P3 { set { } }
+    ref scoped R1 P4 => throw null;
+    scoped ref int P5 => throw null;
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+            // PROTOTYPE: Should report error for 'scoped' on P4.
             comp.VerifyDiagnostics(
                 // (4,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P1 { get; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("scoped").WithLocation(4, 15),
                 // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
-                //     scoped R1 P2 { get; set; }
+                //     scoped R1 P2 { get; init; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("scoped").WithLocation(5, 15),
                 // (6,15): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P3 { set { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("scoped").WithLocation(6, 15));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("scoped").WithLocation(6, 15),
+                // (8,20): error CS0106: The modifier 'scoped' is not valid for this item
+                //     scoped ref int P5 => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("scoped").WithLocation(8, 20));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
@@ -4746,6 +4751,7 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
+            // Duplicate scoped modifiers result are parse errors rather than binding errors.
             comp.VerifyDiagnostics(
                 // (6,16): error CS1031: Type expected
                 //         scoped scoped R x = default;
@@ -4778,6 +4784,47 @@ class Program
 
         [Fact]
         public void LocalScope_03()
+        {
+            var source =
+@"scoped scoped R x = default;
+ref scoped scoped R y = ref x;
+scoped scoped ref R z = ref x;
+ref struct R { }
+";
+            var comp = CreateCompilation(source);
+            // Duplicate scoped modifiers result are parse errors rather than binding errors.
+            comp.VerifyDiagnostics(
+                // (1,8): error CS1031: Type expected
+                // scoped scoped R x = default;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "scoped").WithArguments("scoped").WithLocation(1, 8),
+                // (1,17): warning CS0219: The variable 'x' is assigned but its value is never used
+                // scoped scoped R x = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 17),
+                // (2,12): error CS0118: 'scoped' is a variable but is used like a type
+                // ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(2, 12),
+                // (2,19): error CS8174: A declaration of a by-reference variable must have an initializer
+                // ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "R").WithLocation(2, 19),
+                // (2,19): warning CS0168: The variable 'R' is declared but never used
+                // ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(2, 19),
+                // (2,21): error CS1003: Syntax error, ',' expected
+                // ref scoped scoped R y = ref x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",", "").WithLocation(2, 21),
+                // (3,1): error CS0118: 'scoped' is a variable but is used like a type
+                // scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(3, 1),
+                // (3,8): warning CS0168: The variable 'scoped' is declared but never used
+                // scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(3, 8),
+                // (3,15): error CS1003: Syntax error, ',' expected
+                // scoped scoped ref R z = ref x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(3, 15));
+        }
+
+        [Fact]
+        public void LocalScope_04()
         {
             var source =
 @"scoped s1 = default;
@@ -4829,7 +4876,7 @@ ref struct scoped { }
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersionFacts.CSharpNext)]
-        public void LocalScope_04(LanguageVersion langVersion)
+        public void LocalScope_05(LanguageVersion langVersion)
         {
             var source =
 @"bool scoped;
