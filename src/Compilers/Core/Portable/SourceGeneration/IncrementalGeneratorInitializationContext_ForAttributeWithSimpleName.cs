@@ -23,24 +23,25 @@ public partial struct IncrementalGeneratorInitializationContext
     private static readonly ObjectPool<Stack<string>> s_stackPool = new(static () => new());
 
     /// <summary>
-    /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that could
-    /// possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
+    /// Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
+    /// could possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
     /// simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
     /// generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
-    /// <para/> This provider understands <see langword="using"/> aliases and will find matches even when the attribute
-    /// references an alias name.  For example, given:
+    /// <para/> This provider understands <see langword="using"/> (<c>Import</c> in Visual Basic) aliases and will find
+    /// matches even when the attribute references an alias name.  For example, given:
     /// <code>
     /// using XAttribute = System.CLSCompliantAttribute;
     /// [X]
     /// class C { }
     /// </code>
     /// Then
-    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(nameof(CLSCompliantAttribute))</c>
+    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
     /// will find the <c>C</c> class.
     /// </summary>
-    internal IncrementalValuesProvider<T> ForAttributeWithSimpleName<T>(string simpleName)
-        where T : SyntaxNode
+    internal IncrementalValuesProvider<SyntaxNode> ForAttributeWithSimpleName(
+        string simpleName,
+        Func<SyntaxNode, CancellationToken, bool> predicate)
     {
         var syntaxHelper = this.SyntaxHelper;
         if (!syntaxHelper.IsValidIdentifier(simpleName))
@@ -90,8 +91,8 @@ public partial struct IncrementalGeneratorInitializationContext
 
         // For each pair of compilation unit + global aliases, walk the compilation unit 
         var result = compilationUnitAndGlobalAliasesProvider
-            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes<T>(
-                syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, cancellationToken))
+            .SelectMany((globalAliasesAndCompilationUnit, cancellationToken) => GetMatchingNodes(
+                syntaxHelper, globalAliasesAndCompilationUnit.Right, globalAliasesAndCompilationUnit.Left, simpleName, predicate, cancellationToken))
             .WithTrackingName("result_ForAttribute");
 
         return result;
@@ -109,12 +110,13 @@ public partial struct IncrementalGeneratorInitializationContext
         }
     }
 
-    private static ImmutableArray<T> GetMatchingNodes<T>(
+    private static ImmutableArray<SyntaxNode> GetMatchingNodes(
         ISyntaxHelper syntaxHelper,
         GlobalAliases globalAliases,
         SyntaxNode compilationUnit,
         string name,
-        CancellationToken cancellationToken) where T : SyntaxNode
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        CancellationToken cancellationToken)
     {
         Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
 
@@ -130,7 +132,7 @@ public partial struct IncrementalGeneratorInitializationContext
         // Used to ensure that as we recurse through alias names to see if they could bind to attributeName that we
         // don't get into cycles.
         var seenNames = s_stackPool.Allocate();
-        var results = ArrayBuilder<T>.GetInstance();
+        var results = ArrayBuilder<SyntaxNode>.GetInstance();
 
         try
         {
@@ -166,7 +168,8 @@ public partial struct IncrementalGeneratorInitializationContext
                 localAliases.Count = localAliasCount;
             }
             else if (syntaxHelper.IsAttributeList(node) &&
-                     node.Parent is T parent &&
+                     node.Parent is var parent &&
+                     predicate(parent, cancellationToken) &&
                      // no need to examine another attribute on a node if we already added it due to a prior attribute
                      results.LastOrDefault() != parent)
             {

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -10,10 +11,31 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities.TestGenerators
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.SourceGeneration
+    Friend Module IncrementalGeneratorInitializationContextExtensions
+        <Extension>
+        Public Function ForAttributeWithSimpleName(Of T As SyntaxNode)(
+        context As IncrementalGeneratorInitializationContext, simpleName As String) As IncrementalValuesProvider(Of T)
+
+            Return context.ForAttributeWithSimpleName(
+            simpleName,
+            Function(node, c) TypeOf node Is T).Select(Function(node, c) DirectCast(node, T))
+        End Function
+
+        <Extension>
+        Public Function ForAttributeWithMetadataName(Of t As SyntaxNode)(
+           context As IncrementalGeneratorInitializationContext, fullyQualifiedMetadataName As String) As IncrementalValuesProvider(Of t)
+
+            Return context.ForAttributeWithMetadataName(
+                fullyQualifiedMetadataName,
+                Function(node, c) TypeOf node Is t,
+                Function(ctx, c) DirectCast(ctx.AttributeTarget, t))
+        End Function
+    End Module
+
     Public Class GeneratorDriverTests_Attributes_FullyQualifiedName
         Inherits BasicTestBase
 
-        Private Function IsClassStatementWithName(value As Object, name As String) As Boolean
+        Private Shared Function IsClassStatementWithName(value As Object, name As String) As Boolean
             If TypeOf value IsNot ClassStatementSyntax Then
                 Return False
             End If
@@ -65,7 +87,7 @@ end namespace
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+                Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
         End Sub
 
         <Fact>
@@ -107,7 +129,7 @@ end namespace
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
         End Sub
 
         <Fact>
@@ -149,7 +171,7 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
         End Sub
 
         <Fact>
@@ -191,7 +213,7 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
         End Sub
 
         <Fact>
@@ -389,14 +411,14 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             ' re-run without changes
             driver = driver.RunGenerators(compilation)
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -439,14 +461,14 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             ' re-run without changes
             driver = driver.RunGenerators(compilation.WithReferences(compilation.References.Take(compilation.References.Count() - 1)))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -489,13 +511,13 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From(""))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
             Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
@@ -545,7 +567,7 @@ end class
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
             Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
@@ -598,8 +620,8 @@ end class"))))
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
 Sub(_step) Assert.Collection(_step.Outputs,
-Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C1")),
-Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C2"))))
+Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C1")),
+Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C2"))))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
                 Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
@@ -655,8 +677,8 @@ end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C1"))),
-Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C2"))))
+Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C1"))),
+Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C2"))))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
                 Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),

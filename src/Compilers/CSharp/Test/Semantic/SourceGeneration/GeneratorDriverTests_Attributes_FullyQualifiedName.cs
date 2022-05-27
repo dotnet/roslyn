@@ -14,6 +14,28 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration;
 
+internal static class IncrementalGeneratorInitializationContextExtensions
+{
+    public static IncrementalValuesProvider<T> ForAttributeWithSimpleName<T>(
+        this IncrementalGeneratorInitializationContext context, string simpleName)
+        where T : SyntaxNode
+    {
+        return context.ForAttributeWithSimpleName(
+            simpleName,
+            (node, _) => node is T).Select((node, _) => (T)node);
+    }
+
+    public static IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+        this IncrementalGeneratorInitializationContext context, string fullyQualifiedMetadataName)
+        where T : SyntaxNode
+    {
+        return context.ForAttributeWithMetadataName(
+            fullyQualifiedMetadataName,
+            (node, _) => node is T,
+            (context, cancellationToken) => (T)context.AttributeTarget);
+    }
+}
+
 public class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpTestBase
 {
     #region Non-Incremental tests

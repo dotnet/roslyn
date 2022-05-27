@@ -18,16 +18,27 @@ namespace Microsoft.CodeAnalysis;
 
 using Aliases = ArrayBuilder<(string aliasName, string symbolName)>;
 
-internal readonly struct GeneratorAttributeSyntaxContext<TSyntaxNode>
-    where TSyntaxNode : SyntaxNode
+internal readonly struct GeneratorAttributeSyntaxContext
 {
-    public TSyntaxNode Node { get; }
+    /// <summary>
+    /// The syntax node the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would
+    /// the class declaration node.
+    /// </summary>
+    public SyntaxNode AttributeTarget { get; }
+
+    /// <summary>
+    /// Semantic model for the file that <see cref="AttributeTarget"/> is contained within.
+    /// </summary>
     public SemanticModel SemanticModel { get; }
+
+    /// <summary>
+    /// <see cref="AttributeData"/> for the matching attribute.
+    /// </summary>
     public AttributeData AttributeData { get; }
 
-    internal GeneratorAttributeSyntaxContext(TSyntaxNode node, SemanticModel semanticModel, AttributeData attributeData)
+    internal GeneratorAttributeSyntaxContext(SyntaxNode attribueTarget, SemanticModel semanticModel, AttributeData attributeData)
     {
-        Node = node;
+        AttributeTarget = attribueTarget;
         SemanticModel = semanticModel;
         AttributeData = attributeData;
     }
@@ -38,63 +49,32 @@ public partial struct IncrementalGeneratorInitializationContext
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
         SymbolDisplayFormat.QualifiedNameArityFormat.AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
-
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Returns all syntax nodes of type <typeparamref name="T"/> if that node has an attribute on it that binds to a
-    /// <see cref="INamedTypeSymbol"/> with the same fully-qualified metadata as the provided <paramref
-    /// name="fullyQualifiedMetadataName"/>. <paramref name="fullyQualifiedMetadataName"/> should be the
-    /// fully-qualified, metadata name of the attribute, including the <c>Attribute</c> suffix.  For example
-    /// <c>System.CLSCompliantAttribute</c> for <see cref="System.CLSCompliantAttribute"/>.
-    /// <para>This provider understands <see langword="using"/> aliases and will find matches even when the attribute
-    /// references an alias name.  For example, given:
-    /// <code>
-    /// using XAttribute = System.CLSCompliantAttribute;
-    /// [X]
-    /// class C { }
-    /// </code>
-    /// Then
-    /// <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute&lt;ClassDeclarationSyntax&gt;(typeof(CLSCompliantAttribute).FullName)</c>
-    /// will find the <c>C</c> class.</para>
-    /// </summary>
-    /// <remarks>
-    /// The <typeparamref name="T"/> should be given the type of the syntax node that owns the <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax"/> that contains the matching attribute.  For
-    /// the example above, that would be a <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ClassDeclarationSyntax"/>.
-    /// <see cref="SyntaxNode"/> can be used as the type argument to return every syntax node of any type that has such
-    /// a matching attribute on it.
-    /// </remarks>
-    internal IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(string fullyQualifiedMetadataName)
-        where T : SyntaxNode
-#pragma warning restore CA1200 // Avoid using cref tags with a prefix
-    {
-        return ForAttributeWithMetadataName<T, T>(
-            fullyQualifiedMetadataName,
-            (context, attributeData, cancellationToken) => context.Node);
-    }
-
-    /// <summary>
-    /// Creates an <see cref="IncrementalValuesProvider{T}"/> that can provide a transform over all <typeparamref
-    /// name="TSyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="INamedTypeSymbol"/> with
-    /// the same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
+    /// Creates an <see cref="IncrementalValuesProvider{T}"/> that can provide a transform over all <see
+    /// cref="SyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="INamedTypeSymbol"/> with the
+    /// same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
     /// name="fullyQualifiedMetadataName"/> should be the fully-qualified, metadata name of the attribute, including the
     /// <c>Attribute</c> suffix.  For example <c>System.CLSCompliantAttribute</c> for <see
     /// cref="System.CLSCompliantAttribute"/>.
     /// </summary>
-    internal IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TSyntaxNode, TResult>(
+    /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> attribute target (<see
+    /// cref="GeneratorAttributeSyntaxContext.AttributeTarget"/>) should be transformed</param>
+    /// <param name="transform">A function that performs the transform, when <paramref name="predicate"/>returns
+    /// <c>true</c> for a given node</param>
+    internal IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TResult>(
         string fullyQualifiedMetadataName,
-        Func<GeneratorAttributeSyntaxContext<TSyntaxNode>, AttributeData, CancellationToken, TResult> transform)
-        where TSyntaxNode : SyntaxNode
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        Func<GeneratorAttributeSyntaxContext, CancellationToken, TResult> transform)
     {
         var metadataName = fullyQualifiedMetadataName.Contains('+')
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
             : MetadataTypeName.FromFullName(fullyQualifiedMetadataName);
 
-        var nodesWithAttributesMatchingSimpleName = this.ForAttributeWithSimpleName<TSyntaxNode>(metadataName.UnmangledTypeName);
+        var nodesWithAttributesMatchingSimpleName = this.ForAttributeWithSimpleName(metadataName.UnmangledTypeName, predicate);
 
         var collectedNodes = nodesWithAttributesMatchingSimpleName
             .Collect()
-            .WithComparer(ImmutableArrayValueComparer<TSyntaxNode>.Instance)
+            .WithComparer(ImmutableArrayValueComparer<SyntaxNode>.Instance)
             .WithTrackingName("collectedNodes_ForAttributeWithMetadataName");
 
         // Group all the nodes by syntax tree, so we can process a whole syntax tree at a time.  This will let us make
@@ -103,7 +83,7 @@ public partial struct IncrementalGeneratorInitializationContext
         var groupedNodes = collectedNodes.SelectMany(
             static (array, cancellationToken) =>
                 array.GroupBy(static n => n.SyntaxTree)
-                     .Select(static g => new SyntaxNodeGrouping<TSyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
+                     .Select(static g => new SyntaxNodeGrouping<SyntaxNode>(g))).WithTrackingName("groupedNodes_ForAttributeWithMetadataName");
 
         var compilationAndGroupedNodesProvider = groupedNodes
             .Combine(this.CompilationProvider)
@@ -127,8 +107,7 @@ public partial struct IncrementalGeneratorInitializationContext
                     if (hasMatchingAttribute(symbol, fullyQualifiedMetadataName, out var attributeData))
                     {
                         result.Add(transform(
-                            new GeneratorAttributeSyntaxContext<TSyntaxNode>(node, semanticModel, attributeData),
-                            attributeData,
+                            new GeneratorAttributeSyntaxContext(node, semanticModel, attributeData),
                             cancellationToken));
                     }
                 }
