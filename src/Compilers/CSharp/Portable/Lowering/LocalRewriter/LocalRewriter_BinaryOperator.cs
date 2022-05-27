@@ -2109,7 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   the low-order five bits of `count` on a 32 bit platform, or
             //   the lower-order six bits of `count` on a 64 bit platform.
             //   The shift count is computed as `count & (sizeof(nint) * 8 - 1)` or `count & (sizeof(nuint) * 8 - 1)`,
-            //   which is `count & 0x1F` on a 32 bits platform and `count & 0x3F` on a 64 bits platform.
+            //   which is `count & 0x1F` on a 32 bit platform and `count & 0x3F` on a 64 bit platform.
 
             Debug.Assert(loweredLeft.Type is { });
             TypeSymbol leftType = loweredLeft.Type;
