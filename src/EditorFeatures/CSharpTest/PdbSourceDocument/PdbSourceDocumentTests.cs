@@ -448,6 +448,41 @@ public class C
         }
 
         [Fact]
+        public async Task Net6SdkLayout_InvalidXml()
+        {
+            var source = @"
+public class C
+{
+    // A change
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
+                var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
+                var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
+
+                // Compile reference assembly
+                var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+
+                // Compile implementation assembly
+                CompileTestSource(sharedDir, sourceText, project, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Create FrameworkList.xml
+                File.WriteAllText(Path.Combine(dataDir, "FrameworkList.xml"), """
+                    FileList FrameworkName="MyPack">
+                    """);
+
+                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: true);
+            });
+        }
+
+
+        [Fact]
         public async Task Net6SdkLayout_PacksInPath()
         {
             var source = @"

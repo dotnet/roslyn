@@ -155,16 +155,20 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 // eg. C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.5\data\FrameworkList.xml
                 var frameworkXml = Path.Combine(referencedDllPath, "..", "..", "..", "data", "FrameworkList.xml");
 
-                var sdkName = IOUtilities.PerformIO(() =>
+                string sdkName;
+                try
                 {
                     using var fr = File.OpenRead(frameworkXml);
                     using var xr = XmlReader.Create(fr);
                     xr.Read();
-                    return xr.GetAttribute("FrameworkName");
-                });
-
-                if (sdkName is null)
+                    sdkName = xr.GetAttribute("FrameworkName");
+                }
+                catch
+                {
+                    // This could be a file read error, or XML error, but we don't really care, as we're only trying to
+                    // use a heuristic to provide better results, we don't have to be super resiliant to all things.
                     return false;
+                }
 
                 // If it exists, the implementation dll will be in the shared sdk folder for this pack
                 // eg. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.5\Foo.dll
