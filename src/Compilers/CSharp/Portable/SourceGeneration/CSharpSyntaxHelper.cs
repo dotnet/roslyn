@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -35,8 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode GetNameOfAttribute(SyntaxNode node)
             => ((AttributeSyntax)node).Name;
 
-        public override bool IsAttributeList(SyntaxNode node)
-            => node is AttributeListSyntax;
+        public override bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget)
+        {
+            attributeTarget = (node as AttributeListSyntax)?.Parent;
+            return attributeTarget != null;
+        }
 
         public override SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)
             => ((AttributeListSyntax)node).Attributes;

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.SourceGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -38,8 +39,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
-        Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean
-            Return TypeOf node Is AttributeListSyntax
+        Public Overrides Function IsAttributeList(node As SyntaxNode, <Out> ByRef attributeTarget As SyntaxNode) As Boolean
+            attributeTarget = TryCast(node, AttributeListSyntax)?.Parent
+            If TypeOf attributeTarget Is AttributesStatementSyntax Then
+                ' for attribute statements (like `<Assembly: ...>`) we want to get the parent compilation unit as that's
+                ' what symbol will actually own the attribute.
+                attributeTarget = attributeTarget.Parent
+            End If
+
+            Return attributeTarget IsNot Nothing
         End Function
 
         Public Overrides Function GetAttributesOfAttributeList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)

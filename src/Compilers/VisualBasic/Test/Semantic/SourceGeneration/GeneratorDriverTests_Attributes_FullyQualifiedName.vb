@@ -87,7 +87,7 @@ end namespace
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-                Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+                Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
         End Sub
 
         <Fact>
@@ -129,7 +129,111 @@ end namespace
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute1()
+            Dim source = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+            Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute2()
+            Dim source1 = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim source2 = ""
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute3()
+            Dim source2 = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim source1 = ""
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.Last))
+        End Sub
+
+        <Fact>
+        Public Sub FindAssemblyAttribute4()
+            Dim source1 = "
+Imports System
+<Assembly: CLSCompliant(true)>
+"
+            Dim source2 = "
+Imports System
+<Assembly: CLSCompliant(false)>"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation({source1, source2}, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of CompilationUnitSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.First),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, CompilationUnitSyntax).SyntaxTree Is compilation.SyntaxTrees.Last))
         End Sub
 
         <Fact>
@@ -171,7 +275,7 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
+Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C1")))
         End Sub
 
         <Fact>
@@ -213,7 +317,7 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C2")))
         End Sub
 
         <Fact>
@@ -411,14 +515,14 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             ' re-run without changes
             driver = driver.RunGenerators(compilation)
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -461,14 +565,14 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             ' re-run without changes
             driver = driver.RunGenerators(compilation.WithReferences(compilation.References.Take(compilation.References.Count() - 1)))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Equal(IncrementalStepRunReason.Unchanged, runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
             Assert.Equal(IncrementalStepRunReason.Cached, runResult.TrackedSteps("collectedGlobalAliases_ForAttribute").Single().Outputs.Single().Reason)
@@ -511,13 +615,13 @@ end class
             Console.WriteLine(runResult)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From(""))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
             Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
@@ -567,7 +671,7 @@ end class
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-            Sub(_step) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
+            Sub(_step) Assert.True(IsClassStatementWithName(_step.Outputs.Single().Value, "C")))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
             Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
@@ -620,8 +724,8 @@ end class"))))
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
 Sub(_step) Assert.Collection(_step.Outputs,
-Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C1")),
-Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C2"))))
+Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C1")),
+Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C2"))))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
                 Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),
@@ -677,8 +781,8 @@ end class"))))
             runResult = driver.GetRunResult().Results(0)
 
             Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
-Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C1"))),
-Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(GeneratorDriverTests_Attributes_FullyQualifiedName.IsClassStatementWithName(t.Value, "C2"))))
+Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C1"))),
+Sub(_step) Assert.Collection(_step.Outputs, Sub(t) Assert.True(IsClassStatementWithName(t.Value, "C2"))))
 
             Assert.Collection(runResult.TrackedSteps("individualFileGlobalAliases_ForAttribute"),
                 Sub(s) Assert.Equal(IncrementalStepRunReason.Unchanged, s.Outputs.Single().Reason),

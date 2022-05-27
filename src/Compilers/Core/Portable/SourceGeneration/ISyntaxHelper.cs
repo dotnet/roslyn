@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         bool IsCompilationUnit(SyntaxNode node);
         bool IsAnyNamespaceBlock(SyntaxNode node);
 
-        bool IsAttributeList(SyntaxNode node);
+        bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget);
         SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
         bool IsAttribute(SyntaxNode node);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public abstract bool IsAttribute(SyntaxNode node);
         public abstract SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
-        public abstract bool IsAttributeList(SyntaxNode node);
+        public abstract bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
         public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);

@@ -167,11 +167,10 @@ public partial struct IncrementalGeneratorInitializationContext
                 // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
                 localAliases.Count = localAliasCount;
             }
-            else if (syntaxHelper.IsAttributeList(node) &&
-                     node.Parent is var parent &&
-                     predicate(parent, cancellationToken) &&
+            else if (syntaxHelper.IsAttributeList(node, out var attributeTarget) &&
+                     predicate(attributeTarget, cancellationToken) &&
                      // no need to examine another attribute on a node if we already added it due to a prior attribute
-                     results.LastOrDefault() != parent)
+                     results.LastOrDefault() != attributeTarget)
             {
                 foreach (var attribute in syntaxHelper.GetAttributesOfAttributeList(node))
                 {
@@ -182,7 +181,7 @@ public partial struct IncrementalGeneratorInitializationContext
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
-                        results.Add(parent);
+                        results.Add(attributeTarget);
                         return;
                     }
                 }
