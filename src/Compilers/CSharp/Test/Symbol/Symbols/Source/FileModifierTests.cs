@@ -1375,6 +1375,23 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
+    public void BaseClause_05()
+    {
+        var source = """
+            interface I2 { }
+            file interface I1 { }
+            partial interface Derived : I1 { } // 1
+            partial interface Derived : I2 { }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (2,19): error CS9302: File type 'Interface' cannot be used as a base type of non-file type 'Derived'.
+            // partial interface Derived : Interface { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived").WithArguments("Interface", "Derived").WithLocation(2, 19));
+    }
+
+    [Fact]
     public void InterfaceImplementation_01()
     {
         var source = """

@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (i.IsFileTypeOrUsesFileTypes() && !this.IsFileTypeOrUsesFileTypes())
                     {
-                        diagnostics.Add(ErrorCode.ERR_FileTypeBase, baseTypeLocation, i, this);
+                        diagnostics.Add(ErrorCode.ERR_FileTypeBase, interfaceLocations[i], i, this);
                     }
                 }
             }
