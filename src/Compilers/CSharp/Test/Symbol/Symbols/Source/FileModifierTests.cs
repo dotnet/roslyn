@@ -136,7 +136,8 @@ public class FileModifierTests : CSharpTestBase
             {
                 public class C
                 {
-                    void M(Outer outer) { } // ok
+                    void M1(Outer outer) { } // ok
+                    void M2(C outer) { } // ok
                 }
             }
             """;
@@ -1288,22 +1289,246 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
-    public void TypeArguments_01()
+    public void BaseClause_03()
+    {
+        var source1 = """
+            using System;
+            class Base
+            {
+                public static void M0()
+                {
+                    Console.Write(1);
+                }
+            }
+            """;
+        var source2 = """
+            using System;
+
+            file class Base
+            {
+                public static void M0()
+                {
+                    Console.Write(2);
+                }
+            }
+            file class Program : Base
+            {
+                static void Main()
+                {
+                    M0();
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { source1, source2 }); // PROTOTYPE(ft): expectedOutput: 2
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[1];
+        var model = comp.GetSemanticModel(tree);
+
+        var fileClassBase = (NamedTypeSymbol)comp.GetMembers("Base")[1];
+        var expectedSymbol = fileClassBase.GetMember("M0");
+
+        var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var symbolInfo = model.GetSymbolInfo(node.Expression);
+        Assert.Equal(expectedSymbol.GetPublicSymbol(), symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+    }
+
+    [Fact]
+    public void BaseClause_04()
+    {
+        var source1 = """
+            using System;
+            class Base
+            {
+                public static void M0()
+                {
+                    Console.Write(1);
+                }
+            }
+            """;
+        var source2 = """
+            file class Program : Base
+            {
+                static void Main()
+                {
+                    M0();
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { source1, source2 }); // PROTOTYPE(ft): expectedOutput: 1
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[1];
+        var model = comp.GetSemanticModel(tree);
+
+        var expectedSymbol = comp.GetMember("Base.M0");
+
+        var node = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var symbolInfo = model.GetSymbolInfo(node.Expression);
+        Assert.Equal(expectedSymbol.GetPublicSymbol(), symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+    }
+
+    [Fact]
+    public void InterfaceImplementation_01()
     {
         var source = """
-            file class C { }
-            class Container<T> { }
-            class Program
+            file interface I
             {
-                Container<C> M() => new Container<C>(); // 1
+                void F();
+            }
+            class C : I
+            {
+                public void F() { }
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterfaceImplementation_02()
+    {
+        var source = """
+            file interface I
+            {
+                void F(I i);
+            }
+            class C : I
+            {
+                public void F(I i) { } // 1
             }
             """;
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,18): error CS9300: File type 'Container<C>' cannot be used in a member signature in non-file type 'Program'.
-            //     Container<C> M() => new Container<C>(); // 1
-            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M").WithArguments("Container<C>", "Program").WithLocation(5, 18));
+            // (7,17): error CS9300: File type 'I' cannot be used in a member signature in non-file type 'C'.
+            //     public void F(I i) { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 17));
+    }
+
+    [Fact]
+    public void InterfaceImplementation_03()
+    {
+        var source = """
+            file interface I
+            {
+                void F(I i);
+            }
+            class C : I
+            {
+                void I.F(I i) { } // PROTOTYPE(ft): is this acceptable, since it's only callable by casting to the referenced file type?
+            }
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (7,12): error CS9300: File type 'I' cannot be used in a member signature in non-file type 'C'.
+            //     void I.F(I i) { } // PROTOTYPE(ft): is this acceptable, since it's only callable by casting to the referenced file type?
+            Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "F").WithArguments("I", "C").WithLocation(7, 12));
+    }
+
+    [Fact]
+    public void InterfaceImplementation_04()
+    {
+        var source1 = """
+            file interface I
+            {
+                void F();
+            }
+            partial class C : I
+            {
+            }
+            """;
+
+        var source2 = """
+            partial class C
+            {
+                public void F() { }
+            }
+            """;
+
+        // This is similar to how a base class may not have access to an interface (by being from another assembly, etc.),
+        // but a derived class might add that interface to its list, and a base member implicitly implements an interface member.
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InterfaceImplementation_05()
+    {
+        var source1 = """
+            file interface I
+            {
+                void F();
+            }
+            partial class C : I // 1
+            {
+            }
+            """;
+
+        var source2 = """
+            partial class C
+            {
+                void I.F() { } // 2, 3
+            }
+            """;
+
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics(
+            // (3,10): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
+            //     void I.F() { } // 2, 3
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(3, 10),
+            // (3,10): error CS0538: 'I' in explicit interface declaration is not an interface
+            //     void I.F() { } // 2, 3
+            Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, "I").WithArguments("I").WithLocation(3, 10),
+            // (5,19): error CS0535: 'C' does not implement interface member 'I.F()'
+            // partial class C : I // 1
+            Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C", "I.F()").WithLocation(5, 19));
+    }
+
+    [Fact]
+    public void TypeArguments_01()
+    {
+        var source = """
+            file struct S { public int X; }
+            class Container<T> { }
+            unsafe class Program
+            {
+                Container<S> M1() => new Container<S>(); // 1
+                S[] M2() => new S[0]; // 2
+                (S, S) M3() => (new S(), new S()); // 3
+                S* M4() => null; // 4
+                delegate*<S, void> M5() => null; // 5
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyDiagnostics(
+                // (1,28): warning CS0649: Field 'S.X' is never assigned to, and will always have its default value 0
+                // file struct S { public int X; }
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "X").WithArguments("S.X", "0").WithLocation(1, 28),
+                // (5,18): error CS9300: File type 'Container<S>' cannot be used in a member signature in non-file type 'Program'.
+                //     Container<S> M1() => new Container<S>(); // 1
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M1").WithArguments("Container<S>", "Program").WithLocation(5, 18),
+                // (6,9): error CS9300: File type 'S[]' cannot be used in a member signature in non-file type 'Program'.
+                //     S[] M2() => new S[0]; // 2
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("S[]", "Program").WithLocation(6, 9),
+                // (7,12): error CS9300: File type '(S, S)' cannot be used in a member signature in non-file type 'Program'.
+                //     (S, S) M3() => (new S(), new S()); // 3
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M3").WithArguments("(S, S)", "Program").WithLocation(7, 12),
+                // (8,8): error CS9300: File type 'S*' cannot be used in a member signature in non-file type 'Program'.
+                //     S* M4() => null; // 4
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M4").WithArguments("S*", "Program").WithLocation(8, 8),
+                // (9,24): error CS9300: File type 'delegate*<S, void>' cannot be used in a member signature in non-file type 'Program'.
+                //     delegate*<S, void> M5() => null; // 5
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M5").WithArguments("delegate*<S, void>", "Program").WithLocation(9, 24));
     }
 
     [Fact]
@@ -2152,10 +2377,10 @@ public class FileModifierTests : CSharpTestBase
         var c1 = comp.GetMember<NamedTypeSymbol>("C1");
         var c2 = comp.GetMember<NamedTypeSymbol>("C2");
         var format = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes);
-        Assert.Equal("C1@<file 0>", c1.ToDisplayString(format));
+        Assert.Equal("C1@<tree 0>", c1.ToDisplayString(format));
         Assert.Equal("C2@FileB", c2.ToDisplayString(format));
 
-        Assert.Equal("void C1@<file 0>.M()", c1.GetMember("M").ToDisplayString(format));
+        Assert.Equal("void C1@<tree 0>.M()", c1.GetMember("M").ToDisplayString(format));
         Assert.Equal("void C2@FileB.M()", c2.GetMember("M").ToDisplayString(format));
     }
 
@@ -2202,7 +2427,7 @@ public class FileModifierTests : CSharpTestBase
 
         var voidTypeSyntax = tree.GetRoot().DescendantNodes().OfType<ParameterSyntax>().Single().Type!;
         var typeInfo = model.GetTypeInfo(voidTypeSyntax);
-        Assert.Equal("System.Void@<file 0>", typeInfo.Type!.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes)));
+        Assert.Equal("System.Void@<tree 0>", typeInfo.Type!.ToDisplayString(SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes)));
     }
 
     // PROTOTYPE(ft): public API (INamedTypeSymbol.IsFile?)

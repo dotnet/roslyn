@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         switch (nts, other)
                         {
-                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when left.IsFileTypeInSeparateFileFrom(right) || right.IsFileTypeInSeparateFileFrom(left):
+                            case (SourceNamedTypeSymbol left, SourceNamedTypeSymbol right) when isFileTypeInSeparateFileFrom(left, right) || isFileTypeInSeparateFileFrom(right, left):
                                 // no error
                                 break;
                             case (SourceNamedTypeSymbol { IsPartial: true }, SourceNamedTypeSymbol { IsPartial: true }):
@@ -398,6 +398,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+
+            static bool isFileTypeInSeparateFileFrom(SourceNamedTypeSymbol possibleFileType, SourceNamedTypeSymbol otherSymbol)
+            {
+                if (!possibleFileType.IsFile)
+                {
+                    return false;
+                }
+
+                var leftTree = possibleFileType.MergedDeclaration.Declarations[0].Location.SourceTree;
+                if (otherSymbol.MergedDeclaration.NameLocations.Any((loc, leftTree) => (object)loc.SourceTree == leftTree, leftTree))
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 
