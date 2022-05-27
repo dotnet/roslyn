@@ -330,6 +330,138 @@ class C
     }
 
     [Fact]
+    public void FindFieldAttribute1()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    [CLSCompliant(true)]
+    int m;
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<VariableDeclaratorSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is VariableDeclaratorSyntax { Identifier.ValueText: "m" }));
+    }
+
+    [Fact]
+    public void FindFieldAttribute2()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    [CLSCompliant(true)]
+    int m, n;
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<VariableDeclaratorSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.Collection(step.Outputs,
+                v => Assert.True(v.Value is VariableDeclaratorSyntax { Identifier.ValueText: "m" }),
+                v => Assert.True(v.Value is VariableDeclaratorSyntax { Identifier.ValueText: "n" })));
+    }
+
+    [Fact]
+    public void FindEventFieldAttribute1()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    [CLSCompliant(true)]
+    event Action m;
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<VariableDeclaratorSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is VariableDeclaratorSyntax { Identifier.ValueText: "m" }));
+    }
+
+    [Fact]
+    public void FindEventFieldAttribute2()
+    {
+        var source = @"
+using System;
+
+class C
+{
+    [CLSCompliant(true)]
+    event Action m, n;
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<VariableDeclaratorSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.Collection(step.Outputs,
+                v => Assert.True(v.Value is VariableDeclaratorSyntax { Identifier.ValueText: "m" }),
+                v => Assert.True(v.Value is VariableDeclaratorSyntax { Identifier.ValueText: "n" })));
+    }
+
+    [Fact]
     public void FindParenthesizedLambdaAttribute1()
     {
         var source = @"

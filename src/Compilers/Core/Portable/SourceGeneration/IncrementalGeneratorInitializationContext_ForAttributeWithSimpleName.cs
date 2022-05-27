@@ -133,6 +133,7 @@ public partial struct IncrementalGeneratorInitializationContext
         // don't get into cycles.
         var seenNames = s_stackPool.Allocate();
         var results = ArrayBuilder<SyntaxNode>.GetInstance();
+        var attributeTargets = ArrayBuilder<SyntaxNode>.GetInstance();
 
         try
         {
@@ -143,8 +144,10 @@ public partial struct IncrementalGeneratorInitializationContext
             localAliases.Free();
             seenNames.Clear();
             s_stackPool.Free(seenNames);
+            attributeTargets.Free();
         }
 
+        results.RemoveDuplicates();
         return results.ToImmutableAndFree();
 
         void recurse(SyntaxNode node)
@@ -167,10 +170,7 @@ public partial struct IncrementalGeneratorInitializationContext
                 // after recursing into this namespace, dump any local aliases we added from this namespace decl itself.
                 localAliases.Count = localAliasCount;
             }
-            else if (syntaxHelper.IsAttributeList(node, out var attributeTarget) &&
-                     predicate(attributeTarget, cancellationToken) &&
-                     // no need to examine another attribute on a node if we already added it due to a prior attribute
-                     results.LastOrDefault() != attributeTarget)
+            else if (syntaxHelper.IsAttributeList(node))
             {
                 foreach (var attribute in syntaxHelper.GetAttributesOfAttributeList(node))
                 {
@@ -181,7 +181,15 @@ public partial struct IncrementalGeneratorInitializationContext
                     if (matchesAttributeName(simpleAttributeName, withAttributeSuffix: false) ||
                         matchesAttributeName(simpleAttributeName, withAttributeSuffix: true))
                     {
-                        results.Add(attributeTarget);
+                        attributeTargets.Clear();
+                        syntaxHelper.AddAttributeTargets(node, attributeTargets);
+
+                        foreach (var target in attributeTargets)
+                        {
+                            if (predicate(target, cancellationToken))
+                                results.Add(target);
+                        }
+
                         return;
                     }
                 }

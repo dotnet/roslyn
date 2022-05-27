@@ -18,8 +18,10 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         bool IsAnyNamespaceBlock(SyntaxNode node);
 
-        bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget);
+        bool IsAttributeList(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
+
+        void AddAttributeTargets(SyntaxNode node, ArrayBuilder<SyntaxNode> targets);
 
         bool IsAttribute(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
@@ -48,8 +50,9 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         public abstract bool IsAttribute(SyntaxNode node);
         public abstract SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
-        public abstract bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget);
+        public abstract bool IsAttributeList(SyntaxNode node);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
+        public abstract void AddAttributeTargets(SyntaxNode node, ArrayBuilder<SyntaxNode> targets);
 
         public abstract bool IsLambdaExpression(SyntaxNode node);
 

@@ -33,10 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxNode GetNameOfAttribute(SyntaxNode node)
             => ((AttributeSyntax)node).Name;
 
-        public override bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget)
+        public override bool IsAttributeList(SyntaxNode node)
+            => node is AttributeListSyntax;
+
+        public override void AddAttributeTargets(SyntaxNode node, ArrayBuilder<SyntaxNode> targets)
         {
-            attributeTarget = (node as AttributeListSyntax)?.Parent;
-            return attributeTarget != null;
+            var attributeList = (AttributeListSyntax)node;
+            var container = attributeList.Parent;
+            RoslynDebug.AssertNotNull(container);
+
+            // For fields/events, the attribute applies to all the variables declared.
+            if (container is FieldDeclarationSyntax field)
+                targets.AddRange(field.Declaration.Variables);
+            else if (container is EventFieldDeclarationSyntax ev)
+                targets.AddRange(ev.Declaration.Variables);
+            else
+                targets.Add(container);
         }
 
         public override SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)

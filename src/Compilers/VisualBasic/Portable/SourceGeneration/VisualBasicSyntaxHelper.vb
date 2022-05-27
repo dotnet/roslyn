@@ -35,16 +35,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeSyntax).Name
         End Function
 
-        Public Overrides Function IsAttributeList(node As SyntaxNode, <Out> ByRef attributeTarget As SyntaxNode) As Boolean
-            attributeTarget = TryCast(node, AttributeListSyntax)?.Parent
-            If TypeOf attributeTarget Is AttributesStatementSyntax Then
+        Public Overrides Function IsAttributeList(node As SyntaxNode) As Boolean
+            Return TypeOf node Is AttributeListSyntax
+        End Function
+
+        Public Overrides Sub AddAttributeTargets(node As SyntaxNode, targets As ArrayBuilder(Of SyntaxNode))
+            Dim attributeList = DirectCast(node, AttributeListSyntax)
+
+            Dim container = attributeList.Parent
+            If TypeOf container Is AttributesStatementSyntax Then
                 ' for attribute statements (like `<Assembly: ...>`) we want to get the parent compilation unit as that's
                 ' what symbol will actually own the attribute.
-                attributeTarget = attributeTarget.Parent
+                targets.Add(container.Parent)
+            ElseIf TypeOf container Is FieldDeclarationSyntax Then
+                Dim field = DirectCast(container, FieldDeclarationSyntax)
+                For Each varDecl In field.Declarators
+                    For Each id In varDecl.Names
+                        targets.Add(id)
+                    Next
+                Next
+            Else
+                targets.Add(container)
             End If
-
-            Return attributeTarget IsNot Nothing
-        End Function
+        End Sub
 
         Public Overrides Function GetAttributesOfAttributeList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode)
             Return DirectCast(node, AttributeListSyntax).Attributes
