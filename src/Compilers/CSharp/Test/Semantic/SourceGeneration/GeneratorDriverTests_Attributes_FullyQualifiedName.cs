@@ -122,6 +122,115 @@ namespace N2
     }
 
     [Fact]
+    public void FindAssemblyAttribute1()
+    {
+        var source = @"
+using System;
+[assembly: CLSCompliant(true)]
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<CompilationUnitSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()));
+    }
+
+    [Fact]
+    public void FindAssemblyAttribute2()
+    {
+        var source1 = @"
+using System;
+[assembly: CLSCompliant(true)]
+";
+        var source2 = "";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<CompilationUnitSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()));
+    }
+
+    [Fact]
+    public void FindAssemblyAttribute3()
+    {
+        var source2 = @"
+using System;
+[assembly: CLSCompliant(true)]
+";
+        var source1 = "";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<CompilationUnitSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.Last()));
+    }
+
+    [Fact]
+    public void FindAssemblyAttribute4()
+    {
+        var source1 = @"
+using System;
+[assembly: CLSCompliant(true)]
+";
+        var source2 = @"
+using System;
+[assembly: CLSCompliant(false)]
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<CompilationUnitSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.First()),
+            step => Assert.True(step.Outputs.Single().Value is CompilationUnitSyntax c && c.SyntaxTree == compilation.SyntaxTrees.Last()));
+    }
+
+    [Fact]
     public void FindNestedAttribute1()
     {
         var source = @"

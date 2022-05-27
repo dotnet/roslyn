@@ -32,15 +32,18 @@ internal readonly struct GeneratorAttributeSyntaxContext
     public SemanticModel SemanticModel { get; }
 
     /// <summary>
-    /// <see cref="AttributeData"/> for the matching attribute.
+    /// <see cref="AttributeData"/>s for any matching attributes on <see cref="AttributeTarget"/>.  Always non-empty.
     /// </summary>
-    public AttributeData AttributeData { get; }
+    public ImmutableArray<AttributeData> Attributes { get; }
 
-    internal GeneratorAttributeSyntaxContext(SyntaxNode attribueTarget, SemanticModel semanticModel, AttributeData attributeData)
+    internal GeneratorAttributeSyntaxContext(
+        SyntaxNode attribueTarget,
+        SemanticModel semanticModel,
+        ImmutableArray<AttributeData> attributes)
     {
         AttributeTarget = attribueTarget;
         SemanticModel = semanticModel;
-        AttributeData = attributeData;
+        Attributes = attributes;
     }
 }
 
@@ -103,11 +106,14 @@ public partial struct IncrementalGeneratorInitializationContext
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-                    if (hasMatchingAttribute(symbol, fullyQualifiedMetadataName, out var attributeData))
+                    var symbol = node is ICompilationUnitSyntax compilationUnit
+                        ? semanticModel.Compilation.Assembly
+                        : semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                    var attributes = getMatchingAttributes(node, symbol, fullyQualifiedMetadataName);
+                    if (attributes.Length > 0)
                     {
                         result.Add(transform(
-                            new GeneratorAttributeSyntaxContext(node, semanticModel, attributeData),
+                            new GeneratorAttributeSyntaxContext(node, semanticModel, attributes),
                             cancellationToken));
                     }
                 }
@@ -122,28 +128,27 @@ public partial struct IncrementalGeneratorInitializationContext
 
         return finalProvider;
 
-        static bool hasMatchingAttribute(
+        static ImmutableArray<AttributeData> getMatchingAttributes(
+            SyntaxNode attributeTarget,
             ISymbol? symbol,
-            string fullyQualifiedMetadataName,
-            [NotNullWhen(true)] out AttributeData? attributeData)
+            string fullyQualifiedMetadataName)
         {
+            var result = ArrayBuilder<AttributeData>.GetInstance();
+
             if (symbol is not null)
             {
+                var targetSyntaxTree = attributeTarget.SyntaxTree;
                 foreach (var attribute in symbol.GetAttributes())
                 {
-                    if (attribute.AttributeClass is null)
-                        continue;
-
-                    if (attribute.AttributeClass.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
+                    if (attribute.ApplicationSyntaxReference?.SyntaxTree == targetSyntaxTree &&
+                        attribute.AttributeClass?.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
                     {
-                        attributeData = attribute;
-                        return true;
+                        result.Add(attribute);
                     }
                 }
             }
 
-            attributeData = null;
-            return false;
+            return result.ToImmutableAndFree();
         }
     }
 }
