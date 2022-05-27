@@ -231,6 +231,37 @@ using System;
     }
 
     [Fact]
+    public void FindLocalFunctionAttribute1()
+    {
+        var source = @"
+using System;
+
+[CLSCompliant(true)]
+void LocalFunc()
+{
+}
+";
+        var parseOptions = TestOptions.RegularPreview;
+        Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<LocalFunctionStatementSyntax>("System.CLSCompliantAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        driver = driver.RunGenerators(compilation);
+        var runResult = driver.GetRunResult().Results[0];
+        Console.WriteLine(runResult);
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(step.Outputs.Single().Value is LocalFunctionStatementSyntax { Identifier.ValueText: "LocalFunc" }));
+    }
+
+    [Fact]
     public void FindNestedAttribute1()
     {
         var source = @"
