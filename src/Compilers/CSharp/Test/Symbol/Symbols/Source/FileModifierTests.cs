@@ -1244,6 +1244,24 @@ public class FileModifierTests : CSharpTestBase
     }
 
     [Fact]
+    public void DuplicateModifiers_01()
+    {
+        var source = """
+            file file class C { } // 1
+            file readonly file struct D { } // 2
+            """;
+
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (1,6): error CS1004: Duplicate 'file' modifier
+            // file file class C { } // 1
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "file").WithArguments("file").WithLocation(1, 6),
+            // (2,15): error CS1004: Duplicate 'file' modifier
+            // file readonly file struct D { } // 2
+            Diagnostic(ErrorCode.ERR_DuplicateModifier, "file").WithArguments("file").WithLocation(2, 15));
+    }
+
+    [Fact]
     public void BaseClause_01()
     {
         var source = """
