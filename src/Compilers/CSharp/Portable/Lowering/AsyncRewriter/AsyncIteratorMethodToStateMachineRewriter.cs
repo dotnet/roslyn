@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var asyncDispatch = base.GenerateMissingStateDispatch();
 
-            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), CodeAnalysisResources.EncCannotResumeSuspenededIteratorMethod);
+            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod);
             if (iteratorDispatch == null)
             {
                 return asyncDispatch;

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected override string EncMissingStateMessage
-            => CodeAnalysisResources.EncCannotResumeSuspenededIteratorMethod;
+            => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
 
         protected override int FirstIncreasingResumableState
             => StateMachineStates.FirstResumableIteratorState;

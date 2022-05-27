@@ -4118,7 +4118,7 @@ class C
   IL_0025:  ldloc.0
   IL_0026:  ldc.i4.1
   IL_0027:  blt.s      IL_0034
-  IL_0029:  ldstr      """ + CodeAnalysisResources.EncCannotResumeSuspenededIteratorMethod + @"""
+  IL_0029:  ldstr      """ + CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod + @"""
   IL_002e:  newobj     ""System.InvalidOperationException..ctor(string)""
   IL_0033:  throw
 
