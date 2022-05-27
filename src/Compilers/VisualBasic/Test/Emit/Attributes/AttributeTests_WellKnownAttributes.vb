@@ -2306,7 +2306,6 @@ End Class
                 End Sub)
         End Sub
 
-
         <Fact>
         Public Sub DllImport_DefaultCharSet_Errors()
             Dim source =
@@ -2324,6 +2323,34 @@ Imports System.Runtime.InteropServices
 BC30127: Attribute 'DefaultCharSetAttribute' is not valid: Incorrect argument value.
 <Module:DefaultCharSet(DirectCast(Integer.MaxValue, CharSet))>
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub DllImport_DefaultCharSet_Errors2()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<Module:DefaultCharSet>
+
+Namespace System.Runtime.InteropServices
+    Public Class DefaultCharSetAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional charSet As CharSet = Integer.MaxValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+    </file>
+</compilation>
+
+            CreateCompilationWithMscorlib40(source).AssertTheseDiagnostics(<![CDATA[
+BC30127: Attribute 'DefaultCharSetAttribute' is not valid: Incorrect argument value.
+<Module:DefaultCharSet>
+ ~~~~~~~~~~~~~~~~~~~~~
 ]]>)
         End Sub
 
@@ -4947,6 +4974,214 @@ BC30934: Conversion from 'String' to 'Integer' cannot occur in a constant expres
 <Assembly: TypeLibVersionAttribute("str", 0)>
                                    ~~~~~
 ]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_03()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute> ' Not valid. Both arguments are negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute> ' Not valid. Both arguments are negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute> ' Not valid. Both arguments are negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_04()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(1)> ' Not valid. minor is negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(1)> ' Not valid. minor is negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_05()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(-1)> ' Not valid. Both arguments are negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1)> ' Not valid. Both arguments are negative.
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1)> ' Not valid. Both arguments are negative.
+                                   ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_06()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(-1, -1)> ' Not valid. Both arguments are negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1, -1)> ' Not valid. Both arguments are negative.
+                                   ~~
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1, -1)> ' Not valid. Both arguments are negative.
+                                       ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_07()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(-1, 1)> ' Not valid. major is negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(-1, 1)> ' Not valid. major is negative.
+                                   ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Invalid_08()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. major is negative.
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC30127: Attribute 'TypeLibVersionAttribute' is not valid: Incorrect argument value.
+<Assembly: TypeLibVersionAttribute(1, -1)> ' Not valid. major is negative.
+                                      ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestTypeLibVersionAttribute_Valid_UserDefinedAttribute()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.InteropServices
+
+<Assembly: TypeLibVersionAttribute(1, 1)>
+
+Namespace System.Runtime.InteropServices
+    Public Class TypeLibVersionAttribute
+        Inherits Attribute
+
+        Public Sub New(Optional major As Integer = -1, Optional minor As Integer = Integer.MinValue)
+        End Sub
+    End Class
+End Namespace
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+            comp.AssertTheseDiagnostics()
         End Sub
 
 #End Region
