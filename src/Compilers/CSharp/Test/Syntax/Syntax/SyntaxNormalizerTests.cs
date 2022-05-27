@@ -1306,5 +1306,13 @@ class Derived : Base
             const string Text = @"/// Prefix <b    b=""y""a=""x""	>S_OK</b> suffix";
             TestNormalizeDeclaration(Text, Expected);
         }
+
+        [Fact]
+        public void TestRequiredKeywordNormalization()
+        {
+            const string Expected = @"public required partial int Field;";
+            const string Text = @"public  required  partial int Field;";
+            TestNormalizeDeclaration(Text, Expected);
+        }
     }
 }

@@ -572,6 +572,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_IsRequired As Boolean Implements IPropertySymbol.IsRequired
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property IPropertySymbol_ReturnsByRef As Boolean Implements IPropertySymbol.ReturnsByRef
             Get
                 Return Me.ReturnsByRef
