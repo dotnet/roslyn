@@ -36,14 +36,14 @@ class C{|foldingRange:
 #endregion|}", Nothing)>
         <InlineData("
 using {|foldingRange:System;
-using System.Linq;|}", FoldingRangeKind.Imports)>
+using System.Linq;|}", "imports")>
         <InlineData("
 using {|foldingRange:S = System.String; 
-using System.Linq;|}", FoldingRangeKind.Imports)>
+using System.Linq;|}", "imports")>
         <InlineData("
 {|foldingRange:// Comment Line 1
 // Comment Line 2|}", Nothing)>
-        Public Async Function TestFoldingRanges(code As String, rangeKind As FoldingRangeKind?) As Task
+        Public Async Function TestFoldingRanges(code As String, rangeKind As String) As Task
             Using workspace = TestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
@@ -64,15 +64,18 @@ using System.Linq;|}", FoldingRangeKind.Imports)>
             End Using
         End Function
 
-        Private Shared Function CreateFoldingRange(kind As FoldingRangeKind?, range As Range) As FoldingRange
-            Return New FoldingRange() With
+        Private Shared Function CreateFoldingRange(kind As String, range As Range) As FoldingRange
+            Dim foldingRange As FoldingRange = New FoldingRange() With
             {
-                .Kind = kind,
                 .StartCharacter = range.Start.Character,
                 .EndCharacter = range.End.Character,
                 .StartLine = range.Start.Line,
                 .EndLine = range.End.Line
             }
+            If kind IsNot Nothing Then
+                foldingRange.Kind = New FoldingRangeKind(kind)
+            End If
+            Return foldingRange
         End Function
     End Class
 End Namespace

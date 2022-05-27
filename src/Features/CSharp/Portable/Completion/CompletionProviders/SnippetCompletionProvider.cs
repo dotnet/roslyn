@@ -98,7 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var semanticModel = context.SemanticModel;
 
             if (context.IsInTaskLikeTypeContext)
+            {
                 return ImmutableArray<CompletionItem>.Empty;
+            }
 
             if (syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
             {

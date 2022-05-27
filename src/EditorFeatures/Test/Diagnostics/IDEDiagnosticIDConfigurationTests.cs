@@ -423,9 +423,6 @@ dotnet_diagnostic.IDE0170.severity = %value%
 # IDE0180
 dotnet_diagnostic.IDE0180.severity = %value%
 
-# IDE0190
-dotnet_diagnostic.IDE0190.severity = %value%
-
 # IDE0200
 dotnet_diagnostic.IDE0200.severity = %value%
 
@@ -1042,9 +1039,6 @@ csharp_style_prefer_extended_property_pattern = true
 
 # IDE0180, PreferTupleSwap
 csharp_style_prefer_tuple_swap = true
-
-# IDE0190, PreferParameterNullChecking
-csharp_style_prefer_parameter_null_checking = true
 
 # IDE0200, PreferMethodGroupConversion
 csharp_style_prefer_method_group_conversion = true

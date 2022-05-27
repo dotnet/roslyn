@@ -1769,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             parameterType = parameter.TypeWithAnnotations;
                         }
-                        return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked).State;
+                        return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
                 case SymbolKind.Field:
                 case SymbolKind.Property:
@@ -2194,9 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check whether we can assign a value from overridden parameter to overriding
                 var valueState = GetParameterState(
                     overriddenType,
-                    overriddenAnnotations,
-                    // We don't consider '!!' when deciding whether 'overridden' is compatible with 'override'
-                    applyParameterNullCheck: false);
+                    overriddenAnnotations);
                 if (isBadAssignment(valueState, overridingType, overridingAnnotations))
                 {
                     return false;
@@ -2622,7 +2620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!IsConditionalState);
                 if (slot > 0)
                 {
-                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked).State;
+                    var state = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     this.State[slot] = state;
                     if (EmptyStructTypeCache.IsTrackableStructType(parameterType.Type))
                     {
@@ -2656,13 +2654,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool applyParameterNullCheck)
+        internal static TypeWithState GetParameterState(TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
         {
-            if (applyParameterNullCheck)
-            {
-                return TypeWithState.Create(parameterType.Type, NullableFlowState.NotNull);
-            }
-
             if ((parameterAnnotations & FlowAnalysisAnnotations.AllowNull) != 0)
             {
                 return TypeWithState.Create(parameterType.Type, NullableFlowState.MaybeDefault);
@@ -4590,10 +4583,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
+            if (binary.OperatorKind.IsLifted()
+                && binary.OperatorKind.Operator() is BinaryOperatorKind.GreaterThan or BinaryOperatorKind.GreaterThanOrEqual or BinaryOperatorKind.LessThan or BinaryOperatorKind.LessThanOrEqual)
+            {
+                Debug.Assert(binary.Type.SpecialType == SpecialType.System_Boolean);
+                SplitAndLearnFromNonNullTest(binary.Left, whenTrue: true);
+                SplitAndLearnFromNonNullTest(binary.Right, whenTrue: true);
+            }
+
             // For nested binary operators, this can be the only time they're visited due to explicit stack used in AbstractFlowPass.VisitBinaryOperator,
             // so we need to set the flow-analyzed type here.
             var inferredResult = InferResultNullability(binary.OperatorKind, method, binary.Type, leftType, rightType);
             SetResult(binary, inferredResult, inferredResult.ToTypeWithAnnotations(compilation));
+
+            return;
 
             TypeSymbol? getTypeIfContainingType(TypeSymbol baseType, TypeSymbol? derivedType, BoundExpression operand)
             {
@@ -4645,7 +4648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
                     bool nonNullCase = op != BinaryOperatorKind.Equal; // true represents WhenTrue
-                    splitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
+                    SplitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
 
                     // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
                     LearnFromNullTest(operandComparedToNull, ref nonNullCase ? ref StateWhenFalse : ref StateWhenTrue);
@@ -4674,27 +4677,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.GreaterThanOrEqual:
                     case BinaryOperatorKind.LessThanOrEqual:
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
+                        SplitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
                         return;
                     case BinaryOperatorKind.NotEqual:
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
+                        SplitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
                         return;
                 };
             }
+        }
 
-            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNonNull, bool whenTrue)
+        private void SplitAndLearnFromNonNullTest(BoundExpression operandComparedToNonNull, bool whenTrue)
+        {
+            var slotBuilder = ArrayBuilder<int>.GetInstance();
+            GetSlotsToMarkAsNotNullable(operandComparedToNonNull, slotBuilder);
+            if (slotBuilder.Count != 0)
             {
-                var slotBuilder = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(operandComparedToNonNull, slotBuilder);
-                if (slotBuilder.Count != 0)
-                {
-                    Split();
-                    ref LocalState stateToUpdate = ref whenTrue ? ref this.StateWhenTrue : ref this.StateWhenFalse;
-                    MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
-                }
-                slotBuilder.Free();
+                Split();
+                ref LocalState stateToUpdate = ref whenTrue ? ref this.StateWhenTrue : ref this.StateWhenFalse;
+                MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
             }
+            slotBuilder.Free();
         }
 
         protected override bool VisitInterpolatedStringHandlerParts(BoundInterpolatedStringBase node, bool usesBoolReturns, bool firstPartIsConditional, ref LocalState shortCircuitState)
@@ -7899,17 +7902,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultState = NullableFlowState.NotNull;
                     break;
 
-                case ConversionKind.ImplicitUtf8StringLiteral:
-                    if (targetType.IsReferenceType)
-                    {
-                        resultState = getConversionResultState(operandType);
-                    }
-                    else
-                    {
-                        resultState = NullableFlowState.NotNull;
-                    }
-                    break;
-
                 case ConversionKind.ObjectCreation:
                 case ConversionKind.SwitchExpression:
                 case ConversionKind.ConditionalExpression:
@@ -8900,7 +8892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameter = node.ParameterSymbol;
             int slot = GetOrCreateSlot(parameter);
             var parameterType = GetDeclaredParameterResult(parameter);
-            var typeWithState = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations, parameter.IsNullChecked);
+            var typeWithState = GetParameterState(parameterType, parameter.FlowAnalysisAnnotations);
             SetResult(node, GetAdjustedResult(typeWithState, slot), parameterType);
             return null;
         }

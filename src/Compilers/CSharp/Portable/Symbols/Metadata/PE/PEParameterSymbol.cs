@@ -1062,7 +1062,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        public override bool IsNullChecked => false;
 
         public sealed override bool Equals(Symbol other, TypeCompareKind compareKind)
         {

@@ -372,11 +372,6 @@
         <target state="translated">Una variable no puede declararse dentro de un patrón "not" u "or".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_DiscardCannotBeNullChecked">
-        <source>Discard parameter cannot be null-checked.</source>
-        <target state="translated">El parámetro de descarte no se puede comprobar con valores NULL.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">El patrón de descarte no se permite como etiqueta de caso en una instrucción switch. Use "case var _:" para un patrón de descarte o "case @_:" para una constante con el nombre '_'.</target>
@@ -917,11 +912,6 @@
         <target state="translated">Solo una declaración parcial de un registro puede tener una lista de parámetros</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_MustNullCheckInImplementation">
-        <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="translated">El parámetro '{0}' solo puede tener una comprobación nula de signo de exclamación en los métodos de implementación.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">La restricción "new()" no se puede utilizar con la restricción "unmanaged"</target>
@@ -977,11 +967,6 @@
         <target state="translated">No se pudo determinar el directorio de salida.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
-        <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="translated">El parámetro '{0}' es un tipo de valor que no acepta valores NULL y no se puede comprobar con valores NULL.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
         <source>Record member '{0}' must be private.</source>
         <target state="translated">El miembro de registro "{0}" debe ser privado.</target>
@@ -1020,11 +1005,6 @@
       <trans-unit id="ERR_NotOverridableAPIInRecord">
         <source>'{0}' must allow overriding because the containing record is not sealed.</source>
         <target state="translated">"{0}" debe permitir la invalidación porque el registro contenedor no está sellado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnOutParameter">
-        <source>'out' parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">El parámetro \"out\" \"{0}\" no se puede comprobar con valores NULL.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1085,6 +1065,11 @@
       <trans-unit id="ERR_OverrideValConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'struct' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a non-nullable value type.</source>
         <target state="translated">El método "{0}" especifica una restricción "struct" para el parámetro de tipo "{1}", pero el parámetro de tipo correspondiente "{2}" de los métodos invalidados o implementados explícitamente "{3}" no es un tipo de valor que acepta valores NULL.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
+        <source>The 'parameter null-checking' feature is not supported.</source>
+        <target state="new">The 'parameter null-checking' feature is not supported.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1667,11 +1652,6 @@
         <target state="translated">con estrcutras</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_ParameterNullChecking">
-        <source>parameter null-checking</source>
-        <target state="translated">comprobación null de parámetro</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureSpanCharConstantPattern">
         <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
         <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
@@ -1805,26 +1785,6 @@
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
         <target state="translated">Convirtiendo grupo de métodos a tipo no delegado</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull">
-        <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="translated">El parámetro '{0}' está marcado como null, pero es NULL de forma predeterminada.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
-        <source>Parameter is null-checked but is null by default.</source>
-        <target state="translated">El parámetro está comprobado con valores NULL, pero es NULL de forma predeterminada.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType">
-        <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="translated">El tipo que acepta valores NULL '{0}' está activado como NULL y se iniciará si es NULL.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullCheckingOnNullableType_Title">
-        <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="translated">El tipo que acepta valores NULL está activado con valor NULL y se iniciará si es null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
