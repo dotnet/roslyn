@@ -1175,6 +1175,7 @@ tryAgain:
 
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements)
         {
+            Debug.Assert(!(forAccessors && forTopLevelStatements));
             while (true)
             {
                 var newMod = GetModifier(this.CurrentToken);
