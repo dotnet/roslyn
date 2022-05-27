@@ -1672,6 +1672,59 @@ public class FileModifierTests : CSharpTestBase
         Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
     }
 
+    [Theory]
+    [InlineData("file ")]
+    [InlineData("")]
+    public void UsingStatic_03(string fileModifier)
+    {
+        // note: the top-level `class D` "wins" the lookup in this scenario.
+        var source1 = $$"""
+            using System;
+            using static C;
+
+            D.M();
+
+            {{fileModifier}}class C
+            {
+                public class D
+                {
+                    public static void M() { Console.Write(1); }
+                }
+            }
+            """;
+
+        var source2 = """
+            using System;
+
+            class D
+            {
+                public static void M() { Console.Write(2); }
+            }
+            """;
+
+        // var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "2");
+        // verifier.VerifyDiagnostics();
+        // var comp = (CSharpCompilation)verifier.Compilation;
+
+        // PROTOTYPE(ft): replace the following with the above commented lines once name mangling is done
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics(
+            // (2,1): hidden CS8019: Unnecessary using directive.
+            // using static C;
+            Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static C;").WithLocation(2, 1));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var expectedMember = comp.GetMember("D.M");
+
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbolInfo = model.GetSymbolInfo(invocation.Expression);
+        Assert.Equal(expectedMember.GetPublicSymbol(), symbolInfo.Symbol);
+        Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+    }
+
     [Fact]
     public void TypeShadowing()
     {
