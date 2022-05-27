@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         public abstract int? GetFirstUnusedStateMachineState(bool increasing);
 
         /// <summary>
-        /// For a given node associated with a entering a state of a state machine in the new compilation,
+        /// For a given node associated with entering a state of a state machine in the new compilation,
         /// returns the ordinal of the corresponding state in the previous version of the state machine.
         /// </summary>
         /// <returns>

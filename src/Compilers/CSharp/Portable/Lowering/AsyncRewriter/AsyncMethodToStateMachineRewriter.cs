@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(F.Label(_exprReturnLabel));
 
             // this.state = finishedState
-            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine));
+            var stateDone = F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState));
             var block = body.Syntax as BlockSyntax;
             if (block == null)
             {
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // _state = finishedState;
             BoundStatement assignFinishedState =
-                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)));
+                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)));
 
             // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
             BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                     // this.state = cachedState = NotStartedStateMachine
-                    GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
+                    GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState));
 
             return F.Block(blockBuilder.ToImmutableAndFree());
         }

@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         internal const int FirstIteratorFinalizeState = -3;
 
-        internal const int FinishedStateMachine = -2;
-        internal const int NotStartedStateMachine = -1;
+        internal const int FinishedState = -2;
+        internal const int NotStartedOrRunningState = -1;
         internal const int FirstUnusedState = 0;
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const int FirstResumableIteratorState = InitialIteratorState + 1;
 
         /// <summary>
-        /// Used for async-iterators to distinguish initial state from running state (-1) so that DisposeAsync can throw in latter case.
+        /// Used for async-iterators to distinguish initial state from <see cref="NotStartedOrRunningState"/> so that DisposeAsync can throw in latter case.
         /// </summary>
         internal const int InitialAsyncIteratorState = -3;
 

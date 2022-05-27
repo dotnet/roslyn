@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 makeIterator = F.If(
                     // if (this.state == -2 && this.initialThreadId == Thread.CurrentThread.ManagedThreadId)
                     condition: F.LogicalAnd(
-                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                        F.IntEqual(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedState)),
                         F.IntEqual(F.Field(F.This(), initialThreadIdField), managedThreadId)),
                     thenClause: F.Block(thenBuilder.ToImmutableAndFree()),
                     elseClauseOpt: makeIterator);

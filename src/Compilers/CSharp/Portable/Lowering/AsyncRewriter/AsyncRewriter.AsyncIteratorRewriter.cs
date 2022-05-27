@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.InitialAsyncIteratorState;
+                int initialState = _isEnumerable ? StateMachineStates.FinishedState : StateMachineStates.InitialAsyncIteratorState;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(moveNextAsyncReturnType)));
 
@@ -433,13 +433,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifInvalidState = F.If(
                     // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
-                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedOrRunningState)),
                     // throw new NotSupportedException();
                     thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 

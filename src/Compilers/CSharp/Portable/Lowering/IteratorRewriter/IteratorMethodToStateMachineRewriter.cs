@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Dispatch(isOutermost: true),
                     GenerateReturn(finished: true),
                     F.Label(initialLabel),
-                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.NotStartedOrRunningState)),
                     newBody);
 
             //

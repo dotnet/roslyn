@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't care about state = -2 (method already completed)
 
             // So we only want to enter the finally when the state is -1
-            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine));
+            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedOrRunningState));
         }
 
         #region Visitors
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Block(
                 F.Label(resumeLabel), // initialStateResumeLabel:
                 GenerateJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
-                GenerateSetBothStates(StateMachineStates.NotStartedStateMachine), // this.state = cachedState = -1;
+                GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState), // this.state = cachedState = -1;
                 rewrittenBody);
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 // this.state = cachedState = NotStartedStateMachine
-                GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
+                GenerateSetBothStates(StateMachineStates.NotStartedOrRunningState));
 
             Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
             blockBuilder.Add(
