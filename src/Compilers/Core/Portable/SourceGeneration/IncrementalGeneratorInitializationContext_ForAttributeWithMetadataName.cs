@@ -64,10 +64,10 @@ public partial struct IncrementalGeneratorInitializationContext
     /// cref="GeneratorAttributeSyntaxContext.AttributeTarget"/>) should be transformed</param>
     /// <param name="transform">A function that performs the transform, when <paramref name="predicate"/>returns
     /// <c>true</c> for a given node</param>
-    internal IncrementalValuesProvider<TResult> ForAttributeWithMetadataName<TResult>(
+    internal IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
         string fullyQualifiedMetadataName,
         Func<SyntaxNode, CancellationToken, bool> predicate,
-        Func<GeneratorAttributeSyntaxContext, CancellationToken, TResult> transform)
+        Func<GeneratorAttributeSyntaxContext, CancellationToken, T> transform)
     {
         var metadataName = fullyQualifiedMetadataName.Contains('+')
             ? MetadataTypeName.FromFullName(fullyQualifiedMetadataName.Split(s_nestedTypeNameSeparators).Last())
@@ -96,7 +96,7 @@ public partial struct IncrementalGeneratorInitializationContext
         {
             var (grouping, compilation) = tuple;
 
-            var result = ArrayBuilder<TResult>.GetInstance();
+            var result = ArrayBuilder<T>.GetInstance();
             try
             {
                 var syntaxTree = grouping.SyntaxTree;
