@@ -107,20 +107,20 @@ public partial struct IncrementalGeneratorInitializationContext
                 var syntaxTree = grouping.SyntaxTree;
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-                foreach (var node in grouping.SyntaxNodes)
+                foreach (var attributeTarget in grouping.SyntaxNodes)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var symbol =
-                        node is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
-                        syntaxHelper.IsLambdaExpression(node) ? semanticModel.GetSymbolInfo(node, cancellationToken).Symbol :
-                        semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                        attributeTarget is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
+                        syntaxHelper.IsLambdaExpression(attributeTarget) ? semanticModel.GetSymbolInfo(attributeTarget, cancellationToken).Symbol :
+                        semanticModel.GetDeclaredSymbol(attributeTarget, cancellationToken);
 
-                    var attributes = getMatchingAttributes(node, symbol, fullyQualifiedMetadataName);
+                    var attributes = getMatchingAttributes(attributeTarget, symbol, fullyQualifiedMetadataName);
                     if (attributes.Length > 0)
                     {
                         result.Add(transform(
-                            new GeneratorAttributeSyntaxContext(node, semanticModel, attributes),
+                            new GeneratorAttributeSyntaxContext(attributeTarget, semanticModel, attributes),
                             cancellationToken));
                     }
                 }
@@ -140,12 +140,20 @@ public partial struct IncrementalGeneratorInitializationContext
             ISymbol? symbol,
             string fullyQualifiedMetadataName)
         {
+            var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
 
-            if (symbol is not null)
+            addMatchingAttributes(symbol?.GetAttributes());
+            addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
+
+            return result.ToImmutableAndFree();
+
+            void addMatchingAttributes(ImmutableArray<AttributeData>? attributes)
             {
-                var targetSyntaxTree = attributeTarget.SyntaxTree;
-                foreach (var attribute in symbol.GetAttributes())
+                if (!attributes.HasValue)
+                    return;
+
+                foreach (var attribute in attributes.Value)
                 {
                     if (attribute.ApplicationSyntaxReference?.SyntaxTree == targetSyntaxTree &&
                         attribute.AttributeClass?.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
@@ -154,8 +162,6 @@ public partial struct IncrementalGeneratorInitializationContext
                     }
                 }
             }
-
-            return result.ToImmutableAndFree();
         }
     }
 }
