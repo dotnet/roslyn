@@ -52,6 +52,7 @@ public partial struct IncrementalGeneratorInitializationContext
     private static readonly char[] s_nestedTypeNameSeparators = new char[] { '+' };
     private static readonly SymbolDisplayFormat s_metadataDisplayFormat =
         SymbolDisplayFormat.QualifiedNameArityFormat.AddCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes);
+
     /// <summary>
     /// Creates an <see cref="IncrementalValuesProvider{T}"/> that can provide a transform over all <see
     /// cref="SyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="INamedTypeSymbol"/> with the
