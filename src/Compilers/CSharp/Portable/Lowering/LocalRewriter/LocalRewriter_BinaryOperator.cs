@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.NUIntUnsignedRightShift:
                     case BinaryOperatorKind.NIntLeftShift:
                     case BinaryOperatorKind.NUIntLeftShift:
-                        return RewriteBuiltInNativeShiftOperation(oldNode, operatorKind, loweredLeft, loweredRight, type);
+                        return RewriteBuiltInNativeShiftOperation(oldNode, syntax, operatorKind, loweredLeft, loweredRight, type);
 
                     case BinaryOperatorKind.DecimalAddition:
                     case BinaryOperatorKind.DecimalSubtraction:
@@ -2097,6 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteBuiltInNativeShiftOperation(
             BoundBinaryOperator? oldNode,
+            SyntaxNode syntax,
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
@@ -2107,7 +2108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // - When the type of `x` is `nint` or `nuint`, the shift count is given by
             //   the low-order five bits of `count` on a 32 bits platform, or
             //   the lower-order six bits of `count` on a 64 bits platform.
-            //   The shift count is computed from `count & (sizeof(nint) * 8 - 1)` (or `nuint`),
+            //   The shift count is computed as `count & (sizeof(nint) * 8 - 1)` or `count & (sizeof(nuint) * 8 - 1)`,
             //   which is `count & 0x1F` on a 32 bits platform and `count & 0x3F` on a 64 bits platform.
 
             Debug.Assert(loweredLeft.Type is { });
@@ -2119,7 +2120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol rightType = loweredRight.Type;
             Debug.Assert(rightType.SpecialType == SpecialType.System_Int32);
 
-            if (rightConstantValue != null && rightConstantValue.IsIntegral && rightConstantValue.Int32Value <= 0x1F)
+            var oldSyntax = _factory.Syntax;
+            _factory.Syntax = loweredRight.Syntax;
+
+            if (rightConstantValue != null
+                && rightConstantValue.Discriminator == ConstantValueTypeDiscriminator.Int32
+                && rightConstantValue.Int32Value <= 0x1F)
             {
                 // For cases where count is small enough, we don't need any masking.
                 int shiftAmount = rightConstantValue.Int32Value;
@@ -2140,10 +2146,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _factory.IntSubtract(_factory.IntMultiply(_factory.Sizeof(leftType), _factory.Literal(8)), _factory.Literal(1)));
             }
 
-            return oldNode == null
+            _factory.Syntax = syntax;
+            var result = oldNode == null
                 ? _factory.Binary(operatorKind, type, loweredLeft, loweredRight)
                 : oldNode.Update(operatorKind, null, methodOpt: null, constrainedToTypeOpt: null,
                     oldNode.ResultKind, loweredLeft, loweredRight, type);
+
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         private BoundExpression RewritePointerNumericOperator(
