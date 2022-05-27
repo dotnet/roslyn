@@ -2070,8 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CheckedOperatorNeedsMatch = 9025,
 
         ERR_CannotBeConvertedToUTF8 = 9026,
-        ERR_ExpressionTreeContainsUTF8StringLiterals = 9027,
-        ERR_MisplacedUnchecked = 9028,
+        ERR_MisplacedUnchecked = 9027,
 
         ERR_RequiredNameDisallowed = 9029,
         ERR_OverrideMustHaveRequired = 9030,

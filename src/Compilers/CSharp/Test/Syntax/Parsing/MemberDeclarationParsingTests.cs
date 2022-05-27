@@ -8756,7 +8756,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
         public void UncheckedOperatorDeclaration_01(string op, SyntaxKind opToken)
         {
             UsingDeclaration("C operator unchecked " + op + "(C x) => x;", expectedErrors:
-                // (1,12): error CS9028: Unexpected keyword 'unchecked'
+                // (1,12): error CS9027: Unexpected keyword 'unchecked'
                 // C operator unchecked op(C x) => x;
                 Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 12));
 
@@ -8815,7 +8815,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
         public void UncheckedOperatorDeclaration_04(string op, SyntaxKind opToken)
         {
             UsingDeclaration("C I.operator unchecked " + op + "(C x, C y) => x;", options: TestOptions.RegularPreview,
-                // (1,14): error CS9028: Unexpected keyword 'unchecked'
+                // (1,14): error CS9027: Unexpected keyword 'unchecked'
                 // C I.operator unchecked op(C x, C y) => x;
                 Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 14));
 
@@ -8876,7 +8876,7 @@ class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
         public void UnheckedOperatorDeclaration_05(string op, SyntaxKind opToken)
         {
             UsingDeclaration(op + " operator unchecked D(C x) => x;", expectedErrors:
-                // (1,19): error CS9028: Unexpected keyword 'unchecked'
+                // (1,19): error CS9027: Unexpected keyword 'unchecked'
                 // implicit operator unchecked op(C x) => x;
                 Diagnostic(ErrorCode.ERR_MisplacedUnchecked, "unchecked").WithLocation(1, 19));
 
