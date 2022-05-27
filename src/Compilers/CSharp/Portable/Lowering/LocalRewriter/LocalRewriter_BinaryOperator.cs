@@ -2125,12 +2125,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rightConstantValue != null
                 && rightConstantValue.Discriminator == ConstantValueTypeDiscriminator.Int32
-                && (rightConstantValue.Int32Value & 0b100_000) == 0)
+                && rightConstantValue.Int32Value is >= 0 and <= 0x1F)
             {
-                // For cases where count doesn't have the sixth bit set, we statically know the masked count.
-                int shiftAmount = rightConstantValue.Int32Value & 0x1F;
-                Debug.Assert(shiftAmount == (rightConstantValue.Int32Value & 0x3F));
-
+                // For cases where count is small enough, we don't need any masking.
+                int shiftAmount = rightConstantValue.Int32Value;
                 if (shiftAmount == 0)
                 {
                     return loweredLeft;

@@ -10351,10 +10351,8 @@ public class C
             validate("nint", "NIntMaxValue", ">> 32", "0x7FFF_FFFF", "0x7FFF_FFFF", nint_shr(32));
             validate("nint", "NIntMaxValue", ">> 33", "0x3FFF_FFFF", "0x3FFF_FFFF", nint_shr(33));
             validate("nint", "NIntMaxValue", ">> 63", "0x0", "0x0", nint_shr(63));
-            validate("nint", "NIntMaxValue", ">> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr(0));
-            validate("nint", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr(1));
-            validate("nint", "NIntMaxValue", ">> 0b1111_1111_1101_1111", "0x0", "0xFFFF_FFFF", nint_shr(31));
-            validate("nint", "NIntMaxValue", ">> 0b0000_0000_0001_1111", "0x0", "0xFFFF_FFFF", nint_shr(31));
+            validate("nint", "NIntMaxValue", ">> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr(64));
+            validate("nint", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", nint_shr(65));
 
             // negative nint shift right
             validate("nint", "NIntNegativeValue", ">> 1", "0xE000_0000", "0xE000_0000_0000_0000", nint_shr(1));
@@ -10362,7 +10360,7 @@ public class C
             validate("nint", "NIntNegativeValue", ">> 32", "0xC000_0001", "0xFFFF_FFFF_C000_0000", nint_shr(32));
             validate("nint", "NIntNegativeValue", ">> 33", "0xE000_0000", "0xFFFF_FFFF_E000_0000", nint_shr(33));
             validate("nint", "NIntNegativeValue", ">> 63", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nint_shr(63));
-            validate("nint", "NIntNegativeValue", ">> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr(0));
+            validate("nint", "NIntNegativeValue", ">> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr(64));
 
             // positive nint shift left
             validate("nint", "NIntMaxValue", "<< 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(0));
@@ -10370,7 +10368,7 @@ public class C
             validate("nint", "NIntMaxValue", "<< 31", "0x8000_0000", "0xFFFF_FFFF_8000_0000", nint_shl(31));
             validate("nint", "NIntMaxValue", "<< 32", "0x7FFF_FFFF", "0xFFFF_FFFF_0000_0000", nint_shl(32));
             validate("nint", "NIntMaxValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nint_shl(63));
-            validate("nint", "NIntMaxValue", "<< 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(0));
+            validate("nint", "NIntMaxValue", "<< 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shl(64));
 
             // negative nint shift left
             validate("nint", "NIntNegativeValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nint_shl(63));
@@ -10381,7 +10379,7 @@ public class C
             validate("nuint", "NUintMaxValue", ">> 31", "0x0000_0001", "0x0000_0001_FFFF_FFFF", nuint_shr_un(31));
             validate("nuint", "NUintMaxValue", ">> 32", "0xFFFF_FFFF", "0x0000_0000_FFFF_FFFF", nuint_shr_un(32));
             validate("nuint", "NUintMaxValue", ">> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
-            validate("nuint", "NUintMaxValue", ">> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
+            validate("nuint", "NUintMaxValue", ">> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
 
             // nuint shift left
             validate("nuint", "NUintMaxValue", "<< 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(0));
@@ -10389,7 +10387,7 @@ public class C
             validate("nuint", "NUintMaxValue", "<< 31", "0x8000_0000", "0xFFFF_FFFF_8000_0000", nuint_shl(31));
             validate("nuint", "NUintMaxValue", "<< 32", "0xFFFF_FFFF", "0xFFFF_FFFF_0000_0000", nuint_shl(32));
             validate("nuint", "NUintMaxValue", "<< 63", "0x8000_0000", "0x8000_0000_0000_0000", nuint_shl(63));
-            validate("nuint", "NUintMaxValue", "<< 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(0));
+            validate("nuint", "NUintMaxValue", "<< 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shl(64));
 
             // positive nint unsigned shift right
             validate("nint", "NIntMaxValue", ">>> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(0));
@@ -10397,7 +10395,7 @@ public class C
             validate("nint", "NIntMaxValue", ">>> 31", "0x0", "0xFFFF_FFFF", nint_shr_un(31));
             validate("nint", "NIntMaxValue", ">>> 32", "0x7FFF_FFFF", "0x7FFF_FFFF", nint_shr_un(32));
             validate("nint", "NIntMaxValue", ">>> 63", "0x0", "0x0", nint_shr_un(63));
-            validate("nint", "NIntMaxValue", ">>> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(0));
+            validate("nint", "NIntMaxValue", ">>> 64", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", nint_shr_un(64));
 
             // negative nint unsigned shift right
             validate("nint", "NIntNegativeValue", ">>> 0", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(0));
@@ -10405,7 +10403,7 @@ public class C
             validate("nint", "NIntNegativeValue", ">>> 31", "0x1", "0x0000_0001_8000_0000", nint_shr_un(31));
             validate("nint", "NIntNegativeValue", ">>> 32", "0xC000_0001", "0x0000_0000_C000_0000", nint_shr_un(32));
             validate("nint", "NIntNegativeValue", ">>> 63", "0x1", "0x1", nint_shr_un(63));
-            validate("nint", "NIntNegativeValue", ">>> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(0));
+            validate("nint", "NIntNegativeValue", ">>> 64", "0xC000_0001", "0xC000_0000_0000_0001", nint_shr_un(64));
 
             // nuint unsigned shift right
             validate("nuint", "NUintMaxValue", ">>> 0", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
@@ -10413,22 +10411,22 @@ public class C
             validate("nuint", "NUintMaxValue", ">>> 31", "0x0000_0001", "0x0000_0001_FFFF_FFFF", nuint_shr_un(31));
             validate("nuint", "NUintMaxValue", ">>> 32", "0xFFFF_FFFF", "0x0000_0000_FFFF_FFFF", nuint_shr_un(32));
             validate("nuint", "NUintMaxValue", ">>> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
-            validate("nuint", "NUintMaxValue", ">>> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(0));
+            validate("nuint", "NUintMaxValue", ">>> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
 
             // lifted value
             validate("nint?", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(0, "nint?", "shr"));
             validate("nint?", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr"));
-            validate("nint?", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr"));
-            validate("nint?", "NIntNegativeValue", ">> 65", "0xE000_0000", "0xE000_0000_0000_0000", liftedValue(1, "nint?", "shr"));
-            validate("nint?", "NIntMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(1, "nint?", "shl"));
-            validate("nint?", "NIntNegativeValue", "<< 65", "0x8000_0002", "0x8000_0000_0000_0002", liftedValue(1, "nint?", "shl"));
+            validate("nint?", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr"));
+            validate("nint?", "NIntNegativeValue", ">> 65", "0xE000_0000", "0xE000_0000_0000_0000", liftedValue(65, "nint?", "shr"));
+            validate("nint?", "NIntMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(65, "nint?", "shl"));
+            validate("nint?", "NIntNegativeValue", "<< 65", "0x8000_0002", "0x8000_0000_0000_0002", liftedValue(65, "nint?", "shl"));
 
-            validate("nuint?", "NUintMaxValue", ">> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(1, "nuint?", "shr.un"));
-            validate("nuint?", "NUintMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(1, "nuint?", "shl"));
+            validate("nuint?", "NUintMaxValue", ">> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
+            validate("nuint?", "NUintMaxValue", "<< 65", "0xFFFF_FFFE", "0xFFFF_FFFF_FFFF_FFFE", liftedValue(65, "nuint?", "shl"));
 
-            validate("nint?", "NIntMaxValue", ">>> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr.un"));
-            validate("nint?", "NIntNegativeValue", ">>> 65", "0x6000_0000", "0x6000_0000_0000_0000", liftedValue(1, "nint?", "shr.un"));
-            validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(1, "nuint?", "shr.un"));
+            validate("nint?", "NIntMaxValue", ">>> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr.un"));
+            validate("nint?", "NIntNegativeValue", ">>> 65", "0x6000_0000", "0x6000_0000_0000_0000", liftedValue(65, "nint?", "shr.un"));
+            validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
 
             // lifted count
             compileAndVerify("""
@@ -10750,12 +10748,18 @@ static class C
             var verifier = CompileAndVerify(comp, expectedOutput: "63");
             verifier.VerifyIL("C.ShiftRight", @"
 {
-  // Code size        4 (0x4)
-  .maxstack  2
+  // Code size       16 (0x10)
+  .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.2
-  IL_0002:  shr
-  IL_0003:  ret
+  IL_0001:  ldc.i4.s   -62
+  IL_0003:  sizeof     ""nint""
+  IL_0009:  ldc.i4.8
+  IL_000a:  mul
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  and
+  IL_000e:  shr
+  IL_000f:  ret
 }
 ");
         }
