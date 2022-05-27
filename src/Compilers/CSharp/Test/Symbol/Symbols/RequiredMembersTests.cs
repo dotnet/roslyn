@@ -368,28 +368,28 @@ namespace N8
                 } :
                 new[]
                 {
-                    // (4,12): error CS9500: Types and aliases cannot be named 'required'.
+                    // (4,12): error CS9029: Types and aliases cannot be named 'required'.
                     //     struct required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(4, 12),
-                    // (8,11): error CS9500: Types and aliases cannot be named 'required'.
+                    // (8,11): error CS9029: Types and aliases cannot be named 'required'.
                     //     class required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(8, 11),
-                    // (12,15): error CS9500: Types and aliases cannot be named 'required'.
+                    // (12,15): error CS9029: Types and aliases cannot be named 'required'.
                     //     interface required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(12, 15),
-                    // (16,19): error CS9500: Types and aliases cannot be named 'required'.
+                    // (16,19): error CS9029: Types and aliases cannot be named 'required'.
                     //     delegate void required();
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(16, 19),
-                    // (20,12): error CS9500: Types and aliases cannot be named 'required'.
+                    // (20,12): error CS9029: Types and aliases cannot be named 'required'.
                     //     record required();
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(20, 12),
-                    // (24,19): error CS9500: Types and aliases cannot be named 'required'.
+                    // (24,19): error CS9029: Types and aliases cannot be named 'required'.
                     //     record struct required();
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(24, 19),
-                    // (30,15): error CS9500: Types and aliases cannot be named 'required'.
+                    // (30,15): error CS9029: Types and aliases cannot be named 'required'.
                     //         class required {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(30, 15),
-                    // (35,11): error CS9500: Types and aliases cannot be named 'required'.
+                    // (35,11): error CS9029: Types and aliases cannot be named 'required'.
                     //     class required<T> {}
                     Diagnostic(ErrorCode.ERR_RequiredNameDisallowed, "required").WithLocation(35, 11)
                 }
@@ -523,7 +523,7 @@ class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         comp.VerifyDiagnostics(
-            // (8,25): error CS9501: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
+            // (8,25): error CS9030: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(8, 25)
         );
@@ -533,7 +533,7 @@ class Derived : Base
 
         comp = CreateCompilation(derived, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (4,25): error CS9501: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
+            // (4,25): error CS9030: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(4, 25)
         );
@@ -565,7 +565,7 @@ class DerivedDerived : Derived
         var comp = CreateCompilationWithRequiredMembers(@base + derived + derivedDerived);
 
         comp.VerifyDiagnostics(
-            // (12,25): error CS9501: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
+            // (12,25): error CS9030: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(12, 25)
         );
@@ -579,7 +579,7 @@ class DerivedDerived : Derived
 
         comp = CreateCompilation(derivedDerived, new[] { baseReference, useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (4,25): error CS9501: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
+            // (4,25): error CS9030: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(4, 25)
         );
@@ -796,25 +796,25 @@ class Derived3 : Base
         var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         comp.VerifyDiagnostics(
-            // (10,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
+            // (10,20): error CS9031: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
             //     public new int Field; // 1
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived1.Field").WithLocation(10, 20),
-            // (11,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived1.Prop'.
+            // (11,20): error CS9031: Required member 'Base.Prop' cannot be hidden by 'Derived1.Prop'.
             //     public new int Prop { get; set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived1.Prop").WithLocation(11, 20),
-            // (15,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived2.Prop'.
+            // (15,20): error CS9031: Required member 'Base.Prop' cannot be hidden by 'Derived2.Prop'.
             //     public new int Prop; // 3
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived2.Prop").WithLocation(15, 20),
-            // (16,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
+            // (16,20): error CS9031: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
             //     public new int Field { get; set; } // 4
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived2.Field").WithLocation(16, 20),
             // (20,16): warning CS0108: 'Derived3.Field' hides inherited member 'Base.Field'. Use the new keyword if hiding was intended.
             //     public int Field; // 1
             Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Derived3.Field", "Base.Field").WithLocation(20, 16),
-            // (20,16): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived3.Field'.
+            // (20,16): error CS9031: Required member 'Base.Field' cannot be hidden by 'Derived3.Field'.
             //     public int Field; // 1
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived3.Field").WithLocation(20, 16),
-            // (21,16): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
+            // (21,16): error CS9031: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
             //     public int Prop { get; set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived3.Prop").WithLocation(21, 16)
         );
@@ -824,25 +824,25 @@ class Derived3 : Base
 
         comp = CreateCompilation("#pragma warning disable CS0649 // Never assigned" + derived, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (4,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
+            // (4,20): error CS9031: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
             //     public new int Field; // 1
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived1.Field").WithLocation(4, 20),
-            // (5,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived1.Prop'.
+            // (5,20): error CS9031: Required member 'Base.Prop' cannot be hidden by 'Derived1.Prop'.
             //     public new int Prop { get; set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived1.Prop").WithLocation(5, 20),
-            // (9,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived2.Prop'.
+            // (9,20): error CS9031: Required member 'Base.Prop' cannot be hidden by 'Derived2.Prop'.
             //     public new int Prop; // 3
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived2.Prop").WithLocation(9, 20),
-            // (10,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
+            // (10,20): error CS9031: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
             //     public new int Field { get; set; } // 4
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived2.Field").WithLocation(10, 20),
             // (14,16): warning CS0108: 'Derived3.Field' hides inherited member 'Base.Field'. Use the new keyword if hiding was intended.
             //     public int Field; // 1
             Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Derived3.Field", "Base.Field").WithLocation(14, 16),
-            // (14,16): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived3.Field'.
+            // (14,16): error CS9031: Required member 'Base.Field' cannot be hidden by 'Derived3.Field'.
             //     public int Field; // 1
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived3.Field").WithLocation(14, 16),
-            // (15,16): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
+            // (15,16): error CS9031: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
             //     public int Prop { get; set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived3.Prop").WithLocation(15, 16)
         );
@@ -950,94 +950,94 @@ internal class Outer
 ");
 
         comp.VerifyDiagnostics(
-            // (7,37): error CS9503: Required member 'PublicClass.InternalProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (7,37): error CS9032: Required member 'PublicClass.InternalProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     internal protected required int InternalProtectedProperty { get; set; } // 1
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtectedProperty").WithArguments("PublicClass.InternalProtectedProperty", "PublicClass").WithLocation(7, 37),
-            // (8,27): error CS9503: Required member 'PublicClass.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (8,27): error CS9032: Required member 'PublicClass.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     internal required int InternalProperty { get; set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("PublicClass.InternalProperty", "PublicClass").WithLocation(8, 27),
-            // (9,28): error CS9503: Required member 'PublicClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (9,28): error CS9032: Required member 'PublicClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     protected required int ProtectedProperty { get; set; } // 3
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("PublicClass.ProtectedProperty", "PublicClass").WithLocation(9, 28),
-            // (10,36): error CS9503: Required member 'PublicClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (10,36): error CS9032: Required member 'PublicClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     private protected required int PrivateProtectedProperty { get; set; } // 4
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("PublicClass.PrivateProtectedProperty", "PublicClass").WithLocation(10, 36),
-            // (11,26): error CS9503: Required member 'PublicClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (11,26): error CS9032: Required member 'PublicClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     private required int PrivateProperty { get; set; } // 5
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("PublicClass.PrivateProperty", "PublicClass").WithLocation(11, 26),
-            // (13,37): error CS9503: Required member 'PublicClass.InternalProtectedField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (13,37): error CS9032: Required member 'PublicClass.InternalProtectedField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     internal protected required int InternalProtectedField; // 6
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtectedField").WithArguments("PublicClass.InternalProtectedField", "PublicClass").WithLocation(13, 37),
-            // (14,27): error CS9503: Required member 'PublicClass.InternalField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (14,27): error CS9032: Required member 'PublicClass.InternalField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     internal required int InternalField; // 7
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("PublicClass.InternalField", "PublicClass").WithLocation(14, 27),
-            // (15,28): error CS9503: Required member 'PublicClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (15,28): error CS9032: Required member 'PublicClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     protected required int ProtectedField; // 8
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("PublicClass.ProtectedField", "PublicClass").WithLocation(15, 28),
-            // (16,36): error CS9503: Required member 'PublicClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (16,36): error CS9032: Required member 'PublicClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     private protected required int PrivateProtectedField; // 9
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("PublicClass.PrivateProtectedField", "PublicClass").WithLocation(16, 36),
-            // (17,26): error CS9503: Required member 'PublicClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (17,26): error CS9032: Required member 'PublicClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     private required int PrivateField; // 10
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("PublicClass.PrivateField", "PublicClass").WithLocation(17, 26),
-            // (24,28): error CS9503: Required member 'InternalClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (24,28): error CS9032: Required member 'InternalClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     protected required int ProtectedProperty { get; set; } // 11
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("InternalClass.ProtectedProperty", "InternalClass").WithLocation(24, 28),
-            // (25,36): error CS9503: Required member 'InternalClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (25,36): error CS9032: Required member 'InternalClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     private protected required int PrivateProtectedProperty { get; set; } // 12
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("InternalClass.PrivateProtectedProperty", "InternalClass").WithLocation(25, 36),
-            // (26,26): error CS9503: Required member 'InternalClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (26,26): error CS9032: Required member 'InternalClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     private required int PrivateProperty { get; set; } // 13
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("InternalClass.PrivateProperty", "InternalClass").WithLocation(26, 26),
-            // (30,28): error CS9503: Required member 'InternalClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (30,28): error CS9032: Required member 'InternalClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     protected required int ProtectedField; // 14
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("InternalClass.ProtectedField", "InternalClass").WithLocation(30, 28),
-            // (31,36): error CS9503: Required member 'InternalClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (31,36): error CS9032: Required member 'InternalClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     private protected required int PrivateProtectedField; // 15
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("InternalClass.PrivateProtectedField", "InternalClass").WithLocation(31, 36),
-            // (32,26): error CS9503: Required member 'InternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (32,26): error CS9032: Required member 'InternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     private required int PrivateField; // 16
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("InternalClass.PrivateField", "InternalClass").WithLocation(32, 26),
-            // (40,31): error CS9503: Required member 'Outer.ProtectedInternalClass.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (40,31): error CS9032: Required member 'Outer.ProtectedInternalClass.InternalProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         internal required int InternalProperty { get; set; } // 17
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProperty").WithArguments("Outer.ProtectedInternalClass.InternalProperty", "Outer.ProtectedInternalClass").WithLocation(40, 31),
-            // (41,32): error CS9503: Required member 'Outer.ProtectedInternalClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (41,32): error CS9032: Required member 'Outer.ProtectedInternalClass.ProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         protected required int ProtectedProperty { get; set; } // 18
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedProperty").WithArguments("Outer.ProtectedInternalClass.ProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(41, 32),
-            // (42,40): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (42,40): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         private protected required int PrivateProtectedProperty { get; set; } // 19
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedProperty", "Outer.ProtectedInternalClass").WithLocation(42, 40),
-            // (43,30): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (43,30): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         private required int PrivateProperty { get; set; } // 20
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedInternalClass.PrivateProperty", "Outer.ProtectedInternalClass").WithLocation(43, 30),
-            // (46,31): error CS9503: Required member 'Outer.ProtectedInternalClass.InternalField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (46,31): error CS9032: Required member 'Outer.ProtectedInternalClass.InternalField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         internal required int InternalField; // 21
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalField").WithArguments("Outer.ProtectedInternalClass.InternalField", "Outer.ProtectedInternalClass").WithLocation(46, 31),
-            // (47,32): error CS9503: Required member 'Outer.ProtectedInternalClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (47,32): error CS9032: Required member 'Outer.ProtectedInternalClass.ProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         protected required int ProtectedField; // 22
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "ProtectedField").WithArguments("Outer.ProtectedInternalClass.ProtectedField", "Outer.ProtectedInternalClass").WithLocation(47, 32),
-            // (48,40): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (48,40): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         private protected required int PrivateProtectedField; // 23
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedInternalClass.PrivateProtectedField", "Outer.ProtectedInternalClass").WithLocation(48, 40),
-            // (49,30): error CS9503: Required member 'Outer.ProtectedInternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
+            // (49,30): error CS9032: Required member 'Outer.ProtectedInternalClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedInternalClass'.
             //         private required int PrivateField; // 24
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedInternalClass.PrivateField", "Outer.ProtectedInternalClass").WithLocation(49, 30),
-            // (57,40): error CS9503: Required member 'Outer.ProtectedClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            // (57,40): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtectedProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private protected required int PrivateProtectedProperty { get; set; } // 25
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedProperty").WithArguments("Outer.ProtectedClass.PrivateProtectedProperty", "Outer.ProtectedClass").WithLocation(57, 40),
-            // (58,30): error CS9503: Required member 'Outer.ProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            // (58,30): error CS9032: Required member 'Outer.ProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private required int PrivateProperty { get; set; } // 26
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.ProtectedClass.PrivateProperty", "Outer.ProtectedClass").WithLocation(58, 30),
-            // (63,40): error CS9503: Required member 'Outer.ProtectedClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            // (63,40): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtectedField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private protected required int PrivateProtectedField; // 27
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtectedField").WithArguments("Outer.ProtectedClass.PrivateProtectedField", "Outer.ProtectedClass").WithLocation(63, 40),
-            // (64,30): error CS9503: Required member 'Outer.ProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            // (64,30): error CS9032: Required member 'Outer.ProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         private required int PrivateField; // 28
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.ProtectedClass.PrivateField", "Outer.ProtectedClass").WithLocation(64, 30),
-            // (73,30): error CS9503: Required member 'Outer.PrivateProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            // (73,30): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateProperty' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
             //         private required int PrivateProperty { get; set; } // 29
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProperty").WithArguments("Outer.PrivateProtectedClass.PrivateProperty", "Outer.PrivateProtectedClass").WithLocation(73, 30),
-            // (79,30): error CS9503: Required member 'Outer.PrivateProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            // (79,30): error CS9032: Required member 'Outer.PrivateProtectedClass.PrivateField' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
             //         private required int PrivateField; // 30
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateField").WithArguments("Outer.PrivateProtectedClass.PrivateField", "Outer.PrivateProtectedClass").WithLocation(79, 30)
         );
@@ -1101,49 +1101,49 @@ internal class Outer
 ");
 
         comp.VerifyDiagnostics(
-            // (4,25): error CS9503: Required member 'PublicClass.InternalProtected' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (4,25): error CS9032: Required member 'PublicClass.InternalProtected' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     public required int InternalProtected { get; internal protected set; } // 1
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "InternalProtected").WithArguments("PublicClass.InternalProtected", "PublicClass").WithLocation(4, 25),
-            // (5,25): error CS9503: Required member 'PublicClass.Internal' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (5,25): error CS9032: Required member 'PublicClass.Internal' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     public required int Internal { get; internal set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Internal").WithArguments("PublicClass.Internal", "PublicClass").WithLocation(5, 25),
-            // (6,25): error CS9503: Required member 'PublicClass.Protected' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (6,25): error CS9032: Required member 'PublicClass.Protected' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     public required int Protected { get; protected set; } // 3
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("PublicClass.Protected", "PublicClass").WithLocation(6, 25),
-            // (7,25): error CS9503: Required member 'PublicClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (7,25): error CS9032: Required member 'PublicClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     public required int PrivateProtected { get; private protected set; } // 4
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("PublicClass.PrivateProtected", "PublicClass").WithLocation(7, 25),
-            // (8,25): error CS9503: Required member 'PublicClass.Private' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
+            // (8,25): error CS9032: Required member 'PublicClass.Private' cannot be less visible or have a setter less visible than the containing type 'PublicClass'.
             //     public required int Private { get; private set; } // 5
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("PublicClass.Private", "PublicClass").WithLocation(8, 25),
-            // (14,25): error CS9503: Required member 'InternalClass.Protected' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (14,25): error CS9032: Required member 'InternalClass.Protected' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     public required int Protected { get; protected set; } // 6
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("InternalClass.Protected", "InternalClass").WithLocation(14, 25),
-            // (15,25): error CS9503: Required member 'InternalClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (15,25): error CS9032: Required member 'InternalClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     public required int PrivateProtected { get; private protected set; } // 7
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("InternalClass.PrivateProtected", "InternalClass").WithLocation(15, 25),
-            // (16,25): error CS9503: Required member 'InternalClass.Private' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
+            // (16,25): error CS9032: Required member 'InternalClass.Private' cannot be less visible or have a setter less visible than the containing type 'InternalClass'.
             //     public required int Private { get; private set; } // 8
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("InternalClass.Private", "InternalClass").WithLocation(16, 25),
-            // (23,29): error CS9503: Required member 'Outer.InternalProtectedClass.Internal' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
+            // (23,29): error CS9032: Required member 'Outer.InternalProtectedClass.Internal' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
             //         public required int Internal { get; internal set; } // 9
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Internal").WithArguments("Outer.InternalProtectedClass.Internal", "Outer.InternalProtectedClass").WithLocation(23, 29),
-            // (24,29): error CS9503: Required member 'Outer.InternalProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
+            // (24,29): error CS9032: Required member 'Outer.InternalProtectedClass.Protected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
             //         public required int Protected { get; protected set; } // 10
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Protected").WithArguments("Outer.InternalProtectedClass.Protected", "Outer.InternalProtectedClass").WithLocation(24, 29),
-            // (25,29): error CS9503: Required member 'Outer.InternalProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
+            // (25,29): error CS9032: Required member 'Outer.InternalProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
             //         public required int PrivateProtected { get; private protected set; } // 11
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.InternalProtectedClass.PrivateProtected", "Outer.InternalProtectedClass").WithLocation(25, 29),
-            // (26,29): error CS9503: Required member 'Outer.InternalProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
+            // (26,29): error CS9032: Required member 'Outer.InternalProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.InternalProtectedClass'.
             //         public required int Private { get; private set; } // 12
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.InternalProtectedClass.Private", "Outer.InternalProtectedClass").WithLocation(26, 29),
-            // (33,29): error CS9503: Required member 'Outer.ProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            // (33,29): error CS9032: Required member 'Outer.ProtectedClass.PrivateProtected' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         public required int PrivateProtected { get; private protected set; } // 13
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "PrivateProtected").WithArguments("Outer.ProtectedClass.PrivateProtected", "Outer.ProtectedClass").WithLocation(33, 29),
-            // (34,29): error CS9503: Required member 'Outer.ProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
+            // (34,29): error CS9032: Required member 'Outer.ProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.ProtectedClass'.
             //         public required int Private { get; private set; } // 14
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.ProtectedClass.Private", "Outer.ProtectedClass").WithLocation(34, 29),
-            // (42,29): error CS9503: Required member 'Outer.PrivateProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
+            // (42,29): error CS9032: Required member 'Outer.PrivateProtectedClass.Private' cannot be less visible or have a setter less visible than the containing type 'Outer.PrivateProtectedClass'.
             //         public required int Private { get; private set; } // 15
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Private").WithArguments("Outer.PrivateProtectedClass.Private", "Outer.PrivateProtectedClass").WithLocation(42, 29)
          );
@@ -1165,13 +1165,13 @@ class C
 ");
 
         comp.VerifyDiagnostics(
-            // (3,2): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (3,2): error CS9033: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             // [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(3, 2),
-            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (6,6): error CS9033: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             //     [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(6, 6),
-            // (8,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (8,6): error CS9033: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             //     [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(8, 6),
             // (9,16): warning CS0649: Field 'C.Field' is never assigned to, and will always have its default value 0
@@ -1248,16 +1248,16 @@ class C
 ");
 
         comp.VerifyDiagnostics(
-                // (5,29): error CS9505: Required member 'C.Prop1' must be settable.
+                // (5,29): error CS9034: Required member 'C.Prop1' must be settable.
                 //     public required ref int Prop1 => ref i;
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(5, 29),
-                // (5,29): error CS9514: Ref returning properties cannot be required.
+                // (5,29): error CS9043: Ref returning properties cannot be required.
                 //     public required ref int Prop1 => ref i;
                 Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop1").WithLocation(5, 29),
-                // (6,38): error CS9505: Required member 'C.Prop2' must be settable.
+                // (6,38): error CS9034: Required member 'C.Prop2' must be settable.
                 //     public required ref readonly int Prop2 => ref i;
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop2").WithArguments("C.Prop2").WithLocation(6, 38),
-                // (6,38): error CS9514: Ref returning properties cannot be required.
+                // (6,38): error CS9043: Ref returning properties cannot be required.
                 //     public required ref readonly int Prop2 => ref i;
                 Diagnostic(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, "Prop2").WithLocation(6, 38)
         );
@@ -1282,13 +1282,13 @@ public class C
 """);
 
         comp.VerifyDiagnostics(
-            // (4,34): error CS9505: Required member 'C.Field' must be settable.
+            // (4,34): error CS9034: Required member 'C.Field' must be settable.
             //     public required readonly int Field;
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field").WithArguments("C.Field").WithLocation(4, 34),
-            // (5,25): error CS9505: Required member 'C.Prop1' must be settable.
+            // (5,25): error CS9034: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(5, 25),
-            // (6,25): error CS9503: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
+            // (6,25): error CS9032: Required member 'C.Prop2' cannot be less visible or have a setter less visible than the containing type 'C'.
             //     public required int Prop2 { get; private set; }
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, "Prop2").WithArguments("C.Prop2", "C").WithLocation(6, 25)
         );
@@ -1310,10 +1310,10 @@ public class C
             """);
 
         comp.VerifyDiagnostics(
-            // (6,25): warning CS9513: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            // (6,25): warning CS9042: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Field;
             Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("C.Field").WithLocation(6, 25),
-            // (8,25): warning CS9513: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            // (8,25): warning CS9042: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Prop1 { get; set; }
             Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("C.Prop1").WithLocation(8, 25)
         );
@@ -1335,10 +1335,10 @@ public class C
             """);
 
         comp.VerifyDiagnostics(
-            // (6,25): warning CS9513: Required member 'S.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            // (6,25): warning CS9042: Required member 'S.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Field;
             Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("S.Field").WithLocation(6, 25),
-            // (8,25): warning CS9513: Required member 'S.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            // (8,25): warning CS9042: Required member 'S.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Prop1 { get; set; }
             Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("S.Prop1").WithLocation(8, 25)
         );
@@ -1413,10 +1413,10 @@ public class C
             """);
 
         comp.VerifyDiagnostics(
-            // (14,25): warning CS9513: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            // (14,25): warning CS9042: Required member 'C.Field' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Field;
             Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Field").WithArguments("C.Field").WithLocation(14, 25),
-            // (16,25): warning CS9513: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+            // (16,25): warning CS9042: Required member 'C.Prop1' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
             //     public required int Prop1 { get; set; }
             Diagnostic(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, "Prop1").WithArguments("C.Prop1").WithLocation(16, 25)
         );
@@ -1460,18 +1460,18 @@ public class C
 
         var expectedDiagnostics = constructor == " C" ? new[]
         {
-            // (1,11): error CS9506: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
+            // (1,11): error CS9035: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
             // C c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop").WithLocation(1, 11),
-            // (1,11): error CS9506: Required member 'C.Field' must be set in the object initializer or attribute constructor.
+            // (1,11): error CS9035: Required member 'C.Field' must be set in the object initializer or attribute constructor.
             // C c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field").WithLocation(1, 11)
         }
         : new[] {
-            // (1,7): error CS9506: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
+            // (1,7): error CS9035: Required member 'C.Prop' must be set in the object initializer or attribute constructor.
             // C c = new();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Prop").WithLocation(1, 7),
-            // (1,7): error CS9506: Required member 'C.Field' must be set in the object initializer or attribute constructor.
+            // (1,7): error CS9035: Required member 'C.Field' must be set in the object initializer or attribute constructor.
             // C c = new();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Field").WithLocation(1, 7)
         };
@@ -1530,18 +1530,18 @@ public class C
 
         var expectedDiagnostics = constructor == " C" ? new[]
         {
-            // (1,11): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // (1,11): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // C c = new C() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(1, 11),
-            // (1,11): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // (1,11): error CS9035: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // C c = new C() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(1, 11)
         }
         : new[] {
-            // (1,7): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // (1,7): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // C c = new() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Prop1").WithLocation(1, 7),
-            // (1,7): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // (1,7): error CS9035: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // C c = new() { Prop2 = 1, Field2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "new").WithArguments("C.Field1").WithLocation(1, 7)
         };
@@ -1593,10 +1593,10 @@ public class C
 ";
         var comp = CreateCompilationWithRequiredMembers(c);
         comp.VerifyDiagnostics(
-            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // (2,13): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // var c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(2, 13),
-            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // (2,13): error CS9035: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // var c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(2, 13),
             // (3,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
@@ -1605,10 +1605,10 @@ public class C
             // (3,26): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
             // c = new C() { Prop1 = 1, Field1 = 1 };
             Diagnostic(ErrorCode.ERR_AssgReadonly, "Field1").WithLocation(3, 26),
-            // (7,25): error CS9505: Required member 'C.Prop1' must be settable.
+            // (7,25): error CS9034: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(7, 25),
-            // (8,34): error CS9505: Required member 'C.Field1' must be settable.
+            // (8,34): error CS9034: Required member 'C.Field1' must be settable.
             //     public required readonly int Field1;
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field1").WithArguments("C.Field1").WithLocation(8, 34)
         );
@@ -1638,10 +1638,10 @@ c = new C() { Prop1 = 1, Field1 = 1 };
 ";
         var comp = CreateCompilation(new[] { c }, references: new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (2,13): error CS9506: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
+            // (2,13): error CS9035: Required member 'C.Prop1' must be set in the object initializer or attribute constructor.
             // var c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Prop1").WithLocation(2, 13),
-            // (2,13): error CS9506: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
+            // (2,13): error CS9035: Required member 'C.Field1' must be set in the object initializer or attribute constructor.
             // var c = new C();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.Field1").WithLocation(2, 13),
             // (3,15): error CS0200: Property or indexer 'C.Prop1' cannot be assigned to -- it is read only
@@ -1678,10 +1678,10 @@ public class C
             // (4,26): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
             // c = new C() { Prop1 = 1, Field1 = 1 };
             Diagnostic(ErrorCode.ERR_AssgReadonly, "Field1").WithLocation(4, 26),
-            // (8,25): error CS9505: Required member 'C.Prop1' must be settable.
+            // (8,25): error CS9034: Required member 'C.Prop1' must be settable.
             //     public required int Prop1 { get; }
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(8, 25),
-            // (9,34): error CS9505: Required member 'C.Field1' must be settable.
+            // (9,34): error CS9034: Required member 'C.Field1' must be settable.
             //     public required readonly int Field1;
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Field1").WithArguments("C.Field1").WithLocation(9, 34)
         );
@@ -1705,10 +1705,10 @@ public class D
 ";
         var comp = CreateCompilationWithRequiredMembers(c);
         comp.VerifyDiagnostics(
-            // (2,24): error CS9507: Required member 'C.D1' must be assigned a value, it cannot use a nested member or collection initializer.
+            // (2,24): error CS9036: Required member 'C.D1' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
             Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 1 }").WithArguments("C.D1").WithLocation(2, 24),
-            // (2,49): error CS9507: Required member 'C.D2' must be assigned a value, it cannot use a nested member or collection initializer.
+            // (2,49): error CS9036: Required member 'C.D2' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { D1 = { NestedProp = 1 }, D2 = { NestedProp = 2 } };
             Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ NestedProp = 2 }").WithArguments("C.D2").WithLocation(2, 49)
         );
@@ -1773,10 +1773,10 @@ public class C
 ";
         var comp = CreateCompilationWithRequiredMembers(c);
         comp.VerifyDiagnostics(
-            // (3,24): error CS9507: Required member 'C.L1' must be assigned a value, it cannot use a nested member or collection initializer.
+            // (3,24): error CS9036: Required member 'C.L1' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
             Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 1, 2, 3 }").WithArguments("C.L1").WithLocation(3, 24),
-            // (3,42): error CS9507: Required member 'C.L2' must be assigned a value, it cannot use a nested member or collection initializer.
+            // (3,42): error CS9036: Required member 'C.L2' must be assigned a value, it cannot use a nested member or collection initializer.
             // var c = new C() { L1 = { 1, 2, 3 }, L2 = { 4, 5, 6 } };
             Diagnostic(ErrorCode.ERR_RequiredMembersMustBeAssignedValue, "{ 4, 5, 6 }").WithArguments("C.L2").WithLocation(3, 42)
         );
@@ -1845,16 +1845,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-                // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
+                // (2,9): error CS9035: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop1").WithLocation(2, 9),
-                // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
+                // (2,9): error CS9035: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field1").WithLocation(2, 9),
-                // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
+                // (2,9): error CS9035: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop2").WithLocation(2, 9),
-                // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
+                // (2,9): error CS9035: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
                 // _ = new Derived();
                 Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field2").WithLocation(2, 9)
         };
@@ -1939,16 +1939,16 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-            // (2,9): error CS9506: Required member 'Base.Prop2' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Base.Prop2' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop2").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Base.Field2' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Base.Field2' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field2").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Prop4' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Prop4' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop4").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Field4' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Field4' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop1 = 1, Field1 = 1, Prop3 = 3, Field3 = 3 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field4").WithLocation(2, 9)
         };
@@ -2057,16 +2057,16 @@ public class Derived : Base
 
         var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() }, targetFramework: TargetFramework.Standard);
         comp.VerifyDiagnostics(
-            // (2,9): error CS9506: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Base.Field1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Field1").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Base.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Base.Prop1").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Prop2' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop2").WithLocation(2, 9),
-            // (2,9): error CS9506: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Field2' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Field2").WithLocation(2, 9)
         );
@@ -2180,7 +2180,7 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
         };
@@ -2254,7 +2254,7 @@ public class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
 
         var expectedDiagnostics = new[] {
-            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived() { Prop2 = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
         };
@@ -2358,7 +2358,7 @@ public class Derived : Base
 
         var comp = CreateCompilation(code, new[] { baseComp.ToMetadataReference(), retargetedC.ToMetadataReference() });
         comp.VerifyDiagnostics(
-            // (2,9): error CS9506: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
+            // (2,9): error CS9035: Required member 'Derived.Prop1' must be set in the object initializer or attribute constructor.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Derived").WithArguments("Derived.Prop1").WithLocation(2, 9)
         );
@@ -2401,13 +2401,13 @@ class Derived3 : Derived { }";
 
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (8,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2(int x) {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(8, 12),
-            // (10,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (10,7): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // class Derived3 : Derived { }
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(10, 7)
         );
@@ -2484,10 +2484,10 @@ class Derived3 : Derived { }";
 
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (9,7): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // class Derived3 : Derived { }
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
         );
@@ -2525,10 +2525,10 @@ class Derived3 : Derived { }";
 
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (7,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (7,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public Derived2() {}
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived2").WithArguments("Derived").WithLocation(7, 12),
-            // (9,7): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (9,7): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // class Derived3 : Derived { }
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "Derived3").WithArguments("Derived").WithLocation(9, 7)
         );
@@ -2751,13 +2751,13 @@ record DerivedDerived3() : Derived;
 
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (8,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1()
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (12,8): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (15,8): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
         );
@@ -2840,7 +2840,7 @@ record DerivedDerived1 : Derived
 
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (18,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (18,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1(bool unused) : base(null)
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(18, 12)
         );
@@ -2881,13 +2881,13 @@ record DerivedDerived3() : Derived;
 
         var comp = CreateCompilation(c, new[] { il, originalComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (8,12): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (8,12): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             //     public DerivedDerived1()
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived1").WithArguments("Derived").WithLocation(8, 12),
-            // (12,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (12,8): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived2 : Derived
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived2").WithArguments("Derived").WithLocation(12, 8),
-            // (15,8): error CS9509: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
+            // (15,8): error CS9038: The required members list for the base type 'Derived' is malformed and cannot be interpreted. To use this constructor, apply the 'SetsRequiredMembers' attribute.
             // record DerivedDerived3() : Derived;
             Diagnostic(ErrorCode.ERR_RequiredMembersBaseTypeInvalid, "DerivedDerived3").WithArguments("Derived").WithLocation(15, 8)
         );
@@ -2963,7 +2963,7 @@ End Class
             """;
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived").WithArguments("Derived").WithLocation(1, 9)
         );
@@ -3004,7 +3004,7 @@ End Class
             """;
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived").WithArguments("Derived").WithLocation(1, 9)
         );
@@ -3044,7 +3044,7 @@ End Class
             """;
         var comp = CreateCompilation(c, new[] { vbComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,9): error CS9508: The required members list for 'Derived' is malformed and cannot be interpreted.
+            // (1,9): error CS9037: The required members list for 'Derived' is malformed and cannot be interpreted.
             // _ = new Derived();
             Diagnostic(ErrorCode.ERR_RequiredMembersInvalid, "Derived").WithArguments("Derived").WithLocation(1, 9)
         );
@@ -3065,7 +3065,7 @@ partial class CustomHandler
 
         var comp = CreateCompilationWithRequiredMembers(new[] { code, handler });
         comp.VerifyDiagnostics(
-            // (2,25): error CS9506: Required member 'CustomHandler.Field' must be set in the object initializer or attribute constructor.
+            // (2,25): error CS9035: Required member 'CustomHandler.Field' must be set in the object initializer or attribute constructor.
             // CustomHandler handler = $"";
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, @"$""""").WithArguments("CustomHandler.Field").WithLocation(2, 25)
         );
@@ -3094,7 +3094,7 @@ class C : I
 ";
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer or attribute constructor.
+            // (5,9): error CS9035: Required member 'C.P' must be set in the object initializer or attribute constructor.
             // _ = new I();
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "I").WithArguments("C.P").WithLocation(5, 9)
         );
@@ -3123,7 +3123,7 @@ class C : I
 ";
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (5,9): error CS9506: Required member 'C.P' must be set in the object initializer or attribute constructor.
+            // (5,9): error CS9035: Required member 'C.P' must be set in the object initializer or attribute constructor.
             // _ = new I() { P = 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "I").WithArguments("C.P").WithLocation(5, 9)
         );
@@ -3148,7 +3148,7 @@ class AttrAttribute : Attribute
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (4,2): error CS9506: Required member 'AttrAttribute.P' must be set in the object initializer or attribute constructor.
+            // (4,2): error CS9035: Required member 'AttrAttribute.P' must be set in the object initializer or attribute constructor.
             // [Attr]
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Attr").WithArguments("AttrAttribute.P").WithLocation(4, 2)
         );
@@ -3291,10 +3291,10 @@ public class RequiredMemberAttribute : Attribute
 
         var comp = CreateCompilation(new[] { code, CompilerFeatureRequiredAttribute });
         comp.VerifyDiagnostics(
-            // (4,2): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
+            // (4,2): error CS9035: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
             // [RequiredMember]
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "RequiredMember").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute.P").WithLocation(4, 2),
-            // (4,2): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (4,2): error CS9033: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             // [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(4, 2)
         );
@@ -3315,10 +3315,10 @@ public class RequiredMemberAttribute : Attribute
 
         var comp = CreateCompilation(new[] { code, CompilerFeatureRequiredAttribute });
         comp.VerifyDiagnostics(
-            // (6,6): error CS9506: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
+            // (6,6): error CS9035: Required member 'RequiredMemberAttribute.P' must be set in the object initializer or attribute constructor.
             //     [RequiredMember]
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "RequiredMember").WithArguments("System.Runtime.CompilerServices.RequiredMemberAttribute.P").WithLocation(6, 6),
-            // (6,6): error CS9504: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+            // (6,6): error CS9033: Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
             //     [RequiredMember]
             Diagnostic(ErrorCode.ERR_ExplicitRequiredMember, "RequiredMember").WithLocation(6, 6)
         );
@@ -3814,7 +3814,7 @@ public class Derived : Base
             // (9,15): warning CS8618: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     protected Base() {} // 1
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Base").WithArguments("property", "Prop1").WithLocation(9, 15),
-            // (17,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (17,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : base() // 2
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "base").WithLocation(17, 24),
             // (21,9): warning CS8602: Dereference of a possibly null reference.
@@ -3866,7 +3866,7 @@ public class Derived : Base
             // (17,12): warning CS8618: Non-nullable property 'Prop3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
             //     public Derived(int unused) : base()
             Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Derived").WithArguments("property", "Prop3").WithLocation(17, 12),
-            // (22,24): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (22,24): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             //     public Derived() : this(0)
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "this").WithLocation(22, 24)
         );
@@ -4170,7 +4170,7 @@ public class Derived : Base
 
         var comp = CreateCompilationWithIL(code, ilSource: il, references: new[] { attrComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (2,42): error CS9510: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
+            // (2,42): error CS9039: This constructor must add 'SetsRequiredMembers' because it chains to a constructor that has that attribute.
             // public record Derived(bool unused) : Base(unused);
             Diagnostic(ErrorCode.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers, "(unused)").WithLocation(2, 42)
         );
@@ -4318,7 +4318,7 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(code);
         comp.VerifyDiagnostics(
-            // (1,1): error CS9511: 'C' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'C' has required members.
+            // (1,1): error CS9040: 'C' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'C' has required members.
             // M<C>();
             Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<C>").WithArguments("M<T>()", "T", "C").WithLocation(1, 1)
         );
@@ -4349,7 +4349,7 @@ public class Derived : Base
 
         var comp = CreateCompilationWithRequiredMembers(new[] { @base, code });
         comp.VerifyDiagnostics(
-            // (1,1): error CS9511: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
+            // (1,1): error CS9040: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
             // M<Derived>();
             Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
         );
@@ -4359,7 +4359,7 @@ public class Derived : Base
 
         comp = CreateCompilation(code, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (1,1): error CS9511: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
+            // (1,1): error CS9040: 'Derived' cannot satisfy the 'new()' constraint on parameter 'T' in the generic type or or method 'M<T>()' because 'Derived' has required members.
             // M<Derived>();
             Diagnostic(ErrorCode.ERR_NewConstraintCannotHaveRequiredMembers, "M<Derived>").WithArguments("M<T>()", "T", "Derived").WithLocation(1, 1)
         );

@@ -391,3 +391,16 @@ Console.WriteLine($"{{{12:X}}}");
 The workaround is to remove the extra braces in the format string.
 
 You can learn more about this change in the associated [roslyn issue](https://github.com/dotnet/roslyn/issues/57750).
+
+## Types cannot be named `required`
+
+***Introduced in Visual Studio 2022 version 17.3.*** Starting in C# 11, types cannot be named `required`. The compiler will report an error on all such type names. To work around this, the type name and all usages must be escaped with an `@`:
+
+```csharp
+class required {} // Error CS9029
+class @required {} // No error
+```
+
+This was done as `required` is now a member modifier for properties and fields.
+
+You can learn more about this change in the associated [csharplang issue](https://github.com/dotnet/csharplang/issues/3630).
