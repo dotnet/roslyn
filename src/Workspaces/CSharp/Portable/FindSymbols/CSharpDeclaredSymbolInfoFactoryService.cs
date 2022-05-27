@@ -168,6 +168,63 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 AddExtensionMethodInfo(methodDeclaration, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
         }
 
+        protected override void AddLocalFunctionInfos(
+            CompilationUnitSyntax compilationUnit,
+            StringTable stringTable,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            CancellationToken cancellationToken)
+        {
+            foreach (var member in compilationUnit.Members)
+            {
+                if (member is GlobalStatementSyntax)
+                    AddLocalFunctionInfosRecurse(member, stringTable, declaredSymbolInfos, containerDisplayName: "", fullyQualifiedContainerName: "", cancellationToken);
+            }
+        }
+
+        protected override void AddLocalFunctionInfos(
+            MemberDeclarationSyntax memberDeclaration,
+            StringTable stringTable,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            CancellationToken cancellationToken)
+        {
+            AddLocalFunctionInfosRecurse(memberDeclaration, stringTable, declaredSymbolInfos, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+        }
+
+        private void AddLocalFunctionInfosRecurse(
+            SyntaxNode node,
+            StringTable stringTable,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                    AddLocalFunctionInfosRecurse(child.AsNode()!, stringTable, declaredSymbolInfos, containerDisplayName, fullyQualifiedContainerName, cancellationToken);
+            }
+
+            if (node is LocalFunctionStatementSyntax localFunction)
+            {
+                declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                    stringTable,
+                    localFunction.Identifier.ValueText, GetMethodSuffix(localFunction),
+                    containerDisplayName,
+                    fullyQualifiedContainerName,
+                    isPartial: false,
+                    DeclaredSymbolInfoKind.Method,
+                    Accessibility.Private,
+                    localFunction.Identifier.Span,
+                    inheritanceNames: ImmutableArray<string>.Empty,
+                    parameterCount: localFunction.ParameterList.Parameters.Count,
+                    typeParameterCount: localFunction.TypeParameterList?.Parameters.Count ?? 0));
+            }
+        }
+
         protected override void AddDeclaredSymbolInfos(
             SyntaxNode container,
             MemberDeclarationSyntax node,
@@ -443,6 +500,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 : GetSuffix('(', ')', constructor.ParameterList.Parameters);
 
         private static string GetMethodSuffix(MethodDeclarationSyntax method)
+            => GetTypeParameterSuffix(method.TypeParameterList) +
+               GetSuffix('(', ')', method.ParameterList.Parameters);
+
+        private static string GetMethodSuffix(LocalFunctionStatementSyntax method)
             => GetTypeParameterSuffix(method.TypeParameterList) +
                GetSuffix('(', ')', method.ParameterList.Parameters);
 
