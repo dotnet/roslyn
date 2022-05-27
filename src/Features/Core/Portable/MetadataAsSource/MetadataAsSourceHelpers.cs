@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -150,11 +151,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 if (parts is not [.., "packs", var packName, var packVersion, "ref", _, var dllFileName])
                     return false;
 
-                var basePath = referencedDllPath.Substring(0, referencedDllPath.IndexOf("packs"));
-
                 // We try to get the shared sdk name from the FrameworkList.xml file, in the data dir
                 // eg. C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\6.0.5\data\FrameworkList.xml
-                var frameworkXml = Path.Combine(basePath, "packs", packName, packVersion, "data", "FrameworkList.xml");
+                var frameworkXml = Path.Combine(referencedDllPath, "..", "..", "..", "data", "FrameworkList.xml");
 
                 var sdkName = IOUtilities.PerformIO(() =>
                 {
@@ -169,6 +168,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
                 // If it exists, the implementation dll will be in the shared sdk folder for this pack
                 // eg. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.5\Foo.dll
+                // But first we go up six levels to get to the common root. The pattern match above
+                // ensures this will be valid.
+                var basePath = Path.Combine(parts.Take(parts.Length - 6).ToArray());
                 var dllPath = Path.Combine(basePath, "shared", sdkName, packVersion, dllFileName);
 
                 if (IOUtilities.PerformIO(() => File.Exists(dllPath)))
