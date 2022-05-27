@@ -1297,6 +1297,11 @@
         <target state="translated">ソリューション エクスプローラーで [未使用の参照を削除する] コマンドを表示する (試験段階)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">入力候補一覧の表示</target>
