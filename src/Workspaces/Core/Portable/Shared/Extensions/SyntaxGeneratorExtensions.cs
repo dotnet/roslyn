@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ? false
                 : (modifiers.IsRequired || overriddenProperty.IsRequired));
 
-
             // Only generate a getter if the base getter is accessible.
             IMethodSymbol? accessorGet = null;
             if (overriddenProperty.GetMethod != null && overriddenProperty.GetMethod.IsAccessibleWithin(containingType))
