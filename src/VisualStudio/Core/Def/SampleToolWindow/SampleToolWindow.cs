@@ -6,6 +6,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Windows.Controls;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 
@@ -26,7 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices
             Content = SampleUserControl;
         }
 
-        internal void InitializeIfNeeded()
+
+        internal void InitializeIfNeeded(Workspace workspace, IDocumentTrackingService service)
         {
             if (_initialized)
             {
@@ -34,6 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             // Do any initialization logic here
+            SampleUserControl.InitializeIfNeeded(workspace, service);
             _initialized = true;
         }
     }

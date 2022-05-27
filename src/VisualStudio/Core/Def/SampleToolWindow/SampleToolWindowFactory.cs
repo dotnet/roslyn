@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Setup;
@@ -27,6 +28,8 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(SampleToolWindowFactory))]
     internal class SampleToolWindowFactory : IWpfTextViewCreationListener
     {
+        private readonly VisualStudioWorkspace _workspace;
+
         [MemberNotNullWhen(true, nameof(Package))]
         private bool Initialized { get; set; }
 
@@ -37,8 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SampleToolWindowFactory(IThreadingContext threadingContext)
+        public SampleToolWindowFactory(
+            VisualStudioWorkspace workspace,
+            IThreadingContext threadingContext)
         {
+            _workspace = workspace;
             ThreadingContext = threadingContext;
         }
 
@@ -58,11 +64,11 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public async Task ShowSampleToolWindowAsync(CancellationToken cancellationToken)
         {
-            if (FirstPass)
+            /*if (FirstPass)
             {
                 FirstPass = false;
                 return;
-            }
+            }*/
 
             if (!Initialized)
             {
@@ -87,7 +93,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                     throw new NotSupportedException("Cannot create tool window");
                 }
 
-                window.InitializeIfNeeded();
+                var service = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
+
+                window.InitializeIfNeeded(_workspace, service);
 
                 return window;
             }
