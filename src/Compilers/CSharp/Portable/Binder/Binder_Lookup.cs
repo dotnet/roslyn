@@ -1310,7 +1310,7 @@ symIsHidden:;
         {
             while (symbol is not null and not SourceMemberContainerTypeSymbol { IsFile: true })
             {
-                symbol = symbol.ContainingSymbol;
+                symbol = symbol.ContainingType;
             }
 
             if (symbol is null)

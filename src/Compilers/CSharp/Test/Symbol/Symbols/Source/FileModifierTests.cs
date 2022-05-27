@@ -1616,8 +1616,60 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var compilation = CompileAndVerify(source, expectedOutput: "1");
-        compilation.VerifyDiagnostics();
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UsingStatic_02()
+    {
+        var source1 = """
+            using System;
+            using static C.D;
+
+            M();
+
+            file class C
+            {
+                public class D
+                {
+                    public static void M() { Console.Write(1); }
+                }
+            }
+            """;
+
+        var source2 = """
+            using System;
+
+            class C
+            {
+                public class D
+                {
+                    public static void M() { Console.Write(2); }
+                }
+            }
+            """;
+
+        // var verifier = CompileAndVerify(new[] { source1, source2 }, expectedOutput: "1");
+        // verifier.VerifyDiagnostics();
+        // var comp = (CSharpCompilation)verifier.Compilation;
+
+        // PROTOTYPE(ft): replace the following with the above commented lines once name mangling is done
+        var comp = CreateCompilation(new[] { source1, source2 });
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var members = comp.GetMembers("C");
+        Assert.Equal(2, members.Length);
+        var expectedMember = ((NamedTypeSymbol)members[0]).GetMember<MethodSymbol>("D.M");
+
+        var invocation = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+        var symbolInfo = model.GetSymbolInfo(invocation.Expression);
+        Assert.Equal(expectedMember.GetPublicSymbol(), symbolInfo.Symbol);
+        Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
     }
 
     [Fact]
