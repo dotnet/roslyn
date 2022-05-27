@@ -232,6 +232,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                     innerContainerDisplayName,
                     innerFullyQualifiedContainerName,
                     cancellationToken);
+
+                AddDeclaredSymbolInfos(
+                    container,
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    containerDisplayName,
+                    fullyQualifiedContainerName,
+                    cancellationToken);
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {
@@ -243,6 +252,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
+
+                AddDeclaredSymbolInfos(
+                    container,
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    containerDisplayName,
+                    fullyQualifiedContainerName,
+                    cancellationToken);
             }
             else
             {
