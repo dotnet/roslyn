@@ -1297,6 +1297,11 @@
         <target state="translated">Mostrar o comando "Remover as Referências Não Usadas" no Gerenciador de Soluções (experimental)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
+        <source>Show compiler errors and warnings for:</source>
+        <target state="new">Show compiler errors and warnings for:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostrar a lista de conclusão</target>

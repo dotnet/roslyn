@@ -119,7 +119,6 @@ csharp_style_prefer_switch_expression = true
 
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true
-csharp_style_prefer_parameter_null_checking = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true
@@ -357,7 +356,6 @@ csharp_style_prefer_switch_expression = true
 
 # Null-checking preferences
 csharp_style_conditional_delegate_call = true
-csharp_style_prefer_parameter_null_checking = true
 
 # Modifier preferences
 csharp_prefer_static_local_function = true

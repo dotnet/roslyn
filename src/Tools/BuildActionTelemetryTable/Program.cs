@@ -287,7 +287,6 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword.CSharpTransposeRecordKeywordCodeFixProvider", "Fix record declaration" },
             { "Microsoft.CodeAnalysis.CSharp.ConvertToRawString.ConvertRegularStringToRawStringCodeRefactoringProvider", "Convert to raw string" },
             { "Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression.CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider", "Remove Unnecessary Lambda Expression" },
-            { "Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking.CSharpUseParameterNullCheckingCodeFixProvider", "Use Parameter Null Checking" },
             { "Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices.AbstractJsonDetectionCodeFixProvider", "Enable all JSON editor features" },
         }.ToImmutableDictionary();
 

@@ -621,7 +621,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.StackAllocToPointerType:
                 case ConversionKind.StackAllocToSpanType:
                 case ConversionKind.InterpolatedStringHandler:
-                case ConversionKind.ImplicitUtf8StringLiteral:
 
                 // Not "standard".
                 case ConversionKind.ImplicitUserDefined:

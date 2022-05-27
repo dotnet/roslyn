@@ -178,9 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 //   csharp_style_conditional_delegate_call
                 new DiagnosticSet(CSharpFeaturesResources.Apply_conditional_delegate_call_preferences,
                     IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId),
-                //   csharp_style_prefer_parameter_null_checking
-                new DiagnosticSet(CSharpFeaturesResources.Apply_parameter_null_preferences,
-                    IDEDiagnosticIds.UseParameterNullCheckingId),
 
                 // Modifier preferences
                 //   csharp_prefer_static_local_function
