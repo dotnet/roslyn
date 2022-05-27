@@ -990,8 +990,6 @@ public class FileModifierTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "M2").WithArguments("C", "D").WithLocation(8, 15));
     }
 
-    // PROTOTYPE(ft): report error on indexer parameters
-    // ensure that all cases where 'BadVis' errors are reported also check for 'file' mismatch
     [Fact]
     public void SignatureUsage_03()
     {
@@ -1386,9 +1384,9 @@ public class FileModifierTests : CSharpTestBase
 
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (2,19): error CS9302: File type 'Interface' cannot be used as a base type of non-file type 'Derived'.
-            // partial interface Derived : Interface { } // 1
-            Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived").WithArguments("Interface", "Derived").WithLocation(2, 19));
+            // (3,19): error CS9302: File type 'I1' cannot be used as a base type of non-file type 'Derived'.
+            // partial interface Derived : I1 { } // 1
+            Diagnostic(ErrorCode.ERR_FileTypeBase, "Derived").WithArguments("I1", "Derived").WithLocation(3, 19));
     }
 
     [Fact]
