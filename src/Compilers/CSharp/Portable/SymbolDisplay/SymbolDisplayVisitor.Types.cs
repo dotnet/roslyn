@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tree = symbol.DeclaringSyntaxReferences[0].SyntaxTree;
                 var fileDescription = tree.FilePath is { Length: not 0 } path
                     ? Path.GetFileNameWithoutExtension(path)
-                    : $"<file {fileType.DeclaringCompilation.SyntaxTrees.IndexOf(tree)}>";
+                    : $"<tree {fileType.DeclaringCompilation.SyntaxTrees.IndexOf(tree)}>";
 
                 builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
                 builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
