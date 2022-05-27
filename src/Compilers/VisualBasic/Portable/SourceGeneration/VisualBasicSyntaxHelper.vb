@@ -50,6 +50,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(node, AttributeListSyntax).Attributes
         End Function
 
+        Public Overrides Function IsLambdaExpression(node As SyntaxNode) As Boolean
+            Return TypeOf node Is LambdaExpressionSyntax
+        End Function
+
         Public Overrides Function GetUnqualifiedIdentifierOfName(node As SyntaxNode) As SyntaxToken
             Dim name = DirectCast(node, NameSyntax)
 

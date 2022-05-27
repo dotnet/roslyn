@@ -96,6 +96,7 @@ public partial struct IncrementalGeneratorInitializationContext
             .Combine(this.CompilationProvider)
             .WithTrackingName("compilationAndGroupedNodes_ForAttributeWithMetadataName");
 
+        var syntaxHelper = this.SyntaxHelper;
         var finalProvider = compilationAndGroupedNodesProvider.SelectMany((tuple, cancellationToken) =>
         {
             var (grouping, compilation) = tuple;
@@ -110,9 +111,11 @@ public partial struct IncrementalGeneratorInitializationContext
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var symbol = node is ICompilationUnitSyntax compilationUnit
-                        ? semanticModel.Compilation.Assembly
-                        : semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                    var symbol =
+                        node is ICompilationUnitSyntax compilationUnit ? semanticModel.Compilation.Assembly :
+                        syntaxHelper.IsLambdaExpression(node) ? semanticModel.GetSymbolInfo(node, cancellationToken).Symbol :
+                        semanticModel.GetDeclaredSymbol(node, cancellationToken);
+
                     var attributes = getMatchingAttributes(node, symbol, fullyQualifiedMetadataName);
                     if (attributes.Length > 0)
                     {

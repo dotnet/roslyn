@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
         bool IsAttribute(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
+        bool IsLambdaExpression(SyntaxNode node);
+
         SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node);
 
         /// <summary>
@@ -48,6 +50,8 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget);
         public abstract SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
+
+        public abstract bool IsLambdaExpression(SyntaxNode node);
 
         public abstract void AddAliases(SyntaxNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);

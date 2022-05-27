@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)
             => ((AttributeListSyntax)node).Attributes;
 
+        public override bool IsLambdaExpression(SyntaxNode node)
+            => node is LambdaExpressionSyntax;
+
         public override SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode node)
             => ((NameSyntax)node).GetUnqualifiedName().Identifier;
 
