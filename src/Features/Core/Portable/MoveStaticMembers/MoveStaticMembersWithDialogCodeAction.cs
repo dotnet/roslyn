@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.MoveStaticMembers
                 Accessibility.NotApplicable,
                 DeclarationModifiers.Static,
                 GetNewTypeKind(_selectedType),
-                moveOptions.TypeName,
+                moveOptions.TypeName!,
                 typeParameters: typeParameters);
 
             var (newDoc, annotation) = await ExtractTypeHelpers.AddTypeToNewFileAsync(

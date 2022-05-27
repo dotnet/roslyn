@@ -202,11 +202,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
-            SetDestinationName(viewModel, "ITestInterface")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
-
             SetDestinationName(viewModel, "NoNsClass")
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
@@ -217,11 +212,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
-
-            SetDestinationName(viewModel, "TestClass")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
 
             SetDestinationName(viewModel, "ExtraNamespace.ValidName")
             Assert.True(viewModel.CanSubmit)
@@ -544,10 +534,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
             Assert.True(viewModel.CanSubmit)
 
-            SetDestinationName(viewModel, "ConflictingClassName")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
+            SetDestinationName(viewModel, "TestNs.ConflictingClassName")
+            Assert.True(viewModel.CanSubmit)
+            Assert.False(viewModel.ShowMessage)
 
             SetDestinationName(viewModel, "ValidName")
             Assert.True(viewModel.ShowMessage)
@@ -565,11 +554,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
-            SetDestinationName(viewModel, "ITestInterface")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
-
             SetDestinationName(viewModel, "NoNsClass")
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
@@ -581,20 +565,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
 
-            SetDestinationName(viewModel, "TestClass")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
-
             SetDestinationName(viewModel, "ExtraNamespace.ValidName")
             Assert.True(viewModel.CanSubmit)
             Assert.True(viewModel.ShowMessage)
             Assert.Equal(ServicesVSResources.New_Type_Name_colon, viewModel.Message)
-
-            SetDestinationName(viewModel, "ExtraNs.ConflictingNsClassName")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -632,10 +606,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             Assert.False(viewModel.MemberSelectionViewModel.CheckedMembers.IsEmpty)
             Assert.True(viewModel.CanSubmit)
 
-            SetDestinationName(viewModel, "ConflictingClassName")
-            Assert.False(viewModel.CanSubmit)
-            Assert.True(viewModel.ShowMessage)
-            Assert.Equal(ServicesVSResources.Invalid_type_name, viewModel.Message)
+            SetDestinationName(viewModel, "RootNs.TestNs.ConflictingClassName")
+            Assert.True(viewModel.CanSubmit)
+            Assert.False(viewModel.ShowMessage)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)>
@@ -787,7 +760,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             ' b) in the same or nested namespace
             ' c) in the same project
             Assert.Equal(2, viewModel.AvailableTypes.Length)
-            Assert.Equal(0, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
+            Assert.Equal(1, viewModel.MemberSelectionViewModel.CheckedMembers.Length)
 
             ' We can't really test searchtext or selected index behavior because it is
             ' handled by the combobox, and doesn't update in the same way
