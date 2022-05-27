@@ -10353,15 +10353,17 @@ class C { }
             Assert.Equal("System.String", symbol.ToTestDisplayString());
         }
 
-        [Fact]
-        public void XmlDoc_Cref_Member()
+        [Theory]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        public void XmlDoc_Cref_Member(string fieldName)
         {
-            var src = """
-/// <summary>Summary <see cref="nint"/>.</summary>
+            var src = $$"""
+/// <summary>Summary <see cref="{{fieldName}}"/>.</summary>
 public class C
 {
     /// <summary></summary>
-    public int nint;
+    public int {{fieldName}};
 }
 """;
 
@@ -10371,12 +10373,11 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
             var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
-            Assert.Equal("nint", cref.ToString());
+            Assert.Equal(fieldName, cref.ToString());
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
-            Assert.True(symbol.IsNativeIntegerType);
-            Assert.Equal("nint", symbol.ToTestDisplayString());
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal($"System.Int32 C.{fieldName}", symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -10402,6 +10403,31 @@ public class C
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
             Assert.Equal("System.Int32 C.nint", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Member_NintZero()
+        {
+            var src = """
+/// <summary>Summary <see cref="nint.Zero"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int nint;
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint.Zero", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal("nint nint.Zero", symbol.ToTestDisplayString());
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)
