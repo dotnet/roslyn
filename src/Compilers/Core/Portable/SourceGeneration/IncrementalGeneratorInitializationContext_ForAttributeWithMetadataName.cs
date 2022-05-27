@@ -61,9 +61,12 @@ public partial struct IncrementalGeneratorInitializationContext
     /// cref="System.CLSCompliantAttribute"/>.
     /// </summary>
     /// <param name="predicate">A function that determines if the given <see cref="SyntaxNode"/> attribute target (<see
-    /// cref="GeneratorAttributeSyntaxContext.AttributeTarget"/>) should be transformed</param>
-    /// <param name="transform">A function that performs the transform, when <paramref name="predicate"/>returns
-    /// <c>true</c> for a given node</param>
+    /// cref="GeneratorAttributeSyntaxContext.AttributeTarget"/>) should be transformed.  Nodes that do not pass this
+    /// predicate will not have their attributes looked at at all.</param>
+    /// <param name="transform">A function that performs the transform. This will only be passed nodes that return <see
+    /// langword="true"/> for <paramref name="predicate"/> and which have a matchin <see cref="AttributeData"/> whose
+    /// <see cref="AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
+    /// name="fullyQualifiedMetadataName"/>.</param>
     internal IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
         string fullyQualifiedMetadataName,
         Func<SyntaxNode, CancellationToken, bool> predicate,
