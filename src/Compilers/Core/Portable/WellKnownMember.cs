@@ -442,6 +442,7 @@ namespace Microsoft.CodeAnalysis
 
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
+        System_ReadOnlySpan_T__ctor_Array_Start_Length,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 
