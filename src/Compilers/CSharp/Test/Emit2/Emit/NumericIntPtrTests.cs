@@ -10413,7 +10413,7 @@ public class C
             validate("nuint", "NUintMaxValue", ">>> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
             validate("nuint", "NUintMaxValue", ">>> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
 
-            // lifted value (sampler)
+            // lifted value
             validate("nint?", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(0, "nint?", "shr"));
             validate("nint?", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr"));
             validate("nint?", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr"));
@@ -10428,7 +10428,7 @@ public class C
             validate("nint?", "NIntNegativeValue", ">>> 65", "0x6000_0000", "0x6000_0000_0000_0000", liftedValue(65, "nint?", "shr.un"));
             validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
 
-            // lifted count (sampler)
+            // lifted count
             compileAndVerify("""
 class C
 {
@@ -10468,7 +10468,7 @@ class C
 }
 ");
 
-            // lifted value and lifted count (sampler)
+            // lifted value and lifted count
             compileAndVerify("""
 class C
 {
@@ -10730,6 +10730,38 @@ class C
                 var verifier = CompileAndVerify(comp, expectedOutput: "RAN");
                 verifier.VerifyIL("C.M", expectedIL);
             }
+        }
+
+        [Fact]
+        public void MaskShiftCount_NegativeCount()
+        {
+            var source = """
+System.Console.WriteLine(C.ShiftRight(255));
+
+static class C
+{
+    public static nint ShiftRight(nint x) => x >> (-62);
+}
+""";
+            var comp = CreateNumericIntPtrCompilation(source, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "63");
+            verifier.VerifyIL("C.ShiftRight", @"
+{
+  // Code size       16 (0x10)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   -62
+  IL_0003:  sizeof     ""nint""
+  IL_0009:  ldc.i4.8
+  IL_000a:  mul
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  and
+  IL_000e:  shr
+  IL_000f:  ret
+}
+");
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

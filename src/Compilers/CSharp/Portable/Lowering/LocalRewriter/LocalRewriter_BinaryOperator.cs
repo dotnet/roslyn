@@ -2106,8 +2106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For the predefined operators, the number of bits to shift in `x << count`, `x >> count` or `x >>> count` is computed as follows:
             // [...]
             // - When the type of `x` is `nint` or `nuint`, the shift count is given by
-            //   the low-order five bits of `count` on a 32 bits platform, or
-            //   the lower-order six bits of `count` on a 64 bits platform.
+            //   the low-order five bits of `count` on a 32 bit platform, or
+            //   the lower-order six bits of `count` on a 64 bit platform.
             //   The shift count is computed as `count & (sizeof(nint) * 8 - 1)` or `count & (sizeof(nuint) * 8 - 1)`,
             //   which is `count & 0x1F` on a 32 bits platform and `count & 0x3F` on a 64 bits platform.
 
@@ -2125,7 +2125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rightConstantValue != null
                 && rightConstantValue.Discriminator == ConstantValueTypeDiscriminator.Int32
-                && rightConstantValue.Int32Value <= 0x1F)
+                && rightConstantValue.Int32Value is >= 0 and <= 0x1F)
             {
                 // For cases where count is small enough, we don't need any masking.
                 int shiftAmount = rightConstantValue.Int32Value;

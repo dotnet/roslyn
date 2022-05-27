@@ -14910,7 +14910,7 @@ public class C
             validate("nuint", "NUintMaxValue", ">>> 63", "0x0000_0001", "0x0000_0000_0000_0001", nuint_shr_un(63));
             validate("nuint", "NUintMaxValue", ">>> 64", "0xFFFF_FFFF", "0xFFFF_FFFF_FFFF_FFFF", nuint_shr_un(64));
 
-            // lifted value (sampler)
+            // lifted value
             validate("nint?", "NIntMaxValue", ">> 0", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(0, "nint?", "shr"));
             validate("nint?", "NIntMaxValue", ">> 1", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(1, "nint?", "shr"));
             validate("nint?", "NIntMaxValue", ">> 65", "0x3FFF_FFFF", "0x3FFF_FFFF_FFFF_FFFF", liftedValue(65, "nint?", "shr"));
@@ -14925,7 +14925,7 @@ public class C
             validate("nint?", "NIntNegativeValue", ">>> 65", "0x6000_0000", "0x6000_0000_0000_0000", liftedValue(65, "nint?", "shr.un"));
             validate("nuint?", "NUintMaxValue", ">>> 65", "0x7FFF_FFFF", "0x7FFF_FFFF_FFFF_FFFF", liftedValue(65, "nuint?", "shr.un"));
 
-            // lifted count (sampler)
+            // lifted count
             CompileAndVerify("""
 class C
 {
@@ -14965,7 +14965,7 @@ class C
 }
 ");
 
-            // lifted value and lifted count (sampler)
+            // lifted value and lifted count
             CompileAndVerify("""
 class C
 {
