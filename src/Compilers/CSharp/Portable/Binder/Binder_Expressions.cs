@@ -5925,7 +5925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckFeatureAvailability(node, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
 
             var value = (string)node.Token.Value;
-            var type = ArrayTypeSymbol.CreateSZArray(Compilation.Assembly, TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Byte, diagnostics, node)));
+            var type = GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, node).Construct(GetSpecialType(SpecialType.System_Byte, diagnostics, node));
 
             return new BoundUTF8String(node, value, type);
         }

@@ -776,16 +776,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public override BoundNode VisitUTF8String(BoundUTF8String node)
-        {
-            if (_inExpressionLambda)
-            {
-                Error(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, node);
-            }
-
-            return null;
-        }
-
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
         {
             if (node.Argument.Kind != BoundKind.MethodGroup)
