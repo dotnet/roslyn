@@ -66,7 +66,7 @@ namespace Metalama.Compiler
             {
                 return;
             }
-
+            
             TrackTreeReplacement(oldTree, newTree);
 
             this.TransformedTrees.Add(new SyntaxTreeTransformation(newTree, oldTree));
@@ -92,6 +92,11 @@ namespace Metalama.Compiler
 
                 if (transformation.OldTree != null)
                 {
+                    if (!this.Compilation.ContainsSyntaxTree(transformation.OldTree))
+                    {
+                        throw new InvalidOperationException($"The original compilation does not contain the syntax tree '{transformation.OldTree.FilePath}'.");
+                    }
+                    
                     TrackTreeReplacement(transformation.OldTree, transformation.NewTree);
                 }
                 this.TransformedTrees.Add(transformation);

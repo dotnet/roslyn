@@ -3960,3 +3960,18 @@ virtual Microsoft.CodeAnalysis.Text.SourceText.Write(System.IO.TextWriter! write
 virtual Microsoft.CodeAnalysis.Text.TextLineCollection.GetLineFromPosition(int position) -> Microsoft.CodeAnalysis.Text.TextLine
 virtual Microsoft.CodeAnalysis.Text.TextLineCollection.GetLinePosition(int position) -> Microsoft.CodeAnalysis.Text.LinePosition
 virtual Microsoft.CodeAnalysis.XmlFileResolver.FileExists(string? resolvedPath) -> bool
+Metalama.Compiler.TransformerContext
+Metalama.Compiler.TransformerContext.AddResources(params Metalama.Compiler.ManagedResource![]! resources) -> void
+Metalama.Compiler.TransformerContext.AddResources(System.Collections.Generic.IEnumerable<Metalama.Compiler.ManagedResource!>! resources) -> void
+Metalama.Compiler.TransformerContext.AddSyntaxTrees(params Microsoft.CodeAnalysis.SyntaxTree![]! syntaxTrees) -> void
+Metalama.Compiler.TransformerContext.AddSyntaxTrees(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTree!>! syntaxTrees) -> void
+Metalama.Compiler.TransformerContext.AddSyntaxTreeTransformations(System.Collections.Generic.IEnumerable<Metalama.Compiler.SyntaxTreeTransformation>! transformations) -> void
+Metalama.Compiler.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation!
+Metalama.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions!
+Metalama.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol! assemblySymbol) -> System.Reflection.Assembly!
+Metalama.Compiler.TransformerContext.Plugins.get -> System.Collections.Immutable.ImmutableArray<object!>
+Metalama.Compiler.TransformerContext.RegisterDiagnosticFilter(Microsoft.CodeAnalysis.SuppressionDescriptor! descriptor, System.Action<Metalama.Compiler.DiagnosticFilteringRequest!>! filter) -> void
+Metalama.Compiler.TransformerContext.ReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree! oldTree, Microsoft.CodeAnalysis.SyntaxTree! newTree) -> void
+Metalama.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
+Metalama.Compiler.TransformerContext.Resources.get -> System.Collections.Immutable.ImmutableArray<Metalama.Compiler.ManagedResource!>
+Metalama.Compiler.TransformerContext.Services.get -> System.IServiceProvider!
