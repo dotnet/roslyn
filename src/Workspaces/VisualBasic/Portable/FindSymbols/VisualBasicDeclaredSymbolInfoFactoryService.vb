@@ -23,6 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             NamespaceBlockSyntax,
             TypeBlockSyntax,
             EnumBlockSyntax,
+            MethodStatementSyntax,
             StatementSyntax,
             NameSyntax,
             QualifiedNameSyntax,
@@ -130,13 +131,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             ' Nothing to do in VB.
         End Sub
 
-        Protected Overrides Sub AddDeclaredSymbolInfosWorker(
+        Protected Overrides Sub AddExtensionMethodInfo(
+                method As MethodStatementSyntax,
+                declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
+                aliases As Dictionary(Of String, String),
+                extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)))
+
+            If method.IsKind(SyntaxKind.FunctionStatement, SyntaxKind.SubStatement) Then
+                If IsExtensionMethod(method) Then
+                    AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
+                End If
+            End If
+        End Sub
+
+        Protected Overrides Sub AddDeclaredSymbolInfos(
                 container As SyntaxNode,
                 node As StatementSyntax,
                 stringTable As StringTable,
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
-                aliases As Dictionary(Of String, String),
-                extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)),
                 containerDisplayName As String,
                 fullyQualifiedContainerName As String,
                 cancellationToken As CancellationToken)
@@ -271,9 +283,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                         ImmutableArray(Of String).Empty,
                         parameterCount:=If(funcDecl.ParameterList?.Parameters.Count, 0),
                         typeParameterCount:=If(funcDecl.TypeParameterList?.Parameters.Count, 0)))
-                    If isExtension Then
-                        AddExtensionMethodInfo(funcDecl, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
-                    End If
 
                     Return
                 Case SyntaxKind.PropertyStatement

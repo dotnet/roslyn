@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         TNamespaceDeclarationSyntax,
         TTypeDeclarationSyntax,
         TEnumDeclarationSyntax,
+        TMethodDeclarationSyntax,
         TMemberDeclarationSyntax,
         TNameSyntax,
         TQualifiedNameSyntax,
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         where TNamespaceDeclarationSyntax : TMemberDeclarationSyntax
         where TTypeDeclarationSyntax : TMemberDeclarationSyntax
         where TEnumDeclarationSyntax : TMemberDeclarationSyntax
+        where TMethodDeclarationSyntax : TMemberDeclarationSyntax
         where TMemberDeclarationSyntax : SyntaxNode
         where TNameSyntax : SyntaxNode
         where TQualifiedNameSyntax : TNameSyntax
@@ -62,8 +64,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetContainerDisplayName(TMemberDeclarationSyntax namespaceDeclaration);
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
-        protected abstract void AddDeclaredSymbolInfosWorker(
-            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+        protected abstract void AddDeclaredSymbolInfos(
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+        protected abstract void AddExtensionMethodInfo(
+            TMethodDeclarationSyntax methodDeclaration, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo);
         protected abstract void AddSynthesizedDeclaredSymbolInfos(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
 
@@ -229,17 +233,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
             }
+            else
+            {
+                AddDeclaredSymbolInfos(
+                    container,
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    containerDisplayName,
+                    fullyQualifiedContainerName,
+                    cancellationToken);
 
-            AddDeclaredSymbolInfosWorker(
-                container,
-                memberDeclaration,
-                stringTable,
-                declaredSymbolInfos,
-                aliases,
-                extensionMethodInfo,
-                containerDisplayName,
-                fullyQualifiedContainerName,
-                cancellationToken);
+                if (memberDeclaration is TMethodDeclarationSyntax methodDeclaration)
+                {
+                    AddExtensionMethodInfo(
+                        methodDeclaration,
+                        declaredSymbolInfos,
+                        aliases,
+                        extensionMethodInfo);
+                }
+            }
 
             return;
 

@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         BaseNamespaceDeclarationSyntax,
         TypeDeclarationSyntax,
         EnumDeclarationSyntax,
+        MethodDeclarationSyntax,
         MemberDeclarationSyntax,
         NameSyntax,
         QualifiedNameSyntax,
@@ -157,13 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        protected override void AddDeclaredSymbolInfosWorker(
+        protected override void AddExtensionMethodInfo(
+            MethodDeclarationSyntax methodDeclaration,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            Dictionary<string, string> aliases,
+            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo)
+        {
+            if (IsExtensionMethod(methodDeclaration))
+                AddExtensionMethodInfo(methodDeclaration, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
+        }
+
+        protected override void AddDeclaredSymbolInfos(
             SyntaxNode container,
             MemberDeclarationSyntax node,
             StringTable stringTable,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string> aliases,
-            Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             string containerDisplayName,
             string fullyQualifiedContainerName,
             CancellationToken cancellationToken)
@@ -306,8 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: method.ParameterList?.Parameters.Count ?? 0,
                         typeParameterCount: method.TypeParameterList?.Parameters.Count ?? 0));
-                    if (isExtensionMethod)
-                        AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo);
                     return;
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
