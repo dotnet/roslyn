@@ -250,19 +250,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub GenerateMoveNext(moveNextMethod As MethodSymbol)
-            Dim rewriter = New AsyncMethodToClassRewriter(method:=Me.Method,
-                                                          F:=Me.F,
-                                                          state:=Me.StateField,
-                                                          builder:=Me._builderField,
-                                                          hoistedVariables:=Me.hoistedVariables,
-                                                          nonReusableLocalProxies:=Me.nonReusableLocalProxies,
-                                                          synthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
-                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
-                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
-                                                          owner:=Me,
-                                                          diagnostics:=Diagnostics)
+            Dim rewriter = New AsyncMethodToClassRewriter(
+                method:=Method,
+                F:=F,
+                state:=StateField,
+                builder:=_builderField,
+                hoistedVariables:=hoistedVariables,
+                nonReusableLocalProxies:=nonReusableLocalProxies,
+                slotAllocatorOpt:=SlotAllocatorOpt,
+                owner:=Me,
+                diagnostics:=Diagnostics)
 
-            rewriter.GenerateMoveNext(Me.Body, moveNextMethod)
+            rewriter.GenerateMoveNext(Body, moveNextMethod)
         End Sub
 
         Friend Overrides Function RewriteBodyIfNeeded(body As BoundStatement, topMethod As MethodSymbol, currentMethod As MethodSymbol) As BoundStatement
