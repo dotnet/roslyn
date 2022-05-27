@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private Function GetArgumentAndLocation(nodeOpt As AttributeSyntax, value As Integer) As (Argument As String, Location As Location)
+        Private Shared Function GetArgumentAndLocation(nodeOpt As AttributeSyntax, value As Integer) As (Argument As String, Location As Location)
             If nodeOpt IsNot Nothing Then
                 If nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0 Then
                     Dim arg = nodeOpt.ArgumentList.Arguments(0)
@@ -436,18 +436,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Case ClassInterfaceType.None, Cci.Constants.ClassInterfaceType_AutoDispatch, Cci.Constants.ClassInterfaceType_AutoDual
                     Exit Select
                 Case Else
-                    diagnostics.Add(ERRID.ERR_BadAttribute1,
-                    If(nodeOpt IsNot Nothing, If(nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0, nodeOpt.ArgumentList.Arguments(0).GetLocation(), nodeOpt.GetLocation()), NoLocation.Singleton),
-                    Me.AttributeClass)
+                    Dim location = GetArgumentAndLocation(nodeOpt).Location
+                    diagnostics.Add(ERRID.ERR_BadAttribute1, location, Me.AttributeClass)
             End Select
         End Sub
 
         Friend Sub DecodeInterfaceTypeAttribute(node As AttributeSyntax, diagnostics As BindingDiagnosticBag)
             Dim discarded As ComInterfaceType = Nothing
             If Not DecodeInterfaceTypeAttribute(discarded) Then
-                diagnostics.Add(ERRID.ERR_BadAttribute1,
-                                If(node IsNot Nothing, If(node.ArgumentList IsNot Nothing AndAlso node.ArgumentList.Arguments.Count > 0, node.ArgumentList.Arguments(0).GetLocation(), node.GetLocation()), NoLocation.Singleton),
-                                Me.AttributeClass)
+                Dim location = GetArgumentAndLocation(nodeOpt).Location
+                diagnostics.Add(ERRID.ERR_BadAttribute1, location, Me.AttributeClass)
             End If
         End Sub
 
@@ -488,9 +486,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Native compiler allows only a specific GUID format: "D" format (32 digits separated by hyphens)
             Dim guidVal As Guid
             If Not Guid.TryParseExact(guidString, "D", guidVal) Then
-                diagnostics.Add(ERRID.ERR_BadAttributeUuid2,
-                                If(nodeOpt IsNot Nothing, If(nodeOpt.ArgumentList IsNot Nothing AndAlso nodeOpt.ArgumentList.Arguments.Count > 0, nodeOpt.ArgumentList.Arguments(0).GetLocation(), nodeOpt.GetLocation()), NoLocation.Singleton),
-                                Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
+                Dim location = GetArgumentAndLocation(nodeOpt).Location
+                diagnostics.Add(ERRID.ERR_BadAttributeUuid2, location, Me.AttributeClass, If(guidString, ObjectDisplay.NullLiteral))
             End If
         End Sub
 
