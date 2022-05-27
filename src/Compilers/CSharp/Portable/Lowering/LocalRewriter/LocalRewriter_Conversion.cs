@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
 
             int length;
-            BoundExpression utf8Bytes = createUTF8ByteRepresentation(node.Syntax, node.Syntax, node.Value, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType)), out length);
+            BoundExpression utf8Bytes = createUTF8ByteRepresentation(node.Syntax, node.Value, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, TypeWithAnnotations.Create(byteType)), out length);
             BoundNode result;
 
             if (!TryGetWellKnownTypeMember<MethodSymbol>(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length, out MethodSymbol ctor))
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
 
-            BoundExpression createUTF8ByteRepresentation(SyntaxNode resultSyntax, SyntaxNode valueSyntax, string value, ArrayTypeSymbol byteArray, out int length)
+            BoundExpression createUTF8ByteRepresentation(SyntaxNode syntax, string value, ArrayTypeSymbol byteArray, out int length)
             {
                 Debug.Assert(byteArray.IsSZArray);
                 Debug.Assert(byteArray.ElementType.SpecialType == SpecialType.System_Byte);
@@ -115,11 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _diagnostics.Add(
                         ErrorCode.ERR_CannotBeConvertedToUTF8,
-                        valueSyntax.Location,
+                        syntax.Location,
                         ex.Message);
 
                     length = 0;
-                    return BadExpression(resultSyntax, byteArray, ImmutableArray<BoundExpression>.Empty);
+                    return BadExpression(syntax, byteArray, ImmutableArray<BoundExpression>.Empty);
                 }
 
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(bytes.Length);
@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(_factory.Literal((byte)0));
 
                 var utf8Bytes = new BoundArrayCreation(
-                                        resultSyntax,
+                                        syntax,
                                         ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
-                                        new BoundArrayInitialization(resultSyntax, isInferred: false, builder.ToImmutableAndFree()),
+                                        new BoundArrayInitialization(syntax, isInferred: false, builder.ToImmutableAndFree()),
                                         byteArray);
                 return utf8Bytes;
             }
