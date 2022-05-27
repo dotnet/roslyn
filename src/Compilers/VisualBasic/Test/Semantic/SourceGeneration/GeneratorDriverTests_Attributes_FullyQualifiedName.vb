@@ -268,6 +268,36 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub FindMethodStatementAttribute2()
+            Dim source = "
+Imports System
+
+MustInherit Class C
+    <CLSCompliant(true)>
+    Public MustOverride Sub M()
+End Class
+"
+            Dim parseOptions = TestOptions.RegularLatest
+            Dim compilation As Compilation = CreateCompilation(source, options:=TestOptions.DebugDll, parseOptions:=parseOptions)
+
+            Assert.Single(compilation.SyntaxTrees)
+
+            Dim generator = New IncrementalGeneratorWrapper(New PipelineCallbackGenerator(Sub(ctx)
+                                                                                              Dim input = ctx.ForAttributeWithMetadataName(Of MethodStatementSyntax)("System.CLSCompliantAttribute")
+                                                                                              ctx.RegisterSourceOutput(input, Sub(spc, node)
+                                                                                                                              End Sub)
+                                                                                          End Sub))
+
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            driver = driver.RunGenerators(compilation)
+            Dim runResult = driver.GetRunResult().Results(0)
+            Console.WriteLine(runResult)
+
+            Assert.Collection(runResult.TrackedSteps("result_ForAttributeWithMetadataName"),
+                Sub(_step) Assert.True(DirectCast(_step.Outputs.Single().Value, MethodStatementSyntax).Identifier.ValueText = "M"))
+        End Sub
+
+        <Fact>
         Public Sub FindFieldAttribute1()
             Dim source = "
 Imports System
