@@ -23,10 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFacts.IsValidIdentifier(name)
         End Function
 
-        Public Overrides Function IsCompilationUnit(node As SyntaxNode) As Boolean
-            Return TypeOf node Is CompilationUnitSyntax
-        End Function
-
         Public Overrides Function IsAnyNamespaceBlock(node As SyntaxNode) As Boolean
             Return TypeOf node Is NamespaceBlockSyntax
         End Function

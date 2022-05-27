@@ -24,9 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override bool IsValidIdentifier(string name)
             => SyntaxFacts.IsValidIdentifier(name);
 
-        public override bool IsCompilationUnit(SyntaxNode node)
-            => node is CompilationUnitSyntax;
-
         public override bool IsAnyNamespaceBlock(SyntaxNode node)
             => node is BaseNamespaceDeclarationSyntax;
 

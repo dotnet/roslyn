@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         bool IsValidIdentifier(string name);
 
-        bool IsCompilationUnit(SyntaxNode node);
         bool IsAnyNamespaceBlock(SyntaxNode node);
 
         bool IsAttributeList(SyntaxNode node, [NotNullWhen(true)] out SyntaxNode? attributeTarget);
@@ -42,7 +41,6 @@ namespace Microsoft.CodeAnalysis.SourceGeneration
 
         public abstract SyntaxToken GetUnqualifiedIdentifierOfName(SyntaxNode name);
 
-        public abstract bool IsCompilationUnit(SyntaxNode node);
         public abstract bool IsAnyNamespaceBlock(SyntaxNode node);
 
         public abstract bool IsAttribute(SyntaxNode node);

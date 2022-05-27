@@ -101,7 +101,7 @@ public partial struct IncrementalGeneratorInitializationContext
             ISyntaxHelper syntaxHelper,
             SyntaxNode compilationUnit)
         {
-            Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
+            Debug.Assert(compilationUnit is ICompilationUnitSyntax);
             var globalAliases = Aliases.GetInstance();
 
             syntaxHelper.AddAliases(compilationUnit, globalAliases, global: true);
@@ -118,7 +118,7 @@ public partial struct IncrementalGeneratorInitializationContext
         Func<SyntaxNode, CancellationToken, bool> predicate,
         CancellationToken cancellationToken)
     {
-        Debug.Assert(syntaxHelper.IsCompilationUnit(compilationUnit));
+        Debug.Assert(compilationUnit is ICompilationUnitSyntax);
 
         var isCaseSensitive = syntaxHelper.IsCaseSensitive;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
@@ -151,7 +151,7 @@ public partial struct IncrementalGeneratorInitializationContext
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (syntaxHelper.IsCompilationUnit(node))
+            if (node is ICompilationUnitSyntax)
             {
                 syntaxHelper.AddAliases(node, localAliases, global: false);
 
