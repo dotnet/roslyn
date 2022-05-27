@@ -4506,4 +4506,26 @@ public class Derived : Base
             }
         }
     }
+
+    [Theory]
+    [CombinatorialData]
+    public void PublicAPITests(bool isRequired)
+    {
+        var requiredText = isRequired ? "required" : "";
+        var comp = CreateCompilationWithRequiredMembers($$"""
+            public class C
+            {
+                public {{requiredText}} int Field;
+                public {{requiredText}} int Property { get; set; }
+            }
+            """);
+
+        var c = comp.GlobalNamespace.GetTypeMember("C");
+
+        var field = c.GetField("Field").GetPublicSymbol();
+        Assert.Equal(isRequired, field.IsRequired);
+
+        var property = c.GetProperty("Property").GetPublicSymbol();
+        Assert.Equal(isRequired, property.IsRequired);
+    }
 }
