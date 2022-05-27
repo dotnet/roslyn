@@ -10405,6 +10405,26 @@ public class C
             Assert.Equal("System.Int32 C.nint", symbol.ToTestDisplayString());
         }
 
+        [Theory]
+        [InlineData("@nint")]
+        [InlineData("@nuint")]
+        public void XmlDoc_Cref_Escaped(string type)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{type}}"/>.</summary>
+public class C
+{
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (1,33): warning CS1574: XML comment has cref attribute 'type' that could not be resolved
+                // /// <summary>Summary <see cref="type"/>.</summary>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, type).WithArguments(type).WithLocation(1, 33)
+                );
+        }
+
         [Fact]
         public void XmlDoc_Cref_Member_NintZero()
         {
