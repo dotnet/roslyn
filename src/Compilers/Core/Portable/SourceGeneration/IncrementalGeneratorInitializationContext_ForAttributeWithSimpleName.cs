@@ -44,8 +44,6 @@ public partial struct IncrementalGeneratorInitializationContext
         Func<SyntaxNode, CancellationToken, bool> predicate)
     {
         var syntaxHelper = this.SyntaxHelper;
-        if (!syntaxHelper.IsValidIdentifier(simpleName))
-            throw new ArgumentException("<todo: add error message>", nameof(simpleName));
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = this.SyntaxProvider.CreateSyntaxProvider(
