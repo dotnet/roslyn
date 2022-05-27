@@ -32,5 +32,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.EmbeddedLanguages
 
         /// <inheritdoc cref="VirtualCharSequence.CreateString"/>
         public string CreateString() => _virtualCharSequence.CreateString();
+
+        /// <inheritdoc cref="VirtualCharSequence.IsDefault"/>
+        public bool IsDefault => _virtualCharSequence.IsDefault;
     }
 }

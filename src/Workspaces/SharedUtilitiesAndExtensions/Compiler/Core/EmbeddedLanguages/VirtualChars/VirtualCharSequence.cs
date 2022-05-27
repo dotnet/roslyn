@@ -73,6 +73,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public VirtualChar this[int index] => _leafCharacters[_span.Start + index];
 
+        /// <summary>
+        /// Gets a value indicating whether the <see cref="VirtualCharSequence"/> was declared but not initialized.
+        /// </summary>
         public bool IsDefault => _leafCharacters == null;
         public bool IsEmpty => Length == 0;
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
