@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public bool IsEmpty => Length == 0;
         public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
+        /// <summary>
+        /// Retreives a sub-sequence from this <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public VirtualCharSequence GetSubSequence(TextSpan span)
            => new(_leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
 
@@ -172,6 +175,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return this.GetSubSequence(TextSpan.FromBounds(start, this.Length));
         }
 
+        /// <summary>
+        /// Create a <see cref="string"/> from the <see cref="VirtualCharSequence"/>.
+        /// </summary>
         public string CreateString()
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);
