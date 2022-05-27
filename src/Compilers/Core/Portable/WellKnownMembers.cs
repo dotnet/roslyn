@@ -3048,6 +3048,16 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                      (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
+                 // System_ReadOnlySpan_T__ctor_Array_Start_Length
+                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
+                 0,                                                                                                                                             // Arity
+                     3,                                                                                                                                         // Method Signature
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.GenericTypeParameter, 0,
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
                  // System_ReadOnlySpan_T__get_Item
                  (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
@@ -3994,6 +4004,7 @@ namespace Microsoft.CodeAnalysis
                 "get_Length",                               // System_Span_T__get_Length
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Pointer
                 ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array
+                ".ctor",                                    // System_ReadOnlySpan_T__ctor_Array_Start_Length
                 "get_Item",                                 // System_ReadOnlySpan_T__get_Item
                 "get_Length",                               // System_ReadOnlySpan_T__get_Length
                 ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
