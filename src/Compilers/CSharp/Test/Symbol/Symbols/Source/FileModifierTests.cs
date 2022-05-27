@@ -1633,7 +1633,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
     }
 
@@ -1653,7 +1653,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+        var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
     }
 
@@ -1680,7 +1680,7 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify(new[] { source, IsExternalInitTypeDefinition }, expectedOutput: "1");
+        var verifier = CompileAndVerify(source, expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -1690,7 +1690,7 @@ public class FileModifierTests : CSharpTestBase
         var source1 = """
             using System;
 
-            class Outer
+            namespace NS
             {
                 file class C
                 {
@@ -1707,16 +1707,48 @@ public class FileModifierTests : CSharpTestBase
             {
                 static void Main()
                 {
-                    Outer.C.M(); // 1
+                    NS.C.M(); // 1
                 }
             }
             """;
 
         var comp = CreateCompilation(new[] { source1, source2 });
         comp.VerifyDiagnostics(
-            // (5,15): error CS0117: 'Outer' does not contain a definition for 'C'
+            // (5,9): error CS0234: The type or namespace name 'C' does not exist in the namespace 'NS' (are you missing an assembly reference?)
+            //         NS.C.M(); // 1
+            Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "NS.C").WithArguments("C", "NS").WithLocation(5, 9));
+    }
+
+    [Fact]
+    public void AccessThroughType_01()
+    {
+        var source = """
+            using System;
+
+            class Outer
+            {
+                file class C
+                {
+                    public static void M() => Console.Write(1);
+                }
+            }
+
+            class Program
+            {
+                public static void Main()
+                {
+                    Outer.C.M(); // 1
+                }
+            }
+            """;
+
+        // note: there's no way to make 'file class C' internal here. it's forced to be private, at least for the initial release of the feature.
+        // we access it within the same containing type in test 'Duplication_10'.
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (15,15): error CS0122: 'Outer.C' is inaccessible due to its protection level
             //         Outer.C.M(); // 1
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "C").WithArguments("Outer", "C").WithLocation(5, 15));
+            Diagnostic(ErrorCode.ERR_BadAccess, "C").WithArguments("Outer.C").WithLocation(15, 15));
     }
 
     [Fact]
@@ -1810,6 +1842,8 @@ public class FileModifierTests : CSharpTestBase
             }
             """;
 
+        // note: 'Usings' is a legacy setting which only works in scripts.
+        // https://github.com/dotnet/roslyn/issues/61502
         var compilation = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, options: TestOptions.DebugExe.WithUsings("NS"));
         compilation.VerifyDiagnostics(
             // (15,9): error CS0103: The name 'C' does not exist in the current context
