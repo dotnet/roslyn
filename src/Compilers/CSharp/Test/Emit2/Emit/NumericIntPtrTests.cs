@@ -10361,7 +10361,7 @@ class C { }
 public class C
 {
     /// <summary></summary>
-    public int @nint;
+    public int nint;
 }
 """;
 
@@ -10377,6 +10377,31 @@ public class C
             var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
             Assert.True(symbol.IsNativeIntegerType);
             Assert.Equal("nint", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Member_Escaped()
+        {
+            var src = """
+/// <summary>Summary <see cref="@nint"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int nint;
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("@nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal("System.Int32 C.nint", symbol.ToTestDisplayString());
         }
 
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)

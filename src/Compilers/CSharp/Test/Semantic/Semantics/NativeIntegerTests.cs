@@ -14890,7 +14890,7 @@ class C { }
 public class C
 {
     /// <summary></summary>
-    public int @nint;
+    public int nint;
 }
 """;
 
