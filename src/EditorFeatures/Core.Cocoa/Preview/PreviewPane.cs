@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var titlePlaceholder = new NSStackView()
             {
                 Orientation = NSUserInterfaceLayoutOrientation.Vertical,
-                EdgeInsets = new NSEdgeInsets(5, 0, 5, 0),
+                EdgeInsets = new NSEdgeInsets(new(5), new(0), new(5), new(0)),
                 Alignment = NSLayoutAttribute.Leading,
                 TranslatesAutoresizingMaskIntoConstraints = false
             };
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             // === Preview View ===
             // This is the actual view, that shows the diff
             view.TranslatesAutoresizingMaskIntoConstraints = false;
-            NSLayoutConstraint.Create(view, NSLayoutAttribute.Width, NSLayoutRelation.GreaterThanOrEqual, 1, originalSize.Width).Active = true;
-            NSLayoutConstraint.Create(view, NSLayoutAttribute.Height, NSLayoutRelation.GreaterThanOrEqual, 1, originalSize.Height).Active = true;
+            NSLayoutConstraint.Create(view, NSLayoutAttribute.Width, NSLayoutRelation.GreaterThanOrEqual, new(1), originalSize.Width).Active = true;
+            NSLayoutConstraint.Create(view, NSLayoutAttribute.Height, NSLayoutRelation.GreaterThanOrEqual, new(1), originalSize.Height).Active = true;
             view.Subviews[0].TranslatesAutoresizingMaskIntoConstraints = false;
             view.WantsLayer = true;
 
@@ -62,20 +62,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var constraints = new NSLayoutConstraint[]
             {
                 // Title
-                NSLayoutConstraint.Create(titlePlaceholder, NSLayoutAttribute.Top, NSLayoutRelation.Equal, this, NSLayoutAttribute.Top, 1, 0),
-                NSLayoutConstraint.Create(titlePlaceholder, NSLayoutAttribute.Leading, NSLayoutRelation.Equal, this, NSLayoutAttribute.Leading, 1, 0),
-                NSLayoutConstraint.Create(titlePlaceholder, NSLayoutAttribute.Trailing, NSLayoutRelation.Equal, this, NSLayoutAttribute.Trailing, 1, 0),
+                NSLayoutConstraint.Create(titlePlaceholder, NSLayoutAttribute.Top, NSLayoutRelation.Equal, this, NSLayoutAttribute.Top, new(1), new(0)),
+                NSLayoutConstraint.Create(titlePlaceholder, NSLayoutAttribute.Leading, NSLayoutRelation.Equal, this, NSLayoutAttribute.Leading, new(1), new(0)),
+                NSLayoutConstraint.Create(titlePlaceholder, NSLayoutAttribute.Trailing, NSLayoutRelation.Equal, this, NSLayoutAttribute.Trailing, new(1), new(0)),
 
                 // Preview View
-                NSLayoutConstraint.Create(view, NSLayoutAttribute.Bottom, NSLayoutRelation.Equal, this, NSLayoutAttribute.Bottom, 1, 0),
-                NSLayoutConstraint.Create(view, NSLayoutAttribute.Leading, NSLayoutRelation.Equal, this, NSLayoutAttribute.Leading, 1, 0),
-                NSLayoutConstraint.Create(view, NSLayoutAttribute.Trailing, NSLayoutRelation.Equal, this, NSLayoutAttribute.Trailing, 1, 0),
+                NSLayoutConstraint.Create(view, NSLayoutAttribute.Bottom, NSLayoutRelation.Equal, this, NSLayoutAttribute.Bottom, new(1), new(0)),
+                NSLayoutConstraint.Create(view, NSLayoutAttribute.Leading, NSLayoutRelation.Equal, this, NSLayoutAttribute.Leading, new(1), new(0)),
+                NSLayoutConstraint.Create(view, NSLayoutAttribute.Trailing, NSLayoutRelation.Equal, this, NSLayoutAttribute.Trailing, new(1), new(0)),
 
                 // subviews
-                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Top, NSLayoutRelation.Equal, view, NSLayoutAttribute.Top, 1, 0),
-                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Bottom, NSLayoutRelation.Equal, view, NSLayoutAttribute.Bottom, 1, 0),
-                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Left, NSLayoutRelation.Equal, view, NSLayoutAttribute.Left, 1, 0),
-                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Right, NSLayoutRelation.Equal, view, NSLayoutAttribute.Right, 1, 0),
+                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Top, NSLayoutRelation.Equal, view, NSLayoutAttribute.Top, new(1), new(0)),
+                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Bottom, NSLayoutRelation.Equal, view, NSLayoutAttribute.Bottom, new(1), new(0)),
+                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Left, NSLayoutRelation.Equal, view, NSLayoutAttribute.Left, new(1), new(0)),
+                NSLayoutConstraint.Create(view.Subviews[0], NSLayoutAttribute.Right, NSLayoutRelation.Equal, view, NSLayoutAttribute.Right, new(1), new(0)),
             };
 
             if (GenerateAttributeString(id, title, helpLink, helpLinkToolTipText) is NSAttributedString attributedStringTitle)
@@ -83,11 +83,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 this.titleField.AttributedStringValue = attributedStringTitle;
                 // We do this separately, because the title sometimes isn't there (i.e. no diagnostics ID)
                 // and we want the preview to stretch to the top
-                NSLayoutConstraint.Create(view, NSLayoutAttribute.Top, NSLayoutRelation.Equal, titlePlaceholder, NSLayoutAttribute.Bottom, 1, 0).Active = true;
+                NSLayoutConstraint.Create(view, NSLayoutAttribute.Top, NSLayoutRelation.Equal, titlePlaceholder, NSLayoutAttribute.Bottom, new(1), new(0)).Active = true;
             }
             else
             {
-                NSLayoutConstraint.Create(view, NSLayoutAttribute.Top, NSLayoutRelation.Equal, this, NSLayoutAttribute.Top, 1, 0).Active = true;
+                NSLayoutConstraint.Create(view, NSLayoutAttribute.Top, NSLayoutRelation.Equal, this, NSLayoutAttribute.Top, new(1), new(0)).Active = true;
             }
 
             NSLayoutConstraint.ActivateConstraints(constraints);
