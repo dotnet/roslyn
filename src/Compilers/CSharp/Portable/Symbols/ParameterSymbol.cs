@@ -415,21 +415,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
-        protected sealed override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
 
-        public sealed override bool HasUnsupportedMetadata
+        public override bool HasUnsupportedMetadata
         {
             get
             {
                 UseSiteInfo<AssemblySymbol> info = default;
                 DeriveUseSiteInfoFromParameter(ref info, this);
-                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
+                return info.DiagnosticInfo?.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 
