@@ -7088,6 +7088,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsUTF8StringLiterals" xml:space="preserve">
     <value>An expression tree may not contain UTF8 string conversion or literal.</value>
   </data>
+  <data name="ERR_FileTypeDisallowedInSignature" xml:space="preserve">
+    <value>File type '{0}' cannot be used in a member signature in non-file type '{1}'.</value>
+  </data>
+  <data name="ERR_FileTypeNoExplicitAccessibility" xml:space="preserve">
+    <value>File type '{0}' cannot use accessibility modifiers.</value>
+  </data>
+  <data name="ERR_FileTypeBase" xml:space="preserve">
+    <value>File type '{0}' cannot be used as a base type of non-file type '{1}'.</value>
+  </data>
   <data name="IDS_FeatureUnsignedRightShift" xml:space="preserve">
     <value>unsigned right shift</value>
   </data>

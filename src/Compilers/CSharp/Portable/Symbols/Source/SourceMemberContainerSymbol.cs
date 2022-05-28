@@ -394,6 +394,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 result |= defaultAccess;
             }
+            else if ((result & DeclarationModifiers.File) != 0)
+            {
+                diagnostics.Add(ErrorCode.ERR_FileTypeNoExplicitAccessibility, Locations[0], this);
+            }
 
             if (missingPartial)
             {
@@ -775,6 +779,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsPartial => HasFlag(DeclarationModifiers.Partial);
 
         internal bool IsNew => HasFlag(DeclarationModifiers.New);
+
+        internal bool IsFile => HasFlag(DeclarationModifiers.File);
+
+        /// <summary>If this symbol is only available within a single syntax tree, returns that syntax tree. Otherwise, returns null.</summary>
+        internal SyntaxTree? AssociatedSyntaxTree => IsFile ? declaration.Declarations[0].Location.SourceTree : null;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool HasFlag(DeclarationModifiers flag) => (_declModifiers & flag) != 0;
@@ -1219,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> MakeTypeMembers(BindingDiagnosticBag diagnostics)
         {
             var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var conflictDict = new Dictionary<(string, int), SourceNamedTypeSymbol>();
+            var conflictDict = new Dictionary<(string name, int arity, SyntaxTree? syntaxTree), SourceNamedTypeSymbol>();
             try
             {
                 foreach (var childDeclaration in declaration.Children)
@@ -1227,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var t = new SourceNamedTypeSymbol(this, childDeclaration, diagnostics);
                     this.CheckMemberNameDistinctFromType(t, diagnostics);
 
-                    var key = (t.Name, t.Arity);
+                    var key = (t.Name, t.Arity, t.AssociatedSyntaxTree);
                     SourceNamedTypeSymbol? other;
                     if (conflictDict.TryGetValue(key, out other))
                     {

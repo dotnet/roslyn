@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -179,6 +180,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitNamedTypeWithoutNullability(symbol);
             AddNullableAnnotations(symbol);
+
+            if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes) != 0
+                // PROTOTYPE(ft): public API?
+                && symbol.GetSymbol() is SourceMemberContainerTypeSymbol { IsFile: true } fileType)
+            {
+                var tree = symbol.DeclaringSyntaxReferences[0].SyntaxTree;
+                var fileDescription = tree.FilePath is { Length: not 0 } path
+                    ? Path.GetFileNameWithoutExtension(path)
+                    : $"<tree {fileType.DeclaringCompilation.SyntaxTrees.IndexOf(tree)}>";
+
+                builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "@"));
+                builder.Add(CreatePart(SymbolDisplayPartKind.ModuleName, symbol, fileDescription));
+            }
         }
 
         private void VisitNamedTypeWithoutNullability(INamedTypeSymbol symbol)

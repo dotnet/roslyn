@@ -1355,6 +1355,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type is SourceNamedTypeSymbol { IsPartial: true };
         }
 
+        public static bool IsFileTypeOrUsesFileTypes(this TypeSymbol type)
+        {
+            var foundType = type.VisitType(predicate: (type, _, _) => type is SourceMemberContainerTypeSymbol { IsFile: true }, arg: (object?)null);
+            return foundType is not null;
+        }
+
         public static bool IsPointerType(this TypeSymbol type)
         {
             return type is PointerTypeSymbol;
