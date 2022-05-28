@@ -481,7 +481,6 @@ public class C
             });
         }
 
-
         [Fact]
         public async Task Net6SdkLayout_PacksInPath()
         {
@@ -543,6 +542,64 @@ public class C
                 // Compile reference assembly
                 var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
                 var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.E"), buildReferenceAssembly: true);
+
+                // Compile implementation assembly to a different DLL
+                var dllFilePath = Path.Combine(sharedDir, "implementation.dll");
+                var sourceCodePath = Path.Combine(sharedDir, "implementation.cs");
+                var pdbFilePath = Path.Combine(sharedDir, "implementation.pdb");
+                var assemblyName = "implementation";
+
+                var workspace = TestWorkspace.Create(@$"
+<Workspace>
+    <Project Language=""{LanguageNames.CSharp}"" CommonReferences=""true"" ReferencesOnDisk=""true"">
+    </Project>
+</Workspace>", composition: GetTestComposition());
+
+                var implProject = workspace.CurrentSolution.Projects.First();
+                CompileTestSource(dllFilePath, sourceCodePath, pdbFilePath, assemblyName, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Compile type forwarding implementation DLL
+                implProject = implProject.AddMetadataReference(MetadataReference.CreateFromFile(dllFilePath));
+                sourceText = SourceText.From(typeForwardSource, Encoding.UTF8);
+                CompileTestSource(sharedDir, sourceText, implProject, Location.Embedded, Location.Embedded, buildReferenceAssembly: false, windowsPdb: false);
+
+                // Create FrameworkList.xml
+                File.WriteAllText(Path.Combine(dataDir, "FrameworkList.xml"), """
+                    <FileList FrameworkName="MyPack">
+                    </FileList>
+                    """);
+
+                await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, metadataSource.ToString(), expectedSpan, expectNullResult: false);
+            });
+        }
+
+        [Fact]
+        public async Task Net6SdkLayout_NestedTypeForward()
+        {
+            var source = @"
+public class C
+{
+    public class D
+    {
+        // A change
+        public event System.EventHandler [|E|] { add { } remove { } }
+    }
+}";
+            var typeForwardSource = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+";
+
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var packDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "ref", "net6.0")).FullName;
+                var dataDir = Directory.CreateDirectory(Path.Combine(path, "packs", "MyPack.Ref", "1.0", "data")).FullName;
+                var sharedDir = Directory.CreateDirectory(Path.Combine(path, "shared", "MyPack", "1.0")).FullName;
+
+                // Compile reference assembly
+                var sourceText = SourceText.From(metadataSource, encoding: Encoding.UTF8);
+                var (project, symbol) = await CompileAndFindSymbolAsync(packDir, Location.Embedded, Location.Embedded, sourceText, c => c.GetMember("C.D.E"), buildReferenceAssembly: true);
 
                 // Compile implementation assembly to a different DLL
                 var dllFilePath = Path.Combine(sharedDir, "implementation.dll");

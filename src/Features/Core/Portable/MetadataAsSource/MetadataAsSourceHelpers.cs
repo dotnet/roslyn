@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 // eg. C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.5\Foo.dll
                 // But first we go up six levels to get to the common root. The pattern match above
                 // ensures this will be valid.
-                var basePath = Path.Combine(parts.Take(parts.Length - 6).ToArray());
+                var basePath = Path.Combine(referencedDllPath, "..", "..", "..", "..", "..", "..");
                 var dllPath = Path.Combine(basePath, "shared", sdkName, packVersion, dllFileName);
 
                 if (IOUtilities.PerformIO(() => File.Exists(dllPath)))
@@ -202,53 +202,38 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         }
 
         /// <summary>
-        /// Resolves the entity handle for the symbol to find, and the dll path from which to load
-        /// that handle, following any type forwards from the original symbol
+        /// Given an implementation assembly path, follows any type forwards that might be in place
+        /// for the containing type of <paramref name="symbol"/>, to ensure the right implementation
+        /// assembly will be found.
         /// </summary>
-        public static EntityHandle? FindEntityHandle(ISymbol symbol, string dllPath, IPdbSourceDocumentLogger? logger, out string resolvedDllPath)
+        public static string? FollowTypeForwards(ISymbol symbol, string dllPath, IPdbSourceDocumentLogger? logger)
         {
-            resolvedDllPath = dllPath;
-
-            // We have an implementation assembly, but it might not be the right one. We need to follow any type forwards
-            // that there might be, to find the handle for symbol in the DLL specified by dllPath. Normally we could
-            // use symbol.MetadataToken to get the token, but that token could come from a reference assembly, so could
-            // be different. We need to load the DLL, and find the containing type, in order to find the entity handle
-            // for the symbol we want to find.
-            var containingTypeSymbol = symbol is INamedTypeSymbol typeSymbol ? typeSymbol : symbol.ContainingType;
-
             // If we find any type forwards we'll assume they're in the same directory
             var basePath = Path.GetDirectoryName(dllPath);
             if (basePath is null)
-                return null;
+                return dllPath;
+
+            // Only the top most containing type in the ExportedType table actually points to an assembly
+            // so no point looking for nested types.
+            var typeSymbol = GetTopLevelContainingNamedType(symbol);
 
             try
             {
-                while (File.Exists(resolvedDllPath))
+                while (File.Exists(dllPath))
                 {
-                    using var fileStream = File.OpenRead(resolvedDllPath);
+                    using var fileStream = File.OpenRead(dllPath);
                     using var reader = new PEReader(fileStream);
                     var md = reader.GetMetadataReader();
 
-                    // First, see if this type is exported to a different assembly
-                    var assemblyName = GetExportedTypeAssemblyName(md, containingTypeSymbol);
-                    if (assemblyName is not null)
+                    var assemblyName = GetExportedTypeAssemblyName(md, typeSymbol);
+                    if (assemblyName is null)
                     {
-                        resolvedDllPath = Path.Combine(basePath, $"{assemblyName}.dll");
-                        logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, resolvedDllPath);
-                        continue;
+                        // Didn't find a type forward, so the current DLL is the right one to use
+                        return dllPath;
                     }
 
-                    // The type should be in this assembly, so lets find its handle
-                    var typeDefinition = GetTypeDefinition(md, containingTypeSymbol, out var typeDefHandle);
-                    if (typeDefinition is null)
-                        return null;
-
-                    // If we're looking for a type, we're already here
-                    if (symbol.Kind == SymbolKind.NamedType)
-                        return typeDefHandle;
-
-                    // Now we have the type, lets find the actual symbol
-                    return FindEntityHandle(md, typeDefinition.Value, symbol);
+                    dllPath = Path.Combine(basePath, $"{assemblyName}.dll");
+                    logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
                 }
             }
             catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
@@ -270,80 +255,14 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     md.StringComparer.Equals(et.Namespace, typeSymbol.ContainingNamespace.MetadataName))
                 {
                     var handle = et.Implementation;
-                    // For nested types, the exported type references another exported type, so keep looking up
-                    // until we get something else
-                    while (handle.Kind == HandleKind.ExportedType)
+                    if (handle.Kind == HandleKind.AssemblyReference)
                     {
-                        handle = md.GetExportedType((ExportedTypeHandle)handle).Implementation;
+                        var ar = md.GetAssemblyReference((AssemblyReferenceHandle)handle);
+                        return md.GetString(ar.Name);
                     }
 
-                    Debug.Assert(handle.Kind == HandleKind.AssemblyReference);
-
-                    var ar = md.GetAssemblyReference((AssemblyReferenceHandle)handle);
-                    return md.GetString(ar.Name);
+                    break;
                 }
-            }
-
-            return null;
-        }
-
-        private static TypeDefinition? GetTypeDefinition(MetadataReader md, INamedTypeSymbol typeSymbol, out TypeDefinitionHandle typeDefinitionHandle)
-        {
-            foreach (var tdh in md.TypeDefinitions)
-            {
-                var td = md.GetTypeDefinition(tdh);
-                if (md.StringComparer.Equals(td.Name, typeSymbol.MetadataName) &&
-                    md.StringComparer.Equals(td.Namespace, typeSymbol.ContainingNamespace.MetadataName))
-                {
-                    typeDefinitionHandle = tdh;
-                    return td;
-                }
-            }
-
-            typeDefinitionHandle = default;
-            return null;
-        }
-
-        private static EntityHandle? FindEntityHandle(MetadataReader md, TypeDefinition typeDefinition, ISymbol symbol)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.Method:
-                    foreach (var mdh in typeDefinition.GetMethods())
-                    {
-                        var methodDef = md.GetMethodDefinition(mdh);
-                        if (md.StringComparer.Equals(methodDef.Name, symbol.MetadataName))
-                            return mdh;
-                    }
-
-                    break;
-                case SymbolKind.Event:
-                    foreach (var eh in typeDefinition.GetEvents())
-                    {
-                        var e = md.GetEventDefinition(eh);
-                        if (md.StringComparer.Equals(e.Name, symbol.MetadataName))
-                            return eh;
-                    }
-
-                    break;
-                case SymbolKind.Field:
-                    foreach (var fh in typeDefinition.GetFields())
-                    {
-                        var f = md.GetFieldDefinition(fh);
-                        if (md.StringComparer.Equals(f.Name, symbol.MetadataName))
-                            return fh;
-                    }
-
-                    break;
-                case SymbolKind.Property:
-                    foreach (var ph in typeDefinition.GetProperties())
-                    {
-                        var p = md.GetPropertyDefinition(ph);
-                        if (md.StringComparer.Equals(p.Name, symbol.MetadataName))
-                            return ph;
-                    }
-
-                    break;
             }
 
             return null;

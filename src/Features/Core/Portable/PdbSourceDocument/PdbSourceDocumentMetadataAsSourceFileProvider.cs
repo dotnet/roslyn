@@ -89,15 +89,31 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     _logger?.Log(FeaturesResources.Symbol_found_in_assembly_path_0, dllPath);
 
                     // If the original assembly was a reference assembly, we can't trust that the implementation assembly
-                    // we found actually contains the types, so we need to find it, following any type forwards
-                    var entityHandle = MetadataAsSourceHelpers.FindEntityHandle(symbolToFind, dllPath, _logger, out dllPath);
-                    if (entityHandle is null)
+                    // we found actually contains the types, so we need to find it, following any type forwards.
+                    dllPath = MetadataAsSourceHelpers.FollowTypeForwards(symbolToFind, dllPath, _logger);
+                    if (dllPath is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
                         return null;
                     }
 
-                    handle = entityHandle.Value;
+                    // Now that we have the right DLL, we need to look up the symbol in this DLL, because the one
+                    // we have is from the reference assembly. To do this we create an empty compilation,
+                    // add our DLL as a reference, and use SymbolKey to map the type across.
+                    var compilationFactory = project.LanguageServices.GetRequiredService<ICompilationFactoryService>();
+                    var tmpCompilation = compilationFactory
+                        .CreateCompilation("tmp", compilationFactory.GetDefaultCompilationOptions())
+                        .AddReferences(MetadataReference.CreateFromFile(dllPath));
+
+                    var key = SymbolKey.Create(symbolToFind, cancellationToken);
+                    var newSymbol = key.Resolve(tmpCompilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
+                    if (newSymbol is null)
+                    {
+                        _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
+                        return null;
+                    }
+
+                    handle = MetadataTokens.EntityHandle(newSymbol.MetadataToken);
                 }
                 else
                 {
