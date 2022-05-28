@@ -8,13 +8,31 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeGen;
 
-internal readonly record struct StateMachineStateDebugInfo(int SyntaxOffset, int StateNumber);
-
-internal readonly record struct StateMachineStatesDebugInfo(
-    ImmutableArray<StateMachineStateDebugInfo> States,
-    int? FirstUnusedIncreasingStateMachineState,
-    int? FirstUnusedDecreasingStateMachineState)
+internal readonly struct StateMachineStateDebugInfo
 {
+    public readonly int SyntaxOffset;
+    public readonly int StateNumber;
+
+    public StateMachineStateDebugInfo(int syntaxOffset, int stateNumber)
+    {
+        SyntaxOffset = syntaxOffset;
+        StateNumber = stateNumber;
+    }
+}
+
+internal readonly struct StateMachineStatesDebugInfo
+{
+    public readonly ImmutableArray<StateMachineStateDebugInfo> States;
+    public readonly int? FirstUnusedIncreasingStateMachineState;
+    public readonly int? FirstUnusedDecreasingStateMachineState;
+
+    public StateMachineStatesDebugInfo(ImmutableArray<StateMachineStateDebugInfo> states, int? firstUnusedIncreasingStateMachineState, int? firstUnusedDecreasingStateMachineState)
+    {
+        States = states;
+        FirstUnusedIncreasingStateMachineState = firstUnusedIncreasingStateMachineState;
+        FirstUnusedDecreasingStateMachineState = firstUnusedDecreasingStateMachineState;
+    }
+
     public static StateMachineStatesDebugInfo Create(VariableSlotAllocator? variableSlotAllocator, ImmutableArray<StateMachineStateDebugInfo> stateInfos)
     {
         int? firstUnusedIncreasingStateMachineState = null, firstUnusedDecreasingStateMachineState = null;

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// True if any of the states generated for any previous state machine has not been allocated in this version.
         /// </summary>
         public bool HasMissingStates
-            => _matchedStateCount < (_slotAllocator?.GetFirstUnusedStateMachineState(_increasing) ?? _firstState) - _firstState;
+            => _matchedStateCount < Math.Abs((_slotAllocator?.GetFirstUnusedStateMachineState(_increasing) ?? _firstState) - _firstState);
 
         public BoundStatement? GenerateThrowMissingStateDispatch(SyntheticBoundNodeFactory f, BoundExpression cachedState, string message)
         {

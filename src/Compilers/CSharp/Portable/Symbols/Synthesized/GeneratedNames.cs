@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(finalizeState < -2);
 
-            // It is important that the name is only derived from the iteratorState, so that when 
+            // It is important that the name is only derived from the finalizeState, so that when 
             // editing method during EnC the Finally methods corresponding to matching states have matching names.
             Debug.Assert((char)GeneratedNameKind.IteratorFinallyMethod == 'm');
             return "<>m__Finally" + StringExtensions.GetNumeral(-(finalizeState + 2));
