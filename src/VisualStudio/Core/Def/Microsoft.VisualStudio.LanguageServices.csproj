@@ -139,6 +139,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementation)" />
     <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="$(MicrosoftVisualStudioLiveShareLanguageServicesGuestVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="$(MicrosoftVisualStudioProgressionCodeSchemaVersion)" />
