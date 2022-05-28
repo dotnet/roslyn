@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out NullableWalker.SnapshotManager snapshotManager,
             ref ImmutableDictionary<Symbol, Symbol> remappedSymbols)
         {
-            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol);
+            var afterInitializersState = NullableWalker.GetAfterInitializersState(Compilation, MemberSymbol, boundRoot);
             return NullableWalker.AnalyzeAndRewrite(Compilation, MemberSymbol, boundRoot, binder, afterInitializersState, diagnostics, createSnapshots, out snapshotManager, ref remappedSymbols);
         }
 

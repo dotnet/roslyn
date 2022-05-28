@@ -611,7 +611,10 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_IsExternalInit:
                     case WellKnownType.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler:
+                    case WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute:
+                    case WellKnownType.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute:
                     case WellKnownType.System_MemoryExtensions:
+                    case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -969,9 +972,12 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags:
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
+                    case WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor:
+                    case WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:
+                    case WellKnownMember.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
