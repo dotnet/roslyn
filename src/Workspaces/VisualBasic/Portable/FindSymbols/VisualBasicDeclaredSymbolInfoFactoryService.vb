@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
             NamespaceBlockSyntax,
             TypeBlockSyntax,
             EnumBlockSyntax,
-            MethodStatementSyntax,
+            DeclarationStatementSyntax,
             StatementSyntax,
             NameSyntax,
             QualifiedNameSyntax,
@@ -139,12 +139,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
         End Sub
 
         Protected Overrides Sub AddExtensionMethodInfo(
-                method As MethodStatementSyntax,
+                node As DeclarationStatementSyntax,
                 declaredSymbolInfos As ArrayBuilder(Of DeclaredSymbolInfo),
                 aliases As Dictionary(Of String, String),
                 extensionMethodInfo As Dictionary(Of String, ArrayBuilder(Of Integer)))
 
-            If method.IsKind(SyntaxKind.FunctionStatement, SyntaxKind.SubStatement) Then
+            If TypeOf node Is MethodBlockBaseSyntax Then
+                node = DirectCast(node, MethodBlockBaseSyntax).BlockStatement
+            End If
+
+            If node.IsKind(SyntaxKind.FunctionStatement, SyntaxKind.SubStatement) Then
+                Dim method = DirectCast(node, MethodStatementSyntax)
                 If IsExtensionMethod(method) Then
                     AddExtensionMethodInfo(method, aliases, declaredSymbolInfos.Count - 1, extensionMethodInfo)
                 End If
