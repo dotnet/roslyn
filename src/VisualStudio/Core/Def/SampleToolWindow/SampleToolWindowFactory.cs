@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class SampleToolWindowFactory : IWpfTextViewCreationListener
     {
         private readonly VisualStudioWorkspace _workspace;
+        private readonly ILanguageServiceBroker2 _languageServiceBroker;
 
         [MemberNotNullWhen(true, nameof(Package))]
         private bool Initialized { get; set; }
@@ -44,9 +46,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SampleToolWindowFactory(
             VisualStudioWorkspace workspace,
+            ILanguageServiceBroker2 languageServiceBroker,
             IThreadingContext threadingContext)
         {
             _workspace = workspace;
+            _languageServiceBroker = languageServiceBroker;
             ThreadingContext = threadingContext;
         }
 
@@ -97,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                 var service = _workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-                window.InitializeIfNeeded(_workspace, service);
+                window.InitializeIfNeeded(_workspace, service, _languageServiceBroker);
 
                 return window;
             }
