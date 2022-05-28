@@ -10356,6 +10356,151 @@ public class C
             comp.VerifyDiagnostics();
         }
 
+        [Theory]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        [InlineData("System.IntPtr")]
+        [InlineData("System.UIntPtr")]
+        public void XmlDoc_Cref(string type)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{type}}"/>.</summary>
+class C { }
+""";
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal(type, cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nintSymbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.True(nintSymbol.IsNativeIntegerType);
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Alias()
+        {
+            var src = """
+using @nint = System.String;
+
+/// <summary>Summary <see cref="nint"/>.</summary>
+class C { }
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (INamedTypeSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.False(symbol.IsNativeIntegerType);
+            Assert.Equal("System.String", symbol.ToTestDisplayString());
+        }
+
+        [Theory]
+        [InlineData("nint")]
+        [InlineData("nuint")]
+        public void XmlDoc_Cref_Member(string fieldName)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{fieldName}}"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int {{fieldName}};
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal(fieldName, cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal($"System.Int32 C.{fieldName}", symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Member_Escaped()
+        {
+            var src = """
+/// <summary>Summary <see cref="@nint"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int nint;
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("@nint", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal("System.Int32 C.nint", symbol.ToTestDisplayString());
+        }
+
+        [Theory]
+        [InlineData("@nint")]
+        [InlineData("@nuint")]
+        public void XmlDoc_Cref_Escaped(string type)
+        {
+            var src = $$"""
+/// <summary>Summary <see cref="{{type}}"/>.</summary>
+public class C
+{
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (1,33): warning CS1574: XML comment has cref attribute 'type' that could not be resolved
+                // /// <summary>Summary <see cref="type"/>.</summary>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, type).WithArguments(type).WithLocation(1, 33)
+                );
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_Member_NintZero()
+        {
+            var src = """
+/// <summary>Summary <see cref="nint.Zero"/>.</summary>
+public class C
+{
+    /// <summary></summary>
+    public int nint;
+}
+""";
+
+            var comp = CreateNumericIntPtrCompilation(src, references: new[] { MscorlibRefWithoutSharingCachedSymbols }, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("nint.Zero", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var symbol = (IFieldSymbol)model.GetSymbolInfo(cref).Symbol;
+            Assert.Equal("nint nint.Zero", symbol.ToTestDisplayString());
+        }
+
         private void VerifyNoNativeIntegerAttributeEmitted(CSharpCompilation comp)
         {
             // PEVerify is skipped because it reports "Type load failed" because of the above corlib,
